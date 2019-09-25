@@ -1,0 +1,928 @@
+/*
+ * Copyright (c) 2019 by Vadim Kulakov vad7@yahoo.com, vad711
+ *
+ * This file is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public
+ * License as published by the Free Software Foundation; either
+ * version 3.0 of the License, or (at your option) any later version.
+ *
+ * This file is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.See the
+ * GNU General Public License for more details.
+ */
+// --------------------------------------------------------------------------------
+// Описание базового класса для работы
+// --------------------------------------------------------------------------------
+#include "MainClass.h"
+
+// Установка критической ошибки для класса  вызывает останов 
+// Возвращает ошибку останова 
+int8_t set_Error(int8_t _err, char *nam)
+{
+	if(MC.error != OK) return MC.error;                              // Ошибка уже есть выходим
+	{
+		MC.error = _err;
+		strcpy(MC.source_error, nam);
+		strcpy(MC.note_error, NowTimeToStr());       // Cтереть всю строку и поставить время
+		strcat(MC.note_error, " ");
+		strcat(MC.note_error, nam);                  // Имя кто сгенерировал ошибку
+		strcat(MC.note_error, ": ");
+		strcat(MC.note_error, noteError[abs(_err)]); // Описание ошибки
+		journal.jprintf(pP_TIME, "$ERROR source: %s, code: %d\n", nam, _err); //journal.jprintf(", code: %d\n",_err);
+		if(xTaskGetSchedulerState() == taskSCHEDULER_RUNNING) MC.save_DumpJournal(); // вывод отладочной информации для начала  если запущена freeRTOS
+		MC.message.setMessage(pMESSAGE_ERROR, MC.note_error, 0);    // сформировать уведомление об ошибке
+	}
+
+	return MC.error;
+}
+
+void MainClass::init()
+{
+	uint8_t i;
+	eraseError();
+
+	for(i = 0; i < TNUMBER; i++) sTemp[i].initTemp(i);            // Инициализация датчиков температуры
+
+	//sADC[PGEO].initSensorADC(PGEO, ADC_SENSOR_PGEO, FILTER_SIZE_OTHER);			// Инициализация аналогово датчика PGEO
+
+	for(i = 0; i < INUMBER; i++) sInput[i].initInput(i);           // Инициализация контактных датчиков
+	for(i = 0; i < FNUMBER; i++) sFrequency[i].initFrequency(i);  // Инициализация частотных датчиков
+	for(i = 0; i < RNUMBER; i++) dRelay[i].initRelay(i);           // Инициализация реле
+
+	// Инициалаизация модбаса  перед частотником и счетчиком
+	journal.jprintf("Init Modbus RTU via RS485:");
+	if(Modbus.initModbus() == OK) journal.jprintf(" OK\r\n");                //  выводим сообщение об установлении связи
+	else {
+		journal.jprintf(" not present config\r\n");
+	}         //  нет в конфигурации
+
+	dPWM.initPWM();                                           // инициалаизация счетчика
+	message.initMessage();                                  // Инициализация Уведомлений
+#ifdef MQTT
+	clMQTT.initMQTT();                                      // Инициализация MQTT
+#endif
+	resetSetting();                                          // все переменные
+}
+// Стереть последнюю ошибку
+void MainClass::eraseError()
+{
+	strcpy(note_error, "OK");          // Строка c описанием ошибки
+	strcpy(source_error, "");          // Источник ошибки
+	error = OK;                         // Код ошибки
+}
+
+// Получить число ошибок чтения ВСЕХ датчиков темпеартуры
+uint32_t MainClass::get_errorReadDS18B20()
+{
+	uint32_t sum = 0;
+	for(uint8_t i = 0; i < TNUMBER; i++) sum += sTemp[i].get_sumErrorRead();     // Суммирование ошибок по всем датчикам
+	return sum;
+}
+
+void MainClass::Reset_TempErrors()
+{
+	for(uint8_t i=0; i<TNUMBER; i++) sTemp[i].Reset_Errors();
+}
+
+// возвращает строку с найденными датчиками
+void MainClass::scan_OneWire(char *result_str)
+{
+	if(!OW_scan_flags && OW_prepare_buffers()) {
+		OW_scan_flags = 1; // Идет сканирование
+		char *_result_str = result_str + m_strlen(result_str);
+		OneWireBus.Scan(result_str);
+#ifdef ONEWIRE_DS2482_SECOND
+		OneWireBus2.Scan(result_str);
+#endif
+#ifdef ONEWIRE_DS2482_THIRD
+		OneWireBus3.Scan(result_str);
+#endif
+#ifdef ONEWIRE_DS2482_FOURTH
+		OneWireBus4.Scan(result_str);
+#endif
+		journal.jprintf("OneWire found(%d): ", OW_scanTableIdx);
+		while(strlen(_result_str)) {
+			journal.jprintf(_result_str);
+			uint16_t l = strlen(_result_str);
+			_result_str += l > PRINTF_BUF-1 ? PRINTF_BUF-1 : l;
+		}
+#ifdef RADIO_SENSORS
+		journal.jprintf("\nRadio found(%d): ", radio_received_num);
+		for(uint8_t i = 0; i < radio_received_num; i++) {
+			OW_scanTable[OW_scanTableIdx].num = OW_scanTableIdx + 1;
+			OW_scanTable[OW_scanTableIdx].bus = 7;
+			memset(&OW_scanTable[OW_scanTableIdx].address, 0, sizeof(OW_scanTable[0].address));
+			OW_scanTable[OW_scanTableIdx].address[0] = tRadio;
+			memcpy(&OW_scanTable[OW_scanTableIdx].address[1], &radio_received[i].serial_num, sizeof(radio_received[0].serial_num));
+			char *p = result_str + strlen(result_str);
+			m_snprintf(p, 64, "%d:RADIO %.1fV/%c:%.2f:%u:7;", OW_scanTable[OW_scanTableIdx].num, (float)radio_received[i].battery/10, Radio_RSSI_to_Level(radio_received[i].RSSI), (float)radio_received[i].Temp/100.0, radio_received[i].serial_num);
+			journal.jprintf("%s", p);
+			if(++OW_scanTableIdx >= OW_scanTable_max) break;
+		}
+#endif
+		journal.jprintf("\n");
+		OW_scan_flags = 0;
+	}
+}
+
+// Установить синхронизацию по NTP
+void MainClass::set_updateNTP(boolean b)
+{
+	if (b) SETBIT1(DateTime.flags,fUpdateNTP); else SETBIT0(DateTime.flags,fUpdateNTP);
+}
+
+// Получить флаг возможности синхронизации по NTP
+boolean MainClass::get_updateNTP()
+{
+  return GETBIT(DateTime.flags,fUpdateNTP);
+}
+
+// Получить источник загрузки веб морды
+TYPE_SOURSE_WEB MainClass::get_SourceWeb()
+{
+	if(get_WebStoreOnSPIFlash()) {
+		switch (get_fSPIFlash())
+		{
+		case 0:
+			if(get_fSD() == 2) return pSD_WEB;
+			break;
+		case 2:
+			return pFLASH_WEB;
+		}
+		return pMIN_WEB;
+	} else {
+		switch (get_fSD())
+		{
+		case 0:
+			if(get_fSPIFlash() == 2) return pFLASH_WEB;
+			break;
+		case 2:
+			return pSD_WEB;
+		}
+		return pMIN_WEB;
+	}
+}
+
+// Установить значение текущий режим работы
+void MainClass::set_testMode(TEST_MODE b)
+{
+	int i;
+	for(i = 0; i < TNUMBER; i++) sTemp[i].set_testMode(b);         // датчики температуры
+	for(i = 0; i < ANUMBER; i++) sADC[i].set_testMode(b);          // Датчик давления
+	for(i = 0; i < INUMBER; i++) sInput[i].set_testMode(b);        // Датчики сухой контакт
+	for(i = 0; i < FNUMBER; i++) sFrequency[i].set_testMode(b);    // Частотные датчики
+	for(i = 0; i < RNUMBER; i++) dRelay[i].set_testMode(b);        // Реле
+	testMode = b;
+	// новый режим начинаем без ошибок
+	eraseError();
+}
+
+// -------------------------------------------------------------------------
+// СОХРАНЕНИЕ ВОССТАНОВЛЕНИЕ  ----------------------------------------------
+// -------------------------------------------------------------------------
+// РАБОТА с НАСТРОЙКАМИ  -----------------------------------------------------
+// Записать настройки в память i2c: <size all><Option><DateTime><Network><message><dFC> <TYPE_sTemp><sTemp[TNUMBER]><TYPE_sADC><sADC[ANUMBER]><TYPE_sInput><sInput[INUMBER]>...<0x0000><CRC16>
+// старотвый адрес I2C_SETTING_EEPROM
+// Возвращает ошибку или число записанных байт
+int32_t MainClass::save(void)
+{
+	uint16_t crc = 0xFFFF;
+	uint32_t addr = I2C_SETTING_EEPROM + 2; // +size all
+	uint8_t tasks_suspended = TaskSuspendAll(); // Запрет других задач
+	if(error == ERR_SAVE_EEPROM) error = OK;
+	journal.jprintf(" Save settings ");
+	DateTime.saveTime = rtcSAM3X8.unixtime();   // запомнить время сохранения настроек
+	while(1) {
+		// Сохранить параметры и опции отопления и бойлер, уведомления
+		Option.ver = VER_SAVE;
+		if(save_struct(addr, (uint8_t *) &Option, sizeof(Option), crc)) break;
+		if(save_struct(addr, (uint8_t *) &DateTime, sizeof(DateTime), crc)) break;
+		if(save_struct(addr, (uint8_t *) &Network, sizeof(Network), crc)) break;
+		if(save_struct(addr, message.get_save_addr(), message.get_save_size(), crc)) break;
+		// Сохранение отдельных объектов 
+		if(save_2bytes(addr, SAVE_TYPE_sTemp, crc)) break;
+		for(uint8_t i = 0; i < TNUMBER; i++) if(save_struct(addr, sTemp[i].get_save_addr(), sTemp[i].get_save_size(), crc)) break; // Сохранение датчиков температуры
+		if(error == ERR_SAVE_EEPROM) break;
+		if(save_2bytes(addr, SAVE_TYPE_sADC, crc)) break;
+		for(uint8_t i = 0; i < ANUMBER; i++) if(save_struct(addr, sADC[i].get_save_addr(), sADC[i].get_save_size(), crc)) break; // Сохранение датчика давления
+		if(error == ERR_SAVE_EEPROM) break;
+		if(save_2bytes(addr, SAVE_TYPE_sInput, crc)) break;
+		for(uint8_t i = 0; i < INUMBER; i++) if(save_struct(addr, sInput[i].get_save_addr(), sInput[i].get_save_size(), crc)) break; // Сохранение контактных датчиков
+		if(error == ERR_SAVE_EEPROM) break;
+		if(save_2bytes(addr, SAVE_TYPE_sFrequency, crc)) break;
+		for(uint8_t i = 0; i < FNUMBER; i++) if(save_struct(addr, sFrequency[i].get_save_addr(), sFrequency[i].get_save_size(), crc)) break; // Сохранение контактных датчиков
+		if(error == ERR_SAVE_EEPROM) break;
+		#ifdef MQTT
+		if(save_2bytes(addr, SAVE_TYPE_clMQTT, crc)) break;
+		if(save_struct(addr, clMQTT.get_save_addr(), clMQTT.get_save_size(), crc)) break; // Сохранение MQTT
+		#endif
+		#ifdef CORRECT_POWER220
+		if(save_2bytes(addr, SAVE_TYPE_PwrCorr, crc)) break;
+		if(save_struct(addr, (uint8_t*)&correct_power220, sizeof(correct_power220), crc)) break; // Сохранение correct_power220
+		#endif
+		if(save_2bytes(addr, SAVE_TYPE_END, crc)) break;
+		if(writeEEPROM_I2C(addr, (uint8_t *) &crc, sizeof(crc))) { error = ERR_SAVE_EEPROM; break; } // CRC
+		addr = addr + sizeof(crc) - (I2C_SETTING_EEPROM + 2);
+		if(writeEEPROM_I2C(I2C_SETTING_EEPROM, (uint8_t *) &addr, 2)) { error = ERR_SAVE_EEPROM; break; } // size all
+		if((error = check_crc16_eeprom(I2C_SETTING_EEPROM + 2, addr - 2)) != OK) {
+			journal.jprintf("- Verify Error!\n");
+			break;
+		}
+		addr += 2;
+		journal.jprintf("OK, wrote: %d bytes, crc: %04x\n", addr, crc);
+		break;
+	}
+	if(tasks_suspended) xTaskResumeAll(); // Разрешение других задач
+
+	if(error) {
+		set_Error(error, (char*)__FUNCTION__);
+		return error;
+	}
+	// суммарное число байт
+	return addr;
+}
+
+// Считать настройки из памяти i2c или из RAM, если не NULL, на выходе длина или код ошибки (меньше нуля)
+int32_t MainClass::load(uint8_t *buffer, uint8_t from_RAM)
+{
+	uint16_t size;
+	journal.jprintf(" Load settings from ");
+	if(from_RAM == 0) {
+		journal.jprintf("I2C");
+		if(readEEPROM_I2C(I2C_SETTING_EEPROM, (byte*) &size, sizeof(size))) {
+x_ReadError:
+			error = ERR_CRC16_EEPROM;
+x_Error:
+			journal.jprintf(" - read error %d!\n", error);
+			return error;
+		}
+		if(size > I2C_SETTING_EEPROM_NEXT - I2C_SETTING_EEPROM) { error = ERR_BAD_LEN_EEPROM; goto x_Error; }
+		if(readEEPROM_I2C(I2C_SETTING_EEPROM + sizeof(size), buffer, size)) goto x_ReadError;
+	} else {
+		journal.jprintf("FILE");
+		size = *((uint16_t *) buffer);
+		buffer += sizeof(size);
+	}
+	journal.jprintf(", size %d, crc: ", size + 2); // sizeof(crc)
+	size -= 2;
+	#ifdef LOAD_VERIFICATION
+	
+	uint16_t crc = 0xFFFF;
+	for(uint16_t i = 0; i < size; i++)  crc = _crc16(crc, buffer[i]);
+	if(crc != *((uint16_t *)(buffer + size))) {
+		journal.jprintf("Error: %04x != %04x!\n", crc, *((uint16_t *)(buffer + size)));
+		return error = ERR_CRC16_EEPROM;
+	}
+	journal.jprintf("%04x", crc);
+	#else
+	journal.jprintf("*No verification");
+	#endif
+	uint8_t *buffer_max = buffer + size;
+	size += 2;
+	load_struct(&Option, &buffer, sizeof(Option));
+	journal.jprintf(", v.%d ", Option.ver);
+	load_struct(&DateTime, &buffer, sizeof(DateTime));
+	load_struct(&Network, &buffer, sizeof(Network));
+	load_struct(message.get_save_addr(), &buffer, message.get_save_size());
+	int16_t type = SAVE_TYPE_LIMIT;
+	while(buffer_max > buffer) { // динамические структуры
+		if(*((int16_t *) buffer) <= SAVE_TYPE_END && *((int16_t *) buffer) > SAVE_TYPE_LIMIT) {
+			type = *((int16_t *) buffer);
+			buffer += 2;
+		}
+		// массивы, длина структуры должна быть меньше 128 байт, <size[1]><<number>struct>
+		uint8_t n = buffer[1]; // номер элемента
+		if(type == SAVE_TYPE_sTemp) { // первый в структуре идет номер датчика
+			if(n < TNUMBER) { load_struct(sTemp[n].get_save_addr(), &buffer, sTemp[n].get_save_size());	sTemp[n].after_load(); } else goto xSkip;
+		} else if(type == SAVE_TYPE_sADC) {
+			if(n < ANUMBER) { load_struct(sADC[n].get_save_addr(), &buffer, sADC[n].get_save_size()); sADC[n].after_load(); } else goto xSkip;
+		} else if(type == SAVE_TYPE_sInput) {
+			if(n < INUMBER) load_struct(sInput[n].get_save_addr(), &buffer, sInput[n].get_save_size()); else goto xSkip;
+		} else if(type == SAVE_TYPE_sFrequency) {
+			if(n < FNUMBER) load_struct(sFrequency[n].get_save_addr(), &buffer, sFrequency[n].get_save_size()); else goto xSkip;
+		// не массивы <size[1|2]><struct>
+#ifdef MQTT
+		} else if(type == SAVE_TYPE_clMQTT) {
+			load_struct(clMQTT.get_save_addr(), &buffer, clMQTT.get_save_size());
+#endif
+#ifdef CORRECT_POWER220
+		} else if(type == SAVE_TYPE_PwrCorr) {
+			load_struct((uint8_t*)&correct_power220, &buffer, sizeof(correct_power220));
+#endif
+		} else if(type == SAVE_TYPE_END) {
+			break;
+		} else {
+xSkip:		load_struct(NULL, &buffer, 0); // skip unknown type
+		}
+	}
+#ifdef SENSOR_IP
+	updateLinkIP();
+#endif
+	journal.jprintf("OK\n");
+	return size + sizeof(crc);
+}
+
+// Проверить контрольную сумму в EEPROM для данных на выходе ошибка, длина определяется из заголовка
+int8_t MainClass::check_crc16_eeprom(int32_t addr, uint16_t size)
+{
+	uint8_t x;
+	uint16_t crc = 0xFFFF;
+	while(size--) {
+		if(readEEPROM_I2C(addr++, &x, sizeof(x))) return ERR_LOAD_EEPROM;
+		crc = _crc16(crc, x);
+	}
+	uint16_t crc2;
+	if(readEEPROM_I2C(addr, (uint8_t *)&crc2, sizeof(crc2))) return ERR_LOAD_EEPROM;   // чтение -2 за вычетом CRC16 из длины
+	if(crc == crc2) return OK; else return ERR_CRC16_EEPROM;
+}
+
+// СЧЕТЧИКИ -----------------------------------
+ // запись счетчиков в I2C память
+int8_t MainClass::save_motoHour()
+{
+	uint8_t i;
+	uint8_t errcode;
+
+	for(i = 0; i < 5; i++)   // Делаем 5 попыток записи
+	{
+		if(!(errcode = writeEEPROM_I2C(I2C_COUNT_EEPROM, (byte*) &WorkStats, sizeof(WorkStats)))) break;   // Запись прошла
+		journal.jprintf(" ERROR %d save counters #%d\n", errcode, i);
+		_delay(i * 50);
+	}
+	if(errcode) {
+		set_Error(ERR_SAVE2_EEPROM, (char*) __FUNCTION__);
+		return ERR_SAVE2_EEPROM;
+	}  // записать счетчики
+	//journal.jprintf("Counters saved\n");
+	return OK;
+}
+
+// чтение счетчиков в ЕЕПРОМ
+int8_t MainClass::load_motoHour()
+{
+ byte x=0xff;
+ if (readEEPROM_I2C(I2C_COUNT_EEPROM,  (byte*)&x, sizeof(x)))  { set_Error(ERR_LOAD2_EEPROM,(char*)__FUNCTION__); return ERR_LOAD2_EEPROM;}                // прочитать заголовок
+ if (x!=0xaa)  {journal.jprintf("Bad header counters, skip load\n"); return ERR_HEADER2_EEPROM;}                                                  // заголвок плохой выходим
+ if (readEEPROM_I2C(I2C_COUNT_EEPROM,  (byte*)&WorkStats, sizeof(WorkStats)))  { set_Error(ERR_LOAD2_EEPROM,(char*)__FUNCTION__); return ERR_LOAD2_EEPROM;}   // прочитать счетчики
+ journal.jprintf(" Load counters OK, read: %d bytes\n",sizeof(WorkStats));
+ return OK; 
+
+}
+// Сборос сезонного счетчика моточасов
+// параметр true - сброс всех счетчиков
+void MainClass::resetCount(boolean full)
+{
+	if(full) // Полный сброс счетчиков
+	{
+		WorkStats.H1 = 0;
+		WorkStats.C1 = 0;
+		WorkStats.P1 = 0;
+		WorkStats.Z1 = 0;
+		WorkStats.E1 = 0;
+		WorkStats.D1 = rtcSAM3X8.unixtime();           // Дата сброса общих счетчиков
+	}
+	// Сезон
+	WorkStats.H2 = 0;
+	WorkStats.C2 = 0;
+	WorkStats.P2 = 0;
+	WorkStats.Z2 = 0;
+	WorkStats.E2 = 0;
+	WorkStats.D2 = rtcSAM3X8.unixtime();             // дата сброса сезонных счетчиков
+	save_motoHour();  // записать счетчики
+	motohour_OUT_work = 0;
+	motohour_IN_work = 0;
+}
+
+// Обновление счетчиков моточасов, вызывается раз в минуту
+void MainClass::updateCount()
+{
+	int32_t p;
+	//taskENTER_CRITICAL();
+	p = motohour_IN_work;
+	motohour_IN_work = 0;
+	//taskEXIT_CRITICAL();
+	p /= 1000;
+	WorkStats.E1 += p;
+	WorkStats.E2 += p;
+	//taskENTER_CRITICAL();
+	p = motohour_OUT_work;
+	motohour_OUT_work = 0;
+	//taskEXIT_CRITICAL();
+	p /= 1000;
+	WorkStats.P1 += p;
+	WorkStats.P2 += p;
+}
+
+// После любого изменения часов необходимо пересчитать все времна которые используются
+// параметр изменение времени - корректировка
+void MainClass::updateDateTime(int32_t dTime)
+{
+	if(dTime != 0)                                   // было изменено время, надо скорректировать переменные времени
+	{
+		if(timeON > 0) timeON = timeON + dTime;                               // время включения контроллера для вычисления UPTIME
+		if(countNTP > 0) countNTP = countNTP + dTime;                           // число секунд с последнего обновления по NTP
+	}
+}
+      
+
+// -------------------------------------------------------------------------
+// НАСТРОЙКИ  ------------------------------------------------------------
+// -------------------------------------------------------------------------
+// Сброс настроек
+void MainClass::resetSetting()
+{  
+	NO_Power = 0;
+
+	fSD = false;                                    // СД карта не рабоатет
+
+	num_resW5200 = 0;                               // текущее число сбросов сетевого чипа
+	num_resMutexSPI = 0;                            // текущее число сброса митекса SPI
+	num_resMutexI2C = 0;                            // текущее число сброса митекса I2C
+	num_resMQTT = 0;                                // число повторных инициализация MQTT клиента
+	num_resPing = 0;                                // число не прошедших пингов
+
+	// Инициализациия различных времен
+	DateTime.saveTime = 0;                          // дата и время сохранения настроек в eeprom
+	timeON = 0;                                     // время включения контроллера для вычисления UPTIME
+	countNTP = 0;                                   // число секунд с последнего обновления по NTP
+	timeNTP = 0;                                    // Время обновления по NTP в тиках (0-сразу обновляемся)
+
+	safeNetwork = false;                            // режим safeNetwork
+
+	// Установка сетевых параметров по умолчанию
+	if(defaultDHCP) SETBIT1(Network.flags, fDHCP);
+	else SETBIT0(Network.flags, fDHCP); // использование DHCP
+	Network.ip = IPAddress(defaultIP);              // ip адрес
+	Network.sdns = IPAddress(defaultSDNS);          // сервер dns
+	Network.gateway = IPAddress(defaultGateway);    // шлюз
+	Network.subnet = IPAddress(defaultSubnet);      // подсеть
+	Network.port = defaultPort;                     // порт веб сервера по умолчанию
+	memcpy(Network.mac, defaultMAC, 6);             // mac адрес
+	Network.resSocket = 30;                         // Время очистки сокетов
+	Network.resW5200 = 0;                           // Время сброса чипа
+	countResSocket = 0;                             // Число сбросов сокетов
+	SETBIT1(Network.flags, fInitW5200);           // Ежеминутный контроль SPI для сетевого чипа
+	SETBIT0(Network.flags, fPass);                 // !save! Использование паролей
+	strcpy(Network.passUser, "user");              // !save! Пароль пользователя
+	strcpy(Network.passAdmin, "admin");            // !save! Пароль администратора
+	Network.sizePacket = 1465;                      // !save! размер пакета для отправки
+	SETBIT0(Network.flags, fNoAck);                // !save! флаг Не ожидать ответа ACK
+	Network.delayAck = 10;                          // !save! задержка мсек перед отправкой пакета
+	strcpy(Network.pingAdr, PING_SERVER);         // !save! адрес для пинга
+	Network.pingTime = 60 * 60;                       // !save! время пинга в секундах
+	SETBIT0(Network.flags, fNoPing);               // !save! Запрет пинга контроллера
+
+	// Время
+	SETBIT1(DateTime.flags, fUpdateNTP);           // Обновление часов по NTP
+	SETBIT1(DateTime.flags, fUpdateI2C);           // Обновление часов I2C
+
+	strcpy(DateTime.serverNTP, (char*) NTP_SERVER);  // NTP сервер по умолчанию
+	DateTime.timeZone = TIME_ZONE;                   // Часовой пояс
+
+	// Временные задержки
+	Option.ver = VER_SAVE;
+	Option.tChart = 60;                  //  период накопления статистики по умолчанию 60 секунд
+	SETBIT1(Option.flags, fBeep);         //  Звук
+	SETBIT1(Option.flags, fHistory);      //  Сброс статистика на карту
+
+}
+
+// --------------------------------------------------------------------
+// ФУНКЦИИ РАБОТЫ С НАСТРОЙКАМИ  ------------------------------------
+// --------------------------------------------------------------------
+// Сетевые настройки --------------------------------------------------
+//Установить параметр из строки
+boolean MainClass::set_network(char *var, char *c)
+{ 
+	 int32_t x = atoi(c);
+	 if(strcmp(var,net_IP)==0){          return parseIPAddress(c, '.', Network.ip);                 }else
+	 if(strcmp(var,net_DNS)==0){        return parseIPAddress(c, '.', Network.sdns);               }else
+	 if(strcmp(var,net_GATEWAY)==0){     return parseIPAddress(c, '.', Network.gateway);            }else
+	 if(strcmp(var,net_SUBNET)==0){      return parseIPAddress(c, '.', Network.subnet);             }else
+	 if(strcmp(var,net_DHCP)==0){        if (strcmp(c,cZero)==0) { SETBIT0(Network.flags,fDHCP); return true;}
+	                                    else if (strcmp(c,cOne)==0) { SETBIT1(Network.flags,fDHCP);  return true;}
+	                                    else return false;
+	                                    }else
+	 if(strcmp(var,net_MAC)==0){         return parseBytes(c, ':', Network.mac, 6, 16);             }else
+	 if(strcmp(var,net_RES_SOCKET)==0){ switch (x)
+				                       {
+				                        case 0: Network.resSocket=0;     return true;  break;
+				                        case 1: Network.resSocket=10;    return true;  break;
+				                        case 2: Network.resSocket=30;    return true;  break;
+				                        case 3: Network.resSocket=90;    return true;  break;
+				                        default:                    return false; break;
+				                       }                                          }else
+	 if(strcmp(var,net_RES_W5200)==0){ switch (x)
+				                       {
+				                        case 0: Network.resW5200=0;        return true;  break;
+				                        case 1: Network.resW5200=60*60*6;  return true;  break;   // 6 часов хранение в секундах
+				                        case 2: Network.resW5200=60*60*24; return true;  break;   // 24 часа
+				                        default:                      return false; break;
+				                       }                                          }else
+	 if(strcmp(var,net_PASS)==0){        if (x == 0) { SETBIT0(Network.flags,fPass); return true;}
+	                                    else if (x == 1) {SETBIT1(Network.flags,fPass);  return true;}
+	                                    else return false;
+	                                    }else
+	 if(strcmp(var,net_PASSUSER)==0){    strcpy(Network.passUser,c);set_hashUser(); return true;   }else
+	 if(strcmp(var,net_PASSADMIN)==0){   strcpy(Network.passAdmin,c);set_hashAdmin(); return true; }else
+	 if(strcmp(var, net_fWebLogError) == 0) { Network.flags = (Network.flags & ~(1<<fWebLogError)) | ((x == 1)<<fWebLogError); return true; } else
+	 if(strcmp(var, net_fWebFullLog) == 0) { Network.flags = (Network.flags & ~(1<<fWebFullLog)) | ((x == 1)<<fWebFullLog); return true; } else
+	 if(strcmp(var,net_SIZE_PACKET)==0){
+	                                    if((x<64)||(x>2048)) return   false;
+	                                    else Network.sizePacket=x; return true;
+	                                    }else
+	 if(strcmp(var,net_INIT_W5200)==0){    // флаг Ежеминутный контроль SPI для сетевого чипа
+	                       if (x == 0) { SETBIT0(Network.flags,fInitW5200); return true;}
+	                       else if (x == 1) { SETBIT1(Network.flags,fInitW5200);  return true;}
+	                       else return false;
+	                       }else
+	 if(strcmp(var,net_PORT)==0){
+	                       if((x<1)||(x>65535)) return false;
+	                       else Network.port=x; return  true;
+	                       }else
+	 if(strcmp(var,net_NO_ACK)==0){      if (x == 0) { SETBIT0(Network.flags,fNoAck); return true;}
+	                       else if (x == 1) { SETBIT1(Network.flags,fNoAck);  return true;}
+	                       else return false;
+	                       }else
+	 if(strcmp(var,net_DELAY_ACK)==0){
+	                       if((x<1)||(x>50)) return        false;
+	                       else Network.delayAck=x; return  true;
+	                       }else
+	 if(strcmp(var,net_PING_ADR)==0){     if (strlen(c)<sizeof(Network.pingAdr)) { strcpy(Network.pingAdr,c); return true;} else return false; }else
+	 if(strcmp(var,net_PING_TIME)==0){switch (x)
+				                       {
+				                        case 0: Network.pingTime=0;        return true;  break;
+				                        case 1: Network.pingTime=1*60;     return true;  break;
+				                        case 2: Network.pingTime=5*60;     return true;  break;
+				                        case 3: Network.pingTime=20*60;    return true;  break;
+				                        case 4: Network.pingTime=60*60;    return true;  break;
+				                        case 5: Network.pingTime=120*60;    return true;  break;
+				                        default:                           return false; break;
+				                       }                                          }else
+	 if(strcmp(var,net_NO_PING)==0){     if (x == 0) { SETBIT0(Network.flags,fNoPing);      pingW5200(get_NoPing()); return true;}
+	                       else if (x == 1) { SETBIT1(Network.flags,fNoPing); pingW5200(get_NoPing()); return true;}
+	                       else return false;
+	                       }else
+	   return false;
+}
+// Сетевые настройки --------------------------------------------------
+//Получить параметр из строки
+char* MainClass::get_network(char *var,char *ret)
+{
+ if(strcmp(var,net_IP)==0){   return strcat(ret,IPAddress2String(Network.ip));          }else  
+ if(strcmp(var,net_DNS)==0){      return strcat(ret,IPAddress2String(Network.sdns));   }else
+ if(strcmp(var,net_GATEWAY)==0){   return strcat(ret,IPAddress2String(Network.gateway));}else                
+ if(strcmp(var,net_SUBNET)==0){    return strcat(ret,IPAddress2String(Network.subnet)); }else  
+ if(strcmp(var,net_DHCP)==0){      if (GETBIT(Network.flags,fDHCP)) return  strcat(ret,(char*)cOne);
+                                   else      return  strcat(ret,(char*)cZero);          }else
+ if(strcmp(var,net_MAC)==0){       return strcat(ret,MAC2String(Network.mac));          }else  
+ if(strcmp(var,net_RES_SOCKET)==0){
+ 	return web_fill_tag_select(ret, "never:0;10 sec:0;30 sec:0;90 sec:0;",
+				Network.resSocket == 0 ? 0 :
+				Network.resSocket == 10 ? 1 :
+				Network.resSocket == 30 ? 2 :
+				Network.resSocket == 90 ? 3 : 4);
+ }else if(strcmp(var,net_RES_W5200)==0){
+	 	return web_fill_tag_select(ret, "never:0;10 sec:0;30 sec:0;90 sec:0;",
+					Network.resW5200 == 0 ? 0 :
+					Network.resW5200 == 60*60*6 ? 1 :
+					Network.resW5200 == 60*60*24 ? 2 : 3);
+  }else if(strcmp(var,net_PASS)==0){      if (GETBIT(Network.flags,fPass)) return  strcat(ret,(char*)cOne);
+                                    else      return  strcat(ret,(char*)cZero);               }else
+  if(strcmp(var, net_fWebLogError) == 0) { return strcat(ret, (char*)(Network.flags & (1<<fWebLogError) ? cOne : cZero)); } else
+  if(strcmp(var, net_fWebFullLog) == 0) { return strcat(ret, (char*)(Network.flags & (1<<fWebFullLog) ? cOne : cZero)); } else
+  if(strcmp(var,net_PASSUSER)==0){  return strcat(ret,Network.passUser);                      }else                 
+  if(strcmp(var,net_PASSADMIN)==0){ return strcat(ret,Network.passAdmin);                     }else   
+  if(strcmp(var,net_SIZE_PACKET)==0){return _itoa(Network.sizePacket,ret);          }else   
+    if(strcmp(var,net_INIT_W5200)==0){if (GETBIT(Network.flags,fInitW5200)) return  strcat(ret,(char*)cOne);       // флаг Ежеминутный контроль SPI для сетевого чипа
+                                      else      return  strcat(ret,(char*)cZero);               }else      
+    if(strcmp(var,net_PORT)==0){return _itoa(Network.port,ret);                       }else    // Порт веб сервера
+    if(strcmp(var,net_NO_ACK)==0){    if (GETBIT(Network.flags,fNoAck)) return  strcat(ret,(char*)cOne);
+                                      else      return  strcat(ret,(char*)cZero);          }else     
+    if(strcmp(var,net_DELAY_ACK)==0){return _itoa(Network.delayAck,ret);         }else    
+    if(strcmp(var,net_PING_ADR)==0){  return strcat(ret,Network.pingAdr);                  }else
+    if(strcmp(var,net_PING_TIME)==0){
+    	return web_fill_tag_select(ret, "never:0;1 min:0;5 min:0;20 min:0;60 min:0;120 min:0;",
+					Network.pingTime == 0 ? 0 :
+					Network.pingTime == 1*60 ? 1 :
+					Network.pingTime == 5*60 ? 2 :
+					Network.pingTime == 20*60 ? 3 :
+					Network.pingTime == 60*60 ? 4 :
+					Network.pingTime == 120*60 ? 5 : 6);
+    } else if(strcmp(var,net_NO_PING)==0){if (GETBIT(Network.flags,fNoPing)) return  strcat(ret,(char*)cOne);
+                                   else      return  strcat(ret,(char*)cZero);                        }else                                                                                          
+
+ return strcat(ret,(char*)cInvalid);
+}
+
+// Установить параметр дата и время из строки
+boolean MainClass::set_datetime(char *var, char *c)
+{
+	float tz;
+	int16_t m, h, d, mo, y;
+	int16_t buf[4];
+	uint32_t oldTime = rtcSAM3X8.unixtime(); // запомнить время
+	int32_t dTime = 0;
+	if(strcmp(var, time_TIME) == 0) {
+		if(!parseInt16_t(c, ':', buf, 2, 10)) return false;
+		h = buf[0];
+		m = buf[1];
+		rtcSAM3X8.set_time(h, m, 0);  // внутренние
+		setTime_RtcI2C(rtcSAM3X8.get_hours(), rtcSAM3X8.get_minutes(), rtcSAM3X8.get_seconds()); // внешние
+		dTime = rtcSAM3X8.unixtime() - oldTime; // получить изменение времени
+	} else if(strcmp(var, time_DATE) == 0) {
+		char ch, f = 0;
+		m = 0;
+		do { // ищем разделитель чисел
+			ch = c[m++];
+			if(ch >= '0' && ch <= '9') f = 1;
+			else if(f == 1) {
+				f = 2;
+				break;
+			}
+		} while(ch != '\0');
+		if(f != 2 || !parseInt16_t(c, ch, buf, 3, 10)) return false;
+		d = buf[0];
+		mo = buf[1];
+		y = buf[2];
+		rtcSAM3X8.set_date(d, mo, y); // внутренние
+		setDate_RtcI2C(rtcSAM3X8.get_days(), rtcSAM3X8.get_months(), rtcSAM3X8.get_years()); // внешние
+		dTime = rtcSAM3X8.unixtime() - oldTime; // получить изменение времени
+	} else if(strcmp(var, time_NTP) == 0) {
+		if(strlen(c) == 0) return false;                                                 // пустая строка
+		if(strlen(c) > NTP_SERVER_LEN) return false;                                     // слишком длиная строка
+		else {
+			strcpy(DateTime.serverNTP, c);
+			return true;
+		}                           // ок сохраняем
+	} else if(strcmp(var, time_UPDATE) == 0) {
+		if(strcmp(c, cZero) == 0) {
+			SETBIT0(DateTime.flags, fUpdateNTP);
+			return true;
+		} else if(strcmp(c, cOne) == 0) {
+			SETBIT1(DateTime.flags, fUpdateNTP);
+			countNTP = 0;
+			return true;
+		} else return false;
+	} else if(strcmp(var, time_TIMEZONE) == 0) {
+		tz = my_atof(c);
+		if(tz == -9876543.00) return false;
+		else if((tz < -12) || (tz > 12)) return false;
+		else DateTime.timeZone = (int) tz;
+		return true;
+	} else if(strcmp(var, time_UPDATE_I2C) == 0) {
+		if(strcmp(c, cZero) == 0) {
+			SETBIT0(DateTime.flags, fUpdateI2C);
+			return true;
+		} else if(strcmp(c, cOne) == 0) {
+			SETBIT1(DateTime.flags, fUpdateI2C);
+			countNTP = 0;
+			return true;
+		} else return false;
+	} else return false;
+
+	if(dTime != 0) updateDateTime(dTime);    // было изменено время, надо скорректировать переменные времени
+	return true;
+}
+// Получить параметр дата и время из строки
+char* MainClass::get_datetime(char *var,char *ret)
+{
+if(strcmp(var,time_TIME)==0)  {return strcat(ret,NowTimeToStr1());                      }else  
+if(strcmp(var,time_DATE)==0)  {return strcat(ret,NowDateToStr());                       }else  
+if(strcmp(var,time_NTP)==0)   {return strcat(ret,DateTime.serverNTP);                   }else                
+if(strcmp(var,time_UPDATE)==0){if (GETBIT(DateTime.flags,fUpdateNTP)) return  strcat(ret,(char*)cOne);
+                               else                                   return  strcat(ret,(char*)cZero);}else  
+if(strcmp(var,time_TIMEZONE)==0){return  _itoa(DateTime.timeZone,ret);         }else  
+if(strcmp(var,time_UPDATE_I2C)==0){ if (GETBIT(DateTime.flags,fUpdateI2C)) return  strcat(ret,(char*)cOne);
+                                    else                                   return  strcat(ret,(char*)cZero); }else      
+return strcat(ret,(char*)cInvalid);
+}
+
+// Установить опции  из числа (float), "set_op"
+boolean MainClass::set_option(char *var, float x)
+{
+   if(strcmp(var,option_TIME_CHART)==0)       { if(x>0) { startChart(); Option.tChart = x; return true; } else return false; } else // Сбросить статистистику, начать отсчет заново
+   if(strcmp(var,option_BEEP)==0)             {if (x==0) {SETBIT0(Option.flags,fBeep); return true;} else if (x==1) {SETBIT1(Option.flags,fBeep); return true;} else return false;  }else            // Подача звукового сигнала
+   if(strcmp(var,option_History)==0)          {if (x==0) {SETBIT0(Option.flags,fHistory); return true;} else if (x==1) {SETBIT1(Option.flags,fHistory); return true;} else return false;       }else       // Сбрасывать статистику на карту
+   if(strcmp(var,option_WebOnSPIFlash)==0)    { Option.flags = (Option.flags & ~(1<<fWebStoreOnSPIFlash)) | ((x!=0)<<fWebStoreOnSPIFlash); return true; } else
+   if(strcmp(var,option_LogWirelessSensors)==0){ Option.flags = (Option.flags & ~(1<<fLogWirelessSensors)) | ((x!=0)<<fLogWirelessSensors); return true; } else
+   if(strncmp(var,option_SGL1W, sizeof(option_SGL1W)-1)==0) {
+	   uint8_t bit = var[sizeof(option_SGL1W)-1] - '0' - 2;
+	   if(bit <= 2) {
+		   Option.flags = (Option.flags & ~(1<<(f1Wire2TSngl + bit))) | (x == 0 ? 0 : (1<<(f1Wire2TSngl + bit)));
+		   return true;
+	   }
+   }
+   return false; 
+}
+
+// Получить опции , результат добавляется в ret, "get_op"
+char* MainClass::get_option(char *var, char *ret)
+{
+   if(strcmp(var,option_TIME_CHART)==0)       {return _itoa(Option.tChart,ret);} else
+   if(strcmp(var,option_BEEP)==0)             {if(GETBIT(Option.flags,fBeep)) return strcat(ret,(char*)cOne); else return strcat(ret,(char*)cZero); }else            // Подача звукового сигнала
+   if(strcmp(var,option_History)==0)          {if(GETBIT(Option.flags,fHistory)) return strcat(ret,(char*)cOne); else return strcat(ret,(char*)cZero);   }else            // Сбрасывать статистику на карту
+   if(strcmp(var,option_WebOnSPIFlash)==0)    { return strcat(ret, (char*)(GETBIT(Option.flags,fWebStoreOnSPIFlash) ? cOne : cZero)); } else
+   if(strcmp(var,option_LogWirelessSensors)==0){ return strcat(ret, (char*)(GETBIT(Option.flags,fLogWirelessSensors) ? cOne : cZero)); } else
+   if(strncmp(var,option_SGL1W, sizeof(option_SGL1W)-1)==0) {
+	   uint8_t bit = var[sizeof(option_SGL1W)-1] - '0' - 2;
+	   if(bit <= 2) {
+		   return strcat(ret,(char*)(GETBIT(Option.flags, f1Wire2TSngl + bit) ? cOne : cZero));
+	   }
+   }
+   return  strcat(ret,(char*)cInvalid);                
+}
+
+// Получить строку состояния  в виде строки
+void MainClass::StateToStr(char * ret)
+{
+	strcat(ret, "Working");
+}
+
+// получить режим тестирования
+char * MainClass::TestToStr()
+{
+ switch ((int)get_testMode())
+             {
+              case NORMAL:    return (char*)"NORMAL";    break;
+              case SAFE_TEST: return (char*)"SAFE_TEST"; break;
+              case TEST:      return (char*)"TEST";      break;
+              case HARD_TEST: return (char*)"HARD_TEST"; break;
+              default:        return (char*)cError;     break;
+             }
+}
+
+// --------------------------------------------------------------------
+// ФУНКЦИИ РАБОТЫ С ГРАФИКАМИ  -----------------------------------
+// --------------------------------------------------------------------
+// обновить статистику, добавить одну точку и если надо записать ее на карту.
+// Все значения в графиках целочислены (сотые), выводятся в формате 0.01
+void  MainClass::updateChart()
+{
+	uint8_t i;
+	for(i=0;i<TNUMBER;i++) if(sTemp[i].Chart.get_present())  sTemp[i].Chart.addPoint(sTemp[i].get_Temp());
+	for(i=0;i<ANUMBER;i++)
+		if(sADC[i].Chart.get_present()) sADC[i].Chart.addPoint(sADC[i].get_Press());
+	for(i=0;i<FNUMBER;i++) if(sFrequency[i].Chart.get_present()) sFrequency[i].Chart.addPoint(sFrequency[i].get_Value()); // Частотные датчики
+
+	if(dPWM.ChartVoltage.get_present())   dPWM.ChartVoltage.addPoint(dPWM.get_Voltage());
+	if(dPWM.ChartPower.get_present())     dPWM.ChartPower.addPoint(dPWM.get_Power());
+}
+
+// сбросить графики в ОЗУ
+void MainClass::startChart()
+{
+ uint8_t i; 
+ for(i=0;i<TNUMBER;i++) sTemp[i].Chart.clear();
+ for(i=0;i<ANUMBER;i++) sADC[i].Chart.clear();
+ for(i=0;i<FNUMBER;i++) sFrequency[i].Chart.clear();
+ ChartRCOMP.clear();
+// ChartRELAY.clear();
+ dPWM.ChartVoltage.clear();                              // Статистика по напряжению
+ dPWM.ChartPower.clear();                                // Статистика по Полная мощность
+}
+
+
+// получить список доступных графиков в виде строки
+// cat true - список добавляется в конец, false - строка обнуляется и список добавляется
+char * MainClass::get_listChart(char* str)
+{
+uint8_t i;  
+ strcat(str,"none:1;");
+ for(i=0;i<TNUMBER;i++) if(sTemp[i].Chart.get_present()) {strcat(str,sTemp[i].get_name()); strcat(str,":0;");}
+ for(i=0;i<ANUMBER;i++)
+	 if(sADC[i].Chart.get_present()) { strcat(str,sADC[i].get_name()); strcat(str,":0;");}
+ for(i=0;i<FNUMBER;i++) if(sFrequency[i].Chart.get_present()) { strcat(str,sFrequency[i].get_name()); strcat(str,":0;");}
+ if(dPWM.ChartVoltage.get_present()) {   strcat(str,chart_VOLTAGE); strcat(str,":0;"); }
+ if(dPWM.ChartPower.get_present())   {    strcat(str,chart_fullPOWER); strcat(str,":0;"); }
+// for(i=0;i<RNUMBER;i++) if(dRelay[i].Chart.get_present()) { strcat(str,dRelay[i].get_name()); strcat(str,":0;");}  
+return str;               
+}
+
+// получить данные графика  в виде строки, данные ДОБАВЛЯЮТСЯ к str
+void MainClass::get_Chart(char *var, char* str)
+{
+	uint8_t i;
+	// В начале имена совпадающие с именами объектов
+	for(i = 0; i < TNUMBER; i++) {
+		if((strcmp(var, sTemp[i].get_name()) == 0) && (sTemp[i].Chart.get_present())) {
+			sTemp[i].Chart.get_PointsStr(100, str);
+			return;
+		}
+	}
+	for(i = 0; i < ANUMBER; i++) {
+		if((strcmp(var, sADC[i].get_name()) == 0) && (sADC[i].Chart.get_present())) {
+			sADC[i].Chart.get_PointsStr(100, str);
+			return;
+		}
+	}
+	for(i = 0; i < FNUMBER; i++) {
+		if((strcmp(var, sFrequency[i].get_name()) == 0) && (sFrequency[i].Chart.get_present())) {
+			sFrequency[i].Chart.get_PointsStr(1000, str);
+			return;
+		}
+	}
+	if(strcmp(var, chart_NONE) == 0) {
+		strcat(str, "");
+	} else if(strcmp(var, chart_VOLTAGE) == 0) {
+		dPWM.ChartVoltage.get_PointsStr(100, str);
+	} else if(strcmp(var, chart_fullPOWER) == 0) {
+		dPWM.ChartPower.get_PointsStr(1, str);
+	}
+}
+
+// расчитать хеш для пользователя возвращает длину хеша
+uint8_t MainClass::set_hashUser()
+{
+	char buf[20];
+	strcpy(buf, NAME_USER);
+	strcat(buf, ":");
+	strcat(buf, Network.passUser);
+	base64_encode(Security.hashUser, buf, strlen(buf));
+	Security.hashUserLen = strlen(Security.hashUser);
+	journal.jprintf(" Hash user: %s\n", Security.hashUser);
+	return Security.hashUserLen;
+}
+// расчитать хеш для администратора возвращает длину хеша
+uint8_t MainClass::set_hashAdmin()
+{
+	char buf[20];
+	strcpy(buf, NAME_ADMIN);
+	strcat(buf, ":");
+	strcat(buf, Network.passAdmin);
+	base64_encode(Security.hashAdmin, buf, strlen(buf));
+	Security.hashAdminLen = strlen(Security.hashAdmin);
+	journal.jprintf(" Hash admin: %s\n", Security.hashAdmin);
+	return Security.hashAdminLen;
+}
+
+// --------------------------------------------------------------------------------------------------------
+// ---------------------------------- ОСНОВНЫЕ ФУНКЦИИ ------------------------------------------
+// --------------------------------------------------------------------------------------------------------
+
+// Все реле выключить
+void MainClass::relayAllOFF()
+{
+	uint8_t i;
+	journal.jprintf(" All relay off\n");
+	for(i = 0; i < RNUMBER; i++) dRelay[i].set_OFF();         // Выключить все реле;
+}                               
+
+
+// Обновление расчетных величин мощностей и СОР
+void MainClass::calculatePower()
+{
+#ifdef CORRECT_POWER220
+	for(uint8_t i = 0; i < sizeof(correct_power220)/sizeof(correct_power220[0]); i++) if(dRelay[correct_power220[i].num].get_Relay()) power220 += correct_power220[i].value;
+#endif
+}
+
+// Записать состояние в журнал
+// Параметр на входе true - вывод в журнал и консоль false - консоль
+void MainClass::save_DumpJournal(void)
+{
+	uint8_t i;
+	journal.jprintf(" State:");
+	for(i = 0; i < RNUMBER; i++) journal.jprintf(" %s:%d", MC.dRelay[i].get_name(), MC.dRelay[i].get_Relay());
+	journal.jprintf(" Power:%.3f\n", (float)dPWM.get_Power() / 1000.0);
+	// Доп инфо
+	for(i = 0; i < TNUMBER; i++) if(sTemp[i].get_present() && sTemp[i].Chart.get_present()) journal.jprintf(" %s:%.2f", sTemp[i].get_name(), (float) sTemp[i].get_Temp() / 100);
+	for(i = 0; i < ANUMBER; i++) if(sADC[i].get_present()) journal.jprintf(" %s:%.2f", sADC[i].get_name(), (float) sADC[i].get_Press() / 100);
+	journal.jprintf(cStrEnd);
+}
+
+// Возвращает 0 - Нет ошибок или ни одного активного датчика, 1 - ошибка, 2 - превышен предел ошибок
+int8_t MainClass::Prepare_Temp(uint8_t bus)
+{
+	int8_t i, ret = 0;
+  #ifdef ONEWIRE_DS2482_SECOND
+	if(bus == 1) i = OneWireBus2.PrepareTemp();
+	else
+  #endif
+  #ifdef ONEWIRE_DS2482_THIRD
+	if(bus == 2) i = OneWireBus3.PrepareTemp();
+	else
+  #endif
+  #ifdef ONEWIRE_DS2482_FOURTH
+	if(bus == 3) i = OneWireBus4.PrepareTemp();
+	else
+  #endif
+	i = OneWireBus.PrepareTemp();
+	if(i) {
+		for(uint8_t j = 0; j < TNUMBER; j++) {
+			if(sTemp[j].get_fAddress() && sTemp[j].get_bus() == bus) {
+				if(sTemp[j].inc_error()) {
+					ret = 2;
+					break;
+				}
+				ret = 1;
+			}
+		}
+		if(ret) {
+			journal.jprintf(pP_TIME, "Error %d PrepareTemp bus %d\n", i, bus+1);
+			if(ret == 2) set_Error(i, (char*) __FUNCTION__);
+		}
+	}
+	return ret ? (1<<bus) : 0;
+}
