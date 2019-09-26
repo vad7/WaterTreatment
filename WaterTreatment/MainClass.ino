@@ -375,20 +375,20 @@ void MainClass::resetCount(boolean full)
 {
 	if(full) // Полный сброс счетчиков
 	{
-		WorkStats.H1 = 0;
-		WorkStats.C1 = 0;
-		WorkStats.P1 = 0;
-		WorkStats.Z1 = 0;
-		WorkStats.E1 = 0;
-		WorkStats.D1 = rtcSAM3X8.unixtime();           // Дата сброса общих счетчиков
+//		WorkStats.H1 = 0;
+//		WorkStats.C1 = 0;
+//		WorkStats.P1 = 0;
+//		WorkStats.Z1 = 0;
+//		WorkStats.E1 = 0;
+//		WorkStats.D1 = rtcSAM3X8.unixtime();           // Дата сброса общих счетчиков
 	}
 	// Сезон
-	WorkStats.H2 = 0;
-	WorkStats.C2 = 0;
-	WorkStats.P2 = 0;
-	WorkStats.Z2 = 0;
-	WorkStats.E2 = 0;
-	WorkStats.D2 = rtcSAM3X8.unixtime();             // дата сброса сезонных счетчиков
+//	WorkStats.H2 = 0;
+//	WorkStats.C2 = 0;
+//	WorkStats.P2 = 0;
+//	WorkStats.Z2 = 0;
+//	WorkStats.E2 = 0;
+//	WorkStats.D2 = rtcSAM3X8.unixtime();             // дата сброса сезонных счетчиков
 	save_motoHour();  // записать счетчики
 	motohour_OUT_work = 0;
 	motohour_IN_work = 0;
@@ -403,15 +403,15 @@ void MainClass::updateCount()
 	motohour_IN_work = 0;
 	//taskEXIT_CRITICAL();
 	p /= 1000;
-	WorkStats.E1 += p;
-	WorkStats.E2 += p;
+	//WorkStats.E1 += p;
+	//WorkStats.E2 += p;
 	//taskENTER_CRITICAL();
 	p = motohour_OUT_work;
 	motohour_OUT_work = 0;
 	//taskEXIT_CRITICAL();
 	p /= 1000;
-	WorkStats.P1 += p;
-	WorkStats.P2 += p;
+	//WorkStats.P1 += p;
+	//WorkStats.P2 += p;
 }
 
 // После любого изменения часов необходимо пересчитать все времна которые используются

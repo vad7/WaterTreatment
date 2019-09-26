@@ -134,19 +134,6 @@ inline void	deviceOneWire::release_I2C_bus()
 // Формат: <Номер п.п.>:<тип датчика>:<температура>:<серийный номер>:<шина>;
 int8_t  deviceOneWire::Scan(char *result_str)
 {
-#ifdef DEMO // В демо режиме выводим строку констант
-	// Строка которая выдается в демо режиме при сканировании onewire
-	strcat(result_str,"1:DS18B20:20.1:1111111111111111:1;2:DS18S20:-3.56:2222222222222222:1;3:DS1822:34.6:3333333333333333:2;");
-	OW_scanTable[0].num=1;OW_scanTable[1].num=2;OW_scanTable[2].num=3;
-	for (int i=0;i<8;i++)
-	{
-		OW_scanTable[0].address[i]=(i+1)+(i+1)*16;
-		OW_scanTable[1].address[i]=(i+1)+(i+1)*16;
-		OW_scanTable[2].address[i]=(i+1)+(i+1)*16;
-	}
-	OW_scanTable[1].address[0]=0x0;
-	OW_scanTable[2].address[0]=0xaa;
-#else // сканирование датчика
 	byte i;
 	byte data[12];
 	byte addr[8];
@@ -228,7 +215,6 @@ int8_t  deviceOneWire::Scan(char *result_str)
 	}
 	//eepromI2C.use_RTOS_delay = 1;
 	release_I2C_bus();
-#endif  // DEMO
 	return OK;
 }
 

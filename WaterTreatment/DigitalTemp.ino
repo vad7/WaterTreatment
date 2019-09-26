@@ -54,10 +54,7 @@ int8_t sensorTemp::Read()
 	if(!(GETBIT(flags, fPresent))) return OK;          // датчик запрещен в конфигурации ничего не делаем
 	if(testMode!=NORMAL) lastTemp=testTemp;             // В режиме теста присвоить значение теста
 	else {                                              // Чтение датчиков
-#ifdef DEMO
-		if (strcmp(name,"TBOILER")==0) lastTemp=4500;       // В демо бойлер всегда 45 градусов нужно для отладки
-		else lastTemp=random(101,1190);                     // В демо режиме генерим значения
-#else   // чтение датчика
+		// чтение датчика
 		if(!(GETBIT(flags,fAddress))) { // Адрес не установлен
 			if(number == TAIR) { // эти датчики должны быть привязаны
 				set_Error(err = ERR_ADDRESS, name);
@@ -108,7 +105,6 @@ int8_t sensorTemp::Read()
 				}
 			}
 		}
-#endif
 	}
 
 	// Усреднение значений

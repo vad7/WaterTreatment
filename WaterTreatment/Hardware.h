@@ -174,7 +174,6 @@ public:
   __attribute__((always_inline)) inline boolean get_present(){return GETBIT(flags,fPresent);} // Наличие датчика в текущей конфигурации
   __attribute__((always_inline)) inline uint16_t get_minValue(){return minValue * 100;}     // Получить минимальное значение датчика, литры в час
   void set_minValue(float f);							// Установить минимальное значение датчика
-  __attribute__((always_inline)) inline float get_kfCapacity(){return (float)3600*100/Capacity;}   // Получить Коэффициент пересчета для определениея мощности  (3600 секунды в часе) в СОТЫХ!!!
   __attribute__((always_inline)) inline boolean get_checkFlow(){return GETBIT(flags,fcheckRange);}// Проверка граничного значения
   void set_checkFlow(boolean f) { flags = (flags & ~(1<<fcheckRange)) | (f<<fcheckRange); }
   int8_t  get_lastErr(){return err;}                     // Получить последнюю ошибку
@@ -185,25 +184,24 @@ public:
   void    set_testMode(TEST_MODE t){testMode=t;}       // Установить значение текущий режим работы
   float   get_kfValue(){return kfValue;}                 // Получить коэффициент пересчета
   void    set_kfValue(uint16_t f) { kfValue=f; }         // Установить коэффициент пересчета
-  uint16_t get_Capacity(){return Capacity;}              // Получить теплоемкость
   int8_t set_Capacity(uint16_t c);                       // Установить теплоемкость больше 5000 не устанавливается
   inline int8_t  get_pinF(){return pin;}                 // Получить ногу куда прицеплен датчик
   uint8_t *get_save_addr(void) { return (uint8_t *)&number; } // Адрес структуры сохранения
-  uint16_t get_save_size(void) { return (byte*)&Capacity - (byte*)&number + sizeof(Capacity); } // Размер структуры сохранения
+  uint16_t get_save_size(void) { return (byte*)&minValue - (byte*)&number + sizeof(minValue); } // Размер структуры сохранения
   statChart Chart;                                       // Статистика по датчику
+  uint32_t Passed;										// Счетчик импульсов
     
 private:
    uint32_t Frequency;                                   // значение частоты в тысячных герца
-   uint16_t Value;                                       // значение датчика ЛИТРЫ В ЧАС (ИЛИ ТЫСЯЧНЫЕ КУБА)
+   uint32_t Value;                                       // значение датчика ЛИТРЫ В ЧАС (ИЛИ ТЫСЯЧНЫЕ КУБА)
    struct { // SAVE GROUP, number the first
-   uint8_t  number;										 // номер
-   uint16_t testValue;                                   // !save! Состояние датчика в режиме теста
-   uint16_t kfValue; 								 	 // коэффициент пересчета частоты в значение, сотые
-   uint8_t  flags;                                       // флаги  датчика
-   uint8_t  minValue;							     	 // десятые m3/h (0..25,5)
-   uint16_t Capacity;                                    // значение теплоемкости теплоносителя в конутре где установлен датчик [Cp, Дж/(кг·град)]
-   } __attribute__((packed));// END SAVE GROUP, Capacity the last
-   volatile uint16_t count;                              // число импульсов за базовый период (то что меняется в прерывании)
+	   uint8_t  number;										 // номер
+	   uint16_t testValue;                                   // !save! Состояние датчика в режиме теста
+	   uint16_t kfValue; 								 	 // коэффициент пересчета частоты в значение, сотые
+	   uint8_t  flags;                                       // флаги  датчика
+	   uint8_t  minValue;							     	 // десятые m3/h (0..25,5)
+   } __attribute__((packed));// END SAVE GROUP, minValue the last
+   volatile uint32_t count;                              // число импульсов за базовый период (то что меняется в прерывании)
    TEST_MODE testMode;                                  // Значение режима тестирования
    uint32_t sTime;                                       // время начала базового периода в тиках
    int8_t err;                                           // ошибка датчика (работа)

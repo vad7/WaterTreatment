@@ -853,10 +853,10 @@ void vPumps( void * )
 			}
 		} else if(WaterBoosterStatus == 1) {
 			MC.dRelay[RBOOSTER2].set_ON();
-			WaterBoosterStatus == 2;
+			WaterBoosterStatus = 2;
 		} else if(WaterBoosterStatus == 2) {
 			MC.dRelay[RBOOSTER1].set_OFF();
-			WaterBoosterStatus == 3;
+			WaterBoosterStatus = 3;
 		} else if(WaterBoosterStatus == -2) {
 			MC.dRelay[RBOOSTER2].set_OFF();
 			WaterBoosterStatus = -1;

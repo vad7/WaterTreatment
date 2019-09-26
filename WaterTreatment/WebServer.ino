@@ -1564,13 +1564,6 @@ x_get_aTemp:
 								else strcat(strReturn,"-");               // Датчика нет ставим прочерк
 								ADD_WEBDELIM(strReturn) ;    continue;
 							}
-							if(strncmp(str, "cF", 2)==0)           // Функция get_cFlow (capacity)
-							{
-								if (MC.sFrequency[p].get_present())        // Если датчик есть в конфигурации то выводим значение
-									_itoa(MC.sFrequency[p].get_Capacity(),strReturn);
-								else strcat(strReturn,"-");               // Датчика нет ставим прочерк
-								ADD_WEBDELIM(strReturn) ;    continue;
-							}
 							if(strncmp(str, "test", 4)==0)           // Функция get_testFlow
 							{
 								if (MC.sFrequency[p].get_present())          // Если датчик есть в конфигурации то выводим значение
@@ -1614,12 +1607,6 @@ x_get_aTemp:
 							if(strncmp(str, "kfF", 3)==0)           // Функция set_kfFlow float
 							{ MC.sFrequency[p].set_kfValue(rd(pm, 100));    // Установить значение
 								_ftoa(strReturn,(float)MC.sFrequency[p].get_kfValue()/100,2); ADD_WEBDELIM(strReturn); continue;
-							}
-							if(strncmp(str, "cF", 2)==0)           // Функция set_cFlow float (capacity)
-							{
-								if (MC.sFrequency[p].set_Capacity(pm)==OK)    // Установить значение
-								{  _itoa(MC.sFrequency[p].get_Capacity(),strReturn);  ADD_WEBDELIM(strReturn); continue;}
-								else { strcat(strReturn,"E35" WEBDELIM);  continue;}         // выход за диапазон ПРЕДУПРЕЖДЕНИЕ значение не установлено
 							}
 						}
 						strcat(strReturn,"E08"); // выход за диапазон, значение не установлено

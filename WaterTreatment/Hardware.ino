@@ -176,9 +176,6 @@ void sensorADC::initSensorADC(uint8_t sensor, uint8_t pinA, uint16_t filter_size
 	 if(testMode != NORMAL) {
 		 lastPress = cfg.testPress;                // В режиме теста
 	 } else {                                      // Чтение датчика
-#ifdef DEMO
-		 lastADC=random(1350,2500);                // В демо режиме генерим значение
-#else
 #ifdef ANALOG_MODBUS
 		 if(get_fmodbus()) {
 			 for(uint8_t i = 0; i < ANALOG_MODBUS_NUM_READ; i++) {
@@ -200,7 +197,6 @@ void sensorADC::initSensorADC(uint8_t sensor, uint8_t pinA, uint16_t filter_size
 			 if(adc_flagFull) lastADC = adc_sum / (adc_filter_max + 1);	else lastADC = adc_sum / adc_last;
 			 //if(adc.error!=OK)  {err=ERR_READ_PRESS;set_Error(err,name);return err;}   // Проверка на ошибку чтения ацп
 		 }
-#endif
 		 lastPress = (int32_t) lastADC * cfg.transADC / 1000 - cfg.zeroPress;
 	 }
 #if P_NUMSAMLES > 1
@@ -383,40 +379,39 @@ void sensorFrequency::initFrequency(int sensor)
 // Получить (точнее обновить) значение датчика, возвращает 1, если новое значение рассчитано
 int8_t sensorFrequency::Read()
 {
-	if(testMode != NORMAL) {
+	if(testMode != NORMAL) {    // В режиме теста
 		Value = testValue;
-#if defined(RPUMPI) && defined(FLOWEVA)
-		if(number == FLOWEVA && !MC.dRelay[RPUMPI].get_Relay()) Value = 0;
-#endif
-#if defined(RPUMPO) && defined(FLOWCON)
-		if(number == FLOWCON && !MC.dRelay[RPUMPO].get_Relay()) Value = 0;
+#if defined(RBOOSTER2) && defined(FLOW)
+		if(number == FLOW && !MC.dRelay[RBOOSTER2].get_Relay()) Value = 0;
 #endif
 		Frequency = Value * kfValue / 360;
 		return 0;
-	}   // В режиме теста
-#ifdef DEMO
-	Frequency=random(2500,9000);
-	count=0;
-	//   Value=60.0*Frequency/kfValue/1000.0;                  // переводим в Кубы в час  (Frequency/kfValue- литры в минуту)  watt=(Value/3.600) *4.191*dT
-	Value=Frequency * 360 / kfValue;// ЛИТРЫ В ЧАС (ИЛИ ТЫСЯЧНЫЕ КУБА) частота в тысячных, и коэффициент правим
-	//  journal.jprintf("Sensor %s: frequence=%.3f flow=%.3f\n",name,Frequency/(1000.0),Value/(1000.0));
-#else
-	if(GetTickCount() - sTime >= (uint32_t)BASE_TIME_READ * 1000) {  // если только пришло время измерения
+	}
+	if(GetTickCount() - sTime >= (uint32_t)FREQ_BASE_TIME_READ * 1000) {  // если только пришло время измерения
 		uint32_t tickCount, cnt;
 		//if(xTaskGetSchedulerState() == taskSCHEDULER_RUNNING) taskENTER_CRITICAL();
-		tickCount = GetTickCount();
-		cnt = count;
-		count = 0;
+		{
+			tickCount = GetTickCount();
+			cnt = count;
+			count = 0;
+		}
 		//if(xTaskGetSchedulerState() == taskSCHEDULER_RUNNING) taskEXIT_CRITICAL();
-		__asm__ volatile ("" ::: "memory");
-		Frequency = (cnt * 500 * 1000) / (tickCount - sTime); // ТЫСЯЧНЫЕ ГЦ время в миллисекундах частота в тысячных герца *2 (прерывание по обоим фронтам)!!!!!!!!
+		//__asm__ volatile ("" ::: "memory");
+		uint32_t ticks = tickCount - sTime;
+		Passed += ticks;
+		if(ticks == FREQ_BASE_TIME_READ * 1000) {
+			Frequency = cnt * 500;
+		} else if(cnt > 8589) { // will overflow u32
+			Frequency = (cnt * 10000) / ticks * 50;
+		} else {
+			Frequency = (cnt * 500 * 1000) / ticks; // ТЫСЯЧНЫЕ ГЦ время в миллисекундах частота в тысячных герца *2 (прерывание по обоим фронтам)!!!!!!!!
+		}
 		sTime = tickCount;
 		//   Value=60.0*Frequency/kfValue/1000.0;               // Frequency/kfValue  литры в минуту а нужны кубы
 		//       Value=((float)Frequency/1000.0)/((float)kfValue/360000.0);          // ЛИТРЫ В ЧАС (ИЛИ ТЫСЯЧНЫЕ КУБА) частота в тысячных, и коэффициент правим
 		Value = Frequency * 360 / kfValue; // ЛИТРЫ В ЧАС (ИЛИ ТЫСЯЧНЫЕ КУБА) частота в тысячных, и коэффициент правим
 		return 1;
 	}
-#endif
 	return 0;
 }
 
@@ -435,11 +430,6 @@ int8_t  sensorFrequency::set_testValue(int16_t i)
    testValue=i;
    return OK;
 }
-// Установить теплоемкость больше 5000 не устанавливается
-int8_t sensorFrequency::set_Capacity(uint16_t c)                      
-{  
-  if (c<=5000) {Capacity=c; return OK;} else return WARNING_VALUE;    
-}   
 
 	// Установить минимальное значение датчика
 void sensorFrequency::set_minValue(float f)

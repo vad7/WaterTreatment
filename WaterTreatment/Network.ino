@@ -150,9 +150,6 @@ boolean initW5200(boolean flag)
 
 	if(flag)  // 2. Печать настроек соответствия либы и чипа (правильная настройка либы)
 	{
-#ifdef DEMO
-		journal.jprintf(" DEMO mode!");
-#endif
 #if defined(W5500_ETHERNET_SHIELD) // Определение соответстивия библиотеки и чипа
 		if(W5200VERSIONR() == 0x04) {
 #ifdef W5500_LOG_FULL_INFO
@@ -182,10 +179,6 @@ boolean initW5200(boolean flag)
 
 	// 4. Иницилизация сетевого адаптера, установка сетевых настроек
 	WDT_Restart(WDT);                          // Сбросить вачдог  DHCP при отключенном кабеле - большой таймаут
-#ifdef DEMO
-	Ethernet.begin((uint8_t*)defaultMAC,(IPAddress)defaultIP,(IPAddress)defaultSDNS,(IPAddress)defaultGateway,(IPAddress)defaultSubnet); // Инициализация сетевого адаптера  в демо режиме КОНСТАНТЫ
-	if (defaultIP!=Ethernet.localIP()) EthernetOK=false; else beginWeb(defaultPort);
-#else
 	if(MC.safeNetwork) {
 		Ethernet.begin((uint8_t*) defaultMAC, (IPAddress) defaultIP, (IPAddress) defaultSDNS,
 				(IPAddress) defaultGateway, (IPAddress) defaultSubnet); // Инициализация сетевого адаптера  в режиме safeNetwork = КОНСТАНТЫ
@@ -218,7 +211,6 @@ x_TryStaticIP:
 			else beginWeb(MC.get_port());
 		}
 	}
-#endif
 
 	pingW5200(MC.get_NoPing());  // Установка пинга флага разрешенеия пинга
 //	W5100.writeMR(W5100.readMR() | 2);	// FARP flag

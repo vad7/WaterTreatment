@@ -320,7 +320,6 @@ void get_txtSettings(uint8_t thread)
              strcat(Socket[thread].outBuf," Контроль мин. потока: ");  if (MC.sFrequency[i].get_checkFlow())  strcat(Socket[thread].outBuf,(char*)cOne);else strcat(Socket[thread].outBuf,(char*)cZero);
              strcat(Socket[thread].outBuf,", Минимальный поток (куб/ч)="); _ftoa(Socket[thread].outBuf,(float)MC.sFrequency[i].get_minValue()/1000.0,3);
              strcat(Socket[thread].outBuf,", Коэффициент (имп*л)=");       _ftoa(Socket[thread].outBuf,(float)MC.sFrequency[i].get_kfValue()/100.0,3);
-             strcat(Socket[thread].outBuf,", Теплоемкость, Дж/(кг*град)="); _ftoa(Socket[thread].outBuf,(float)MC.sFrequency[i].get_Capacity(),3);
              strcat(Socket[thread].outBuf,", Тест (куб/ч)="); _ftoa(Socket[thread].outBuf,(float)MC.sFrequency[i].get_testValue()/1000,3);
              
             }
