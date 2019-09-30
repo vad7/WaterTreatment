@@ -52,15 +52,22 @@ uint16_t task_updstat_chars = 0;
 #define f1Wire4TSngl		5				// На 4-ей шине 1-Wire(DS2482) только один датчик
 #define fLogWirelessSensors 6				// Логировать обмен между беспроводными датчиками
 #define fPWMLogErrors  		7               // флаг писать в лог ошибки электросчетчика
-
+#define fDontRegenOnWeekend	8				// Не делать регенерацию в выходные
+#define fDischargeEveryDay	9				// Сливать воду, если не было расхода за день
  
 // Структура для хранения опций
 struct type_option {
 	uint8_t ver;						// номер версии для сохранения
 	uint16_t flags;						// Флаги опций до 16 флагов
 	uint16_t tChart;					// период графиков в секундах!!
-	uint32_t FeedPumpMaxFlow;			// Максимальный проток для постонного выключения дозатора
-	uint8_t  RegenHour;					// Час регенерации
+	uint32_t FeedPumpMaxFlow;			// Максимальный проток для постоянного выключения дозатора
+	uint8_t  RegenHour;					// Час регенерации (0..23)
+	uint16_t MaxFlow;					// Максимальный проток до которого распределяется время включения дозатора
+	uint16_t UsedBeforeRegen;			// Количество литров до регенерации
+	uint16_t MinPumpOnTime;				// Минимальное время включения дозатора
+	uint16_t MinRegen;					// Тревога, если за регенерацию слито меньше литров
+	uint16_t MinDischarge;				// Тревога, если слито (Discharge) при сбросе меньше литров
+	uint16_t DischargeTime;				// Время слива воды, сек
 
 } __attribute__((packed));
 
