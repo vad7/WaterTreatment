@@ -465,6 +465,24 @@ const char *option_SAVE_ON            = {"SAVE_ON"};            // флаг за
 const char option_SGL1W[]             = "SGL1W_";			    // SGLOW_n, На шине n (1-Wire, DS2482) только один датчик
 const char *option_WebOnSPIFlash      = {"WSPIF"};              // флаг, что веб морда лежит на SPI Flash, иначе на SD карте
 const char *option_LogWirelessSensors = {"LOGWS"};              // Логировать обмен между беспроводными датчиками
+const char *option_FeedPumpMaxFlow 	  = {"FPMF"};
+const char *option_RegenHour			= {"RH"};
+const char *option_UsedBeforeRegen		= {"UBR"};
+const char *option_MinPumpOnTime		= {"MPOT"};
+const char *option_MinRegen				= {"MR"};
+const char *option_MinDischarge			= {"MD"};
+const char *option_DischargeTime		= {"DT"};
+
+
+uint8_t  RegenHour;					// Час регенерации (0..23)
+uint16_t MaxFlow;					// Максимальный проток до которого распределяется время включения дозатора
+uint16_t UsedBeforeRegen;			// Количество литров до регенерации
+uint16_t MinPumpOnTime;				// Минимальное время включения дозатора
+uint16_t MinRegen;					// Тревога, если за регенерацию слито меньше литров
+uint16_t MinDischarge;				// Тревога, если слито (Discharge) при сбросе меньше литров
+uint16_t DischargeTime;				// Время слива воды, сек
+
+
 
 // Описание ВСЕХ Ошибок длина описания не более 160 байт (ограничение основной класс note_error[160+1])
 const char *noteError[] = {"Ok",                                                  //  0

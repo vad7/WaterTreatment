@@ -699,14 +699,22 @@ if(strcmp(var,time_UPDATE_I2C)==0){ if (GETBIT(DateTime.flags,fUpdateI2C)) retur
 return strcat(ret,(char*)cInvalid);
 }
 
-// Установить опции  из числа (float), "set_op"
-boolean MainClass::set_option(char *var, float x)
+// Установить опции  из числа (float), "set_Opt"
+boolean MainClass::set_option(char *var, float xx)
 {
+   int32_t x = (int32_t) xx;
    if(strcmp(var,option_TIME_CHART)==0)       { if(x>0) { startChart(); Option.tChart = x; return true; } else return false; } else // Сбросить статистистику, начать отсчет заново
    if(strcmp(var,option_BEEP)==0)             {if (x==0) {SETBIT0(Option.flags,fBeep); return true;} else if (x==1) {SETBIT1(Option.flags,fBeep); return true;} else return false;  }else            // Подача звукового сигнала
    if(strcmp(var,option_History)==0)          {if (x==0) {SETBIT0(Option.flags,fHistory); return true;} else if (x==1) {SETBIT1(Option.flags,fHistory); return true;} else return false;       }else       // Сбрасывать статистику на карту
    if(strcmp(var,option_WebOnSPIFlash)==0)    { Option.flags = (Option.flags & ~(1<<fWebStoreOnSPIFlash)) | ((x!=0)<<fWebStoreOnSPIFlash); return true; } else
    if(strcmp(var,option_LogWirelessSensors)==0){ Option.flags = (Option.flags & ~(1<<fLogWirelessSensors)) | ((x!=0)<<fLogWirelessSensors); return true; } else
+   if(strcmp(var,option_FeedPumpMaxFlow)==0)       { Option.FeedPumpMaxFlow = x; return true; } else
+   if(strcmp(var,option_RegenHour)==0)       { Option.RegenHour = x; return true; } else
+   if(strcmp(var,option_UsedBeforeRegen)==0)       { Option.UsedBeforeRegen = x; return true; } else
+   if(strcmp(var,option_MinPumpOnTime)==0)       { Option.MinPumpOnTime = x; return true; } else
+   if(strcmp(var,option_MinRegen)==0)       { Option.MinRegen = x; return true; } else
+   if(strcmp(var,option_MinDischarge)==0)       { Option.MinDischarge = x; return true; } else
+   if(strcmp(var,option_DischargeTime)==0)       { Option.DischargeTime = x; return true; } else
    if(strncmp(var,option_SGL1W, sizeof(option_SGL1W)-1)==0) {
 	   uint8_t bit = var[sizeof(option_SGL1W)-1] - '0' - 2;
 	   if(bit <= 2) {
@@ -717,7 +725,7 @@ boolean MainClass::set_option(char *var, float x)
    return false; 
 }
 
-// Получить опции , результат добавляется в ret, "get_op"
+// Получить опции , результат добавляется в ret, "get_Opt"
 char* MainClass::get_option(char *var, char *ret)
 {
    if(strcmp(var,option_TIME_CHART)==0)       {return _itoa(Option.tChart,ret);} else
@@ -725,6 +733,13 @@ char* MainClass::get_option(char *var, char *ret)
    if(strcmp(var,option_History)==0)          {if(GETBIT(Option.flags,fHistory)) return strcat(ret,(char*)cOne); else return strcat(ret,(char*)cZero);   }else            // Сбрасывать статистику на карту
    if(strcmp(var,option_WebOnSPIFlash)==0)    { return strcat(ret, (char*)(GETBIT(Option.flags,fWebStoreOnSPIFlash) ? cOne : cZero)); } else
    if(strcmp(var,option_LogWirelessSensors)==0){ return strcat(ret, (char*)(GETBIT(Option.flags,fLogWirelessSensors) ? cOne : cZero)); } else
+   if(strcmp(var,option_FeedPumpMaxFlow)==0){ return _itoa(Option.FeedPumpMaxFlow, ret); } else
+   if(strcmp(var,option_RegenHour)==0){ return _itoa(Option.RegenHour, ret); } else
+   if(strcmp(var,option_UsedBeforeRegen)==0){ return _itoa(Option.UsedBeforeRegen, ret); } else
+   if(strcmp(var,option_MinPumpOnTime)==0){ return _itoa(Option.MinPumpOnTime, ret); } else
+   if(strcmp(var,option_MinRegen)==0){ return _itoa(Option.MinRegen, ret); } else
+   if(strcmp(var,option_MinDischarge)==0){ return _itoa(Option.MinDischarge, ret); } else
+   if(strcmp(var,option_DischargeTime)==0){ return _itoa(Option.DischargeTime, ret); } else
    if(strncmp(var,option_SGL1W, sizeof(option_SGL1W)-1)==0) {
 	   uint8_t bit = var[sizeof(option_SGL1W)-1] - '0' - 2;
 	   if(bit <= 2) {

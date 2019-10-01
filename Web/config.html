@@ -7,7 +7,7 @@
 	<script type='text/javascript' src='scripts.js'></script>
 	<script type="text/javascript">
 		window.onload = function() {
-		loadParam("get_Opt(HIST),get_Opt(BEEP),get_Opt(WSPIF),get_Opt(LOGWS),get_Opt(TIME_CHART),get_Opt(SDM_LOGER),get_Opt(SGL1W_2),get_Opt(SGL1W_3),get_Opt(SGL1W_4)");
+		loadParam("get_Opt(FPMF),get_Opt(MPOT),get_Opt(UBR),get_Opt(RH),get_Opt(DT),get_Opt(MR),get_Opt(MD),get_Opt(HIST),get_Opt(BEEP),get_Opt(WSPIF),get_Opt(LOGWS),get_Opt(TIME_CHART),get_Opt(SDM_LOGER),get_Opt(SGL1W_2),get_Opt(SGL1W_3),get_Opt(SGL1W_4)");
 	}; 
 	</script>
 </head>
@@ -25,13 +25,44 @@
 		</thead>			
 		<tbody>
 		<tr>
+			<td>Максимальный проток до которого распределяется время включения дозатора</td>
+			<td nowrap><input id="get_opt-fpmf" type="number"> <input type="submit" value=">" onclick="setParam('get_Opt(FPMF)');"></td>
+		</tr>
+		<tr>
+			<td>Минимальное время включения дозатора</td>
+			<td nowrap><input id="get_opt-mpot" type="number"> <input type="submit" value=">" onclick="setParam('get_Opt(MPOT)');"></td>
+		</tr>
+		<tr>
+			<td>Количество литров до регенерации</td>
+			<td nowrap><input id="get_opt-ubr" type="number"> <input type="submit" value=">" onclick="setParam('get_Opt(UBR)');"></td>
+		</tr>
+		<tr>
+			<td>Час регенерации (0..23)</td>
+			<td nowrap><input id="get_opt-rh" type="number"> <input type="submit" value=">" onclick="setParam('get_Opt(RH)');"></td>
+		</tr>
+		<tr>
+			<td>Сколько сбрасывать воду, если не было расхода за день, сек</td>
+			<td nowrap><input id="get_opt-dt" type="number"> <input type="submit" value=">" onclick="setParam('get_Opt(DT)');"></td>
+		</tr>
+		<tr>
+			<td>Тревога, если за регенерацию израсходовано меньше литров</td>
+			<td nowrap><input id="get_opt-mr" type="number"> <input type="submit" value=">" onclick="setParam('get_Opt(MR)');"></td>
+		</tr>
+		<tr>
+			<td>Тревога, если слито при сбросе меньше литров</td>
+			<td nowrap><input id="get_opt-md" type="number"> <input type="submit" value=">" onclick="setParam('get_Opt(MD)');"></td>
+		</tr>
+		<tr>
+			<td><b>Дополнительно</b></td>
+			<td></td>
+		</tr>
+		<tr>
 			<td>Расположение файлов веб-сервера на SPI Flash (иначе на SD карте)</td>
 			<td><input type="checkbox" id="get_opt-wspif" onChange="setParam('get_Opt(WSPIF)');"></td>
 		</tr>
 		<tr>
 			<td>Интервал накопления точек графиков в памяти, сек.</td>
-			<td nowrap><input id="get_opt-time_chart" type="number" min="2" step="1"> <input type="submit" value=">" onclick="setParam('get_Opt(TIME_CHART)','get_opt-time_chart');">
-			</td>
+			<td nowrap><input id="get_opt-time_chart" type="number" min="2" step="1"> <input type="submit" value=">" onclick="setParam('get_Opt(TIME_CHART)','get_opt-time_chart');"></td>
 		</tr>
 		<tr>
 			<td>Запись истории на SD карту (раз в минуту)</td>

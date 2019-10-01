@@ -60,12 +60,11 @@ struct type_option {
 	uint8_t ver;						// номер версии для сохранения
 	uint16_t flags;						// Флаги опций до 16 флагов
 	uint16_t tChart;					// период графиков в секундах!!
-	uint32_t FeedPumpMaxFlow;			// Максимальный проток для постоянного выключения дозатора
+	uint32_t FeedPumpMaxFlow;			// Максимальный проток до которого распределяется время включения дозатора
 	uint8_t  RegenHour;					// Час регенерации (0..23)
-	uint16_t MaxFlow;					// Максимальный проток до которого распределяется время включения дозатора
 	uint16_t UsedBeforeRegen;			// Количество литров до регенерации
 	uint16_t MinPumpOnTime;				// Минимальное время включения дозатора
-	uint16_t MinRegen;					// Тревога, если за регенерацию слито меньше литров
+	uint16_t MinRegen;					// Тревога, если за регенерацию израсходовано меньше литров
 	uint16_t MinDischarge;				// Тревога, если слито (Discharge) при сбросе меньше литров
 	uint16_t DischargeTime;				// Время слива воды, сек
 
@@ -205,7 +204,7 @@ public:
 	boolean get_fInitW5200() { return GETBIT(Network.flags,fInitW5200);}  //  Получить флаг Контроля w5200
 
 	// Параметры
-	boolean set_option(char *var, float x);                // Установить опции  из числа (float)
+	boolean set_option(char *var, float xx);                // Установить опции  из числа (float)
 	char*   get_option(char *var, char *ret);              // Получить опции 
 
 	// Опции
