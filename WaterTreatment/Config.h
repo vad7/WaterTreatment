@@ -61,7 +61,7 @@ struct History_setup {
 // -----------------------------------------------------------------------------------------------------------------------------------
 //  Arduino DUE Core
 #ifdef CONFIG_1    // Имя и описание конфигурации и ОСОБЕННОСТИ конфигурации (обновление до 957 версии)-------------------------------
-//	#define TEST_BOARD 				// Тестовая плата!
+	#define TEST_BOARD 				// Тестовая плата!
 
     #define CONFIG_NAME   "vad7"
     #define CONFIG_NOTE   "Обезжелезивание Quantum DMI-65, дозирование хлора, водоснабжение"
@@ -81,7 +81,7 @@ struct History_setup {
 	#else
       const uint8_t ONEWIRE_2WAY = 0b0000;
 	#endif
-	#define PIN_ONE_WIRE_BUS 41     // ULN5. нога с интерфейсом программный OneWire
+	#define PIN_ONE_WIRE_BUS 41     // ULN5. нога с интерфейсом программный 1-Wire (температурные датчики)
     #define ONEWIRE_DONT_CHG_RES    // Не записывать 9/12-битное разрешение в датчик при привязке, а просто устанавливать
     #define LOAD_VERIFICATION     	// Признак чтения настроек c проверкой версии, длины, CRC16. Закоментируйте эту строку для ПОПЫТКИ загрузить старый формат, Запись всегда идет в новом
     //#define EXTERNAL_AREF     	  	// Использование внешней опоры для АЦП
@@ -184,9 +184,6 @@ struct History_setup {
 	#define PIN_KEY_DOWN		30			// KEYS.3
 	#define PIN_KEY_OK			12			// KEYS.4
      
-    // датчики
-    //#define PIN_ONE_WIRE_BUS   23       // нога с интерфейсом программный OneWire ВСЕ температурные датчики
- 
     // Контактные датчики ------------------------------------------------------------------
     #define INUMBER             5   	// Число контактных датчиков цифровые входы
     // Имена индексов
@@ -196,7 +193,7 @@ struct History_setup {
 	#define TANK_FULL           3        // Емкость полна (INP5)
 	#define TANK_EMPTY          4        // Емкость пуста (INP6)
 
-      // Массив ног
+	// Массив ног
 	const uint8_t pinsInput[INUMBER] = { 56, 43, 54, 23, 24 };
       // Описание датчиков
     const char *noteInput[INUMBER] = {	"Идет регенерация",
@@ -262,7 +259,7 @@ struct History_setup {
 											46,	// REL2
 											45,	// REL3
 											44,	// REL4
-											43, // REL5
+											92, // REL5 // PC20 (Arduino DUE Core only!)
 											9	// REL6
                                        };
 	// Описание реле
@@ -322,27 +319,27 @@ struct History_setup {
 
     // АНАЛОГОВЫЕ ДАТЧИКИ  -------------------------------------------------------------------
     // Давление харится в сотых бара
-	#define ANUMBER			1       // Число аналоговых датчиков
+	#define ANUMBER			3//1       // Число аналоговых датчиков
 	#define PWATER			0       // Датчик давления испарителя.
 	// Имена датчиков
-	const char *namePress[] = { "WATER"
+	const char *namePress[] = { "WATER" , "4", "5"
 							  };
 	// Описание датчиков
-	const char *notePress[] = { "Датчик давления воды"
+	const char *notePress[] = { "Датчик давления воды", "4", "5"
 							  };
 
 	// Номера каналов АЦП, в нумерации SAM3X (AD*):
-	const uint8_t pinsAnalog[ANUMBER] = {	10 // INA1 - желтый, красный "+5V", черный "-".
+	const uint8_t pinsAnalog[ANUMBER] = {	8, 4, 5 // D62, INA1 - желтый, красный "+5V", черный "-".
 										};
 	// Коэффициент преобразования отсчеты АЦП-давление, тысячные
-	const uint16_t TRANsADC[ANUMBER]  = { 181 };
+	const uint16_t TRANsADC[ANUMBER]  = { 181  ,181,181 };
 	// напряжение (отсчеты АЦП) соответсвующее cZero
-	const uint16_t ZEROPRESS[ANUMBER] = { 70 };
+	const uint16_t ZEROPRESS[ANUMBER] = { 70 ,  70,70 };
 
-	const boolean SENSORPRESS[ANUMBER]= { true };	// Присутствие датчика в конфигурации
-	const int16_t MINPRESS[ANUMBER]   = {   0 };	// минимальные значения давления, в сотых бар
-	const uint16_t MAXPRESS[ANUMBER]  = {  500 };	// Максимальные значения давления, в сотых бар
-	const uint16_t TESTPRESS[ANUMBER] = {  300 };	// Значения датчиков при тестировании  опция TEST, в сотых бар
+	const boolean SENSORPRESS[ANUMBER]= { true , 1, 1};	// Присутствие датчика в конфигурации
+	const int16_t MINPRESS[ANUMBER]   = {  250 , 250,250};	// минимальные значения давления, в сотых бар
+	const uint16_t MAXPRESS[ANUMBER]  = {  370 , 370,370};	// Максимальные значения давления, в сотых бар
+	const uint16_t TESTPRESS[ANUMBER] = {  300 , 300,300};	// Значения датчиков при тестировании  опция TEST, в сотых бар
 	//#define ANALOG_MODBUS 									// Данные аналоговых датчиков читаются по Modbus RTU
 	#ifdef ANALOG_MODBUS
 	  #define ANALOG_MODBUS_NUM_READ				3			// Число попыток чтения

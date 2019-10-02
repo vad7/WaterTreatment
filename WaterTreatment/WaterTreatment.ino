@@ -168,8 +168,8 @@ void setup() {
 	// Баг разводки дуе (вероятность). Есть проблема с инициализацией spi.  Ручками прописываем
 	// https://groups.google.com/a/arduino.cc/forum/#!topic/developers/0PUzlnr7948
 	// http://forum.arduino.cc/index.php?topic=243778.0;nowap
-	pinMode(PIN_SPI_SS0,INPUT_PULLUP);          // Eth Pin 77
-	pinMode(PIN_SPI_SS1,INPUT_PULLUP);          // SD Pin  87
+	//pinMode(PIN_SPI_SS0,INPUT_PULLUP);          // Eth Pin 77
+	//pinMode(PIN_SPI_SS1,INPUT_PULLUP);          // SD Pin  87
 	pinMode(PIN_SPI_CS_SD,INPUT_PULLUP);        // сигнал CS управление SD картой
 	pinMode(PIN_SPI_CS_W5XXX,INPUT_PULLUP);     // сигнал CS управление сетевым чипом
 
@@ -348,7 +348,8 @@ void setup() {
 
 	// 7. Инициализация СД карты и запоминание результата 3 попытки
 	journal.printf("* Init SD card.\n");
-	MC.set_fSD(initSD());
+	WDT_Restart(WDT);
+	//MC.set_fSD(initSD());
 	WDT_Restart(WDT);                          // Сбросить вачдог  иногда карта долго инициализируется
 	digitalWriteDirect(PIN_LED_OK,LOW);        // Включить светодиод - признак того что сд карта инициализирована
 	//_delay(100);
@@ -394,6 +395,7 @@ void setup() {
 		journal.printf(" MAC: %s\n", MAC2String((uint8_t *)Socket[0].outBuf));
 	}
 	digitalWriteDirect(PIN_BEEP,LOW);          // Выключить пищалку
+	WDT_Restart(WDT);
 
 	// 11. Разбираемся со всеми часами и синхронизацией
 	journal.printf("* Setting time.\n");
@@ -401,7 +403,7 @@ void setup() {
 
 	// 12. Инициалазация уведомлений
 	journal.printf("* Message DNS update.\n");
-	MC.message.dnsUpdate();
+//	MC.message.dnsUpdate();
 
 	// 13. Инициалазация MQTT
 #ifdef MQTT
@@ -411,6 +413,7 @@ void setup() {
 	journal.printf("* Client MQTT disabled\n");
 #endif
 
+	WDT_Restart(WDT);
 	// 14. Инициалазация Statistics
 	journal.printf("* Statistics ");
 	if(MC.get_fSD()) {
@@ -430,24 +433,24 @@ void setup() {
 	//MC.mRTOS=MC.mRTOS+4*configTIMER_TASK_STACK_DEPTH;  // программные таймера (их теперь нет)
 
 	// ПРИОРИТЕТ 4 Высший приоритет
-	if(xTaskCreate(vPumps, "Pumps", 150, NULL, 4, &MC.xHandlePumps) == errCOULD_NOT_ALLOCATE_REQUIRED_MEMORY) set_Error(ERR_MEM_FREERTOS,(char*)nameFREERTOS);
+	if(xTaskCreate(vPumps, "Pumps", 250, NULL, 4, &MC.xHandlePumps) == errCOULD_NOT_ALLOCATE_REQUIRED_MEMORY) set_Error(ERR_MEM_FREERTOS,(char*)nameFREERTOS);
 	MC.mRTOS=MC.mRTOS+64+4* 150;
 	//vTaskSuspend(MC.xHandleFeedPump);      // Остановить задачу
 
 	// ПРИОРИТЕТ 3 Очень высокий приоритет
-	if(xTaskCreate(vReadSensor, "ReadSensor", 150, NULL, 3, &MC.xHandleReadSensor) == errCOULD_NOT_ALLOCATE_REQUIRED_MEMORY) set_Error(ERR_MEM_FREERTOS,(char*)nameFREERTOS);
+	if(xTaskCreate(vReadSensor, "ReadSensor", 250, NULL, 3, &MC.xHandleReadSensor) == errCOULD_NOT_ALLOCATE_REQUIRED_MEMORY) set_Error(ERR_MEM_FREERTOS,(char*)nameFREERTOS);
 	MC.mRTOS=MC.mRTOS+64+4* 150;
 
 	// ПРИОРИТЕТ 2 средний
-	if(xTaskCreate(vKeysLCD, "KeysLCD", 150, NULL, 4, &MC.xHandleKeysLCD) == errCOULD_NOT_ALLOCATE_REQUIRED_MEMORY) set_Error(ERR_MEM_FREERTOS,(char*)nameFREERTOS);
+	if(xTaskCreate(vKeysLCD, "KeysLCD", 250, NULL, 4, &MC.xHandleKeysLCD) == errCOULD_NOT_ALLOCATE_REQUIRED_MEMORY) set_Error(ERR_MEM_FREERTOS,(char*)nameFREERTOS);
 	MC.mRTOS=MC.mRTOS+64+4* 150;
-	if(xTaskCreate(vService, "Service", 180, NULL, 2, &MC.xHandleService) == errCOULD_NOT_ALLOCATE_REQUIRED_MEMORY) set_Error(ERR_MEM_FREERTOS,(char*)nameFREERTOS);
+	if(xTaskCreate(vService, "Service", 280, NULL, 2, &MC.xHandleService) == errCOULD_NOT_ALLOCATE_REQUIRED_MEMORY) set_Error(ERR_MEM_FREERTOS,(char*)nameFREERTOS);
 	MC.mRTOS=MC.mRTOS+64+4* 180;
 
 	// ПРИОРИТЕТ 1 низкий - обслуживание вебморды в несколько потоков
 	// ВНИМАНИЕ первый поток должен иметь больший стек для обработки фоновых сетевых задач
 	// 1 - поток
-	#define STACK_vWebX 180
+	#define STACK_vWebX 280
 	if(xTaskCreate(vWeb0,"Web0", STACK_vWebX+10,NULL,1,&MC.xHandleUpdateWeb0)==errCOULD_NOT_ALLOCATE_REQUIRED_MEMORY) set_Error(ERR_MEM_FREERTOS,(char*)nameFREERTOS);
 	MC.mRTOS=MC.mRTOS+64+4*STACK_vWebX+10;
 	if(xTaskCreate(vWeb1,"Web1", STACK_vWebX,NULL,1,&MC.xHandleUpdateWeb1)==errCOULD_NOT_ALLOCATE_REQUIRED_MEMORY) set_Error(ERR_MEM_FREERTOS,(char*)nameFREERTOS);
@@ -481,7 +484,7 @@ void setup() {
 	journal.printf("Temperature SAM3X8E: %.2f\n",temp_DUE());
 	journal.printf("Temperature DS2331: %.2f\n",getTemp_RtcI2C());
 	//MC.Stat.generate_TestData(STAT_POINT); // Сгенерировать статистику STAT_POINT точек только тестирование
-	journal.printf("Start FreeRTOS scheduler!\n");
+	journal.printf("Start FreeRTOS.\n");
 	eepromI2C.use_RTOS_delay = 1;       //vad711
 	//
 	vTaskStartScheduler();              // СТАРТ !!
@@ -837,17 +840,25 @@ void vPumps( void * )
 {
 	for(;;)
 	{
-		if(!WaterBoosterStatus && MC.sADC[PWATER].get_Press() <= MC.sADC[PWATER].get_minPress()) {
+		int16_t press = MC.sADC[PWATER].get_Press();
+		if(press == ERROR_PRESS) {
+			if(WaterBoosterStatus) {
+				MC.dRelay[RBOOSTER2].set_OFF();
+				_delay(20);
+				MC.dRelay[RBOOSTER1].set_OFF();
+				WaterBoosterStatus = 0;
+			}
+		} else if(!WaterBoosterStatus && press <= MC.sADC[PWATER].get_minPress()) {
 			MC.dRelay[RBOOSTER1].set_ON();
 			WaterBoosterStatus = 1;
-		} else if(WaterBoosterStatus > 0 && MC.sADC[PWATER].get_Press() >= MC.sADC[PWATER].get_maxPress()) {
+		} else if(WaterBoosterStatus > 0 && press >= MC.sADC[PWATER].get_maxPress()) {
 			if(WaterBoosterStatus == 1) {
 				MC.dRelay[RBOOSTER1].set_OFF();
 				WaterBoosterStatus = 0;
 			} else if(WaterBoosterStatus == 2) {
 				MC.dRelay[RBOOSTER2].set_OFF();
 				WaterBoosterStatus = -1;
-			} else {
+			} else { // Off full cycle
 				MC.dRelay[RBOOSTER1].set_ON();
 				WaterBoosterStatus = -2;
 			}
@@ -857,7 +868,7 @@ void vPumps( void * )
 		} else if(WaterBoosterStatus == 2) {
 			MC.dRelay[RBOOSTER1].set_OFF();
 			WaterBoosterStatus = 3;
-		} else if(WaterBoosterStatus == -2) {
+		} else if(WaterBoosterStatus == -2) { // Start all off
 			MC.dRelay[RBOOSTER2].set_OFF();
 			WaterBoosterStatus = -1;
 		} else if(WaterBoosterStatus == -1) {
@@ -868,7 +879,7 @@ void vPumps( void * )
 
 
 
-		vTaskDelay(10); // ms
+		vTaskDelay(20); // ms
 	}
 	vTaskDelete( NULL );
 }
@@ -906,6 +917,7 @@ void vKeysLCD( void * )
 		}
 		vTaskDelay(10);
 	}
+
 	vTaskDelete( NULL );
 }
 

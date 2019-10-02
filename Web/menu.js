@@ -62,5 +62,5 @@ if(!pathmath) {var activeli = document.body.className;} else {var activeli = pat
 var elements = document.getElementsByClassName(activeli);
 var countElements = elements.length;
 for(i=0;i<countElements;i++){document.getElementsByClassName(activeli)[i].classList.add("active");}
-updateParam("get_status,get_WORK,get_MODE,get_listProfile,get_SCHDLR(On)");
+updateParam("get_status,get_MODE");
 window.onscroll = function() { autoheight(); }

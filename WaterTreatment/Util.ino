@@ -487,7 +487,7 @@ char * get_Schedule(uint32_t *sh)
 uint8_t initSD(void)
 {
 	boolean success = false;   // флаг успешности инициализации
-	journal.jprintf("Initializing SD card... ");
+	journal.printf("Initializing SD card... ");
 #ifdef NO_SD_CONTROL                // Если реализован механизм проверки наличия карты в слоте (выключатель в слоте карты)
 	pinMode(PIN_NO_SD_CARD, INPUT);     // ++ CD Программирование проверки наличия карты
 	if (digitalReadDirect(PIN_NO_SD_CARD)) {journal.jprintf("No SD card!\n"); return false;}
@@ -498,7 +498,7 @@ uint8_t initSD(void)
 	} else success = true;  // Карта инициализирована с первого раза
 
 	if(success)  // Запоминаем результаты
-		journal.jprintf("OK\n");
+		journal.printf("OK\n");
 	else {
 		//set_Error(ERR_SD_INIT,"SD card");   // Уведомить об ошибке
 		MC.message.setMessage(pMESSAGE_SD, (char*) "Ошибка инициализации SD карты", 0);    // сформировать уведомление
@@ -515,14 +515,14 @@ uint8_t initSD(void)
 		return 0;
 	}
 	// вывод информации о карте
-	journal.jprintf((char*) "SD card info\n");
-	journal.jprintf((char*) " Manufacturer ID: 0x%x\n", int(cid.mid));
-	journal.jprintf((char*) " OEM ID: %c%c\n", cid.oid[0], cid.oid[1]);
-	journal.jprintf((char*) " Serial number: 0x%x\n", int(cid.psn));
-	journal.jprintf((char*) " Volume is FAT%d\n", int(card.vol()->fatType()));
-	journal.jprintf((char*) " blocksPerCluster: %d\n", int(card.vol()->blocksPerCluster()));
-	journal.jprintf((char*) " clusterCount: %d\n", card.vol()->clusterCount());
-	journal.jprintf((char*) " freeSpace: %.2f Mb\n", (float) 0.000512 * card.vol()->freeClusterCount() * card.vol()->blocksPerCluster());
+	journal.printf((char*) "SD card info\n");
+	journal.printf((char*) " Manufacturer ID: 0x%x\n", int(cid.mid));
+	journal.printf((char*) " OEM ID: %c%c\n", cid.oid[0], cid.oid[1]);
+	journal.printf((char*) " Serial number: 0x%x\n", int(cid.psn));
+	journal.printf((char*) " Volume is FAT%d\n", int(card.vol()->fatType()));
+	journal.printf((char*) " blocksPerCluster: %d\n", int(card.vol()->blocksPerCluster()));
+	journal.printf((char*) " clusterCount: %d\n", card.vol()->clusterCount());
+	journal.printf((char*) " freeSpace: %.2f Mb\n", (float) 0.000512 * card.vol()->freeClusterCount() * card.vol()->blocksPerCluster());
 
 	// 3. Проверка наличия индексного файла
 	if(!card.exists(INDEX_FILE)) {
@@ -532,7 +532,7 @@ uint8_t initSD(void)
 		SPI_switchW5200();
 		return 1;
 	} // стартовый файл не найден
-	journal.jprintf((char*) " Found %s file\n", INDEX_FILE);
+	journal.printf((char*) " Found %s file\n", INDEX_FILE);
 
 	SPI_switchW5200();
 	return 2;

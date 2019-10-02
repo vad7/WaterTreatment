@@ -44,7 +44,7 @@ void MainClass::init()
 
 	for(i = 0; i < TNUMBER; i++) sTemp[i].initTemp(i);            // Инициализация датчиков температуры
 
-	//sADC[PGEO].initSensorADC(PGEO, ADC_SENSOR_PGEO, FILTER_SIZE_OTHER);			// Инициализация аналогово датчика PGEO
+	for(i = 0; i < ANUMBER; i++) sADC[i].initSensorADC(i, pinsAnalog[i], FILTER_SIZE);			// Инициализация аналогово датчика
 
 	for(i = 0; i < INUMBER; i++) sInput[i].initInput(i);           // Инициализация контактных датчиков
 	for(i = 0; i < FNUMBER; i++) sFrequency[i].initFrequency(i);  // Инициализация частотных датчиков
@@ -191,7 +191,7 @@ int32_t MainClass::save(void)
 	uint32_t addr = I2C_SETTING_EEPROM + 2; // +size all
 	uint8_t tasks_suspended = TaskSuspendAll(); // Запрет других задач
 	if(error == ERR_SAVE_EEPROM) error = OK;
-	journal.jprintf(" Save settings ");
+	journal.printf(" Save settings ");
 	DateTime.saveTime = rtcSAM3X8.unixtime();   // запомнить время сохранения настроек
 	while(1) {
 		// Сохранить параметры и опции отопления и бойлер, уведомления
@@ -226,11 +226,11 @@ int32_t MainClass::save(void)
 		addr = addr + sizeof(crc) - (I2C_SETTING_EEPROM + 2);
 		if(writeEEPROM_I2C(I2C_SETTING_EEPROM, (uint8_t *) &addr, 2)) { error = ERR_SAVE_EEPROM; break; } // size all
 		if((error = check_crc16_eeprom(I2C_SETTING_EEPROM + 2, addr - 2)) != OK) {
-			journal.jprintf("- Verify Error!\n");
+			journal.printf("- Verify Error!\n");
 			break;
 		}
 		addr += 2;
-		journal.jprintf("OK, wrote: %d bytes, crc: %04x\n", addr, crc);
+		journal.printf("OK, wrote: %d bytes, crc: %04x\n", addr, crc);
 		break;
 	}
 	if(tasks_suspended) xTaskResumeAll(); // Разрешение других задач
@@ -247,7 +247,7 @@ int32_t MainClass::save(void)
 int32_t MainClass::load(uint8_t *buffer, uint8_t from_RAM)
 {
 	uint16_t size;
-	journal.jprintf(" Load settings from ");
+	journal.printf(" Load settings from ");
 	if(from_RAM == 0) {
 		journal.jprintf("I2C");
 		if(readEEPROM_I2C(I2C_SETTING_EEPROM, (byte*) &size, sizeof(size))) {
@@ -260,11 +260,11 @@ x_Error:
 		if(size > I2C_SETTING_EEPROM_NEXT - I2C_SETTING_EEPROM) { error = ERR_BAD_LEN_EEPROM; goto x_Error; }
 		if(readEEPROM_I2C(I2C_SETTING_EEPROM + sizeof(size), buffer, size)) goto x_ReadError;
 	} else {
-		journal.jprintf("FILE");
+		journal.printf("FILE");
 		size = *((uint16_t *) buffer);
 		buffer += sizeof(size);
 	}
-	journal.jprintf(", size %d, crc: ", size + 2); // sizeof(crc)
+	journal.printf(", size %d, crc: ", size + 2); // sizeof(crc)
 	size -= 2;
 	#ifdef LOAD_VERIFICATION
 	
@@ -274,14 +274,19 @@ x_Error:
 		journal.jprintf("Error: %04x != %04x!\n", crc, *((uint16_t *)(buffer + size)));
 		return error = ERR_CRC16_EEPROM;
 	}
-	journal.jprintf("%04x", crc);
+	journal.printf("%04x", crc);
 	#else
-	journal.jprintf("*No verification");
+	journal.printf("*No verification");
 	#endif
 	uint8_t *buffer_max = buffer + size;
 	size += 2;
 	load_struct(&Option, &buffer, sizeof(Option));
-	journal.jprintf(", v.%d ", Option.ver);
+	journal.printf(", v.%d ", Option.ver);
+	if(Option.ver > 100) {
+		journal.jprintf("\nEEPROM with garbage - reseting!\n");
+		resetSetting();
+		return error = ERR_CRC16_EEPROM;
+	}
 	load_struct(&DateTime, &buffer, sizeof(DateTime));
 	load_struct(&Network, &buffer, sizeof(Network));
 	load_struct(message.get_save_addr(), &buffer, message.get_save_size());
@@ -319,7 +324,7 @@ xSkip:		load_struct(NULL, &buffer, 0); // skip unknown type
 #ifdef SENSOR_IP
 	updateLinkIP();
 #endif
-	journal.jprintf("OK\n");
+	journal.printf("OK\n");
 	return size + sizeof(crc);
 }
 
@@ -474,7 +479,7 @@ void MainClass::resetSetting()
 	SETBIT0(Network.flags, fNoPing);               // !save! Запрет пинга контроллера
 
 	// Время
-	SETBIT1(DateTime.flags, fUpdateNTP);           // Обновление часов по NTP
+	SETBIT0(DateTime.flags, fUpdateNTP);           // Обновление часов по NTP
 	SETBIT1(DateTime.flags, fUpdateI2C);           // Обновление часов I2C
 
 	strcpy(DateTime.serverNTP, (char*) NTP_SERVER);  // NTP сервер по умолчанию

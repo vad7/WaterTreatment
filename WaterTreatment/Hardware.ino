@@ -151,7 +151,7 @@ void sensorADC::initSensorADC(uint8_t sensor, uint8_t pinA, uint16_t filter_size
 #endif
 	Chart.init(SENSORPRESS[sensor]);  			// инициалазация статистики
 	err = OK;                                     // ошибка датчика (работа)
-	Press = 0;                                    // давление датчика (обработанная)
+	Press = ERROR_PRESS;                      // давление датчика (обработанное)
 	//Temp = ERROR_TEMPERATURE;
 	note = (char*) notePress[sensor];              // присвоить наименование датчика
 	name = (char*) namePress[sensor];              // присвоить имя датчика
@@ -241,9 +241,6 @@ int8_t sensorADC::set_testPress(int16_t p)
 
 void sensorADC::after_load(void)
 {
-	if(MC.Option.ver <= 131) {
-		cfg.transADC = rd(cfg.transADC_f, 1000);
-	}
 }
 
 // ------------------------------------------------------------------------------------------

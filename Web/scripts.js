@@ -3,7 +3,7 @@ var VER_WEB = "1.00";
 var urlcontrol = ''; //  автоопределение (если адрес сервера совпадает с адресом контроллера)
 // адрес и порт контроллера, если адрес сервера отличен от адреса контроллера (не рекомендуется)
 //var urlcontrol = 'http://192.168.0.199';
-//var urlcontrol = 'http://192.168.0.7';
+var urlcontrol = 'http://192.168.0.142';
 var urltimeout = 1800; // таймаут ожидание ответа от контроллера. Чем хуже интертнет, тем выше значения. Но не более времени обновления параметров
 var urlupdate = 4010; // время обновления параметров в миллисекундах
 
@@ -323,11 +323,10 @@ function loadParam(paramid, noretry, resultdiv) {
 												content = content + '<td>' + count[j] + '</td>';
 												content = content + '<td id="get_nflow-' + input + '">-</td>';
 												content = content + '<td nowrap><span id="get_flow-' + input + '">-</span> <input id="ClcFlow' + input + '" type="submit" value="*" onclick="CalcAvgValue(\''+ input + '\')"></td>';
-												content = content + '<td nowrap><input id="get_checkflow-' + input + '" type="checkbox" onChange="setParam(\'get_checkFlow(' + count[j] + ')\');"><input id="get_minflow-' + input + '" type="number" min="0.1" max="25.5" step="0.1"><input type="submit" value=">" onclick="setParam(\'get_minFlow(' + count[j] + ')\');"></td>';
-												content = content + '<td nowrap><input id="get_kfflow-' + input + '" type="number" min="0.01" max="655" step="0.01" style="max-width:70px;" value=""><input type="submit" value=">"  onclick="setParam(\'get_kfFlow(' + count[j] + ')\');"></td>';
-												content = content + '<td nowrap><input id="get_cflow-' + input + '" type="number" min="0" max="65535" step="1" value=""><input type="submit" value=">"  onclick="setParam(\'get_cFlow(' + count[j] + ')\');"></td>';
+												content = content + '<td nowrap><input id="get_checkflow-' + input + '" type="checkbox" onChange="setParam(\'get_checkFlow(' + count[j] + ')\');"><input id="get_minflow-' + input + '" type="number" max="25.5" step="0.1"><input type="submit" value=">" onclick="setParam(\'get_minFlow(' + count[j] + ')\');"></td>';
+												content = content + '<td nowrap><input id="get_kfflow-' + input + '" type="number" step="0.01" style="max-width:70px;" value=""><input type="submit" value=">"  onclick="setParam(\'get_kfFlow(' + count[j] + ')\');"></td>';
 												content = content + '<td id="get_frflow-' + input + '">-</td>';
-												content = content + '<td nowrap><input id="get_testflow-' + input + '" type="number" min="0.0" max="1000" step="0.001" value=""><input type="submit" value=">"  onclick="setParam(\'get_testFlow(' + count[j] + ')\');"></td>';
+												content = content + '<td nowrap><input id="get_testflow-' + input + '" type="number" step="0.001" value=""><input type="submit" value=">"  onclick="setParam(\'get_testFlow(' + count[j] + ')\');"></td>';
 												content = content + '<td id="get_pinflow-' + input + '">-</td>';
 												content = content + '<td id="get_eflow-' + input + '">-</td>';
 												content = content + '</tr>';
