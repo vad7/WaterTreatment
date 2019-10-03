@@ -12,7 +12,7 @@
 	<script>
 		urltimeout = 2000;
 		window.onload = function() {
-			updateParam("get_Relay(RWOFF),get_Relay(RDRAIN),get_Relay(RBST2),get_Relay(RFILL),get_Relay(RFEEDP),get_WL1,get_WL2,get_WL3,get_Input(REG),get_Input(BWASH),get_Brine,get_Temp(TIN),get_Flow(FLOW),get_Press(WATER)");
+			updateParam("get_Relay(RWOFF),get_Relay(RDRAIN),get_Relay(RBST2),get_Relay(RFILL),get_Relay(RFEEDP),get_WL1,get_WL2,get_WL3,get_WLbr,get_Input(REG),get_Input(BWASH),get_Temp(TIN),get_Flow(FLOW),get_Press(WATER)");
 	};
 	</script>	
 </head>
@@ -21,17 +21,17 @@
 <div class="content">
 <h1>Водоподготовка</h1>
 <div class="visualization">
-	<div id="get_relay-rwoff"></div>
-	<div id="get_relay-rdrain"></div>
-	<div id="get_relay-rbst2"></div>
-	<div id="get_relay-rfill"></div>
-	<div id="get_relay-rfeedp"></div>
-	<div id="get_wl1"></div>
-	<div id="get_wl2"></div>
-	<div id="get_wl3"></div>
-	<div id="get_brine"></div>
-	<div id="get_input-reg"></div>
-	<div id="get_input-bwash"></div>
+	<div id="get_relay-rwoff" style="display:none"></div>
+	<div id="get_relay-rdrain" style="display:none"></div>
+	<div id="get_relay-rbst2" style="display:none"></div>
+	<div id="get_relay-rfill" style="display:none"></div>
+	<div id="get_relay-rfeedp" style="display:none"></div>
+	<div id="get_wl1" style="display:none"></div>
+	<div id="get_wl2" style="display:none"></div>
+	<div id="get_wl3" style="display:none"></div>
+	<div id="get_wlbr" style="margin-top:324;height:5"></div>
+	<div id="get_input-reg" style="display:none"></div>
+	<div id="get_input-bwash" style="display:none"></div>
 	<span id="get_flow-flow" class="blue">-.-</span>
 	<span id="get_press-water" class="red">-.-</span>
 </div>

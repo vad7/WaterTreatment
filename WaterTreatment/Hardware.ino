@@ -561,7 +561,7 @@ xErr:
 }
 
 // Получить параметр счетчика в виде строки
-char* devPWM::get_paramPWM(char *var, char *ret)
+char* devPWM::get_param(char *var, char *ret)
 {
 	static uint32_t tmp;
 
@@ -594,6 +594,18 @@ char* devPWM::get_paramPWM(char *var, char *ret)
 		}
 	}
 	return strcat(ret,(char*)cInvalid);
+}
+
+// Установить параметр счетчика в виде строки
+boolean devPWM::set_param(char *var, char *c)
+{
+   if(strcmp(var, pwm_RESET) == 0) {
+
+	   // to do...
+
+	   return true;
+   }
+   return false;
 }
 
 // МОДБАС Устройство ----------------------------------------------------------

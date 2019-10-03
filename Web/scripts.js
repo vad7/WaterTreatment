@@ -2,8 +2,8 @@
 var VER_WEB = "1.00";
 var urlcontrol = ''; //  автоопределение (если адрес сервера совпадает с адресом контроллера)
 // адрес и порт контроллера, если адрес сервера отличен от адреса контроллера (не рекомендуется)
-//var urlcontrol = 'http://192.168.0.199';
-var urlcontrol = 'http://192.168.0.142';
+var urlcontrol = 'http://192.168.0.199';
+//var urlcontrol = 'http://192.168.0.8';
 var urltimeout = 1800; // таймаут ожидание ответа от контроллера. Чем хуже интертнет, тем выше значения. Но не более времени обновления параметров
 var urlupdate = 4010; // время обновления параметров в миллисекундах
 
@@ -386,7 +386,9 @@ function loadParam(paramid, noretry, resultdiv) {
 										}
 										element = document.getElementById(valueid);
 										if(element) {
-											if(element.className == "charsw") {
+											if(element.nodeName == "DIV") { // css visualization
+												if(valuevar == '0') element.style = "display:none"; else element.style = "display:default"; 
+											} else if(element.className == "charsw") {
 												element.innerHTML = element.title.substr(valuevar,1);
 											} else if(/^E\d+/.test(values[1])) {
 												if(element.getAttribute("type") == "submit") alert("Ошибка " + values[1]);
@@ -425,6 +427,10 @@ function loadParam(paramid, noretry, resultdiv) {
 											if(element2) element2.value = "0x" + Number(values[1]).toString(16).toUpperCase();
 										}
 									}
+								} else if(values[0] == "get_WLbr") {
+									var hgth = Number(values[1]) * 5; 
+									var btm = Number(element.style["margin-top"].replace("px", "")) + Number(element.style.height.replace("px", "")) - hgth;
+									element.style = "margin-top:" + btm +"px;height:" + hgth + "px";
 								} else if(values[0] == "get_uptime") {
 									if((element = document.getElementById("get_uptime"))) element.innerHTML = values[1];
 									if((element = document.getElementById("get_uptime2"))) element.innerHTML = values[1];

@@ -113,6 +113,7 @@ struct History_setup {
 	#ifdef TEST_BOARD
 		#define DEBUG                   // В последовательный порт шлет сообщения в первую очередь ошибки
 		#define DEBUG_LEVEL		 2		// 0 - silence, 1 - more...
+    	//#define I2C_JOURNAL_IN_RAM		// Журнал в ОЗУ
 		#define I2C_FRAM_MEMORY  0		// 1 - FRAM память
 	#else
 		#define DEBUG                   // В последовательный порт шлет сообщения в первую очередь ошибки
@@ -177,7 +178,7 @@ struct History_setup {
     // Сервис
     #define PIN_ETH_RES			55          // ETH-RES Сброс сетевого чипа w5500 активный low нормально high
 	#define PIN_LED_OK			42          // Зеленый светодиод Выход на светодиод мигает 0.5 герца - ОК  с частотой 2 герца ошибка
-    #define PIN_LED_ERROR		42		    // Для библиотеки FreeRTOS
+    #define PIN_LED_ERROR		13		    // Для библиотеки FreeRTOS
     #define PIN_KEY_SAFE		26          // Нажатие при включении - режим safeNetwork (настрока сети по умолчанию, не спрашивает пароль на вход в веб морду)
     #define PIN_BEEP			11          // SOUND Выход на пищалку  88- нога не использующиеся
 	#define PIN_KEY_UP			32			// KEYS.2
@@ -319,27 +320,27 @@ struct History_setup {
 
     // АНАЛОГОВЫЕ ДАТЧИКИ  -------------------------------------------------------------------
     // Давление харится в сотых бара
-	#define ANUMBER			3//1       // Число аналоговых датчиков
+	#define ANUMBER			1       // Число аналоговых датчиков
 	#define PWATER			0       // Датчик давления испарителя.
 	// Имена датчиков
-	const char *namePress[] = { "WATER" , "4", "5"
+	const char *namePress[] = { "WATER"
 							  };
 	// Описание датчиков
-	const char *notePress[] = { "Датчик давления воды", "4", "5"
+	const char *notePress[] = { "Датчик давления воды"
 							  };
 
 	// Номера каналов АЦП, в нумерации SAM3X (AD*):
-	const uint8_t pinsAnalog[ANUMBER] = {	8, 4, 5 // D62, INA1 - желтый, красный "+5V", черный "-".
+	const uint8_t pinsAnalog[ANUMBER] = {	10 // A8(D62), INA1 - желтый, красный "+5V", черный "-".
 										};
 	// Коэффициент преобразования отсчеты АЦП-давление, тысячные
-	const uint16_t TRANsADC[ANUMBER]  = { 181  ,181,181 };
+	const uint16_t TRANsADC[ANUMBER]  = { 181 };
 	// напряжение (отсчеты АЦП) соответсвующее cZero
-	const uint16_t ZEROPRESS[ANUMBER] = { 70 ,  70,70 };
+	const uint16_t ZEROPRESS[ANUMBER] = { 70 };
 
-	const boolean SENSORPRESS[ANUMBER]= { true , 1, 1};	// Присутствие датчика в конфигурации
-	const int16_t MINPRESS[ANUMBER]   = {  250 , 250,250};	// минимальные значения давления, в сотых бар
-	const uint16_t MAXPRESS[ANUMBER]  = {  370 , 370,370};	// Максимальные значения давления, в сотых бар
-	const uint16_t TESTPRESS[ANUMBER] = {  300 , 300,300};	// Значения датчиков при тестировании  опция TEST, в сотых бар
+	const boolean SENSORPRESS[ANUMBER]= { true };	// Присутствие датчика в конфигурации
+	const int16_t MINPRESS[ANUMBER]   = {  250 };	// минимальные значения давления, в сотых бар
+	const uint16_t MAXPRESS[ANUMBER]  = {  370 };	// Максимальные значения давления, в сотых бар
+	const uint16_t TESTPRESS[ANUMBER] = {  300 };	// Значения датчиков при тестировании  опция TEST, в сотых бар
 	//#define ANALOG_MODBUS 									// Данные аналоговых датчиков читаются по Modbus RTU
 	#ifdef ANALOG_MODBUS
 	  #define ANALOG_MODBUS_NUM_READ				3			// Число попыток чтения

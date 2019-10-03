@@ -811,6 +811,9 @@ __attribute__((always_inline))  inline byte writeEEPROM_I2C(unsigned long addr, 
 	}
 	_retEEPROM_I2C = eepromI2C.write(addr, values, nBytes);
 	SemaphoreGive(xI2CSemaphore);
+	if(_retEEPROM_I2C) {
+		journal.printf("\nEEPROM write (%d,%d) error %d\n", addr, nBytes, _retEEPROM_I2C);
+	}
 	return _retEEPROM_I2C;
 }
 // Чтение в eeprom, 0 - успешно
@@ -822,6 +825,9 @@ __attribute__((always_inline))   inline byte readEEPROM_I2C(unsigned long addr, 
 	}
 	_retEEPROM_I2C = eepromI2C.read(addr, values, nBytes);
 	SemaphoreGive(xI2CSemaphore);
+	if(_retEEPROM_I2C) {
+		journal.printf("\nEEPROM read (%d,%d) error %d\n", addr, nBytes, _retEEPROM_I2C);
+	}
 	return _retEEPROM_I2C;
 }
 // ЧАСЫ  есть проблема - работают на прямую с i2c не через wire ----------------------------------

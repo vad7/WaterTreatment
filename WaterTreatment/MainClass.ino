@@ -20,7 +20,7 @@
 // Возвращает ошибку останова 
 int8_t set_Error(int8_t _err, char *nam)
 {
-	if(MC.error != OK) return MC.error;                              // Ошибка уже есть выходим
+	if(MC.error != _err) return MC.error;                              // Ошибка уже есть выходим
 	{
 		MC.error = _err;
 		strcpy(MC.source_error, nam);
@@ -191,12 +191,16 @@ int32_t MainClass::save(void)
 	uint32_t addr = I2C_SETTING_EEPROM + 2; // +size all
 	uint8_t tasks_suspended = TaskSuspendAll(); // Запрет других задач
 	if(error == ERR_SAVE_EEPROM) error = OK;
-	journal.printf(" Save settings ");
 	DateTime.saveTime = rtcSAM3X8.unixtime();   // запомнить время сохранения настроек
+	journal.printf(" Save settings ");
 	while(1) {
 		// Сохранить параметры и опции отопления и бойлер, уведомления
 		Option.ver = VER_SAVE;
 		if(save_struct(addr, (uint8_t *) &Option, sizeof(Option), crc)) break;
+
+		journal.printf("save_struct Option\n");
+
+
 		if(save_struct(addr, (uint8_t *) &DateTime, sizeof(DateTime), crc)) break;
 		if(save_struct(addr, (uint8_t *) &Network, sizeof(Network), crc)) break;
 		if(save_struct(addr, message.get_save_addr(), message.get_save_size(), crc)) break;
@@ -346,32 +350,33 @@ int8_t MainClass::check_crc16_eeprom(int32_t addr, uint16_t size)
  // запись счетчиков в I2C память
 int8_t MainClass::save_motoHour()
 {
-	uint8_t i;
 	uint8_t errcode;
-
-	for(i = 0; i < 5; i++)   // Делаем 5 попыток записи
-	{
-		if(!(errcode = writeEEPROM_I2C(I2C_COUNT_EEPROM, (byte*) &WorkStats, sizeof(WorkStats)))) break;   // Запись прошла
-		journal.jprintf(" ERROR %d save counters #%d\n", errcode, i);
-		_delay(i * 50);
-	}
-	if(errcode) {
+	WorkStats.Header = I2C_COUNT_EEPROM_HEADER;
+	if((errcode = writeEEPROM_I2C(I2C_COUNT_EEPROM, (byte*) &WorkStats, sizeof(WorkStats)))) {
+		journal.jprintf(" ERROR %d save counters!\n", errcode);
 		set_Error(ERR_SAVE2_EEPROM, (char*) __FUNCTION__);
 		return ERR_SAVE2_EEPROM;
-	}  // записать счетчики
-	//journal.jprintf("Counters saved\n");
+	}
 	return OK;
 }
 
 // чтение счетчиков в ЕЕПРОМ
 int8_t MainClass::load_motoHour()
 {
- byte x=0xff;
- if (readEEPROM_I2C(I2C_COUNT_EEPROM,  (byte*)&x, sizeof(x)))  { set_Error(ERR_LOAD2_EEPROM,(char*)__FUNCTION__); return ERR_LOAD2_EEPROM;}                // прочитать заголовок
- if (x!=0xaa)  {journal.jprintf("Bad header counters, skip load\n"); return ERR_HEADER2_EEPROM;}                                                  // заголвок плохой выходим
- if (readEEPROM_I2C(I2C_COUNT_EEPROM,  (byte*)&WorkStats, sizeof(WorkStats)))  { set_Error(ERR_LOAD2_EEPROM,(char*)__FUNCTION__); return ERR_LOAD2_EEPROM;}   // прочитать счетчики
- journal.jprintf(" Load counters OK, read: %d bytes\n",sizeof(WorkStats));
- return OK; 
+	if(readEEPROM_I2C(I2C_COUNT_EEPROM, &WorkStats.Header, sizeof(WorkStats.Header))) { // прочитать заголовок
+		set_Error(ERR_LOAD2_EEPROM, (char*) __FUNCTION__);
+		return ERR_LOAD2_EEPROM;
+	}
+	if(WorkStats.Header != I2C_COUNT_EEPROM_HEADER) { // заголовок плохой
+		journal.jprintf("Bad header counters, skip load\n");
+		return ERR_HEADER2_EEPROM;
+	}
+	if(readEEPROM_I2C(I2C_COUNT_EEPROM, (byte*) &WorkStats + sizeof(WorkStats.Header), sizeof(WorkStats) - sizeof(WorkStats.Header))) { // прочитать счетчики
+		set_Error(ERR_LOAD2_EEPROM, (char*) __FUNCTION__);
+		return ERR_LOAD2_EEPROM;
+	}
+	journal.printf(" Load counters OK, read: %d bytes\n", sizeof(WorkStats));
+	return OK;
 
 }
 // Сборос сезонного счетчика моточасов
@@ -757,7 +762,7 @@ char* MainClass::get_option(char *var, char *ret)
 // Получить строку состояния  в виде строки
 void MainClass::StateToStr(char * ret)
 {
-	strcat(ret, "Working");
+	strcat(ret, "В работе");
 }
 
 // получить режим тестирования

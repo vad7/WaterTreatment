@@ -168,10 +168,10 @@ void setup() {
 	// Баг разводки дуе (вероятность). Есть проблема с инициализацией spi.  Ручками прописываем
 	// https://groups.google.com/a/arduino.cc/forum/#!topic/developers/0PUzlnr7948
 	// http://forum.arduino.cc/index.php?topic=243778.0;nowap
-	//pinMode(PIN_SPI_SS0,INPUT_PULLUP);          // Eth Pin 77
-	//pinMode(PIN_SPI_SS1,INPUT_PULLUP);          // SD Pin  87
-	pinMode(PIN_SPI_CS_SD,INPUT_PULLUP);        // сигнал CS управление SD картой
-	pinMode(PIN_SPI_CS_W5XXX,INPUT_PULLUP);     // сигнал CS управление сетевым чипом
+	pinMode(PIN_SPI_SS0,INPUT_PULLUP);          // Eth Pin 77
+	pinMode(BOARD_SPI_SS0,INPUT_PULLUP);        // Eth Pin 10
+	pinMode(PIN_SPI_SS1,INPUT_PULLUP);          // SD Pin  87
+	pinMode(BOARD_SPI_SS1,INPUT_PULLUP);     	// SD Pin  4
 
 #ifdef SPI_FLASH
 	pinMode(PIN_SPI_CS_FLASH,INPUT_PULLUP);     // сигнал CS управление чипом флеш памяти
@@ -349,7 +349,7 @@ void setup() {
 	// 7. Инициализация СД карты и запоминание результата 3 попытки
 	journal.printf("* Init SD card.\n");
 	WDT_Restart(WDT);
-	//MC.set_fSD(initSD());
+	MC.set_fSD(initSD());
 	WDT_Restart(WDT);                          // Сбросить вачдог  иногда карта долго инициализируется
 	digitalWriteDirect(PIN_LED_OK,LOW);        // Включить светодиод - признак того что сд карта инициализирована
 	//_delay(100);
@@ -364,9 +364,9 @@ void setup() {
 
 	// 9. Чтение ЕЕПРОМ
 	journal.printf("* Load data from I2C memory.\n");
-	if(MC.load_motoHour()==ERR_HEADER2_EEPROM)           // Загрузить счетчики ,
+	if(MC.load_motoHour() == ERR_HEADER2_EEPROM)           // Загрузить счетчики
 	{
-		journal.jprintf("I2C memory is empty!\n");
+		journal.printf("I2C memory is empty!\n");
 		MC.save_motoHour();
 	} else {
 		MC.load((uint8_t *)Socket[0].outBuf, 0);      // Загрузить настройки 
@@ -484,7 +484,7 @@ void setup() {
 	journal.printf("Temperature SAM3X8E: %.2f\n",temp_DUE());
 	journal.printf("Temperature DS2331: %.2f\n",getTemp_RtcI2C());
 	//MC.Stat.generate_TestData(STAT_POINT); // Сгенерировать статистику STAT_POINT точек только тестирование
-	journal.printf("Start FreeRTOS.\n");
+	journal.printf("Start FreeRTOS!\n");
 	eepromI2C.use_RTOS_delay = 1;       //vad711
 	//
 	vTaskStartScheduler();              // СТАРТ !!
@@ -927,6 +927,10 @@ void vService(void *)
 {
 	static uint8_t  task_updstat_countm = rtcSAM3X8.get_minutes();
 	static uint32_t timer_sec = GetTickCount();
+
+	vTaskDelete(NULL);
+
+
 	for(;;) {
 		register uint32_t t = GetTickCount();
 		if(t - timer_sec >= 1000) { // 1 sec

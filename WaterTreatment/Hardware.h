@@ -285,7 +285,8 @@ class devPWM
       uint16_t get_Voltage(){ return Voltage; }
 
       boolean uplinkPWM();                             // Проверить связь со счетчиком (связь дейстивтельно проверяется - чтение регистра скорости счетчика)
-      char* get_paramPWM(char *var, char *ret);        // Получить параметр PWM в виде строки
+      char* get_param(char *var, char *ret);        // Получить параметр PWM в виде строки
+      boolean set_param(char *var, char *c);
       
        // Графики из счетчика
       statChart ChartVoltage;                          // Статистика по напряжению

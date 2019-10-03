@@ -9,14 +9,13 @@
 	window.onload = function() {
 	urlupdate = 2000;
 	loadParam("get_tblRelay");
-	loadParam("get_WORK,get_pFC(ON_OFF),get_pFC(NAME),get_pFC(NOTE),get_pFC(FC),get_testMode,get_pEEV(PINS),get_pEEV(POS),get_pEEV(POSp),get_pEEV(POSpp),get_pEEV(NAME),get_pEEV(NOTE)");
-	updateParam("get_pFC(cFC),get_pFC(INFO1),get_remarkTest,get_pEEV(POS),get_pEEV(POSp),get_pEEV(POSpp),get_error"); 
+	loadParam("get_WORK,get_testMode");
+	updateParam("get_remarkTest,get_error"); 
 };
 function loadParam_after(paramid) {
-	if(paramid.indexOf("FC(NAME)") != -1 && document.getElementById("get_pfc-name").innerHTML.substr(0,5) == "Omron") {
-		document.getElementById("str1").innerHTML = "Целевая частота, Гц";
-		document.getElementById("str2").innerHTML = "Текущая частота, Гц";
-		document.getElementById("str3").innerHTML = "Мощность текущая";
+	if(paramid.indexOf("get_tblRelay")!=-1) {
+		var elements = document.getElementsByName('relay');
+		for(var j = 0; j < elements.length; j++) elements[j].disabled = true;
 	}
 }
 function show_all() {
@@ -50,51 +49,6 @@ function show_all() {
 	</tbody>
 	</table>		
 	</div>
-	<div id="testmode2">
-		<h2>ЭРВ [pins: <span id="get_peev-pins"></span>] <button id="set_zeroEEV" onclick='loadParam("set_zeroEEV");'>Установка в 0</button></h2>
-		<table>
-		<thead>
-		<tr>
-			<th>Имя</th>
-			<th>Описание</th>
-			<th>Текущее положение ЭРВ</th>
-			<th>Задать, шаги</th>
-			<th>Задать, %</th>
-		</tr>
-		</thead>
-		<tbody>
-		<tr>
-			<td id="get_peev-name">-</td>
-			<td id="get_peev-note">-</td>
-			<td id="get_peev-pospp"></td>
-			<td><input id="get_peev-pos" type="number" step="1" value=""><input id="set-eev" type="submit" value=">" onclick="setParam('get_pEEV(POS)');"></td>
-			<td><input id="get_peev-posp" type="number" step="1" value=""><input id="set-eevp" type="submit" value=">" onclick="setParam('get_pEEV(POSp)');"></td>
-		</tr>
-		</tbody>
-		</table>						
-	</div>	
-
-	<div id="testmode3">
-		<h2>Инвертор <span id="get_pfc-name"></span> <span id="get_pfc-note"></span> <input type="submit" value="Сброс инвертора"  onclick='loadParam("RESET_FC")'  style="float:right;"> </h2>
-		<table>
-		<thead>
-		<tr>
-			<th>Включение</th>
-			<th id="str1">Цель</th>
-			<th id="str2">Текущая скорость</th>
-			<th id="str3">Частота</th>
-		</tr>
-		<tr>
-			<td><input type="checkbox" id="get_pfc-on_off" onchange="setParam('get_pFC(ON_OFF))');"></td>
-			<td><input id="get_pfc-fc" type="number" step="1" value="0"><input type="submit" value=">" onclick="setParam('get_pFC(FC)');"></td>
-			<td id="get_pfc-cfc"></td>
-			<td id="get_pfc-info1"></td>
-		</tr>			
-		</thead>
-		<tbody>
-	</tbody>
-	</table>						
-	</div>	
 
 	<div id="testmode4">
 		Радиомодуль ZONT МЛ-489, команда: <input id="radio_cmd"> <input type="submit" value=">" onclick='var Rcmd=document.getElementById("radio_cmd").value; if(Rcmd) loadParam("set_radio_cmd="+encodeURIComponent(Rcmd));'>

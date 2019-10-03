@@ -19,7 +19,7 @@
 
 // --------------------------------------------------------------------------------------------------------------- 
 //  Класс системный журнал пишет в консоль и в память ------------------------------------------------------------
-//  Место размещения (озу ли флеш) определяется дефайном #define I2C_EEPROM_64KB
+//  Место размещения (озу ли флеш) определяется дефайном #define I2C_JOURNAL_IN_RAM
 // --------------------------------------------------------------------------------------------------------------- 
 // Инициализация
 void Journal::Init()
@@ -32,7 +32,7 @@ void Journal::Init()
 	Serial.begin(UART_SPEED);                   // Если надо инициализировать отладочный порт
 #endif
 
-#ifndef I2C_EEPROM_64KB     // журнал в памяти
+#ifdef I2C_JOURNAL_IN_RAM     // журнал в памяти
 	memset(_data, 0, JOURNAL_LEN);
 	jprintf("\nSTART ----------------------\n");
 	jprintf("Init RAM journal, size %d . . .\n", JOURNAL_LEN);
@@ -79,11 +79,11 @@ void Journal::Init()
 	if (bufferTail<bufferHead) full=true;                   // Буфер полный
 	jprintf("\nSTART ----------------------\n");
 	jprintf("Found I2C journal: size %d bytes, head=0x%x, tail=0x%x\n",JOURNAL_LEN,bufferHead,bufferTail);
-#endif //  #ifndef I2C_EEPROM_64KB     // журнал в памяти
+#endif //  #ifdef I2C_JOURNAL_IN_RAM    // журнал в памяти
 }
 
   
-#ifdef I2C_EEPROM_64KB  // функции долько для I2C журнала
+#ifndef I2C_JOURNAL_IN_RAM  // функции долько для I2C журнала
 // Записать признак "форматирования" журнала - журналом можно пользоваться
 void Journal::writeREADY()
 {  
@@ -207,7 +207,7 @@ void Journal::jprintf_only(const char *format, ...)
 int32_t Journal::send_Data(uint8_t thread)
 {
 	int32_t num, len, sum = 0;
-#ifdef I2C_EEPROM_64KB // чтение еепром
+#ifndef I2C_JOURNAL_IN_RAM // чтение еепром
 	num = bufferHead + 1;                     // Начинаем с начала журнала, num позиция в буфере пропуская символ начала
 	for(uint16_t i = 0; i < (JOURNAL_LEN / W5200_MAX_LEN + 1); i++) // Передаем пакетами по W5200_MAX_LEN байт, может быть два неполных пакета!!
 	{
@@ -259,7 +259,7 @@ int32_t Journal::send_Data(uint8_t thread)
 // Возвращает размер журнала
 int32_t Journal::available(void)
 { 
-  #ifdef I2C_EEPROM_64KB
+  #ifndef I2C_JOURNAL_IN_RAM
     if (full) return JOURNAL_LEN; else return bufferTail-1;
   #else   
      if (full) return JOURNAL_LEN; else return bufferTail;
@@ -278,7 +278,7 @@ void Journal::_write(char *dataPtr)
 {
 	int32_t numBytes;
 	if(dataPtr == NULL || (numBytes = strlen(dataPtr)) == 0) return;  // Записывать нечего
-#ifdef I2C_EEPROM_64KB // запись в еепром
+#ifndef I2C_JOURNAL_IN_RAM // запись в еепром
 	if(numBytes > JOURNAL_LEN - 2) numBytes = JOURNAL_LEN - 2; // Ограничиваем размером журнала JOURNAL_LEN не забываем про два служебных символа
 	// Запись в I2C память
 	if(SemaphoreTake(xI2CSemaphore, I2C_TIME_WAIT / portTICK_PERIOD_MS) == pdFALSE) {  // Если шедулер запущен то захватываем семафор

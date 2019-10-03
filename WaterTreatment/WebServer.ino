@@ -325,9 +325,6 @@ void readFileSD(char *filename, uint8_t thread)
 		}
 		return;
 	}
-#ifdef I2C_EEPROM_64KB
-//	if (strcmp(filename,"statistic.csv")==0) {get_csvStatistic(thread); return;}
-#endif
 
 // загрузка файла -----------
 	// Разбираемся откуда грузить надо (три варианта)
@@ -676,6 +673,31 @@ xSaveStats:		if((i = MC.save_motoHour()) == OK)
 		{
 			_ftoa(strReturn, (float)MC.dPWM.get_Power()/1000.0,3); ADD_WEBDELIM(strReturn); continue;
 		}
+		if(strncmp(str, "get_WL", 6) == 0) {
+			str += 6;
+			if(strcmp(str, "br") == 0) {
+
+
+				_itoa(9, strReturn);
+
+
+
+			} else if(strcmp(str, "1") == 0) {
+
+				strcat(strReturn, "1");
+
+			} else if(strcmp(str, "2") == 0) {
+
+				strcat(strReturn, "0");
+
+			} else if(strcmp(str, "3") == 0) {
+
+				strcat(strReturn, "0");
+
+			}
+			ADD_WEBDELIM(strReturn); continue;
+		}
+
 		if (strcmp(str,"get_OneWirePin")==0)  // Функция get_OneWirePin
 		{
 #ifdef ONEWIRE_DS2482
@@ -698,14 +720,6 @@ xSaveStats:		if((i = MC.save_motoHour()) == OK)
 		if (strcmp(str,"scan_OneWire")==0)  // Функция scan_OneWire  - сканирование датчикиков
 		{
 			MC.scan_OneWire(strReturn); ADD_WEBDELIM(strReturn); continue;
-		}
-		if (strcmp(str,"get_numberIP") == 0)  // Удаленные датчики - получить число датчиков
-		{
-#ifdef SENSOR_IP
-			_itoa(IPNUMBER,strReturn);ADD_WEBDELIM(strReturn); continue;
-#else
-			strcat(strReturn,"0" WEBDELIM);continue;
-#endif
 		}
 
 		STORE_DEBUG_INFO(23);
@@ -745,16 +759,11 @@ xSaveStats:		if((i = MC.save_motoHour()) == OK)
 				MC.Reset_TempErrors();
 			} else if (strcmp(str,"STAT")==0)   // RESET_STAT, Команда очистки статистики (в зависимости от типа)
 			{
-#ifndef I2C_EEPROM_64KB     // Статистика в памяти
-				strcat(strReturn,"Статистика не поддерживается в конфигурации . . .");
-				journal.jprintf("No support statistics (low I2C) . . .\n");
-#else                      // Статистика в ЕЕПРОМ
 				//strcat(strReturn,"Форматирование I2C статистики, ожидайте 10 сек . . .");
 				//MC.sendCommand(pSFORMAT);
-#endif
 			} else if (strcmp(str,"JOURNAL")==0)   // RESET_JOURNAL,  Команда очистки журнала (в зависимости от типа)
 			{
-#ifndef I2C_EEPROM_64KB     // журнал в памяти
+#ifdef I2C_JOURNAL_IN_RAM     // журнал в памяти
 				strcat(strReturn,"Сброс системного журнала в RAM . . .");
 				journal.Clear();       // Послать команду на очистку журнала в памяти
 				journal.jprintf("Reset system RAM journal . . .\n");
@@ -878,8 +887,8 @@ xSaveStats:		if((i = MC.save_motoHour()) == OK)
 			strcat(strReturn,"OFF;");
 #endif
 			strcat(strReturn,"CHART_POINT|Максимальное число точек графиков|");_itoa(CHART_POINT,strReturn);strcat(strReturn,";");
-			strcat(strReturn,"I2C_EEPROM_64KB|Место хранения системного журнала|");
-#ifdef I2C_EEPROM_64KB
+			strcat(strReturn,"I2C_JOURNAL_IN_RAM|Место хранения системного журнала|");
+#ifndef I2C_JOURNAL_IN_RAM
 			strcat(strReturn,"I2C flash memory;");
 #else
 			strcat(strReturn,"RAM memory;");
@@ -894,7 +903,10 @@ xSaveStats:		if((i = MC.save_motoHour()) == OK)
 			str += 7;
 			STORE_DEBUG_INFO(26);
 			if(strcmp(str, "Info") == 0) { // "get_sysInfo" - Функция вывода системной информации для разработчика
-				strcat(strReturn,"Источник загрузкки web интерфейса |");
+				strcat(strReturn, "Текущая ошибка|");
+				if(MC.get_errcode() == OK) strcat(strReturn, "-"); else _itoa(MC.get_errcode(), strReturn);
+				strcat(strReturn,";");
+				strcat(strReturn, "Источник загрузкки web интерфейса |");
 				switch (MC.get_SourceWeb())
 				{
 				case pMIN_WEB:   strcat(strReturn,"internal;"); break;
@@ -1081,6 +1093,15 @@ xSaveStats:		if((i = MC.save_motoHour()) == OK)
 			}
 #endif
 			STORE_DEBUG_INFO(31);
+
+			if(strcmp(str, "get_PWM") == 0) {          // Функция получить настройки счетчика
+				MC.dPWM.get_param(x, strReturn);
+				ADD_WEBDELIM(strReturn); continue;
+			} else if(strcmp(str, "set_SDM") == 0) {          // Функция записать настройки счетчика
+				if(MC.dPWM.set_param(x, z)) MC.dPWM.get_param(x, strReturn); // преобразование удачно
+				else strcat(strReturn, "E31");            // ошибка преобразования строки
+				ADD_WEBDELIM(strReturn); continue;
+			}
 
 			//6.  Настройки Уведомлений --------------------------------------------------------
 			if (strcmp(str,"get_Message")==0)           // Функция get_Message - получить значение настройки уведомлений

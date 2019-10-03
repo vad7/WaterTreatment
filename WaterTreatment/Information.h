@@ -25,8 +25,7 @@
 //  Для записи ТОЛЬКО в консоль использовать функции printf
 //  Для записи в консоль И в память (журнал) использовать jprintf
 //  По умолчанию журнал пишется в RAM размер JOURNAL_LEN
-//  Если включена опция I2C_EEPROM_64KB то журнал пишется в I2C память. Должен быть устанвлен чип размером более 4кБ, адрес начала записи 0x0fff до I2C_STAT_EEPROM
-//  Размер журнала I2C_STAT_EEPROM-I2C_JOURNAL_START
+//  Если включена опция I2C_JOURNAL_IN_RAM то журнал пишется в I2C память. Должен быть устанвлен чип размером более 4кБ, адрес начала записи 0x0fff до I2C_STAT_EEPROM
 
 enum type_promt //  Перечисляемый тип - что идет в начале строки при выводе в журнал
 {
@@ -57,7 +56,7 @@ public:
   int32_t available(void);                               // Возвращает размер журнала
   int8_t   get_err(void) { return err; };
   virtual size_t write (uint8_t c);                       // чтобы print работал для это класса
-  #ifdef I2C_EEPROM_64KB                                  // Если журнал находится в i2c
+  #ifndef I2C_JOURNAL_IN_RAM                                  // Если журнал находится в i2c
   void Format(char * buf);                               // форматирование журнала в еепром
   #else
   void Clear(){bufferTail=0;bufferHead=0;full=false;err=OK;} // очистка журнала в памяти
@@ -69,7 +68,7 @@ private:
   void _write(char *dataPtr);                            // Записать строку в журнал
    // Переменные
   char pbuf[PRINTF_BUF+2];                                // Буфер для одной строки + маркеры
-  #ifndef I2C_EEPROM_64KB                                 // Если журнал находится в памяти
+  #ifdef I2C_JOURNAL_IN_RAM                                 // Если журнал находится в памяти
     char _data[JOURNAL_LEN+1];                            // Буфер журнала
   #else
     void writeTAIL();                                     // Записать символ "конец" значение bufferTail должно быть установлено

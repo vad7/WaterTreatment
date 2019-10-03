@@ -22,8 +22,12 @@
 #include "Information.h"
 extern char *MAC2String(byte* mac);
 
+#define I2C_COUNT_EEPROM_HEADER 0xAB
 struct type_WorkStats
 {
+	uint8_t  Header;
+	uint8_t  NeedRegen;				// 0 - not, 1 - wait a regen hour, 2 - regen in process
+	uint16_t RegCnt;
 	uint32_t UsedSinceLastRegen;	// Liters
 	uint32_t UsedToday;				// Liters
 	uint32_t UsedYesterday;			// Liters
@@ -31,10 +35,8 @@ struct type_WorkStats
 	uint32_t UsedLastRegen;			// Liters
 	uint32_t UsedTotal;				// Liters
 	uint32_t UsedDischarge;			// Liters
-	uint8_t  WeekDay; 				// 1-7 active wday
-	uint8_t  NeedRegen;				// 0 - not, 1 - wait a regen hour, 2 - regen in process
-	uint16_t RegCnt;
 	uint16_t DaysFromLastRegen;
+	uint8_t  WeekDay; 				// 1-7 active wday
 };
 
 int8_t	WaterBoosterStatus = 0; // 0 - выключено, 1 - вкл твердотельное, 2 - вкл обычное, 3 - выкл твердотельное, -1 - выкл твердотельное, -2 - выкл обычное, -3 вкл твердотельное
