@@ -112,11 +112,13 @@ struct History_setup {
 
 	#ifdef TEST_BOARD
 		#define DEBUG                   // В последовательный порт шлет сообщения в первую очередь ошибки
+    	//#define DEBUG_NATIVE_USB		// Отладка через второй USB порт (Native)
 		#define DEBUG_LEVEL		 2		// 0 - silence, 1 - more...
     	//#define I2C_JOURNAL_IN_RAM		// Журнал в ОЗУ
 		#define I2C_FRAM_MEMORY  0		// 1 - FRAM память
 	#else
 		#define DEBUG                   // В последовательный порт шлет сообщения в первую очередь ошибки
+    	//#define DEBUG_NATIVE_USB		// Отладка через второй USB порт (Native)
 		#define DEBUG_LEVEL		 1		// 0 - silence, 1 - more...
 		#define I2C_EEPROM_64KB	        // Размер I2C памяти (одна страница)
 		#define I2C_FRAM_MEMORY  0		// 1 - FRAM память
