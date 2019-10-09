@@ -85,7 +85,7 @@ function loadParam(paramid, noretry, resultdiv) {
 								var valueid = values[0].replace("(", "-").replace(")", "").replace("set_", "get_").toLowerCase();
 								var type, element;
 								if(/get_status|get_sys|^CONST|get_socketInfo/.test(values[0])) type = "const"; 
-								else if(/_list|et_mode|[(]RULE|et_testMode|[(]TARGET|SOCKET|RES|SMS_SERVICE|PING_TIME|et_slIP/.test(values[0])) type = "select"; // значения
+								else if(/_list|et_mode|[(]RULE|et_testMode|[(]TARGET|NSL|SMS_SERVICE|et_slIP/.test(values[0])) type = "select"; // значения
 								else if(/get_tbl|listRelay|get_numberIP|TASK_/.test(values[0])) type = "table"; 
 								else if(values[0].indexOf("get_is")==0) type = "is"; // наличие датчика в конфигурации
 								else if(values[0].indexOf("scan_")==0) type = "scan"; // ответ на сканирование

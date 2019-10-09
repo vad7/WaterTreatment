@@ -97,11 +97,11 @@ void get_txtState(uint8_t thread, boolean header)
            }
          
         strcat(Socket[thread].outBuf,"\n  6. Электросчетчик\r\n");
-           strcat(Socket[thread].outBuf,"Текущее входное напряжение [В]: ");                          MC.dPWM.get_paramPWM((char*)pwm_VOLTAGE,Socket[thread].outBuf); STR_END;
-           strcat(Socket[thread].outBuf,"Текущий потребляемый ток [А]: ");                         MC.dPWM.get_paramPWM((char*)pwm_CURRENT,Socket[thread].outBuf); STR_END;
-           strcat(Socket[thread].outBuf,"Текущая потребляемая мощность [Вт]: ");        MC.dPWM.get_paramPWM((char*)pwm_POWER,Socket[thread].outBuf); STR_END;
-           strcat(Socket[thread].outBuf,"Коэффициент мощности: ");                                    MC.dPWM.get_paramPWM((char*)pwm_PFACTOR,Socket[thread].outBuf); STR_END;
-           strcat(Socket[thread].outBuf,"Суммарная активная энергия [кВт/ч]: ");                     MC.dPWM.get_paramPWM((char*)pwm_ACENERGY,Socket[thread].outBuf); STR_END;
+           strcat(Socket[thread].outBuf,"Текущее входное напряжение [В]: ");                          MC.dPWM.get_param((char*)pwm_VOLTAGE,Socket[thread].outBuf); STR_END;
+           strcat(Socket[thread].outBuf,"Текущий потребляемый ток [А]: ");                         MC.dPWM.get_param((char*)pwm_CURRENT,Socket[thread].outBuf); STR_END;
+           strcat(Socket[thread].outBuf,"Текущая потребляемая мощность [Вт]: ");        MC.dPWM.get_param((char*)pwm_POWER,Socket[thread].outBuf); STR_END;
+           strcat(Socket[thread].outBuf,"Коэффициент мощности: ");                                    MC.dPWM.get_param((char*)pwm_PFACTOR,Socket[thread].outBuf); STR_END;
+           strcat(Socket[thread].outBuf,"Суммарная активная энергия [кВт/ч]: ");                     MC.dPWM.get_param((char*)pwm_ACENERGY,Socket[thread].outBuf); STR_END;
    
    strcat(Socket[thread].outBuf,"\n  7. Частотные датчики потока\r\n");
      for(i=0;i<FNUMBER;i++)  
@@ -511,11 +511,11 @@ int16_t x;
            }
        
        strcpy(tempBuf,"\n  6. Электросчетчик"); strcat(tempBuf,cStrEnd);  client.write(tempBuf,strlen(tempBuf));
-           strcpy(tempBuf,"Текущее входное напряжение [В]: ");                          MC.dPWM.get_paramPWM((char*)pwm_VOLTAGE,tempBuf);strcat(tempBuf,cStrEnd);  client.write(tempBuf,strlen(tempBuf));
-           strcpy(tempBuf,"Текущий потребляемый ток [А]: ");                         MC.dPWM.get_paramPWM((char*)pwm_CURRENT,tempBuf);strcat(tempBuf,cStrEnd);  client.write(tempBuf,strlen(tempBuf));
-           strcpy(tempBuf,"Текущая потребляемая суммараная мощность [Вт]: ");        MC.dPWM.get_paramPWM((char*)pwm_POWER,tempBuf); strcat(tempBuf,cStrEnd);  client.write(tempBuf,strlen(tempBuf));
-           strcpy(tempBuf,"Коэффициент мощности: ");                                    MC.dPWM.get_paramPWM((char*)pwm_PFACTOR,tempBuf);strcat(tempBuf,cStrEnd);  client.write(tempBuf,strlen(tempBuf));
-           strcpy(tempBuf,"Суммараная активная энергия [кВт*ч]: ");                     MC.dPWM.get_paramPWM((char*)pwm_ACENERGY,tempBuf); strcat(tempBuf,cStrEnd);  client.write(tempBuf,strlen(tempBuf));
+           strcpy(tempBuf,"Текущее входное напряжение [В]: ");                          MC.dPWM.get_param((char*)pwm_VOLTAGE,tempBuf);strcat(tempBuf,cStrEnd);  client.write(tempBuf,strlen(tempBuf));
+           strcpy(tempBuf,"Текущий потребляемый ток [А]: ");                         MC.dPWM.get_param((char*)pwm_CURRENT,tempBuf);strcat(tempBuf,cStrEnd);  client.write(tempBuf,strlen(tempBuf));
+           strcpy(tempBuf,"Текущая потребляемая суммараная мощность [Вт]: ");        MC.dPWM.get_param((char*)pwm_POWER,tempBuf); strcat(tempBuf,cStrEnd);  client.write(tempBuf,strlen(tempBuf));
+           strcpy(tempBuf,"Коэффициент мощности: ");                                    MC.dPWM.get_param((char*)pwm_PFACTOR,tempBuf);strcat(tempBuf,cStrEnd);  client.write(tempBuf,strlen(tempBuf));
+           strcpy(tempBuf,"Суммараная активная энергия [кВт*ч]: ");                     MC.dPWM.get_param((char*)pwm_ACENERGY,tempBuf); strcat(tempBuf,cStrEnd);  client.write(tempBuf,strlen(tempBuf));
 
         strcpy(tempBuf,"\n  7. Частотные датчики потока");
         strcat(tempBuf,cStrEnd);  client.write(tempBuf,strlen(tempBuf)); 
