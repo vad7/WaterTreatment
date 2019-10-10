@@ -62,7 +62,7 @@ struct type_option {
 	uint8_t ver;						// номер версии для сохранения
 	uint16_t flags;						// Флаги опций до 16 флагов
 	uint16_t tChart;					// период графиков в секундах!!
-	uint32_t FeedPumpMaxFlow;			// Максимальный проток до которого распределяется время включения дозатора
+	uint32_t FeedPumpMaxFlow;			// Максимальный проток до которого распределяется время включения дозатора, литры в час
 	uint8_t  RegenHour;					// Час регенерации (0..23)
 	uint16_t UsedBeforeRegen;			// Количество литров до регенерации
 	uint16_t MinPumpOnTime;				// Минимальное время включения дозатора
@@ -286,6 +286,7 @@ public:
 	uint8_t  NO_Power_delay;
 	boolean  fNetworkReset;				// Нужно сбросить сеть
     TEST_MODE testMode;                                  // Значение режима тестирования
+	type_WorkStats WorkStats;               // Структура для хранения счетчиков периодическая запись
 
 private:
 
@@ -293,7 +294,6 @@ private:
 	void relayAllOFF();                   // Все реле выключить
 	int8_t check_crc16_eeprom(int32_t addr, uint16_t size);// Проверить контрольную сумму в EEPROM для данных на выходе ошибка, длина определяется из заголовка
 
-	type_WorkStats WorkStats;               // Структура для хранения счетчиков периодическая запись
 
 	// Ошибки и описания
 	int8_t error;                         // Код ошибки

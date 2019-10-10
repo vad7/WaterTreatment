@@ -114,6 +114,7 @@ struct type_socketData
     uint16_t http_req_type;                 // Тип запроса
   };
 static type_socketData Socket[W5200_THREAD];   // Требует много памяти 4*W5200_MAX_LEN*W5200_THREAD=24 кб
+uint32_t TimeFeedPump = 0;
 
 // Установка вачдога таймера вариант vad711 - адаптация для DUE 1.6.11
 // WDT_TIME период Watchdog таймера секунды но не более 16 секунд!!! ЕСЛИ WDT_TIME=0 то Watchdog будет отключен!!!
@@ -433,24 +434,24 @@ void setup() {
 	//MC.mRTOS=MC.mRTOS+4*configTIMER_TASK_STACK_DEPTH;  // программные таймера (их теперь нет)
 
 	// ПРИОРИТЕТ 4 Высший приоритет
-	if(xTaskCreate(vPumps, "Pumps", 250, NULL, 4, &MC.xHandlePumps) == errCOULD_NOT_ALLOCATE_REQUIRED_MEMORY) set_Error(ERR_MEM_FREERTOS,(char*)nameFREERTOS);
-	MC.mRTOS=MC.mRTOS+64+4* 150;
+	if(xTaskCreate(vPumps, "Pumps", 170, NULL, 4, &MC.xHandlePumps) == errCOULD_NOT_ALLOCATE_REQUIRED_MEMORY) set_Error(ERR_MEM_FREERTOS,(char*)nameFREERTOS);
+	MC.mRTOS=MC.mRTOS+64+4* 170;
 	//vTaskSuspend(MC.xHandleFeedPump);      // Остановить задачу
 
 	// ПРИОРИТЕТ 3 Очень высокий приоритет
-	if(xTaskCreate(vReadSensor, "ReadSensor", 250, NULL, 3, &MC.xHandleReadSensor) == errCOULD_NOT_ALLOCATE_REQUIRED_MEMORY) set_Error(ERR_MEM_FREERTOS,(char*)nameFREERTOS);
-	MC.mRTOS=MC.mRTOS+64+4* 150;
+	if(xTaskCreate(vReadSensor, "ReadSensor", 170, NULL, 3, &MC.xHandleReadSensor) == errCOULD_NOT_ALLOCATE_REQUIRED_MEMORY) set_Error(ERR_MEM_FREERTOS,(char*)nameFREERTOS);
+	MC.mRTOS=MC.mRTOS+64+4* 170;
 
 	// ПРИОРИТЕТ 2 средний
-	if(xTaskCreate(vKeysLCD, "KeysLCD", 250, NULL, 4, &MC.xHandleKeysLCD) == errCOULD_NOT_ALLOCATE_REQUIRED_MEMORY) set_Error(ERR_MEM_FREERTOS,(char*)nameFREERTOS);
+	if(xTaskCreate(vKeysLCD, "KeysLCD", 170, NULL, 4, &MC.xHandleKeysLCD) == errCOULD_NOT_ALLOCATE_REQUIRED_MEMORY) set_Error(ERR_MEM_FREERTOS,(char*)nameFREERTOS);
 	MC.mRTOS=MC.mRTOS+64+4* 150;
-	if(xTaskCreate(vService, "Service", 280, NULL, 2, &MC.xHandleService) == errCOULD_NOT_ALLOCATE_REQUIRED_MEMORY) set_Error(ERR_MEM_FREERTOS,(char*)nameFREERTOS);
+	if(xTaskCreate(vService, "Service", 180, NULL, 2, &MC.xHandleService) == errCOULD_NOT_ALLOCATE_REQUIRED_MEMORY) set_Error(ERR_MEM_FREERTOS,(char*)nameFREERTOS);
 	MC.mRTOS=MC.mRTOS+64+4* 180;
 
 	// ПРИОРИТЕТ 1 низкий - обслуживание вебморды в несколько потоков
 	// ВНИМАНИЕ первый поток должен иметь больший стек для обработки фоновых сетевых задач
 	// 1 - поток
-	#define STACK_vWebX 280
+	#define STACK_vWebX 200
 	if(xTaskCreate(vWeb0,"Web0", STACK_vWebX+10,NULL,1,&MC.xHandleUpdateWeb0)==errCOULD_NOT_ALLOCATE_REQUIRED_MEMORY) set_Error(ERR_MEM_FREERTOS,(char*)nameFREERTOS);
 	MC.mRTOS=MC.mRTOS+64+4*STACK_vWebX+10;
 	if(xTaskCreate(vWeb1,"Web1", STACK_vWebX,NULL,1,&MC.xHandleUpdateWeb1)==errCOULD_NOT_ALLOCATE_REQUIRED_MEMORY) set_Error(ERR_MEM_FREERTOS,(char*)nameFREERTOS);
@@ -551,7 +552,7 @@ void vWeb0(void *)
 	static unsigned long narmont=0;
 	static unsigned long mqttt=0;
 #endif
-	static boolean active = true;  // ФЛАГ Одно дополнительное действие за один цикл - распределяем нагрузку
+	static boolean active;  // ФЛАГ Одно дополнительное действие за один цикл - распределяем нагрузку
 	static boolean network_last_link = true;
 
 	MC.timeNTP = xTaskGetTickCount();        // В первый момент не обновляем
@@ -723,6 +724,16 @@ void vReadSensor(void *)
 		for(i = 0; i < INUMBER; i++) MC.sInput[i].Read();                // Прочитать данные сухой контакт
 		for(i = 0; i < FNUMBER; i++) MC.sFrequency[i].Read();			// Получить значения датчиков потока
 
+		// Flow
+		TimeFeedPump +=	MC.sFrequency[FLOW].get_Value() * (TIME_READ_SENSOR / TIME_SLICE_PUMPS) / MC.Option.FeedPumpMaxFlow;
+		TaskSuspendAll(); // Запрет других задач
+		MC.WorkStats.UsedToday += MC.sFrequency[FLOW].Passed;
+		MC.WorkStats.UsedSinceLastRegen += MC.sFrequency[FLOW].Passed;
+		MC.WorkStats.UsedTotal += MC.sFrequency[FLOW].Passed;
+		MC.sFrequency[FLOW].Passed = 0;
+		xTaskResumeAll(); // Разрешение других задач
+		//
+
 		vReadSensor_delay8ms((cDELAY_DS1820 - (millis() - ttime)) / 8); 	// Ожидать время преобразования
 
 		if(OW_scan_flags == 0) {
@@ -782,9 +793,6 @@ void vReadSensor(void *)
 				oldTime = millis();
 			}
 		}
-		// Проверка и сброс митекса шины I2C
-//       if (SemaphoreTake(xI2CSemaphore,(3*I2C_TIME_WAIT/portTICK_PERIOD_MS))==pdFALSE) { SemaphoreGive(xI2CSemaphore);journal.jprintf("UNLOCK mutex xI2CSemaphore\n");  MC.num_resMutexI2C++;} // Захват мютекса I2C или ОЖИДАНИНЕ 3 времен I2C_TIME_WAIT  и его освобождение
-//       else  SemaphoreGive(xI2CSemaphore);
 		// Проверки граничных температур для уведомлений, если разрешено!
 		static uint8_t last_life_h = 255;
 		if(MC.message.get_fMessageLife()) // Подача сигнала жизни если разрешено!
@@ -875,11 +883,16 @@ void vPumps( void * )
 			MC.dRelay[RBOOSTER1].set_OFF();
 			WaterBoosterStatus = 0;
 		}
+		if(MC.dRelay[RFEEDPUMP].get_Relay()) {
+			TaskSuspendAll(); // Запрет других задач
+			if(TimeFeedPump) TimeFeedPump--;
+			xTaskResumeAll(); // Разрешение других задач
+			if(TimeFeedPump == 0) MC.dRelay[RFEEDPUMP].set_OFF();
+		} else if(TimeFeedPump >= MC.Option.MinPumpOnTime) {
+			MC.dRelay[RFEEDPUMP].set_ON();
+		}
 
-
-
-
-		vTaskDelay(20); // ms
+		vTaskDelay(TIME_SLICE_PUMPS); // ms
 	}
 	vTaskDelete( NULL );
 }

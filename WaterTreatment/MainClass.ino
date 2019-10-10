@@ -197,10 +197,6 @@ int32_t MainClass::save(void)
 		// Сохранить параметры и опции отопления и бойлер, уведомления
 		Option.ver = VER_SAVE;
 		if(save_struct(addr, (uint8_t *) &Option, sizeof(Option), crc)) break;
-
-		journal.printf("save_struct Option\n");
-
-
 		if(save_struct(addr, (uint8_t *) &DateTime, sizeof(DateTime), crc)) break;
 		if(save_struct(addr, (uint8_t *) &Network, sizeof(Network), crc)) break;
 		if(save_struct(addr, message.get_save_addr(), message.get_save_size(), crc)) break;
@@ -721,7 +717,7 @@ boolean MainClass::set_option(char *var, float xx)
    if(strcmp(var,option_FeedPumpMaxFlow)==0)       { Option.FeedPumpMaxFlow = x; return true; } else
    if(strcmp(var,option_RegenHour)==0)       { Option.RegenHour = x; return true; } else
    if(strcmp(var,option_UsedBeforeRegen)==0)       { Option.UsedBeforeRegen = x; return true; } else
-   if(strcmp(var,option_MinPumpOnTime)==0)       { Option.MinPumpOnTime = x; return true; } else
+   if(strcmp(var,option_MinPumpOnTime)==0)       { Option.MinPumpOnTime = x / TIME_SLICE_PUMPS; return true; } else
    if(strcmp(var,option_MinRegen)==0)       { Option.MinRegen = x; return true; } else
    if(strcmp(var,option_MinDischarge)==0)       { Option.MinDischarge = x; return true; } else
    if(strcmp(var,option_DischargeTime)==0)       { Option.DischargeTime = x; return true; } else
@@ -746,7 +742,7 @@ char* MainClass::get_option(char *var, char *ret)
    if(strcmp(var,option_FeedPumpMaxFlow)==0){ return _itoa(Option.FeedPumpMaxFlow, ret); } else
    if(strcmp(var,option_RegenHour)==0){ return _itoa(Option.RegenHour, ret); } else
    if(strcmp(var,option_UsedBeforeRegen)==0){ return _itoa(Option.UsedBeforeRegen, ret); } else
-   if(strcmp(var,option_MinPumpOnTime)==0){ return _itoa(Option.MinPumpOnTime, ret); } else
+   if(strcmp(var,option_MinPumpOnTime)==0){ return _itoa((uint32_t)Option.MinPumpOnTime * TIME_SLICE_PUMPS, ret); } else
    if(strcmp(var,option_MinRegen)==0){ return _itoa(Option.MinRegen, ret); } else
    if(strcmp(var,option_MinDischarge)==0){ return _itoa(Option.MinDischarge, ret); } else
    if(strcmp(var,option_DischargeTime)==0){ return _itoa(Option.DischargeTime, ret); } else

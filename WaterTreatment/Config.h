@@ -122,7 +122,7 @@ struct History_setup {
 		#define DEBUG_LEVEL		 1		// 0 - silence, 1 - more...
 		#define I2C_EEPROM_64KB	        // Размер I2C памяти (одна страница)
 		#define I2C_FRAM_MEMORY  0		// 1 - FRAM память
-		//#define DONT_LOG_SUCCESS_PING	// Не логировать в журнал успешные пинги
+		#define DONT_LOG_SUCCESS_PING	// Не логировать в журнал успешные пинги
 	#endif
 	#ifdef  I2C_EEPROM_64KB                    // AT24C512C. В зависимости от типа чипа.
 		#define I2C_ADR_EEPROM    0x50         // Адрес чипа на шине I2C
@@ -313,6 +313,7 @@ struct History_setup {
     		"Температура воздуха"
     	};
 
+	#define TIME_SLICE_PUMPS  20
 	#define TIME_READ_SENSOR  2000        // Период опроса датчиков (мсек)
 	#define T_NUMSAMLES       1           // Число значений для усреднения показаний температуры
 	#define GAP_TEMP_VAL      500         // Допустимая разница (в сотых C) показаний между двумя считываниями (борьба с помехами) - при привышении ошибка не возникает, но данные пропускаются.

@@ -395,13 +395,16 @@ int8_t sensorFrequency::Read()
 		//if(xTaskGetSchedulerState() == taskSCHEDULER_RUNNING) taskEXIT_CRITICAL();
 		//__asm__ volatile ("" ::: "memory");
 		uint32_t ticks = tickCount - sTime;
-		Passed += ticks;
+		cnt *= 100;
+		PassedRest += cnt;
+		Passed += PassedRest / kfValue;
+		PassedRest %= kfValue;
 		if(ticks == FREQ_BASE_TIME_READ * 1000) {
-			Frequency = cnt * 500;
-		} else if(cnt > 8589) { // will overflow u32
-			Frequency = (cnt * 10000) / ticks * 50;
+			Frequency = cnt * 5;
+		} else if(cnt > 858900) { // will overflow u32
+			Frequency = (cnt * 100) / ticks * 50;
 		} else {
-			Frequency = (cnt * 500 * 1000) / ticks; // ТЫСЯЧНЫЕ ГЦ время в миллисекундах частота в тысячных герца *2 (прерывание по обоим фронтам)!!!!!!!!
+			Frequency = (cnt * 5 * 1000) / ticks; // ТЫСЯЧНЫЕ ГЦ время в миллисекундах частота в тысячных герца *2 (прерывание по обоим фронтам)!!!!!!!!
 		}
 		sTime = tickCount;
 		//   Value=60.0*Frequency/kfValue/1000.0;               // Frequency/kfValue  литры в минуту а нужны кубы
@@ -418,6 +421,8 @@ void sensorFrequency::reset(void)
 	//if(xTaskGetSchedulerState() == taskSCHEDULER_RUNNING) taskENTER_CRITICAL();
 	sTime = GetTickCount();
 	count = 0;
+	Passed = 0;
+	PassedRest = 0;
 	//if(xTaskGetSchedulerState() == taskSCHEDULER_RUNNING) taskEXIT_CRITICAL();
 }
 
@@ -494,7 +499,7 @@ int8_t devRelay::set_Relay(int8_t r)
 	delay(RELAY_WAIT_SWITCH);
 	if(tasks_suspended) xTaskResumeAll();
 #endif
-	journal.jprintf(pP_TIME, "Relay %s: %s\n", name, Relay ? "ON" : "OFF");
+	journal.printf("Relay %s: %s\n", name, Relay ? "ON" : "OFF");
 	return OK;
 }
 

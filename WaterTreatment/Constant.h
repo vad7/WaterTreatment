@@ -331,7 +331,7 @@ const char *cNo = {"Нет"};
 const char *cOne= {"1"  };
 const char *cZero={"0"  };
 const char *cError={"error"};
-const char *cInvalid={"invalid"};
+const char *cInvalid={"ERR"};
 const char *cStrEnd={"\n"};
 const char *cErrorRS485={"%s: Read error %s, code=%d repeat . . .\n"};  // имя, функция, код
 const char *cErrorMutex={"Function %s: %s, mutex is buzy\n"};           // функция, мютекс
@@ -478,7 +478,7 @@ const char *option_DischargeTime		= {"DT"};
 uint8_t  RegenHour;					// Час регенерации (0..23)
 uint16_t MaxFlow;					// Максимальный проток до которого распределяется время включения дозатора
 uint16_t UsedBeforeRegen;			// Количество литров до регенерации
-uint16_t MinPumpOnTime;				// Минимальное время включения дозатора
+uint16_t MinPumpOnTime;				// Минимальное время включения дозатора (* TIME_SLICE_PUMPS)
 uint16_t MinRegen;					// Тревога, если за регенерацию слито меньше литров
 uint16_t MinDischarge;				// Тревога, если слито (Discharge) при сбросе меньше литров
 uint16_t DischargeTime;				// Время слива воды, сек

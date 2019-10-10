@@ -184,15 +184,16 @@ public:
   char*   get_name(){return name;}                       // Получить имя датчика
   uint16_t get_testValue(){return testValue;}            // Получить Состояние датчика в режиме теста
   int8_t  set_testValue(int16_t i);                      // Установить Состояние датчика в режиме теста
-  void    set_testMode(TEST_MODE t){testMode=t;}       // Установить значение текущий режим работы
-  float   get_kfValue(){return kfValue;}                 // Получить коэффициент пересчета
+  void    set_testMode(TEST_MODE t){testMode=t;}         // Установить значение текущий режим работы
+  inline uint16_t get_kfValue(){return kfValue;}         // Получить коэффициент пересчета
   void    set_kfValue(uint16_t f) { kfValue=f; }         // Установить коэффициент пересчета
   int8_t set_Capacity(uint16_t c);                       // Установить теплоемкость больше 5000 не устанавливается
   inline int8_t  get_pinF(){return pin;}                 // Получить ногу куда прицеплен датчик
   uint8_t *get_save_addr(void) { return (uint8_t *)&number; } // Адрес структуры сохранения
   uint16_t get_save_size(void) { return (byte*)&minValue - (byte*)&number + sizeof(minValue); } // Размер структуры сохранения
   statChart Chart;                                       // Статистика по датчику
-  uint32_t Passed;										// Счетчик импульсов
+  uint32_t Passed;										 // Счетчик литров
+  uint32_t PassedRest;									 // остаток счетчика
     
 private:
    uint32_t Frequency;                                   // значение частоты в тысячных герца

@@ -69,46 +69,46 @@ void Message::initMessage()
 }
 
 // Обновление IP адресов серверов через dns
-// возвращает false обновление не было, true - прошло обновление или ошибка
-boolean Message::dnsUpdate()
+// Возврат - флаг использования дополнительного сокета и времени (нужен для разгрузки 0 потока сервера)
+// возвращает true обновление не было (можно нагружать), false - прошло обновление или ошибка (нагружать не надо до следующего цикла)
+boolean Message::dnsUpdate() // запускается 0 потоке вебсервера
 {
-	boolean ret = false;
+	boolean ret = true; // по умолчанию преобразование не было
 	if(xTaskGetSchedulerState() != taskSCHEDULER_RUNNING) {
 		dnsUpadateSMTP = dnsUpadateSMS = true;
 		WDT_Restart(WDT);
 	}
 	if(dnsUpadateSMTP) //надо обновлятся
 	{
+		if(xTaskGetSchedulerState() == taskSCHEDULER_RUNNING && SemaphoreTake(xWebThreadSemaphore, (W5200_TIME_WAIT / portTICK_PERIOD_MS)) == pdFALSE) return false; // Захват семафора потока или ОЖИДАНИЕ W5200_TIME_WAIT, если семафор не получен то выходим
+		check_address(messageSetting.smtp_server, messageSetting.smtp_serverIP);   // Получить адрес IP через DNS При не удаче возвращается 0, при удаче: 1 - IP на входе (были цифры, DNS не нужен), 2 - был запрос к DNS и адрес получен
 		dnsUpadateSMTP = false;
-		if(xTaskGetSchedulerState() == taskSCHEDULER_RUNNING && SemaphoreTake(xWebThreadSemaphore, (W5200_TIME_WAIT / portTICK_PERIOD_MS)) == pdFALSE) {
-			return false; // Захват семафора потока или ОЖИДАНИЕ W5200_TIME_WAIT, если семафор не получен то выходим
-		}
-		ret = check_address(messageSetting.smtp_server, messageSetting.smtp_serverIP);   // Получить адрес IP через DNS
 		if(xTaskGetSchedulerState() == taskSCHEDULER_RUNNING) SemaphoreGive(xWebThreadSemaphore);
+		ret = false;  // вызов обновления был
 	}
 	if(dnsUpadateSMS) //надо обновлятся
 	{
-		dnsUpadateSMS = false;
 		if(xTaskGetSchedulerState() == taskSCHEDULER_RUNNING) {
-			if(SemaphoreTake(xWebThreadSemaphore, (W5200_TIME_WAIT / portTICK_PERIOD_MS)) == pdFALSE) {
-				return false; // Захват семафора потока или ОЖИДАНИЕ W5200_TIME_WAIT, если семафор не получен то выходим
-			}
+			if(SemaphoreTake(xWebThreadSemaphore, (W5200_TIME_WAIT / portTICK_PERIOD_MS)) == pdFALSE) return false; // Захват семафора потока или ОЖИДАНИЕ W5200_TIME_WAIT, если семафор не получен то выходим
 		} else WDT_Restart(WDT);
 		switch(messageSetting.sms_service) {
 		case pSMS_RU:
-			ret = check_address((char*) ADR_SMS_RU, messageSetting.sms_serviceIP);
+			ret = strcpy(tempBuf, ADR_SMS_RU);
 			break;
 		case pSMSC_RU:
-			ret = check_address((char*) ADR_SMSC_RU, messageSetting.sms_serviceIP);
+			ret = strcpy(tempBuf, ADR_SMSC_RU);
 			break;
 		case pSMSC_UA:
-			ret = check_address((char*) ADR_SMSC_UA, messageSetting.sms_serviceIP);
+			ret = strcpy(tempBuf, ADR_SMSC_UA);
 			break;
 		case pSMSCLUB_UA:
-			ret = check_address((char*) ADR_SMSCLUB_UA, messageSetting.sms_serviceIP);
+			ret = strcpy(tempBuf, ADR_SMSCLUB_UA);
 			break;
 		}
+		check_address(tempBuf, messageSetting.sms_serviceIP);// При не удаче возвращается 0, при удаче: 1 - IP на входе (были цифры, DNS не нужен), 2 - был запрос к DNS и адрес получен
+		dnsUpadateSMS = false;
 		if(xTaskGetSchedulerState() == taskSCHEDULER_RUNNING) SemaphoreGive(xWebThreadSemaphore);
+		ret = false;  // вызов обновления был
 	}
 	return ret;
 }

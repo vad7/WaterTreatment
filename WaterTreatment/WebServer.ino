@@ -1564,6 +1564,13 @@ x_get_aTemp:
 								else strcat(strReturn,"-");               // Датчика нет ставим прочерк
 								ADD_WEBDELIM(strReturn) ;    continue;
 							}
+							if(strncmp(str, "PFlow", 4)==0)           // Функция get_PFlow
+							{
+								if (MC.sFrequency[p].get_present())          // Если датчик есть в конфигурации то выводим значение
+									_ftoa(strReturn,(float)MC.sFrequency[p].Passed / 1000.0,3);
+								else strcat(strReturn,"-");               // Датчика нет ставим прочерк
+								ADD_WEBDELIM(strReturn) ;    continue;
+							}
 							if(strncmp(str, "frF", 3)==0)           // Функция get_frFlow
 							{
 								if (MC.sFrequency[p].get_present())          // Если датчик есть в конфигурации то выводим значение
