@@ -114,7 +114,6 @@ struct type_socketData
     uint16_t http_req_type;                 // Тип запроса
   };
 static type_socketData Socket[W5200_THREAD];   // Требует много памяти 4*W5200_MAX_LEN*W5200_THREAD=24 кб
-uint32_t TimeFeedPump = 0;
 
 // Установка вачдога таймера вариант vad711 - адаптация для DUE 1.6.11
 // WDT_TIME период Watchdog таймера секунды но не более 16 секунд!!! ЕСЛИ WDT_TIME=0 то Watchdog будет отключен!!!
@@ -721,15 +720,20 @@ void vReadSensor(void *)
 		if(!MC.NO_Power)
 	#endif
 			MC.dPWM.get_readState(0); // Основная группа регистров
-		for(i = 0; i < INUMBER; i++) MC.sInput[i].Read();                // Прочитать данные сухой контакт
+		//for(i = 0; i < INUMBER; i++) MC.sInput[i].Read();                // Прочитать данные сухой контакт
 		for(i = 0; i < FNUMBER; i++) MC.sFrequency[i].Read();			// Получить значения датчиков потока
 
 		// Flow
 		TimeFeedPump +=	MC.sFrequency[FLOW].get_Value() * (TIME_READ_SENSOR / TIME_SLICE_PUMPS) / MC.Option.FeedPumpMaxFlow;
 		TaskSuspendAll(); // Запрет других задач
-		MC.WorkStats.UsedToday += MC.sFrequency[FLOW].Passed;
-		MC.WorkStats.UsedSinceLastRegen += MC.sFrequency[FLOW].Passed;
-		MC.WorkStats.UsedTotal += MC.sFrequency[FLOW].Passed;
+		if(MC.sInput[REG_ACTIVE].get_Input() || MC.sInput[BACKWASH_ACTIVE].get_Input()) {
+			MC.WorkStats.UsedLastRegen += MC.sFrequency[FLOW].Passed;
+		} else {
+			MC.WorkStats.UsedToday += MC.sFrequency[FLOW].Passed;
+			MC.WorkStats.UsedTotal += MC.sFrequency[FLOW].Passed;
+			MC.WorkStats.UsedSinceLastRegen += MC.sFrequency[FLOW].Passed;
+			if(fNeedRegen == 0 && MC.WorkStats.UsedSinceLastRegen > MC.Option.UsedBeforeRegen) fNeedRegen = 1;
+		}
 		MC.sFrequency[FLOW].Passed = 0;
 		xTaskResumeAll(); // Разрешение других задач
 		//
@@ -891,6 +895,8 @@ void vPumps( void * )
 		} else if(TimeFeedPump >= MC.Option.MinPumpOnTime) {
 			MC.dRelay[RFEEDPUMP].set_ON();
 		}
+		for(uint8_t i = 0; i < INUMBER; i++) MC.sInput[i].Read(true);                // Прочитать данные сухой контакт
+
 
 		vTaskDelay(TIME_SLICE_PUMPS); // ms
 	}
