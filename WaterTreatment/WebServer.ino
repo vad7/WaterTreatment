@@ -1451,16 +1451,27 @@ x_get_aTemp:
 							{ _itoa(MC.sADC[p].get_lastADC(),strReturn); ADD_WEBDELIM(strReturn); continue; }
 
 							if(strncmp(str, "min", 3)==0)           // Функция get_minPress
-							{ if (MC.sADC[p].get_present())          // Если датчик есть в конфигурации то выводим значение
-								x_get_minPress: _ftoa(strReturn,(float)MC.sADC[p].get_minPress()/100.0,2);
-							else strcat(strReturn,"-");              // Датчика нет ставим прочерк
-							ADD_WEBDELIM(strReturn); continue; }
+							{
+								if (MC.sADC[p].get_present())          // Если датчик есть в конфигурации то выводим значение
+x_get_minPress: 				_ftoa(strReturn,(float)MC.sADC[p].get_minPress()/100.0,2);
+								else strcat(strReturn,"-");              // Датчика нет ставим прочерк
+								ADD_WEBDELIM(strReturn); continue;
+							}
+							if(strncmp(str, "minr", 3)==0)           // Функция get_minrPress
+							{
+								if (MC.sADC[p].get_present())          // Если датчик есть в конфигурации то выводим значение
+x_get_minPressReg: 				_ftoa(strReturn,(float)MC.sADC[p].get_minPressReg()/100.0,2);
+								else strcat(strReturn,"-");              // Датчика нет ставим прочерк
+								ADD_WEBDELIM(strReturn); continue;
+							}
 
 							if(strncmp(str, "max", 3)==0)           // Функция get_maxPress
-							{ if (MC.sADC[p].get_present())           // Если датчик есть в конфигурации то выводим значение
-								x_get_maxPress: _ftoa(strReturn,(float)MC.sADC[p].get_maxPress()/100.0,2);
-							else strcat(strReturn,"-");               // Датчика нет ставим прочерк
-							ADD_WEBDELIM(strReturn); continue; }
+							{
+								if (MC.sADC[p].get_present())           // Если датчик есть в конфигурации то выводим значение
+x_get_maxPress: 				_ftoa(strReturn,(float)MC.sADC[p].get_maxPress()/100.0,2);
+								else strcat(strReturn,"-");               // Датчика нет ставим прочерк
+								ADD_WEBDELIM(strReturn); continue;
+							}
 
 							if(strncmp(str, "zero", 4)==0)           // Функция get_zeroPress
 							{ _itoa(MC.sADC[p].get_zeroPress(),strReturn); ADD_WEBDELIM(strReturn); continue; }
@@ -1515,6 +1526,10 @@ x_get_aTemp:
 							}
 							if(strncmp(str, "min", 3) == 0) {  // set_minPress
 								if(MC.sADC[p].set_minPress(rd(pm, 100)) == OK) goto x_get_minPress;
+								else { strcat(strReturn, "E05" WEBDELIM);  continue; }         // выход за диапазон ПРЕДУПРЕЖДЕНИЕ значение не установлено
+							}
+							if(strncmp(str, "minr", 3) == 0) {  // set_minrPress
+								if(MC.sADC[p].set_minPressReg(rd(pm, 100)) == OK) goto x_get_minPressReg;
 								else { strcat(strReturn, "E05" WEBDELIM);  continue; }         // выход за диапазон ПРЕДУПРЕЖДЕНИЕ значение не установлено
 							}
 							if(strncmp(str, "max", 3) == 0) { // set_maxPress

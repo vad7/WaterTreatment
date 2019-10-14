@@ -720,6 +720,7 @@ void vReadSensor(void *)
 		if(!MC.NO_Power)
 	#endif
 			MC.dPWM.get_readState(0); // Основная группа регистров
+		// read in vPumps():
 		//for(i = 0; i < INUMBER; i++) MC.sInput[i].Read();                // Прочитать данные сухой контакт
 		for(i = 0; i < FNUMBER; i++) MC.sFrequency[i].Read();			// Получить значения датчиков потока
 
@@ -728,6 +729,8 @@ void vReadSensor(void *)
 		TaskSuspendAll(); // Запрет других задач
 		if(MC.sInput[REG_ACTIVE].get_Input() || MC.sInput[BACKWASH_ACTIVE].get_Input()) {
 			MC.WorkStats.UsedLastRegen += MC.sFrequency[FLOW].Passed;
+		} else if(MC.sInput[REG_SOFTENING_ACTIVE].get_Input()) {
+			MC.WorkStats.UsedLastRegenSoftening += MC.sFrequency[FLOW].Passed;
 		} else {
 			MC.WorkStats.UsedToday += MC.sFrequency[FLOW].Passed;
 			MC.WorkStats.UsedTotal += MC.sFrequency[FLOW].Passed;
@@ -860,7 +863,7 @@ void vPumps( void * )
 				MC.dRelay[RBOOSTER1].set_OFF();
 				WaterBoosterStatus = 0;
 			}
-		} else if(!WaterBoosterStatus && press <= MC.sADC[PWATER].get_minPress()) {
+		} else if(!WaterBoosterStatus && press <= (MC.sInput[REG_ACTIVE].get_Input() || MC.sInput[BACKWASH_ACTIVE].get_Input() || MC.sInput[REG_SOFTENING_ACTIVE].get_Input() ? MC.sADC[PWATER].get_minPressReg() : MC.sADC[PWATER].get_minPress())) {
 			MC.dRelay[RBOOSTER1].set_ON();
 			WaterBoosterStatus = 1;
 		} else if(WaterBoosterStatus > 0 && press >= MC.sADC[PWATER].get_maxPress()) {

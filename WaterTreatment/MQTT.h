@@ -1,6 +1,4 @@
 /*
- * Copyright (c) 2019 by Vadim Kulakov vad7@yahoo.com, vad711
- *
  *
  * This file is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public

@@ -33,6 +33,7 @@ struct type_WorkStats
 	uint32_t UsedYesterday;			// Liters
 	uint32_t UsedAverageDay;		// Liters
 	uint32_t UsedLastRegen;			// Liters
+	uint32_t UsedLastRegenSoftening;// Liters
 	uint32_t UsedTotal;				// Liters
 	uint32_t UsedDischarge;			// Liters
 	uint16_t DaysFromLastRegen;
