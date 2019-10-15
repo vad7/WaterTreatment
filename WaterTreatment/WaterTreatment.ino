@@ -715,7 +715,8 @@ void vReadSensor(void *)
 			prtemp |= MC.Prepare_Temp(3);
 #endif
 		}
-		for(i = 0; i < ANUMBER; i++) MC.sADC[i].Read();                  // Прочитать данные с датчиков давления
+		// read in vPumps():
+		//for(i = 0; i < ANUMBER; i++) MC.sADC[i].Read();                  // Прочитать данные с датчиков давления
 	#ifdef USE_UPS
 		if(!MC.NO_Power)
 	#endif
@@ -853,6 +854,7 @@ void vReadSensor_delay8ms(int16_t ms8)
 // Задача Управления насосами (MC.xHandlePumps) "Pumps"
 void vPumps( void * )
 {
+	static uint32_t ADC_read_period = 0;
 	for(;;)
 	{
 		int16_t press = MC.sADC[PWATER].get_Press();
@@ -898,8 +900,28 @@ void vPumps( void * )
 		} else if(TimeFeedPump >= MC.Option.MinPumpOnTime) {
 			MC.dRelay[RFEEDPUMP].set_ON();
 		}
-		for(uint8_t i = 0; i < INUMBER; i++) MC.sInput[i].Read(true);                // Прочитать данные сухой контакт
+		for(uint8_t i = 0; i < INUMBER; i++) MC.sInput[i].Read(true);		// Прочитать данные сухой контакт
+		if(++ADC_read_period > 1000 / ADC_FREQ / TIME_SLICE_PUMPS) {		// Не чаще, чем ADC
+			ADC_read_period = 0;
+			for(uint8_t i = 0; i < ANUMBER; i++) MC.sADC[i].Read();			// Прочитать данные с датчиков давления
+		}
+		if(MC.sInput[REG_ACTIVE].get_Input() || MC.sInput[BACKWASH_ACTIVE].get_Input()) { // Regen remove iron filter
+			MC.dRelay[RSTARTREG].set_OFF();
 
+
+		} else if(MC.sInput[REG_SOFTENING_ACTIVE].get_Input()) {
+			MC.WorkStats.DaysFromLastRegenSoftening = 0;
+		} else {
+			if(fNeedRegen == 2) {
+				MC.WorkStats.RegCnt++;
+				MC.WorkStats.UsedSinceLastRegen = 0;
+				MC.WorkStats.DaysFromLastRegen = 0;
+				if(MC.WorkStats.UsedLastRegen < MC.Option.MinRegenLiters) {
+					vPumpsNewError = ERR_FEW_LITERS_REG;
+				}
+				fNeedRegen = 0;
+			}
+		}
 
 		vTaskDelay(TIME_SLICE_PUMPS); // ms
 	}
@@ -957,6 +979,16 @@ void vService(void *)
 		register uint32_t t = GetTickCount();
 		if(t - timer_sec >= 1000) { // 1 sec
 			timer_sec = t;
+			if(vPumpsNewError != 0) {
+				set_Error(vPumpsNewError, (char*)"vPumps");
+				vPumpsNewError = 0;
+			}
+
+			if(fNeedRegen) {
+
+			}
+
+
 			if(++task_updstat_chars >= MC.get_tChart()) { // пришло время
 				task_updstat_chars = 0;
 				MC.updateChart();                                       // Обновить графики

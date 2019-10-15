@@ -37,12 +37,14 @@ struct type_WorkStats
 	uint32_t UsedTotal;				// Liters
 	uint32_t UsedDischarge;			// Liters
 	uint16_t DaysFromLastRegen;
+	uint16_t DaysFromLastRegenSoftening;
 	uint8_t  WeekDay; 				// 1-7 active wday
 };
 
 int8_t		WaterBoosterStatus = 0; // 0 - выключено, 1 - вкл твердотельное, 2 - вкл обычное, 3 - выкл твердотельное, -1 - выкл твердотельное, -2 - выкл обычное, -3 вкл твердотельное
 uint32_t	TimeFeedPump = 0;
 uint8_t		fNeedRegen = 0;			// 0 - not, 1 - wait a regen hour, 2 - regen in process
+int8_t		vPumpsNewError = 0;
 
 int32_t motohour_IN_work = 0;  // рабочий для счетчиков - энергия потребленная, мВт
 uint16_t task_updstat_chars = 0;
@@ -68,8 +70,8 @@ struct type_option {
 	uint8_t  RegenHour;					// Час регенерации (0..23)
 	uint16_t UsedBeforeRegen;			// Количество литров до регенерации
 	uint16_t MinPumpOnTime;				// Минимальное время включения дозатора, мсек
-	uint16_t MinRegen;					// Тревога, если за регенерацию израсходовано меньше литров
-	uint16_t MinDischarge;				// Тревога, если слито (Discharge) при сбросе меньше литров
+	uint16_t MinRegenLiters;			// Тревога, если за регенерацию израсходовано меньше литров
+	uint16_t MinDischargeLiters;		// Тревога, если слито (Discharge) при сбросе меньше литров
 	uint16_t DischargeTime;				// Время слива воды, сек
 
 } __attribute__((packed));
