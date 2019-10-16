@@ -878,6 +878,16 @@ __attribute__((always_inline)) inline void setDate_RtcI2C(uint8_t date, uint8_t 
 	SemaphoreGive(xI2CSemaphore);
 }
 
+void update_RTC_store_memory(void)
+{
+	if(SemaphoreTake(xI2CSemaphore, I2C_TIME_WAIT / portTICK_PERIOD_MS) == pdFALSE) {  // Если шедулер запущен то захватываем семафор
+		journal.printf((char*) cErrorMutex, __FUNCTION__, MutexI2CBuzy);
+		return;
+	}
+	rtcI2C.writeRTC(RTC_STORE_ADDR, (uint8_t*)&MC.RTC_store, sizeof(MC.RTC_store));
+	SemaphoreGive(xI2CSemaphore);
+}
+
 // Заполняет и выбирает нужный элемент (нумерация c 0) для тега select
 // Формат select: "Первый элемент:0;Второй элемент:0;Третий элемент:0;"
 char *web_fill_tag_select(char *str, const char *select, uint8_t selected)

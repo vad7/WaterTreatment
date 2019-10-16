@@ -20,8 +20,16 @@
 // Возвращает ошибку останова 
 int8_t set_Error(int8_t _err, char *nam)
 {
-	if(MC.error != OK) return MC.error;                              // Ошибка уже есть выходим
-	{
+	uint8_t i = 0;
+	for(; i < sizeof(Errors); i++) {
+		if(Errors[i] == OK) break;
+		if(Errors[i] == _err) {
+			i = sizeof(Errors);
+			break;
+		}
+	}
+	if(i != sizeof(Errors)) Errors[i] = _err;
+	if(MC.error == OK) {
 		MC.error = _err;
 		strcpy(MC.source_error, nam);
 		strcpy(MC.note_error, NowTimeToStr());       // Cтереть всю строку и поставить время

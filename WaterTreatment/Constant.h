@@ -164,6 +164,7 @@ const uint16_t  defaultPort=80;
 #define SAVE_TYPE_PwrCorr		-7
 #define SAVE_TYPE_LIMIT			-100
 
+#define RTC_STORE_ADDR RTC_ALM1_SECONDS		// Starting address of RTC store memory
 // ------------------- ОБЩИЕ НАСТРОЙКИ ----------------------------------
 
 // ------------------- SENSOR TEMP----------------------------------
@@ -468,8 +469,9 @@ const char *option_DischargeTime		= {"DT"};
 #define ERR_ADDRESS			-50        // Адрес датчика температуры не установлен
 #define ERR_FEW_LITERS_REG	-51			// Мало израсходовано воды при регенерации
 #define ERR_FEW_LITERS_DISCHARGE -52	// Мало израсходовано воды при сбросе воды
+#define ERR_RTC_LOW_BATTERY -53			// Села батарея часов
 
-#define ERR_ERRMAX			-50 	   // Последняя ошибка
+#define ERR_ERRMAX			-53 	   // Последняя ошибка
 
 // Предупреждения
 #define WARNING_VALUE        1         // Попытка установить значение за границами диапазона запрос типа SET
@@ -528,6 +530,7 @@ const char *noteError[] = {"Ok",                                                
 						   "Адрес датчика температруры не установлен",											//-50
 						   "Мало израсходовано воды при регенерации",											//-51
 						   "Мало израсходовано воды при сбросе воды",											//-52
+						   "Села батарея часов",																//-53
                            
                            "NULL"
                            };

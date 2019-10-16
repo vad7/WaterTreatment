@@ -399,11 +399,43 @@ void setup() {
 
 	// 11. Разбираемся со всеми часами и синхронизацией
 	journal.printf("* Setting time.\n");
+	int16_t s = rtcI2C.readRTC(RTC_STATUS);        //read the status register
+	if(s != -1) {
+		if(s & (1<<RTC_OSF)) {
+			journal.jprintf(" RTC low battery!\n");
+			set_Error(ERR_RTC_LOW_BATTERY, (char*)"");
+			rtcI2C.writeRTC(RTC_STATUS, 0);  //clear the Oscillator Stop Flag
+			update_RTC_store_memory();
+		} else {
+			if(rtcI2C.readRTC(RTC_STORE_ADDR, (uint8_t*)&MC.RTC_store, sizeof(MC.RTC_store))) journal.jprintf(" Error read RTC store!\n");
+			if(MC.RTC_store.UsedToday != MC.WorkStats.UsedToday) { // suddenly, power was lost
+				uint32_t d = MC.WorkStats.UsedToday - MC.WorkStats.UsedToday;
+				MC.WorkStats.UsedToday = MC.WorkStats.UsedToday;
+				MC.WorkStats.UsedTotal += d;
+				if(MC.RTC_store.Work & RTC_Work_NeedRegen_Mask) {
+
+				}
+				MC.WorkStats.UsedSinceLastRegen += d;
+
+
+
+
+
+
+
+
+
+
+
+
+			}
+		}
+	} else journal.jprintf(" Error read RTC!\n");
 	set_time();
 
 	// 12. Инициалазация уведомлений
-	journal.printf("* Message DNS update.\n");
-//	MC.message.dnsUpdate();
+	//journal.printf("* Message DNS update.\n");
+	//MC.message.dnsUpdate();
 
 	// 13. Инициалазация MQTT
 #ifdef MQTT
@@ -788,7 +820,7 @@ void vReadSensor(void *)
 
 		vReadSensor_delay8ms((TIME_READ_SENSOR - (millis() - ttime)) / 2 / 8);     // 1. Ожидать время нужное для цикла чтения
 
-		//  Синхронизация часов с I2C часами если стоит соответсвующий флаг
+		//  Синхронизация часов с I2C часами если стоит соответствующий флаг
 		if(MC.get_updateI2C())  // если надо обновить часы из I2c
 		{
 			if(millis() - oldTime > (uint32_t)TIME_I2C_UPDATE) // время пришло обновляться надо Период синхронизации внутренних часов с I2C часами (сек)

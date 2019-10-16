@@ -23,28 +23,40 @@
 extern char *MAC2String(byte* mac);
 
 #define I2C_COUNT_EEPROM_HEADER 0xAB
-struct type_WorkStats
-{
+struct type_WorkStats {
 	uint8_t  Header;
-	uint8_t  NeedRegen;				// 0 - not, 1 - wait a regen hour, 2 - regen in process
-	uint16_t RegCnt;
 	uint32_t UsedSinceLastRegen;	// Liters
-	uint32_t UsedToday;				// Liters
-	uint32_t UsedYesterday;			// Liters
-	uint32_t UsedAverageDay;		// Liters
-	uint32_t UsedLastRegen;			// Liters
-	uint32_t UsedLastRegenSoftening;// Liters
 	uint32_t UsedTotal;				// Liters
-	uint32_t UsedDischarge;			// Liters
+	uint16_t UsedToday;				// Liters
+	uint16_t UsedYesterday;			// Liters
+	uint16_t UsedAverageDay;		// Liters
+	uint16_t UsedLastRegen;			// Liters
+	uint16_t UsedLastRegenSoftening;// Liters
+	uint16_t UsedDischarge;			// Liters
 	uint16_t DaysFromLastRegen;
 	uint16_t DaysFromLastRegenSoftening;
+	uint16_t RegCnt;
 	uint8_t  WeekDay; 				// 1-7 active wday
-};
+} __attribute__((packed));
+
+
+#define RTC_Work_WeekDay_Mask		0x07	// Active weekday (1-7)
+#define RTC_Work_NeedRegen_Mask		0x30	// 0 - not, 1 - wait a regen iron hour, 2 - regen iron in process, 3 - regen softener in process
+#define RTC_Work_NeedRegen_WaitIron	0x10
+#define RTC_Work_NeedRegen_Iron		0x20
+#define RTC_Work_NeedRegen_Softener	0x30
+
+struct type_RTC_memory { // DS3231/DS3232 used alarm memory, starts from 0x07, size 7 bytes
+	uint16_t UsedToday;
+	uint8_t  Work;			// NeedRegen + WeekDay
+} __attribute__((packed));
+
 
 int8_t		WaterBoosterStatus = 0; // 0 - выключено, 1 - вкл твердотельное, 2 - вкл обычное, 3 - выкл твердотельное, -1 - выкл твердотельное, -2 - выкл обычное, -3 вкл твердотельное
 uint32_t	TimeFeedPump = 0;
 uint8_t		fNeedRegen = 0;			// 0 - not, 1 - wait a regen hour, 2 - regen in process
 int8_t		vPumpsNewError = 0;
+int8_t		Errors[10];				// Active Errors array
 
 int32_t motohour_IN_work = 0;  // рабочий для счетчиков - энергия потребленная, мВт
 uint16_t task_updstat_chars = 0;
@@ -291,6 +303,7 @@ public:
 	boolean  fNetworkReset;				// Нужно сбросить сеть
     TEST_MODE testMode;                                  // Значение режима тестирования
 	type_WorkStats WorkStats;               // Структура для хранения счетчиков периодическая запись
+	type_RTC_memory RTC_store;
 
 private:
 
