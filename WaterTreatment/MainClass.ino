@@ -352,7 +352,7 @@ int8_t MainClass::check_crc16_eeprom(int32_t addr, uint16_t size)
 
 // СЧЕТЧИКИ -----------------------------------
  // запись счетчиков в I2C память
-int8_t MainClass::save_motoHour()
+int8_t MainClass::save_WorkStats()
 {
 	uint8_t errcode;
 	WorkStats.Header = I2C_COUNT_EEPROM_HEADER;
@@ -365,7 +365,7 @@ int8_t MainClass::save_motoHour()
 }
 
 // чтение счетчиков в ЕЕПРОМ
-int8_t MainClass::load_motoHour()
+int8_t MainClass::load_WorkStats()
 {
 	if(readEEPROM_I2C(I2C_COUNT_EEPROM, &WorkStats.Header, sizeof(WorkStats.Header))) { // прочитать заголовок
 		set_Error(ERR_LOAD2_EEPROM, (char*) __FUNCTION__);
@@ -385,25 +385,11 @@ int8_t MainClass::load_motoHour()
 }
 // Сборос сезонного счетчика моточасов
 // параметр true - сброс всех счетчиков
-void MainClass::resetCount(boolean full)
+void MainClass::resetCount()
 {
-	if(full) // Полный сброс счетчиков
-	{
-//		WorkStats.H1 = 0;
-//		WorkStats.C1 = 0;
-//		WorkStats.P1 = 0;
-//		WorkStats.Z1 = 0;
-//		WorkStats.E1 = 0;
-//		WorkStats.D1 = rtcSAM3X8.unixtime();           // Дата сброса общих счетчиков
-	}
-	// Сезон
-//	WorkStats.H2 = 0;
-//	WorkStats.C2 = 0;
-//	WorkStats.P2 = 0;
-//	WorkStats.Z2 = 0;
-//	WorkStats.E2 = 0;
-//	WorkStats.D2 = rtcSAM3X8.unixtime();             // дата сброса сезонных счетчиков
-	save_motoHour();  // записать счетчики
+	memset(&MC.WorkStats, 0, sizeof(MC.WorkStats));
+	WorkStats.ResetTime = rtcSAM3X8.unixtime();           // Дата сброса счетчиков
+	save_WorkStats();  // записать счетчики
 	motohour_IN_work = 0;
 }
 

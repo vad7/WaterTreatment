@@ -633,7 +633,7 @@ void parserGET(uint8_t thread, int8_t )
 		{
 			str += 8;
 			if(strcmp(str, "_STATS") == 0) { // Сохранить счетчики и статистику
-xSaveStats:		if((i = MC.save_motoHour()) == OK)
+xSaveStats:		if((i = MC.save_WorkStats()) == OK)
 					if((i = Stats.SaveStats(1)) == OK)
 						i = Stats.SaveHistory(1);
 				_itoa(i, strReturn);
@@ -645,7 +645,7 @@ xSaveStats:		if((i = MC.save_motoHour()) == OK)
 			} else {
 				e = MC.save();   // записать настройки в еепром, а потом будем их писать и получить размер записываемых данных
 				_itoa(e, strReturn); // сохранение настроек ВСЕХ!
-				MC.save_motoHour();
+				MC.save_WorkStats();
 			}
 			ADD_WEBDELIM(strReturn);
 			continue;
@@ -777,21 +777,16 @@ xSaveStats:		if((i = MC.save_motoHour()) == OK)
 			{
 				//strcat(strReturn,"Сброс контроллера, подождите 10 секунд . . .");
 				journal.jprintf("$SOFTWARE RESET control . . .\n\n");
-				MC.save_motoHour();
+				MC.save_WorkStats();
 				Stats.SaveStats(0);
 				Stats.SaveHistory(0);
 				_delay(500);            // задержка что бы вывести сообщение в консоль
 				Software_Reset() ;      // Сброс
-			} else if (strcmp(str,"COUNT")==0) // Команда RESET_COUNT
-			{
-				journal.jprintf("$RESET counter moto hour . . .\n");
-				strcat(strReturn,"Сброс счетчика моточасов за сезон");
-				MC.resetCount(false);
 			} else if (strcmp(str,"ALL_COUNT")==0) // Команда RESET_ALL_COUNT
 			{
-				journal.jprintf("$RESET All counter moto hour . . .\n");
-				strcat(strReturn,"Сброс ВСЕХ счетчика моточасов");
-				MC.resetCount(true);  // Полный сброс
+				journal.jprintf("$RESET All Counters . . .\n");
+				strcat(strReturn,"Сброс ВСЕХ счетчиков");
+				MC.resetCount();  // Полный сброс
 			} else if (strcmp(str,"SETTINGS")==0) // RESET_SETTINGS, Команда сброса настроек
 			{
 					journal.jprintf("$RESET All settings . . .\n");

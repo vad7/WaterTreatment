@@ -364,10 +364,10 @@ void setup() {
 
 	// 9. Чтение ЕЕПРОМ
 	journal.printf("* Load data from I2C memory.\n");
-	if(MC.load_motoHour() == ERR_HEADER2_EEPROM)           // Загрузить счетчики
+	if(MC.load_WorkStats() == ERR_HEADER2_EEPROM)           // Загрузить счетчики
 	{
 		journal.printf("I2C memory is empty!\n");
-		MC.save_motoHour();
+		MC.save_WorkStats();
 	} else {
 		MC.load((uint8_t *)Socket[0].outBuf, 0);      // Загрузить настройки 
 	}
@@ -408,27 +408,6 @@ void setup() {
 			update_RTC_store_memory();
 		} else {
 			if(rtcI2C.readRTC(RTC_STORE_ADDR, (uint8_t*)&MC.RTC_store, sizeof(MC.RTC_store))) journal.jprintf(" Error read RTC store!\n");
-			if(MC.RTC_store.UsedToday != MC.WorkStats.UsedToday) { // suddenly, power was lost
-				uint32_t d = MC.WorkStats.UsedToday - MC.WorkStats.UsedToday;
-				MC.WorkStats.UsedToday = MC.WorkStats.UsedToday;
-				MC.WorkStats.UsedTotal += d;
-				if(MC.RTC_store.Work & RTC_Work_NeedRegen_Mask) {
-
-				}
-				MC.WorkStats.UsedSinceLastRegen += d;
-
-
-
-
-
-
-
-
-
-
-
-
-			}
 		}
 	} else journal.jprintf(" Error read RTC!\n");
 	set_time();
@@ -760,18 +739,17 @@ void vReadSensor(void *)
 		// Flow
 		TimeFeedPump +=	MC.sFrequency[FLOW].get_Value() * (TIME_READ_SENSOR / TIME_SLICE_PUMPS) / MC.Option.FeedPumpMaxFlow;
 		TaskSuspendAll(); // Запрет других задач
-		if(MC.sInput[REG_ACTIVE].get_Input() || MC.sInput[BACKWASH_ACTIVE].get_Input()) {
-			MC.WorkStats.UsedLastRegen += MC.sFrequency[FLOW].Passed;
-		} else if(MC.sInput[REG_SOFTENING_ACTIVE].get_Input()) {
-			MC.WorkStats.UsedLastRegenSoftening += MC.sFrequency[FLOW].Passed;
-		} else {
-			MC.WorkStats.UsedToday += MC.sFrequency[FLOW].Passed;
-			MC.WorkStats.UsedTotal += MC.sFrequency[FLOW].Passed;
-			MC.WorkStats.UsedSinceLastRegen += MC.sFrequency[FLOW].Passed;
-			if(fNeedRegen == 0 && MC.WorkStats.UsedSinceLastRegen > MC.Option.UsedBeforeRegen) fNeedRegen = 1;
-		}
+		uint32_t passed = MC.sFrequency[FLOW].Passed;
 		MC.sFrequency[FLOW].Passed = 0;
 		xTaskResumeAll(); // Разрешение других задач
+		if(MC.sInput[REG_ACTIVE].get_Input() || MC.sInput[BACKWASH_ACTIVE].get_Input() || MC.sInput[REG_SOFTENING_ACTIVE].get_Input()) {
+			MC.RTC_store.UsedRegen += passed;
+		} else {
+			MC.RTC_store.UsedToday += passed;
+			MC.WorkStats.UsedSinceLastRegen += passed;
+			MC.WorkStats.UsedSinceLastRegenSoftening += passed;
+			if((MC.RTC_store.Work & RTC_Work_NeedRegen_Mask) == 0 && MC.WorkStats.UsedSinceLastRegen > MC.Option.UsedBeforeRegen) MC.RTC_store.Work |= RTC_Work_NeedRegen_WaitIron;
+		}
 		//
 
 		vReadSensor_delay8ms((cDELAY_DS1820 - (millis() - ttime)) / 8); 	// Ожидать время преобразования
@@ -861,7 +839,7 @@ void vReadSensor_delay8ms(int16_t ms8)
 		MC.sInput[SPOWER].Read(true);
 		if(MC.sInput[SPOWER].is_alarm()) { // Электричество кончилось
 			if(!MC.NO_Power) {
-				MC.save_motoHour();
+				MC.save_WorkStats();
 				Stats.SaveStats(0);
 				Stats.SaveHistory(0);
 				journal.jprintf(pP_DATE, "Power lost!\n");
@@ -939,19 +917,36 @@ void vPumps( void * )
 		}
 		if(MC.sInput[REG_ACTIVE].get_Input() || MC.sInput[BACKWASH_ACTIVE].get_Input()) { // Regen remove iron filter
 			MC.dRelay[RSTARTREG].set_OFF();
-
-
+			if((MC.RTC_store.Work & RTC_Work_NeedRegen_Mask) != RTC_Work_NeedRegen_Iron) {
+				MC.RTC_store.Work = (MC.RTC_store.Work & ~RTC_Work_NeedRegen_Mask) | RTC_Work_NeedRegen_Iron;
+				TaskSuspendAll(); // Запрет других задач
+				MC.RTC_store.UsedRegen = 0;
+				xTaskResumeAll(); // Разрешение других задач
+			}
 		} else if(MC.sInput[REG_SOFTENING_ACTIVE].get_Input()) {
-			MC.WorkStats.DaysFromLastRegenSoftening = 0;
+			if((MC.RTC_store.Work & RTC_Work_NeedRegen_Mask) != RTC_Work_NeedRegen_Softener) {
+				MC.RTC_store.Work = (MC.RTC_store.Work & ~RTC_Work_NeedRegen_Mask) | RTC_Work_NeedRegen_Softener;
+				TaskSuspendAll(); // Запрет других задач
+				MC.RTC_store.UsedRegen = 0;
+				xTaskResumeAll(); // Разрешение других задач
+			}
 		} else {
-			if(fNeedRegen == 2) {
-				MC.WorkStats.RegCnt++;
-				MC.WorkStats.UsedSinceLastRegen = 0;
-				MC.WorkStats.DaysFromLastRegen = 0;
+			switch (MC.RTC_store.Work & RTC_Work_NeedRegen_Mask) {
+			case RTC_Work_NeedRegen_Iron:
 				if(MC.WorkStats.UsedLastRegen < MC.Option.MinRegenLiters) {
 					vPumpsNewError = ERR_FEW_LITERS_REG;
 				}
-				fNeedRegen = 0;
+				MC.WorkStats.UsedLastRegen = MC.RTC_store.UsedRegen;
+				MC.WorkStats.DaysFromLastRegen = 0;
+				MC.WorkStats.RegCnt++;
+				MC.WorkStats.UsedSinceLastRegen = 0;
+				NeedSave = 1;
+				break;
+			case RTC_Work_NeedRegen_Softener:
+				MC.WorkStats.DaysFromLastRegenSoftening = 0;
+				MC.WorkStats.RegCntSoftening++;
+				MC.WorkStats.UsedSinceLastRegenSoftening = 0;
+				NeedSave = 1;
 			}
 		}
 
@@ -1015,9 +1010,8 @@ void vService(void *)
 				set_Error(vPumpsNewError, (char*)"vPumps");
 				vPumpsNewError = 0;
 			}
-
-			if(fNeedRegen) {
-
+			if(NeedSave) {
+				if(MC.save_WorkStats() == OK) NeedSave = 0;
 			}
 
 
@@ -1029,7 +1023,7 @@ void vService(void *)
 			if(m != task_updstat_countm) { 								// Через 1 минуту
 				task_updstat_countm = m;
 				MC.updateCount();                                       // Обновить счетчики моточасов
-				if(task_updstat_countm == 59) MC.save_motoHour();		// сохранить раз в час
+				if(task_updstat_countm == 59) MC.save_WorkStats();		// сохранить раз в час
 				Stats.History();                                        // запись истории в файл
 			}
 			Stats.CheckCreateNewFile();

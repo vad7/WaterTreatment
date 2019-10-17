@@ -26,17 +26,18 @@ extern char *MAC2String(byte* mac);
 struct type_WorkStats {
 	uint8_t  Header;
 	uint32_t UsedSinceLastRegen;	// Liters
+	uint32_t UsedSinceLastRegenSoftening;	// Liters
 	uint32_t UsedTotal;				// Liters
-	uint16_t UsedToday;				// Liters
 	uint16_t UsedYesterday;			// Liters
 	uint16_t UsedAverageDay;		// Liters
+	uint16_t UsedDischarge;			// Liters
 	uint16_t UsedLastRegen;			// Liters
 	uint16_t UsedLastRegenSoftening;// Liters
-	uint16_t UsedDischarge;			// Liters
 	uint16_t DaysFromLastRegen;
 	uint16_t DaysFromLastRegenSoftening;
 	uint16_t RegCnt;
-	uint8_t  WeekDay; 				// 1-7 active wday
+	uint16_t RegCntSoftening;
+	uint32_t ResetTime;
 } __attribute__((packed));
 
 
@@ -46,17 +47,18 @@ struct type_WorkStats {
 #define RTC_Work_NeedRegen_Iron		0x20
 #define RTC_Work_NeedRegen_Softener	0x30
 
-struct type_RTC_memory { // DS3231/DS3232 used alarm memory, starts from 0x07, size 7 bytes
-	uint16_t UsedToday;
+struct type_RTC_memory { // DS3231/DS3232 used alarm memory, starts from 0x07, max size 7 bytes
+	uint16_t UsedToday;		// used daily until switch to new day
+	uint16_t UsedRegen;
 	uint8_t  Work;			// NeedRegen + WeekDay
 } __attribute__((packed));
 
 
 int8_t		WaterBoosterStatus = 0; // 0 - выключено, 1 - вкл твердотельное, 2 - вкл обычное, 3 - выкл твердотельное, -1 - выкл твердотельное, -2 - выкл обычное, -3 вкл твердотельное
 uint32_t	TimeFeedPump = 0;
-uint8_t		fNeedRegen = 0;			// 0 - not, 1 - wait a regen hour, 2 - regen in process
 int8_t		vPumpsNewError = 0;
-int8_t		Errors[10];				// Active Errors array
+uint8_t		NeedSave = 0;			// 1 - MC.Workstats
+int8_t		Errors[10] = { 0,0,0,0,0,0,0,0,0,0 };// Active Errors array
 
 int32_t motohour_IN_work = 0;  // рабочий для счетчиков - энергия потребленная, мВт
 uint16_t task_updstat_chars = 0;
@@ -162,8 +164,8 @@ public:
 	int32_t save(void); 		        // Записать настройки в eeprom i2c на входе адрес с какого, на выходе код ошибки (меньше нуля) или количество записанных  байт
 	int32_t load(uint8_t *buffer, uint8_t from_RAM); // Считать настройки из i2c или RAM, на выходе код ошибки (меньше нуля)
 	int8_t loadFromBuf(int32_t adr,byte *buf);// Считать настройки из буфера на входе адрес с какого, на выходе код ошибки (меньше нуля)
-	int8_t save_motoHour();             // запись счетчиков в ЕЕПРОМ
-	int8_t load_motoHour();             // чтение счетчиков в ЕЕПРОМ
+	int8_t save_WorkStats();             // запись счетчиков в ЕЕПРОМ
+	int8_t load_WorkStats();             // чтение счетчиков в ЕЕПРОМ
 
 	//  ===================  К Л А С С Ы  ===========================
 	// Датчики
@@ -246,8 +248,8 @@ public:
 	__attribute__((always_inline)) inline uint32_t get_uptime() {return rtcSAM3X8.unixtime()-timeON;} // Получить время с последенй перезагрузки в секундах
 	uint32_t get_startDT(){return timeON;}                  // Получить дату и время последеней перезагрузки
 
-	void resetCount(boolean full);                          // Сборос сезонного счетчика моточасов
-	void updateCount();                                     // Обновление счетчиков моточасов
+	void resetCount();                          		// Сборос счетчиков
+	void updateCount();                                     // Обновление счетчиков
 
 	void set_uptime(unsigned long ttime){timeON=ttime;}     // Установить текущее время как начало старта контроллера
 
@@ -298,11 +300,11 @@ public:
 	// Настройки опций
 	type_option Option;                  			// Опции
 
-	uint8_t  NO_Power;					  // Нет питания основных узлов
+	uint8_t  NO_Power;					  			// Нет питания основных узлов
 	uint8_t  NO_Power_delay;
-	boolean  fNetworkReset;				// Нужно сбросить сеть
-    TEST_MODE testMode;                                  // Значение режима тестирования
-	type_WorkStats WorkStats;               // Структура для хранения счетчиков периодическая запись
+	boolean  fNetworkReset;							// Нужно сбросить сеть
+    TEST_MODE testMode;                             // Значение режима тестирования
+	type_WorkStats WorkStats;               		// Структура для хранения счетчиков периодическая запись
 	type_RTC_memory RTC_store;
 
 private:
