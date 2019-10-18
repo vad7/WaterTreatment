@@ -54,11 +54,12 @@ struct type_RTC_memory { // DS3231/DS3232 used alarm memory, starts from 0x07, m
 } __attribute__((packed));
 
 
-int8_t		WaterBoosterStatus = 0; // 0 - выключено, 1 - вкл твердотельное, 2 - вкл обычное, 3 - выкл твердотельное, -1 - выкл твердотельное, -2 - выкл обычное, -3 вкл твердотельное
-uint32_t	TimeFeedPump = 0;
-int8_t		vPumpsNewError = 0;
-uint8_t		NeedSave = 0;			// 1 - MC.Workstats
-int8_t		Errors[10] = { 0,0,0,0,0,0,0,0,0,0 };// Active Errors array
+int8_t   WaterBoosterStatus = 0; // 0 - выключено, 1 - вкл твердотельное, 2 - вкл обычное, 3 - выкл твердотельное, -1 - выкл твердотельное, -2 - выкл обычное, -3 вкл твердотельное
+uint32_t TimeFeedPump = 0;
+int8_t   vPumpsNewError = 0;
+uint8_t  NeedSaveWorkStats = 0;
+uint8_t  NeedSaveRTC = 0; // 0x01 - UsedToday, 0x02 - UsedRegen, 0x04 - Work every, 0x80 - Urgently!
+int8_t   Errors[10] = { 0,0,0,0,0,0,0,0,0,0 };// Active Errors array
 
 int32_t motohour_IN_work = 0;  // рабочий для счетчиков - энергия потребленная, мВт
 uint16_t task_updstat_chars = 0;

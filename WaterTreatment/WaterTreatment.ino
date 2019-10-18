@@ -405,7 +405,7 @@ void setup() {
 			journal.jprintf(" RTC low battery!\n");
 			set_Error(ERR_RTC_LOW_BATTERY, (char*)"");
 			rtcI2C.writeRTC(RTC_STATUS, 0);  //clear the Oscillator Stop Flag
-			update_RTC_store_memory();
+			update_RTC_store_memory(0xFF);
 		} else {
 			if(rtcI2C.readRTC(RTC_STORE_ADDR, (uint8_t*)&MC.RTC_store, sizeof(MC.RTC_store))) journal.jprintf(" Error read RTC store!\n");
 		}
@@ -805,9 +805,14 @@ void vReadSensor(void *)
 			{
 				oldTime = rtcSAM3X8.unixtime();
 				uint32_t t = TimeToUnixTime(getTime_RtcI2C());       // Прочитать время из часов i2c тут проблема
-				rtcSAM3X8.set_clock(t);                		 // Установить внутренние часы по i2c
-				MC.updateDateTime(t > oldTime ? t - oldTime : -(oldTime - t));  // Обновить переменные времени с новым значением часов
-				journal.printf((const char*) "Sync from I2C RTC: %s %s\n", NowDateToStr(), NowTimeToStr());
+				if(t) {
+					rtcSAM3X8.set_clock(t);                		 // Установить внутренние часы по i2c
+					int32_t dt = t > oldTime ? t - oldTime : -(oldTime - t);
+					MC.updateDateTime(dt);  // Обновить переменные времени с новым значением часов
+					journal.printf("Sync from I2C RTC: %s %s (%d)\n", NowDateToStr(), NowTimeToStr(), dt);
+				} else {
+					journal.printf("Error read I2C RTC\n");
+				}
 				oldTime = millis();
 			}
 		}
@@ -940,13 +945,13 @@ void vPumps( void * )
 				MC.WorkStats.DaysFromLastRegen = 0;
 				MC.WorkStats.RegCnt++;
 				MC.WorkStats.UsedSinceLastRegen = 0;
-				NeedSave = 1;
+				NeedSaveWorkStats = 1;
 				break;
 			case RTC_Work_NeedRegen_Softener:
 				MC.WorkStats.DaysFromLastRegenSoftening = 0;
 				MC.WorkStats.RegCntSoftening++;
 				MC.WorkStats.UsedSinceLastRegenSoftening = 0;
-				NeedSave = 1;
+				NeedSaveWorkStats = 1;
 			}
 		}
 
@@ -997,6 +1002,7 @@ void vKeysLCD( void * )
 void vService(void *)
 {
 	static uint8_t  task_updstat_countm = rtcSAM3X8.get_minutes();
+	static uint8_t  task_every_min = task_updstat_countm;
 	static uint32_t timer_sec = GetTickCount();
 
 	vTaskDelete(NULL);
@@ -1010,10 +1016,6 @@ void vService(void *)
 				set_Error(vPumpsNewError, (char*)"vPumps");
 				vPumpsNewError = 0;
 			}
-			if(NeedSave) {
-				if(MC.save_WorkStats() == OK) NeedSave = 0;
-			}
-
 
 			if(++task_updstat_chars >= MC.get_tChart()) { // пришло время
 				task_updstat_chars = 0;
@@ -1022,9 +1024,29 @@ void vService(void *)
 			uint8_t m = rtcSAM3X8.get_minutes();
 			if(m != task_updstat_countm) { 								// Через 1 минуту
 				task_updstat_countm = m;
-				MC.updateCount();                                       // Обновить счетчики моточасов
+				MC.updateCount();                                       // Обновить счетчики
 				if(task_updstat_countm == 59) MC.save_WorkStats();		// сохранить раз в час
 				Stats.History();                                        // запись истории в файл
+			} else {
+				if(NeedSaveWorkStats) {
+					if(MC.save_WorkStats() == OK) NeedSaveWorkStats = 0;
+				} else if((NeedSaveRTC & 0x80) || (NeedSaveRTC && m != task_every_min)) {
+					task_every_min = m;
+					if(update_RTC_store_memory(NeedSaveRTC));
+
+
+
+				}
+
+
+
+					if(m != task_every_min) {
+					task_every_min = m;
+					if(NeedSaveRTC) {
+
+
+					}
+				}
 			}
 			Stats.CheckCreateNewFile();
 		}

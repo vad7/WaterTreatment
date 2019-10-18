@@ -26,15 +26,20 @@ byte packetBuffer[NTP_PACKET_SIZE+1];       // буфер, в котором б�
 // Возвращает код ошибки
 int8_t set_time(void)
 {
-	journal.jprintf(" I2C RTC DS3232: %s\n", DecodeTimeDate(TimeToUnixTime(getTime_RtcI2C()),(char*) packetBuffer));   // Показать что i2c часы работают - показав текущее время
-	journal.jprintf(" Init SAM3X8E RTC\n");
+	journal.printf(" I2C RTC DS3232: %s\n", DecodeTimeDate(TimeToUnixTime(getTime_RtcI2C()),(char*) packetBuffer));   // Показать что i2c часы работают - показав текущее время
+	journal.printf(" Init SAM3X8E RTC\n");
 	rtcSAM3X8.init();                             // Запуск внутренних часов
 	if(!(MC.get_updateNTP() && set_time_NTP())) { // Обновить время по NTP
-		rtcSAM3X8.set_clock(TimeToUnixTime(getTime_RtcI2C()));                // Установить внутренние часы по i2c
-		journal.jprintf(" Time updated from I2C RTC: %s %s\n", NowDateToStr(), NowTimeToStr());
+		uint32_t t = TimeToUnixTime(getTime_RtcI2C());
+		if(t) {
+			rtcSAM3X8.set_clock(t);                // Установить внутренние часы по i2c
+			journal.printf(" Time updated from I2C RTC: %s %s\n", NowDateToStr(), NowTimeToStr());
+		} else {
+			journal.printf("Error read I2C RTC\n");
+		}
 	}
 	
-	MC.set_uptime(TimeToUnixTime(getTime_RtcI2C()));                         // Запомнить время старта контроллера
+	MC.set_uptime(rtcSAM3X8.unixtime());                         // Запомнить время старта контроллера
 	return OK;
 }
 
@@ -477,6 +482,7 @@ char*  StatDate(uint32_t idt,boolean forma,char *ret)
 static  const uint8_t dim[] = { 31,28,31,30,31,30,31,31,30,31,30,31 };
 unsigned long TimeToUnixTime(tmElements_t t) //[V]*
  {
+	if(t.Year == 0) return 0;
     uint16_t  dc;
     dc = t.Day;
     for (uint8_t i = 0; i<(t.Month-1); i++) dc += dim[i];
