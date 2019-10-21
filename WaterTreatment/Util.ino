@@ -883,20 +883,33 @@ __attribute__((always_inline)) inline void setDate_RtcI2C(uint8_t date, uint8_t 
 
 // 0x01 - UsedToday, 0x02 - UsedRegen, 0x04 - Work every
 // Return 0 - when success
-uint8_t update_RTC_store_memory(uint8_t what_to_save)
+uint8_t update_RTC_store_memory(uint8_t &what_to_save)
 {
 	if(SemaphoreTake(xI2CSemaphore, I2C_TIME_WAIT / portTICK_PERIOD_MS) == pdFALSE) {  // Если шедулер запущен то захватываем семафор
 		journal.printf((char*) cErrorMutex, __FUNCTION__, MutexI2CBuzy);
 		return 7;
 	}
-
-
-
-	rtcI2C.writeRTC(RTC_STORE_ADDR, (uint8_t*)&MC.RTC_store, sizeof(MC.RTC_store));
-
-
-
+	type_RTC_memory store;
+	TaskSuspendAll(); // Запрет других задач
+	memcpy(&store, &MC.RTC_store, sizeof(store));
+	xTaskResumeAll(); // Разрешение других задач
+	uint32_t addr = 0;
+	uint32_t len = 0;
+	if(what_to_save & (1<<0)) {
+		len = sizeof(store.UsedToday);
+	}
+	if(what_to_save & (1<<1)) {
+		if(addr == 0) addr = sizeof(store.UsedToday);
+		len += sizeof(store.UsedRegen);
+	}
+	if(what_to_save & (1<<2)) {
+		if(addr == 0) addr = sizeof(store.UsedToday) + sizeof(store.UsedRegen);
+		else if(what_to_save & (1<<0)) len += sizeof(store.UsedRegen);
+		len += sizeof(store.Work);
+	}
+	if(len) if(!(len = rtcI2C.writeRTC(RTC_STORE_ADDR + addr, (uint8_t*)&MC.RTC_store + addr, len))) what_to_save = 0;
 	SemaphoreGive(xI2CSemaphore);
+	return len;
 }
 
 // Заполняет и выбирает нужный элемент (нумерация c 0) для тега select

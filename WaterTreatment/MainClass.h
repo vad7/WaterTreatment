@@ -48,17 +48,17 @@ struct type_WorkStats {
 #define RTC_Work_NeedRegen_Softener	0x30
 
 struct type_RTC_memory { // DS3231/DS3232 used alarm memory, starts from 0x07, max size 7 bytes
-	uint16_t UsedToday;		// used daily until switch to new day
-	uint16_t UsedRegen;
-	uint8_t  Work;			// NeedRegen + WeekDay
+	uint16_t UsedToday;		// 0. used daily until switch to new day
+	uint16_t UsedRegen;		// 1.
+	uint8_t  Work;			// 2. NeedRegen + WeekDay
 } __attribute__((packed));
 
 
-int8_t   WaterBoosterStatus = 0; // 0 - выключено, 1 - вкл твердотельное, 2 - вкл обычное, 3 - выкл твердотельное, -1 - выкл твердотельное, -2 - выкл обычное, -3 вкл твердотельное
+int8_t   WaterBoosterStatus = 0; // 0 - выключено, 1 - вкл твердотельное, 2 - вкл обычное, 3 - выкл твердотельное, -1 - выкл твердотельное, -2 - выкл обычное, -3 - нужно выключить (вкл твердотельное)
 uint32_t TimeFeedPump = 0;
 int8_t   vPumpsNewError = 0;
 uint8_t  NeedSaveWorkStats = 0;
-uint8_t  NeedSaveRTC = 0; // 0x01 - UsedToday, 0x02 - UsedRegen, 0x04 - Work every, 0x80 - Urgently!
+uint8_t  NeedSaveRTC = 0; // b0 - UsedToday, b1 - UsedRegen, b2 - Work every; +0x80 - Urgently!
 int8_t   Errors[10] = { 0,0,0,0,0,0,0,0,0,0 };// Active Errors array
 
 int32_t motohour_IN_work = 0;  // рабочий для счетчиков - энергия потребленная, мВт

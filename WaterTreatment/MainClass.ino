@@ -41,8 +41,7 @@ int8_t set_Error(int8_t _err, char *nam)
 		if(xTaskGetSchedulerState() == taskSCHEDULER_RUNNING) MC.save_DumpJournal(); // вывод отладочной информации для начала  если запущена freeRTOS
 		MC.message.setMessage(pMESSAGE_ERROR, MC.note_error, 0);    // сформировать уведомление об ошибке
 	}
-
-	return MC.error;
+	return _err;
 }
 
 void MainClass::init()
@@ -198,7 +197,7 @@ int32_t MainClass::save(void)
 	uint16_t crc = 0xFFFF;
 	uint32_t addr = I2C_SETTING_EEPROM + 2; // +size all
 	uint8_t tasks_suspended = TaskSuspendAll(); // Запрет других задач
-	if(error == ERR_SAVE_EEPROM) error = OK;
+	if(error == ERR_SAVE_EEPROM || error == ERR_LOAD_EEPROM || error == ERR_CRC16_EEPROM) error = OK;
 	DateTime.saveTime = rtcSAM3X8.unixtime();   // запомнить время сохранения настроек
 	journal.printf(" Save settings ");
 	while(1) {
@@ -243,7 +242,7 @@ int32_t MainClass::save(void)
 	}
 	if(tasks_suspended) xTaskResumeAll(); // Разрешение других задач
 
-	if(error) {
+	if(error == ERR_SAVE_EEPROM || error == ERR_LOAD_EEPROM || error == ERR_CRC16_EEPROM) {
 		set_Error(error, (char*)__FUNCTION__);
 		return error;
 	}

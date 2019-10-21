@@ -253,7 +253,7 @@ void  sensorDiditalInput::initInput(int sensor)
    number = sensor;
    testInput=TESTINPUT[sensor];    // Состояние датчика в режиме теста
    testMode=NORMAL;                // Значение режима тестирования
-   alarmInput=ALARMINPUT[sensor];  // Состояние датчика в режиме аварии
+   alarmInput=LEVELINPUT[sensor];  // Состояние датчика в режиме аварии
    err=OK;                         // ошибка датчика (работа)
    flags=0x00;                     // сброс флагов
    // флаги  0 - наличие датчика,  1- режим теста
@@ -273,7 +273,7 @@ int8_t sensorDiditalInput::Read(boolean fast)
 	err = OK;                                            // Ошибки сбросить
 	if(testMode != NORMAL) Input = testInput;            // В режиме теста
 	else {
-		boolean in = digitalReadDirect(pin);
+		boolean in = digitalReadDirect(pin) == alarmInput;
 		if(!fast && in != Input) {
 			uint8_t i;
 			for(i = 0; i < 2; i++) {
@@ -283,7 +283,7 @@ int8_t sensorDiditalInput::Read(boolean fast)
 			if(i == 2) Input = in;
 		}
 	}
-	if(type == pALARM && Input == alarmInput)     // Срабатывание аварийного датчика (только его!)
+	if(type == pALARM && Input)     // Срабатывание аварийного датчика
 	{
 		err = ERR_DINPUT;
 		set_Error(err, name);

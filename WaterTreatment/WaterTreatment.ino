@@ -405,7 +405,7 @@ void setup() {
 			journal.jprintf(" RTC low battery!\n");
 			set_Error(ERR_RTC_LOW_BATTERY, (char*)"");
 			rtcI2C.writeRTC(RTC_STATUS, 0);  //clear the Oscillator Stop Flag
-			update_RTC_store_memory(0xFF);
+			update_RTC_store_memory(NeedSaveRTC = 0xFF);
 		} else {
 			if(rtcI2C.readRTC(RTC_STORE_ADDR, (uint8_t*)&MC.RTC_store, sizeof(MC.RTC_store))) journal.jprintf(" Error read RTC store!\n");
 		}
@@ -744,8 +744,10 @@ void vReadSensor(void *)
 		xTaskResumeAll(); // Разрешение других задач
 		if(MC.sInput[REG_ACTIVE].get_Input() || MC.sInput[BACKWASH_ACTIVE].get_Input() || MC.sInput[REG_SOFTENING_ACTIVE].get_Input()) {
 			MC.RTC_store.UsedRegen += passed;
+			NeedSaveRTC |= (1<<1);
 		} else {
 			MC.RTC_store.UsedToday += passed;
+			NeedSaveRTC |= (1<<0);
 			MC.WorkStats.UsedSinceLastRegen += passed;
 			MC.WorkStats.UsedSinceLastRegenSoftening += passed;
 			if((MC.RTC_store.Work & RTC_Work_NeedRegen_Mask) == 0 && MC.WorkStats.UsedSinceLastRegen > MC.Option.UsedBeforeRegen) MC.RTC_store.Work |= RTC_Work_NeedRegen_WaitIron;
@@ -872,6 +874,13 @@ void vPumps( void * )
 	static uint32_t ADC_read_period = 0;
 	for(;;)
 	{
+		// read sensors
+		for(uint8_t i = 0; i < INUMBER; i++) MC.sInput[i].Read(true);		// Прочитать данные сухой контакт
+		if(++ADC_read_period > 1000 / ADC_FREQ / TIME_SLICE_PUMPS) {		// Не чаще, чем ADC
+			ADC_read_period = 0;
+			for(uint8_t i = 0; i < ANUMBER; i++) MC.sADC[i].Read();			// Прочитать данные с датчиков давления
+		}
+
 		int16_t press = MC.sADC[PWATER].get_Press();
 		if(press == ERROR_PRESS) {
 			if(WaterBoosterStatus) {
@@ -880,10 +889,10 @@ void vPumps( void * )
 				MC.dRelay[RBOOSTER1].set_OFF();
 				WaterBoosterStatus = 0;
 			}
-		} else if(!WaterBoosterStatus && press <= (MC.sInput[REG_ACTIVE].get_Input() || MC.sInput[BACKWASH_ACTIVE].get_Input() || MC.sInput[REG_SOFTENING_ACTIVE].get_Input() ? MC.sADC[PWATER].get_minPressReg() : MC.sADC[PWATER].get_minPress())) {
+		} else if(!WaterBoosterStatus && press <= (MC.sInput[REG_ACTIVE].get_Input() || MC.sInput[BACKWASH_ACTIVE].get_Input() || MC.sInput[REG_SOFTENING_ACTIVE].get_Input() ? MC.sADC[PWATER].get_minPressReg() : MC.sADC[PWATER].get_minPress())) { // Starting
 			MC.dRelay[RBOOSTER1].set_ON();
 			WaterBoosterStatus = 1;
-		} else if(WaterBoosterStatus > 0 && press >= MC.sADC[PWATER].get_maxPress()) {
+		} else if(WaterBoosterStatus > 0 && (press >= MC.sADC[PWATER].get_maxPress() || MC.sInput[TANK_EMPTY].get_Input())) { // Stopping
 			if(WaterBoosterStatus == 1) {
 				MC.dRelay[RBOOSTER1].set_OFF();
 				WaterBoosterStatus = 0;
@@ -915,11 +924,12 @@ void vPumps( void * )
 		} else if(TimeFeedPump >= MC.Option.MinPumpOnTime) {
 			MC.dRelay[RFEEDPUMP].set_ON();
 		}
-		for(uint8_t i = 0; i < INUMBER; i++) MC.sInput[i].Read(true);		// Прочитать данные сухой контакт
-		if(++ADC_read_period > 1000 / ADC_FREQ / TIME_SLICE_PUMPS) {		// Не чаще, чем ADC
-			ADC_read_period = 0;
-			for(uint8_t i = 0; i < ANUMBER; i++) MC.sADC[i].Read();			// Прочитать данные с датчиков давления
+		if(MC.sInput[TANK_PARTIAL].get_Input()) {
+			MC.dRelay[RFILL].set_ON();	// Start filing tank
+		} else if(MC.sInput[TANK_FULL].get_Input()) {
+			MC.dRelay[RFILL].set_OFF();	// Stop filing tank
 		}
+
 		if(MC.sInput[REG_ACTIVE].get_Input() || MC.sInput[BACKWASH_ACTIVE].get_Input()) { // Regen remove iron filter
 			MC.dRelay[RSTARTREG].set_OFF();
 			if((MC.RTC_store.Work & RTC_Work_NeedRegen_Mask) != RTC_Work_NeedRegen_Iron) {
@@ -927,6 +937,7 @@ void vPumps( void * )
 				TaskSuspendAll(); // Запрет других задач
 				MC.RTC_store.UsedRegen = 0;
 				xTaskResumeAll(); // Разрешение других задач
+				NeedSaveRTC |= (1<<1) | (1<<2) | 0x80;
 			}
 		} else if(MC.sInput[REG_SOFTENING_ACTIVE].get_Input()) {
 			if((MC.RTC_store.Work & RTC_Work_NeedRegen_Mask) != RTC_Work_NeedRegen_Softener) {
@@ -934,6 +945,7 @@ void vPumps( void * )
 				TaskSuspendAll(); // Запрет других задач
 				MC.RTC_store.UsedRegen = 0;
 				xTaskResumeAll(); // Разрешение других задач
+				NeedSaveRTC |= (1<<1) | (1<<2) | 0x80;
 			}
 		} else {
 			switch (MC.RTC_store.Work & RTC_Work_NeedRegen_Mask) {
@@ -1027,25 +1039,23 @@ void vService(void *)
 				MC.updateCount();                                       // Обновить счетчики
 				if(task_updstat_countm == 59) MC.save_WorkStats();		// сохранить раз в час
 				Stats.History();                                        // запись истории в файл
+
+				if(RTC_Work_NeedRegen_WaitIron && rtcSAM3X8.get_hours() == MC.Option.RegenHour) {
+					if(MC.sInput[TANK_FULL].get_Input()) {
+						MC.dRelay[RSTARTREG].set_ON();
+					} else {
+						MC.dRelay[RFILL].set_ON();	// Start filing tank
+					}
+				}
 			} else {
 				if(NeedSaveWorkStats) {
 					if(MC.save_WorkStats() == OK) NeedSaveWorkStats = 0;
 				} else if((NeedSaveRTC & 0x80) || (NeedSaveRTC && m != task_every_min)) {
 					task_every_min = m;
-					if(update_RTC_store_memory(NeedSaveRTC));
+					update_RTC_store_memory(NeedSaveRTC);
 
 
 
-				}
-
-
-
-					if(m != task_every_min) {
-					task_every_min = m;
-					if(NeedSaveRTC) {
-
-
-					}
 				}
 			}
 			Stats.CheckCreateNewFile();

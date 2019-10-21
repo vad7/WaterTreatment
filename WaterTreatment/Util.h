@@ -25,6 +25,6 @@ void    int_to_dec_str(int32_t value, int32_t div, char **ret, uint8_t maxfract)
 uint8_t calc_bits_in_mask(uint32_t mask);
 int32_t round_div_int32(int32_t value, int16_t div);
 void    getIDchip(char *outstr);
-uint8_t update_RTC_store_memory(uint8_t what_to_save);
+uint8_t update_RTC_store_memory(uint8_t &what_to_save);
 
 #endif
