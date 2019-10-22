@@ -405,7 +405,7 @@ void setup() {
 			journal.jprintf(" RTC low battery!\n");
 			set_Error(ERR_RTC_LOW_BATTERY, (char*)"");
 			rtcI2C.writeRTC(RTC_STATUS, 0);  //clear the Oscillator Stop Flag
-			update_RTC_store_memory(NeedSaveRTC = 0xFF);
+			update_RTC_store_memory(NeedSaveRTC = RTC_SaveAll);
 		} else {
 			if(rtcI2C.readRTC(RTC_STORE_ADDR, (uint8_t*)&MC.RTC_store, sizeof(MC.RTC_store))) journal.jprintf(" Error read RTC store!\n");
 		}
@@ -744,10 +744,10 @@ void vReadSensor(void *)
 		xTaskResumeAll(); // Разрешение других задач
 		if(MC.sInput[REG_ACTIVE].get_Input() || MC.sInput[BACKWASH_ACTIVE].get_Input() || MC.sInput[REG_SOFTENING_ACTIVE].get_Input()) {
 			MC.RTC_store.UsedRegen += passed;
-			NeedSaveRTC |= (1<<1);
+			NeedSaveRTC |= (1<<bRTC_UsedRegen);
 		} else {
 			MC.RTC_store.UsedToday += passed;
-			NeedSaveRTC |= (1<<0);
+			NeedSaveRTC |= (1<<bRTC_UsedToday);
 			MC.WorkStats.UsedSinceLastRegen += passed;
 			MC.WorkStats.UsedSinceLastRegenSoftening += passed;
 			if((MC.RTC_store.Work & RTC_Work_NeedRegen_Mask) == 0 && MC.WorkStats.UsedSinceLastRegen > MC.Option.UsedBeforeRegen) MC.RTC_store.Work |= RTC_Work_NeedRegen_WaitIron;
@@ -934,18 +934,18 @@ void vPumps( void * )
 			MC.dRelay[RSTARTREG].set_OFF();
 			if((MC.RTC_store.Work & RTC_Work_NeedRegen_Mask) != RTC_Work_NeedRegen_Iron) {
 				MC.RTC_store.Work = (MC.RTC_store.Work & ~RTC_Work_NeedRegen_Mask) | RTC_Work_NeedRegen_Iron;
-				TaskSuspendAll(); // Запрет других задач
+				vTaskSuspendAll(); // запрет других задач
 				MC.RTC_store.UsedRegen = 0;
 				xTaskResumeAll(); // Разрешение других задач
-				NeedSaveRTC |= (1<<1) | (1<<2) | 0x80;
+				NeedSaveRTC |= (1<<bRTC_UsedRegen) | (1<<bRTC_Work) | 0x80;
 			}
 		} else if(MC.sInput[REG_SOFTENING_ACTIVE].get_Input()) {
 			if((MC.RTC_store.Work & RTC_Work_NeedRegen_Mask) != RTC_Work_NeedRegen_Softener) {
 				MC.RTC_store.Work = (MC.RTC_store.Work & ~RTC_Work_NeedRegen_Mask) | RTC_Work_NeedRegen_Softener;
-				TaskSuspendAll(); // Запрет других задач
+				vTaskSuspendAll(); // запрет других задач
 				MC.RTC_store.UsedRegen = 0;
 				xTaskResumeAll(); // Разрешение других задач
-				NeedSaveRTC |= (1<<1) | (1<<2) | 0x80;
+				NeedSaveRTC |= (1<<bRTC_UsedRegen) | (1<<bRTC_Work) | 0x80;
 			}
 		} else {
 			switch (MC.RTC_store.Work & RTC_Work_NeedRegen_Mask) {
@@ -957,13 +957,22 @@ void vPumps( void * )
 				MC.WorkStats.DaysFromLastRegen = 0;
 				MC.WorkStats.RegCnt++;
 				MC.WorkStats.UsedSinceLastRegen = 0;
+				MC.RTC_store.Work &= ~RTC_Work_NeedRegen_Iron;
+				vTaskSuspendAll(); // запрет других задач
+				NeedSaveRTC |= (1<<bRTC_Work) | 0x80;
+				xTaskResumeAll(); // Разрешение других задач
 				NeedSaveWorkStats = 1;
 				break;
 			case RTC_Work_NeedRegen_Softener:
 				MC.WorkStats.DaysFromLastRegenSoftening = 0;
 				MC.WorkStats.RegCntSoftening++;
 				MC.WorkStats.UsedSinceLastRegenSoftening = 0;
+				MC.RTC_store.Work &= ~RTC_Work_NeedRegen_Softener;
+				vTaskSuspendAll(); // запрет других задач
+				NeedSaveRTC |= (1<<bRTC_Work) | 0x80;
+				xTaskResumeAll(); // Разрешение других задач
 				NeedSaveWorkStats = 1;
+				break;
 			}
 		}
 
@@ -1040,7 +1049,30 @@ void vService(void *)
 				if(task_updstat_countm == 59) MC.save_WorkStats();		// сохранить раз в час
 				Stats.History();                                        // запись истории в файл
 
-				if(RTC_Work_NeedRegen_WaitIron && rtcSAM3X8.get_hours() == MC.Option.RegenHour) {
+				if((MC.RTC_store.Work & RTC_Work_WeekDay_Mask) != rtcSAM3X8.get_day_of_week()) { // Next day
+					uint32_t ut;
+					{
+						vTaskSuspendAll(); // запрет других задач
+						MC.RTC_store.Work = (MC.RTC_store.Work & ~RTC_Work_WeekDay_Mask) | rtcSAM3X8.get_day_of_week();
+						ut = MC.RTC_store.UsedToday;
+						MC.RTC_store.UsedToday = 0;
+						MC.WorkStats.DaysFromLastRegen++;
+						MC.WorkStats.DaysFromLastRegenSoftening++;
+						MC.WorkStats.UsedYesterday = ut;
+						MC.WorkStats.UsedSinceLastRegen += ut;
+						MC.WorkStats.UsedSinceLastRegenSoftening += ut;
+						MC.WorkStats.UsedTotal += ut;
+						if(ut > 10) {
+							MC.WorkStats.UsedAverageDay += ut;
+							MC.WorkStats.UsedAverageDayNum++;
+						}
+						NeedSaveWorkStats = 1;
+						NeedSaveRTC = RTC_SaveAll;
+						xTaskResumeAll(); // Разрешение других задач
+						update_RTC_store_memory(NeedSaveRTC);
+					}
+				}
+				if((MC.RTC_store.Work & RTC_Work_NeedRegen_WaitIron) && rtcSAM3X8.get_hours() == MC.Option.RegenHour) {
 					if(MC.sInput[TANK_FULL].get_Input()) {
 						MC.dRelay[RSTARTREG].set_ON();
 					} else {
@@ -1050,7 +1082,7 @@ void vService(void *)
 			} else {
 				if(NeedSaveWorkStats) {
 					if(MC.save_WorkStats() == OK) NeedSaveWorkStats = 0;
-				} else if((NeedSaveRTC & 0x80) || (NeedSaveRTC && m != task_every_min)) {
+				} else if((NeedSaveRTC & (1<<bRTC_Urgently)) || (NeedSaveRTC && m != task_every_min)) {
 					task_every_min = m;
 					update_RTC_store_memory(NeedSaveRTC);
 

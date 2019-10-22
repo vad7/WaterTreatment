@@ -25,11 +25,13 @@ extern char *MAC2String(byte* mac);
 #define I2C_COUNT_EEPROM_HEADER 0xAB
 struct type_WorkStats {
 	uint8_t  Header;
+	uint32_t ResetTime;
 	uint32_t UsedSinceLastRegen;	// Liters
 	uint32_t UsedSinceLastRegenSoftening;	// Liters
 	uint32_t UsedTotal;				// Liters
+	uint32_t UsedAverageDay;		// Liters, sum of UsedAverageDayNum
+	uint16_t UsedAverageDayNum;
 	uint16_t UsedYesterday;			// Liters
-	uint16_t UsedAverageDay;		// Liters
 	uint16_t UsedDischarge;			// Liters
 	uint16_t UsedLastRegen;			// Liters
 	uint16_t UsedLastRegenSoftening;// Liters
@@ -37,7 +39,6 @@ struct type_WorkStats {
 	uint16_t DaysFromLastRegenSoftening;
 	uint16_t RegCnt;
 	uint16_t RegCntSoftening;
-	uint32_t ResetTime;
 } __attribute__((packed));
 
 
@@ -58,8 +59,14 @@ int8_t   WaterBoosterStatus = 0; // 0 - выключено, 1 - вкл твер�
 uint32_t TimeFeedPump = 0;
 int8_t   vPumpsNewError = 0;
 uint8_t  NeedSaveWorkStats = 0;
-uint8_t  NeedSaveRTC = 0; // b0 - UsedToday, b1 - UsedRegen, b2 - Work every; +0x80 - Urgently!
 int8_t   Errors[10] = { 0,0,0,0,0,0,0,0,0,0 };// Active Errors array
+
+#define  bRTC_UsedToday		0
+#define  bRTC_UsedRegen		1
+#define  bRTC_Work			2
+#define  bRTC_Urgently		7
+#define  RTC_SaveAll		((1<<bRTC_UsedToday) | (1<<bRTC_UsedRegen) | (1<<bRTC_Work) | (1<<bRTC_Urgently))
+uint8_t  NeedSaveRTC = 0;
 
 int32_t motohour_IN_work = 0;  // рабочий для счетчиков - энергия потребленная, мВт
 uint16_t task_updstat_chars = 0;
