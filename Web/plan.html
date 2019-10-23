@@ -1,20 +1,21 @@
 <html>
 <head>
-	<title>Схема. Водоподготовка</title>
-	<meta charset="utf-8" />
-	<link rel="stylesheet" type="text/css" href="style.css">
-	<meta name="viewport" content="width=device-width, initial-scale=1.0">
-	<style>
+<title>Схема. Водоподготовка</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="style.css">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
 	table { width: 80%; }
 	td, th { font-size: 1em; border: 0; text-align: left; }
-	</style>
-	<script src='scripts.js'></script>
-	<script>
-		urltimeout = 2000;
-		window.onload = function() {
-			updateParam("get_Relay(RWOFF),get_Relay(RDRAIN),get_Relay(RBST2),get_Relay(RFILL),get_Relay(RFEEDP),get_WL1,get_WL2,get_WL3,get_WLbr,get_Input(REG),get_Input(BWASH),get_Temp(TIN),get_Flow(FLOW),get_Press(WATER)");
+</style>
+<script src='scripts.js'></script>
+<script>
+	urltimeout = 2000;
+	window.onload = function() {
+		loadParam("get_WSUY,get_WSA,get_WSDD,get_WSD,get_WSRC,get_WSRD,get_WSRL,get_WSRSC,get_WSRSD,get_WSRSL");
+		updateParam("get_Relay(RWOFF),get_Relay(RDRAIN),get_Relay(RBST2),get_Relay(RFILL),get_Relay(RFEEDP),get_WL1,get_WL2,get_WL3,get_WLbr,get_Input(REG),get_Input(BWASH),get_Temp(TIN),get_Flow(FLOW),get_Press(WATER),get_WSRS,get_WSRSS,get_WSUD");
 	};
-	</script>	
+</script>	
 </head>
 <body class="plan">
 <div id="menu" class="menu"><script src="menu.js"></script></div>
@@ -37,8 +38,14 @@
 </div>
 <div class="row1">
 <table>
-	<tr><td width="16%" style="font-weight: bold;" nowrap>Состояние:</td><td width="16%"><span id="get_modehp">-</span></td><td width="16%" style="font-weight: bold;">Температура:</td><td width="16%"><span id="get_temp-tin">-</span>&deg;</td><td width="16%" style="font-weight: bold;"></td><td width="16%"></td></tr>
-	<tr><td style="font-weight: bold;">Потребление:</td><td><span id="get_power220">-</span> кВт</td><td style="font-weight: bold;"></td><td></td><td style="font-weight: bold;"></td><td></td></tr>
+	<tr><td width="22%" style="font-weight: bold;" nowrap>Состояние:</td><td width="11%"><span id="get_mode"></span></td><td width="22%" style="font-weight: normal;">Электричество, кВт:</td><td width="11%"><span id="get_power220"></span></td><td width="22%" style="font-weight: normal;">Температура:</td><td width="11%"><span id="get_temp-tin">-</span>&deg;</td></tr>
+	<tr><td style="font-weight: normal;">Сегодня, л:</td><td id="get_wsud"></td><td style="font-weight: normal;">Вчера, л:</td><td id="get_wsuy"></td><td style="font-weight: normal;">Среднее за день, л:</td><td id="get_wsa"></td></tr>
+	<tr><td style="font-weight: normal;">Слито <span id="get_wsdd"></span>, л:</td><td id="get_wsd"></td><td style="font-weight: normal;">Итого:</td><td id="get_wst"></td><td style="font-weight: normal;"></td><td></td></tr>
+	<tr><td style="font-weight: bold;">Удаление железа, рег:</td><td id="get_wsrc"></td><td></td><td></td><td></td><td></td></tr>
+	<tr><td style="font-weight: normal;">C регенерации, дней:</td><td id="get_wsrd"></td><td style="font-weight: normal;">C регенерации, л:</td><td id="get_wsrs"></td><td style="font-weight: normal;">За регенерацию, л:</td><td id="get_wsrl"></td></tr>
+	<tr><td style="font-weight: bold;">Умягчитель, рег:</td><td id="get_wsrsc"></td><td></td><td></td><td></td><td></td></tr>
+	<tr><td style="font-weight: normal;">C регенерации, дней:</td><td id="get_wsrsd"></td><td style="font-weight: normal;">C регенерации, л:</td><td id="get_wsrss"></td><td style="font-weight: normal;">За регенерацию, л:</td><td id="get_wsrsl"></td></tr>
+	<tr><td style="font-weight: normal;"></td><td></td><td style="font-weight: normal;"></td><td></td><td style="font-weight: normal;"></td><td></td></tr>
 </table>
 </div>
 </div>

@@ -26,7 +26,7 @@ byte packetBuffer[NTP_PACKET_SIZE+1];       // буфер, в котором б�
 // Возвращает код ошибки
 int8_t set_time(void)
 {
-	journal.printf(" I2C RTC DS3232: %s\n", DecodeTimeDate(TimeToUnixTime(getTime_RtcI2C()),(char*) packetBuffer));   // Показать что i2c часы работают - показав текущее время
+	journal.printf(" I2C RTC DS3232: %s\n", DecodeTimeDate(TimeToUnixTime(getTime_RtcI2C()),(char*) packetBuffer,3));   // Показать что i2c часы работают - показав текущее время
 	journal.printf(" Init SAM3X8E RTC\n");
 	rtcSAM3X8.init();                             // Запуск внутренних часов
 	if(!(MC.get_updateNTP() && set_time_NTP())) { // Обновить время по NTP
@@ -340,14 +340,13 @@ char* TimeToStr(uint32_t idt)
 	return _tmp;
 }
 
-// вывод Времи и даты  в формате hh:mm:ss dd/mm/yyyy
+// http://stackoverflow.com/questions/21593692/convert-unix-timestamp-to-date-without-system-libs
+// вывод Времи и даты  в формате: b0 = dd/mm/yyyy, b1 = hh:mm:ss
 // Результат ДОБАВЛЯЕТСЯ в ret
-//http://stackoverflow.com/questions/21593692/convert-unix-timestamp-to-date-without-system-libs
-char*  DecodeTimeDate(uint32_t idt,char *ret)
+char*  DecodeTimeDate(uint32_t idt, char *ret, uint8_t format)
 {
   uint32_t seconds, minutes, hours, days, year, month;
   uint32_t dayOfWeek;
-  int x;
 
   if(idt == 0) return ret;
   seconds=idt;
@@ -398,14 +397,20 @@ char*  DecodeTimeDate(uint32_t idt,char *ret)
     }
   }
 // формирование строки
-  x=hours;
-  if (x<10) strcat(ret,cZero); else strcat(ret,"");  _itoa(x,ret); strcat(ret,":");
-  x=minutes;
-  if (x<10) strcat(ret,cZero);   _itoa(x,ret); strcat(ret,":");
-   x=seconds;
-  if (x<10) strcat(ret,cZero);   _itoa(x,ret); 
-  strcat(ret," "); 
-  m_snprintf(ret + m_strlen(ret), 16, FORMAT_DATE_STR, days + 1, month+1, year);
+  if(format & 1) {
+	  m_snprintf(ret + m_strlen(ret), 16, FORMAT_DATE_STR, days + 1, month+1, year);
+	  strcat(ret, " ");
+  }
+  if(format & 2) {
+	  if(hours < 10) strcat(ret, cZero);
+	  _itoa(hours, ret);
+	  strcat(ret, ":");
+	  if(minutes < 10) strcat(ret, cZero);
+	  _itoa(minutes, ret);
+	  strcat(ret, ":");
+	  if(seconds < 10) strcat(ret, cZero);
+	  _itoa(seconds, ret);
+  }
   return ret;   
 }
 

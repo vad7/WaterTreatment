@@ -35,19 +35,14 @@ struct CORRECT_POWER220_STRUCT {
 };
  
 enum {
-	STATS_OBJ_Temp = 0,		// °C
+	STATS_OBJ_Temp = 0,		// °C, TAIR
 	STATS_OBJ_Press,		// bar
-	STATS_OBJ_PressTemp,	// °C
 	STATS_OBJ_Flow,			// м³ч
 	STATS_OBJ_Voltage,		// V
-	STATS_OBJ_Power,		// кВт*ч, пока только TYPE_SUM для OBJ_*
-	STATS_OBJ_Sun,
-};
-enum {
-	OBJ_powerCO = 0,
-	OBJ_powerGEO,
-	OBJ_power220,
-	OBJ_Freq
+	STATS_OBJ_Power,		// кВт*ч
+	STATS_OBJ_WaterUsed,	// м³ч
+	STATS_OBJ_WaterRegen,	// м³ч
+	STATS_OBJ_BrineWeight
 };
 struct History_setup {
 	uint8_t		object;			// STATS_OBJ_*
@@ -309,7 +304,7 @@ struct History_setup {
     const int16_t ERRTEMP[TNUMBER]=  {     0 };
         // Имена датчиков
     const char *nameTemp[TNUMBER] = {
-    		"TIN"	             // 1. Температура воздуха
+    		"AIR"	             // 1. Температура воздуха
     	};
     // Описание датчиков
     const char *noteTemp[TNUMBER] = {

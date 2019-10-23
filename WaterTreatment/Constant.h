@@ -412,6 +412,23 @@ const char *option_MinRegen				= {"MR"};
 const char *option_MinDischarge			= {"MD"};
 const char *option_DischargeTime		= {"DT"};
 
+// WorkStats, get_WS..., set_WS...(x)
+const char *webWS_UsedToday 					= { "UD" };
+const char *webWS_UsedYesterday 				= { "UY" };
+const char *webWS_UsedAverageDay 				= { "A" };
+const char *webWS_LastDischarge 		 		= { "DD" };
+const char *webWS_UsedDischarge  				= { "D" };
+const char *webWS_UsedTotal  					= { "T" };
+const char *webWS_RegCnt  						= { "RC" };
+const char *webWS_DaysFromLastRegen 		 	= { "RD" };
+const char *webWS_UsedSinceLastRegen  			= { "RS" };
+const char *webWS_UsedLastRegen  				= { "RL" };
+const char *webWS_RegCntSoftening  				= { "RSC" };
+const char *webWS_DaysFromLastRegenSoftening	= { "RSD" };
+const char *webWS_UsedSinceLastRegenSoftening	= { "RSS" };
+const char *webWS_UsedLastRegenSoftening  		= { "RSL" };
+
+
 // --------------------------------------------------------------------------------
 // ОШИБКИ едины для всего - сквозной список
 // --------------------------------------------------------------------------------

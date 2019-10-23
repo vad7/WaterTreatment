@@ -446,7 +446,7 @@ int16_t x;
        strcpy(tempBuf,"Режим работы: ");strcat(tempBuf,MC.TestToStr());
        strcat(tempBuf,cStrEnd);  client.write(tempBuf,strlen(tempBuf)); 
            
-      strcpy(tempBuf,"Последняя перезагрузка: "); DecodeTimeDate(MC.get_startDT(),tempBuf);
+      strcpy(tempBuf,"Последняя перезагрузка: "); DecodeTimeDate(MC.get_startDT(),tempBuf,3);
       strcat(tempBuf,cStrEnd);  client.write(tempBuf,strlen(tempBuf));  
      
       strcpy(tempBuf,"Время с последней перезагрузки: "); TimeIntervalToStr(MC.get_uptime(),tempBuf);

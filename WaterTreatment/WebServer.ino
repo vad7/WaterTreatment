@@ -486,7 +486,7 @@ void parserGET(uint8_t thread, int8_t )
 		}
 		if (strcmp(str,"get_startDT")==0) // Команда get_startDT
 		{
-			DecodeTimeDate(MC.get_startDT(),strReturn);
+			DecodeTimeDate(MC.get_startDT(),strReturn,3);
 			ADD_WEBDELIM(strReturn) ;
 			continue;
 		}
@@ -673,9 +673,9 @@ xSaveStats:		if((i = MC.save_WorkStats()) == OK)
 		{
 			_ftoa(strReturn, (float)MC.dPWM.get_Power()/1000.0,3); ADD_WEBDELIM(strReturn); continue;
 		}
-		if(strncmp(str, "get_WL", 6) == 0) {
+		if(strncmp(str, "get_WL", 6) == 0) { // get water level
 			str += 6;
-			if(strcmp(str, "br") == 0) {
+			if(strcmp(str, "br") == 0) {	// get_WLbr
 
 
 				_itoa(9, strReturn);
@@ -695,6 +695,24 @@ xSaveStats:		if((i = MC.save_WorkStats()) == OK)
 				strcat(strReturn, "0");
 
 			}
+			ADD_WEBDELIM(strReturn); continue;
+		}
+		if(strncmp(str, "get_WS", 6) == 0) { // get WorkStats
+			str += 6;
+			if(strcmp(str, webWS_UsedToday) == 0) _itoa(MC.RTC_store.UsedToday, strReturn); // get_WSUD
+			else if(strcmp(str, webWS_UsedYesterday) == 0) _itoa(MC.WorkStats.UsedYesterday, strReturn); // get_WSUY
+			else if(strcmp(str, webWS_UsedAverageDay) == 0) _itoa(MC.WorkStats.UsedAverageDay / MC.WorkStats.UsedAverageDayNum, strReturn); // get_WSA
+			else if(strcmp(str, webWS_LastDischarge) == 0) DecodeTimeDate(MC.WorkStats.LastDischarge, strReturn, 1); // get_WSDD
+			else if(strcmp(str, webWS_UsedDischarge) == 0) _itoa(MC.WorkStats.UsedDischarge, strReturn); // get_WSD
+			else if(strcmp(str, webWS_UsedTotal) == 0) _itoa(MC.WorkStats.UsedTotal + MC.RTC_store.UsedToday, strReturn); // get_WST
+			else if(strcmp(str, webWS_RegCnt) == 0) _itoa(MC.WorkStats.RegCnt, strReturn); // get_WSRC
+			else if(strcmp(str, webWS_DaysFromLastRegen) == 0) _itoa(MC.WorkStats.DaysFromLastRegen, strReturn); // get_WSRD
+			else if(strcmp(str, webWS_UsedSinceLastRegen) == 0) _itoa(MC.WorkStats.UsedSinceLastRegen + MC.RTC_store.UsedToday, strReturn); // get_WSRS
+			else if(strcmp(str, webWS_UsedLastRegen) == 0) _itoa(MC.WorkStats.UsedLastRegen, strReturn); // get_WSRL
+			else if(strcmp(str, webWS_RegCntSoftening) == 0) _itoa(MC.WorkStats.RegCntSoftening, strReturn); // get_WSRSC
+			else if(strcmp(str, webWS_DaysFromLastRegenSoftening) == 0) _itoa(MC.WorkStats.DaysFromLastRegenSoftening, strReturn); // get_WSRSD
+			else if(strcmp(str, webWS_UsedSinceLastRegenSoftening) == 0) _itoa(MC.WorkStats.UsedSinceLastRegenSoftening + MC.RTC_store.UsedToday, strReturn); // get_WSRSS
+			else if(strcmp(str, webWS_UsedLastRegenSoftening) == 0) _itoa(MC.WorkStats.UsedLastRegenSoftening, strReturn); // get_WSRSL
 			ADD_WEBDELIM(strReturn); continue;
 		}
 
@@ -926,8 +944,8 @@ xSaveStats:		if((i = MC.save_WorkStats()) == OK)
 
 				STORE_DEBUG_INFO(47);
 				strcat(strReturn,"<b> Времена</b>|;");
-				strcat(strReturn,"Текущее время|"); DecodeTimeDate(rtcSAM3X8.unixtime(),strReturn); strcat(strReturn,";");
-				strcat(strReturn,"Время сохранения текущих настроек |");DecodeTimeDate(MC.get_saveTime(),strReturn);strcat(strReturn,";");
+				strcat(strReturn,"Текущее время|"); DecodeTimeDate(rtcSAM3X8.unixtime(),strReturn,3); strcat(strReturn,";");
+				strcat(strReturn,"Время сохранения текущих настроек |");DecodeTimeDate(MC.get_saveTime(),strReturn,3);strcat(strReturn,";");
 
 				strcat(strReturn,"<b> Счетчики ошибок</b>|;");
 				strcat(strReturn,"Счетчик \"Потеря связи с "); strcat(strReturn,nameWiznet);strcat(strReturn,"\", повторная инициализация  <sup>3</sup>|");_itoa(MC.num_resW5200,strReturn);strcat(strReturn,";");
@@ -1039,7 +1057,7 @@ xSaveStats:		if((i = MC.save_WorkStats()) == OK)
 			STORE_DEBUG_INFO(29);
 
 			// ------------------------------------------------------------------------
-			if (strcmp(str,"set_testMode")==0)  // Функция set_testMode  - Установить режим работы бойлера
+			if (strcmp(str,"set_testMode")==0)  // Функция set_testMode(x)
 			{
 				if ((pm=my_atof(x))==ATOF_ERROR)  strcat(strReturn,"E09");      // Ошибка преобразования   - завершить запрос с ошибкой
 				else
@@ -1050,6 +1068,14 @@ xSaveStats:		if((i = MC.save_WorkStats()) == OK)
 				} // else
 				ADD_WEBDELIM(strReturn) ;    continue;
 			}
+			if(strncmp(str, "set_WS", 6) == 0) { // set WorkStats
+				str += 6;
+				if(strcmp(str, webWS_UsedTotal) == 0) MC.WorkStats.UsedTotal = pm; // set_WST(x)
+				else if(strcmp(str, webWS_RegCnt) == 0) MC.WorkStats.RegCnt = pm;  // set_WSRC(x)
+				else if(strcmp(str, webWS_RegCntSoftening) == 0) MC.WorkStats.RegCntSoftening = pm; // set_WSRSC(x)
+				ADD_WEBDELIM(strReturn) ;    continue;
+			}
+
 
 			// -----------------------------------------------------------------------------
 			// ПРОФИЛИ функции с одним параметром
@@ -1092,7 +1118,7 @@ xSaveStats:		if((i = MC.save_WorkStats()) == OK)
 			if(strcmp(str, "get_PWM") == 0) {          // Функция получить настройки счетчика
 				MC.dPWM.get_param(x, strReturn);
 				ADD_WEBDELIM(strReturn); continue;
-			} else if(strcmp(str, "set_SDM") == 0) {          // Функция записать настройки счетчика
+			} else if(strcmp(str, "set_PWM") == 0) {          // Функция записать настройки счетчика
 				if(MC.dPWM.set_param(x, z)) MC.dPWM.get_param(x, strReturn); // преобразование удачно
 				else strcat(strReturn, "E31");            // ошибка преобразования строки
 				ADD_WEBDELIM(strReturn); continue;

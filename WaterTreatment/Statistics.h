@@ -49,41 +49,24 @@ enum {
 	STATS_TYPE_TIME // Time, ms
 };
 
-enum { // когда
-	STATS_WHEN_ALWAYS = 0,
-	STATS_WHEN_WORKD			// Во время работы компрессора, прошло STATS_WORKD_TIME
-	//STATS_WORK				// Во время работы компрессора
-};
-#define STATS_WORKD_TIME 100000 // ms
-
 //static char *stats_format = { "%.1f", "" }; // printf format string
 
 struct Stats_Data {
 	int32_t		value;			// Для среднего, макс единица: +-1491308
 	uint8_t		object;			// STATS_OBJ_*
 	uint8_t		type;			// STATS_TYPE_*
-	uint8_t		when;			// STATS_WHEN_*
-	uint8_t 	number;			// номер датчика
 };
 
 Stats_Data Stats_data[] = {
-//	{ 0, STATS_OBJ_Temp, STATS_TYPE_MIN, STATS_WHEN_ALWAYS, TOUT },
-//	{ 0, STATS_OBJ_Temp, STATS_TYPE_AVG, STATS_WHEN_WORKD, TEVAING },
-	{ 0, STATS_OBJ_Power, STATS_TYPE_SUM, STATS_WHEN_WORKD, OBJ_powerCO },
-	{ 0, STATS_OBJ_Power, STATS_TYPE_SUM, STATS_WHEN_ALWAYS, OBJ_power220 },
-	{ 0, STATS_OBJ_Power, STATS_TYPE_MAX, STATS_WHEN_ALWAYS, OBJ_power220 },
-	{ 0, STATS_OBJ_Voltage, STATS_TYPE_MIN, STATS_WHEN_ALWAYS, 0 },
-	{ 0, STATS_OBJ_Voltage, STATS_TYPE_AVG, STATS_WHEN_ALWAYS, 0 },
-	{ 0, STATS_OBJ_Voltage, STATS_TYPE_MAX, STATS_WHEN_ALWAYS, 0 },
-#ifdef USE_SUN_COLLECTOR
-	,{ 0, STATS_OBJ_Sun, STATS_TYPE_TIME, STATS_WHEN_ALWAYS, 0 }
-#endif
-#ifdef PGEO
-	,{ 0, STATS_OBJ_Press, STATS_TYPE_MIN, STATS_WHEN_ALWAYS, PGEO }
-#endif
-#ifdef POUT
-	,{ 0, STATS_OBJ_Press, STATS_TYPE_MIN, STATS_WHEN_ALWAYS, POUT }
-#endif
+	{ 0, STATS_OBJ_WaterUsed, STATS_TYPE_SUM },
+	{ 0, STATS_OBJ_WaterRegen, STATS_TYPE_SUM },
+	{ 0, STATS_OBJ_Temp, STATS_TYPE_MIN },
+	{ 0, STATS_OBJ_Power, STATS_TYPE_SUM },
+	{ 0, STATS_OBJ_Power, STATS_TYPE_SUM },
+	{ 0, STATS_OBJ_Power, STATS_TYPE_MAX },
+	{ 0, STATS_OBJ_Voltage, STATS_TYPE_MIN },
+	{ 0, STATS_OBJ_Voltage, STATS_TYPE_AVG },
+	{ 0, STATS_OBJ_Voltage, STATS_TYPE_MAX },
 };
 
 const char stats_file_start[] = "stats_";
