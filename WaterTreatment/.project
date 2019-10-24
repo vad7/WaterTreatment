@@ -67,6 +67,11 @@
 			<location>G:/Electric/Arduino/libraries/FreeRTOS_ARM</location>
 		</link>
 		<link>
+			<name>libraries/HX711_Arduino_Library</name>
+			<type>2</type>
+			<location>G:/Electric/Arduino/libraries/HX711_Arduino_Library</location>
+		</link>
+		<link>
 			<name>libraries/LiquidCrystal</name>
 			<type>2</type>
 			<location>G:/Electric/Arduino/libraries/LiquidCrystal</location>

@@ -42,7 +42,9 @@ enum {
 	STATS_OBJ_Power,		// кВт*ч
 	STATS_OBJ_WaterUsed,	// м³ч
 	STATS_OBJ_WaterRegen,	// м³ч
-	STATS_OBJ_BrineWeight
+	STATS_OBJ_BrineWeight,
+	STATS_OBJ_WaterBooster,
+	STATS_OBJ_FeedPump
 };
 struct History_setup {
 	uint8_t		object;			// STATS_OBJ_*
@@ -359,10 +361,16 @@ struct History_setup {
 
 	// История (графики)
 	const History_setup HistorySetup[] = {
-		{ STATS_OBJ_Temp, TAIR, noteTemp[TAIR] },
-//		{ STATS_OBJ_Flow, FLOWEVA, noteFrequency[FLOWEVA] },
-		{ STATS_OBJ_Power, OBJ_power220, "Потребление, кВт" },
+			{ STATS_OBJ_WaterUsed, 0, "Использовано, л" },
+			{ STATS_OBJ_WaterRegen, 0, "Регенерация, л" },
+			{ STATS_OBJ_WaterBooster, 0, "Насосная станция, сек" },
+			{ STATS_OBJ_FeedPump, 0, "Дозирующий насос, сек" },
+			{ STATS_OBJ_BrineWeight, 0, "Вес раствора, кг" },
+			{ STATS_OBJ_Temp, TAIR, noteTemp[TAIR] },
+			{ STATS_OBJ_Flow, FLOW, noteFrequency[FLOW] },
+			{ STATS_OBJ_Power, 0, "Потребление, кВт" },
 	};
+
 
 	#define DELAY_AFTER_SWITCH_RELAY    250            // Задержка после переключения реле, для сглаживания потребления и уменьшения помех(мс)
 

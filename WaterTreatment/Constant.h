@@ -389,10 +389,13 @@ const char *net_fWebLogError={"WLOG"};
 const char *net_fWebFullLog= {"WFLOG"};
 
 // Описание имен параметров Графиков для функций get_Chart ЕСЛИ нет совпадения с именами объектов
-const char *chart_NONE      = {"NONE"};                    // 0 ничего не показываем
-const char *chart_VOLTAGE   = {"VOLTAGE"};                 // Статистика по напряжению
-const char *chart_CURRENT   = {"CURRENT"};                 // Статистика по току
-const char *chart_fullPOWER = {"fullPOWER"};               // Статистика по Полная мощность
+const char *chart_NONE       = {"NONE"};                    // 0 ничего не показываем
+const char *chart_VOLTAGE    = {"Voltage"};                 // Статистика по напряжению
+const char *chart_CURRENT    = {"Current"};                 // Статистика по току
+const char *chart_fullPOWER  = {"Power"};               // Статистика по Полная мощность
+const char *chart_WaterBoost = {"WaterBoost"};
+const char *chart_FeedPump   = {"FeedPump"};
+const char *chart_FillTank   = {"FillTank"};
 
 // Описание имен параметров опций   для функций get_option ("get_Opt") set_option ("set_Opt")
 const char *option_ATTEMPT            = {"ATTEMPT"};            // число попыток пуска

@@ -39,9 +39,11 @@
 #include "MainClass.h"
 #include "Statistics.h"
 #include "LiquidCrystal.h"
+#include "HX711.h"
 
 // LCD ---------- rs, en, d4, d5, d6, d7
 LiquidCrystal lcd(25, 34, 33, 36, 35, 38);
+HX711 Weight;
 
 #if defined(W5500_ETHERNET_SHIELD)                  // Задание имени чипа для вывода сообщений
   const char nameWiznet[] ={"W5500"};
@@ -874,6 +876,7 @@ void vPumps( void * )
 	static uint32_t ADC_read_period = 0;
 	for(;;)
 	{
+		if(WaterBoosterStatus != 0) Stats_WaterBooster_work += TIME_SLICE_PUMPS;
 		// read sensors
 		for(uint8_t i = 0; i < INUMBER; i++) MC.sInput[i].Read(true);		// Прочитать данные сухой контакт
 		if(++ADC_read_period > 1000 / ADC_FREQ / TIME_SLICE_PUMPS) {		// Не чаще, чем ADC
@@ -917,34 +920,37 @@ void vPumps( void * )
 			WaterBoosterStatus = 0;
 		}
 		if(MC.dRelay[RFEEDPUMP].get_Relay()) {
-			TaskSuspendAll(); // Запрет других задач
-			if(TimeFeedPump) TimeFeedPump--;
-			xTaskResumeAll(); // Разрешение других задач
+			taskENTER_CRITICAL();
+			if(TimeFeedPump) {
+				TimeFeedPump--;
+				Stats_FeedPump_work += TIME_SLICE_PUMPS;
+			}
+			taskEXIT_CRITICAL();
 			if(TimeFeedPump == 0) MC.dRelay[RFEEDPUMP].set_OFF();
 		} else if(TimeFeedPump >= MC.Option.MinPumpOnTime) {
 			MC.dRelay[RFEEDPUMP].set_ON();
 		}
 		if(MC.sInput[TANK_PARTIAL].get_Input()) {
-			MC.dRelay[RFILL].set_ON();	// Start filing tank
+			if(MC.dRelay[RFILL].get_Relay()) {
+				taskENTER_CRITICAL();
+				Charts_FillTank_work += TIME_SLICE_PUMPS * 100 / 1000; // in percent
+				taskEXIT_CRITICAL();
+			} else MC.dRelay[RFILL].set_ON();	// Start filing tank
 		} else if(MC.sInput[TANK_FULL].get_Input()) {
-			MC.dRelay[RFILL].set_OFF();	// Stop filing tank
+			if(!MC.dRelay[RFILL].get_Relay()) MC.dRelay[RFILL].set_OFF();	// Stop filing tank
 		}
 
 		if(MC.sInput[REG_ACTIVE].get_Input() || MC.sInput[BACKWASH_ACTIVE].get_Input()) { // Regen remove iron filter
 			MC.dRelay[RSTARTREG].set_OFF();
 			if((MC.RTC_store.Work & RTC_Work_NeedRegen_Mask) != RTC_Work_NeedRegen_Iron) {
 				MC.RTC_store.Work = (MC.RTC_store.Work & ~RTC_Work_NeedRegen_Mask) | RTC_Work_NeedRegen_Iron;
-				vTaskSuspendAll(); // запрет других задач
 				MC.RTC_store.UsedRegen = 0;
-				xTaskResumeAll(); // Разрешение других задач
 				NeedSaveRTC |= (1<<bRTC_UsedRegen) | (1<<bRTC_Work) | 0x80;
 			}
 		} else if(MC.sInput[REG_SOFTENING_ACTIVE].get_Input()) {
 			if((MC.RTC_store.Work & RTC_Work_NeedRegen_Mask) != RTC_Work_NeedRegen_Softener) {
 				MC.RTC_store.Work = (MC.RTC_store.Work & ~RTC_Work_NeedRegen_Mask) | RTC_Work_NeedRegen_Softener;
-				vTaskSuspendAll(); // запрет других задач
 				MC.RTC_store.UsedRegen = 0;
-				xTaskResumeAll(); // Разрешение других задач
 				NeedSaveRTC |= (1<<bRTC_UsedRegen) | (1<<bRTC_Work) | 0x80;
 			}
 		} else {
@@ -958,9 +964,9 @@ void vPumps( void * )
 				MC.WorkStats.RegCnt++;
 				MC.WorkStats.UsedSinceLastRegen = 0;
 				MC.RTC_store.Work &= ~RTC_Work_NeedRegen_Iron;
-				vTaskSuspendAll(); // запрет других задач
+				taskENTER_CRITICAL();
 				NeedSaveRTC |= (1<<bRTC_Work) | 0x80;
-				xTaskResumeAll(); // Разрешение других задач
+				taskEXIT_CRITICAL();
 				NeedSaveWorkStats = 1;
 				break;
 			case RTC_Work_NeedRegen_Softener:
@@ -968,9 +974,9 @@ void vPumps( void * )
 				MC.WorkStats.RegCntSoftening++;
 				MC.WorkStats.UsedSinceLastRegenSoftening = 0;
 				MC.RTC_store.Work &= ~RTC_Work_NeedRegen_Softener;
-				vTaskSuspendAll(); // запрет других задач
+				taskENTER_CRITICAL();
 				NeedSaveRTC |= (1<<bRTC_Work) | 0x80;
-				xTaskResumeAll(); // Разрешение других задач
+				taskEXIT_CRITICAL();
 				NeedSaveWorkStats = 1;
 				break;
 			}

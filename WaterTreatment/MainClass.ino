@@ -16,6 +16,11 @@
 // --------------------------------------------------------------------------------
 #include "MainClass.h"
 
+/*
+  char checker(int);
+  char checkSizeOfInt1[sizeof(HistorySetup[0])]={checker(&checkSizeOfInt1)};
+//*/
+
 // Установка критической ошибки для класса  вызывает останов 
 // Возвращает ошибку останова 
 int8_t set_Error(int8_t _err, char *nam)
@@ -389,7 +394,7 @@ void MainClass::resetCount()
 	memset(&MC.WorkStats, 0, sizeof(MC.WorkStats));
 	WorkStats.ResetTime = rtcSAM3X8.unixtime();           // Дата сброса счетчиков
 	save_WorkStats();  // записать счетчики
-	motohour_IN_work = 0;
+	Stats_Power_work = 0;
 }
 
 // Обновление счетчиков моточасов, вызывается раз в минуту
@@ -397,8 +402,8 @@ void MainClass::updateCount()
 {
 	int32_t p;
 	//taskENTER_CRITICAL();
-	p = motohour_IN_work;
-	motohour_IN_work = 0;
+	p = Stats_Power_work;
+	Stats_Power_work = 0;
 	//taskEXIT_CRITICAL();
 	p /= 1000;
 	//WorkStats.E1 += p;
@@ -773,12 +778,21 @@ char * MainClass::TestToStr()
 // Все значения в графиках целочислены (сотые), выводятся в формате 0.01
 void  MainClass::updateChart()
 {
-	uint8_t i;
-	for(i=0;i<TNUMBER;i++) if(sTemp[i].Chart.get_present())  sTemp[i].Chart.addPoint(sTemp[i].get_Temp());
-	for(i=0;i<ANUMBER;i++)
-		if(sADC[i].Chart.get_present()) sADC[i].Chart.addPoint(sADC[i].get_Press());
-	for(i=0;i<FNUMBER;i++) if(sFrequency[i].Chart.get_present()) sFrequency[i].Chart.addPoint(sFrequency[i].get_Value()); // Частотные датчики
-
+	for(uint8_t i=0;i<TNUMBER;i++) if(sTemp[i].Chart.get_present())  sTemp[i].Chart.addPoint(sTemp[i].get_Temp());
+	for(uint8_t i=0;i<ANUMBER;i++) if(sADC[i].Chart.get_present()) sADC[i].Chart.addPoint(sADC[i].get_Press());
+	for(uint8_t i=0;i<FNUMBER;i++) if(sFrequency[i].Chart.get_present()) sFrequency[i].Chart.addPoint(sFrequency[i].get_Value()); // Частотные датчики
+	int32_t tmp1, tmp2, tmp3;
+	taskENTER_CRITICAL();
+	tmp1 = Charts_WaterBooster_work;
+	Charts_WaterBooster_work = 0;
+	tmp2 = Charts_FeedPump_work;
+	Charts_FeedPump_work = 0;
+	tmp3 = Charts_FillTank_work;
+	Charts_FillTank_work = 0;
+	taskEXIT_CRITICAL();
+	ChartWaterBoost.addPoint(tmp1);
+	ChartFeedPump.addPoint(tmp2);
+	ChartFillTank.addPoint(tmp3);
 	if(dPWM.ChartVoltage.get_present())   dPWM.ChartVoltage.addPoint(dPWM.get_Voltage());
 	if(dPWM.ChartPower.get_present())     dPWM.ChartPower.addPoint(dPWM.get_Power());
 }
@@ -790,8 +804,9 @@ void MainClass::startChart()
  for(i=0;i<TNUMBER;i++) sTemp[i].Chart.clear();
  for(i=0;i<ANUMBER;i++) sADC[i].Chart.clear();
  for(i=0;i<FNUMBER;i++) sFrequency[i].Chart.clear();
- ChartRCOMP.clear();
-// ChartRELAY.clear();
+ ChartWaterBoost.clear();
+ ChartFeedPump.clear();
+ ChartFillTank.clear();
  dPWM.ChartVoltage.clear();                              // Статистика по напряжению
  dPWM.ChartPower.clear();                                // Статистика по Полная мощность
 }
@@ -801,16 +816,17 @@ void MainClass::startChart()
 // cat true - список добавляется в конец, false - строка обнуляется и список добавляется
 char * MainClass::get_listChart(char* str)
 {
-uint8_t i;  
- strcat(str,"none:1;");
- for(i=0;i<TNUMBER;i++) if(sTemp[i].Chart.get_present()) {strcat(str,sTemp[i].get_name()); strcat(str,":0;");}
- for(i=0;i<ANUMBER;i++)
-	 if(sADC[i].Chart.get_present()) { strcat(str,sADC[i].get_name()); strcat(str,":0;");}
- for(i=0;i<FNUMBER;i++) if(sFrequency[i].Chart.get_present()) { strcat(str,sFrequency[i].get_name()); strcat(str,":0;");}
- if(dPWM.ChartVoltage.get_present()) {   strcat(str,chart_VOLTAGE); strcat(str,":0;"); }
- if(dPWM.ChartPower.get_present())   {    strcat(str,chart_fullPOWER); strcat(str,":0;"); }
-// for(i=0;i<RNUMBER;i++) if(dRelay[i].Chart.get_present()) { strcat(str,dRelay[i].get_name()); strcat(str,":0;");}  
-return str;               
+	uint8_t i;
+	strcat(str,"none:1;");
+	for(i=0;i<TNUMBER;i++) if(sTemp[i].Chart.get_present()) {strcat(str,sTemp[i].get_name()); strcat(str,":0;");}
+	for(i=0;i<ANUMBER;i++) if(sADC[i].Chart.get_present()) { strcat(str,sADC[i].get_name()); strcat(str,":0;");}
+	for(i=0;i<FNUMBER;i++) if(sFrequency[i].Chart.get_present()) { strcat(str,sFrequency[i].get_name()); strcat(str,":0;");}
+	strcat(str, chart_WaterBoost); strcat(str,":0;");
+	strcat(str, chart_FeedPump); strcat(str,":0;");
+	strcat(str, chart_FillTank); strcat(str,":0;");
+	if(dPWM.ChartVoltage.get_present()) {   strcat(str,chart_VOLTAGE); strcat(str,":0;"); }
+	if(dPWM.ChartPower.get_present())   {   strcat(str,chart_fullPOWER); strcat(str,":0;"); }
+	return str;
 }
 
 // получить данные графика  в виде строки, данные ДОБАВЛЯЮТСЯ к str
@@ -842,6 +858,12 @@ void MainClass::get_Chart(char *var, char* str)
 		dPWM.ChartVoltage.get_PointsStr(100, str);
 	} else if(strcmp(var, chart_fullPOWER) == 0) {
 		dPWM.ChartPower.get_PointsStr(1, str);
+	} else if(strcmp(var, chart_WaterBoost) == 0) {
+		ChartWaterBoost.get_PointsStr(1, str);
+	} else if(strcmp(var, chart_FeedPump) == 0) {
+		ChartFeedPump.get_PointsStr(1, str);
+	} else if(strcmp(var, chart_FillTank) == 0) {
+		ChartFillTank.get_PointsStr(1, str);
 	}
 }
 

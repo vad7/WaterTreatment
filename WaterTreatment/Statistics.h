@@ -57,15 +57,30 @@ struct Stats_Data {
 	uint8_t		type;			// STATS_TYPE_*
 };
 
+#define STATS_ID_Temp	TAIR
+#define STATS_ID_Press	PWATER
+#define STATS_ID_Flow	FLOW
+
+int32_t Stats_Power_work = 0;  // рабочий для счетчиков - энергия потребленная, мВт
+int32_t Stats_FeedPump_work = 0;
+int32_t Stats_WaterBooster_work = 0;
+int32_t History_FeedPump_work = 0;
+int32_t History_WaterBooster_work = 0;
+int32_t Charts_WaterBooster_work = 0;
+int32_t Charts_FeedPump_work = 0;
+int32_t Charts_FillTank_work = 0; // %
+
 Stats_Data Stats_data[] = {
 	{ 0, STATS_OBJ_WaterUsed, STATS_TYPE_SUM },
 	{ 0, STATS_OBJ_WaterRegen, STATS_TYPE_SUM },
+	{ 0, STATS_OBJ_Flow, STATS_TYPE_MAX },
+	{ 0, STATS_OBJ_BrineWeight, STATS_TYPE_MAX },
+	{ 0, STATS_OBJ_WaterBooster, STATS_TYPE_SUM },
+	{ 0, STATS_OBJ_FeedPump, STATS_TYPE_SUM },
 	{ 0, STATS_OBJ_Temp, STATS_TYPE_MIN },
-	{ 0, STATS_OBJ_Power, STATS_TYPE_SUM },
 	{ 0, STATS_OBJ_Power, STATS_TYPE_SUM },
 	{ 0, STATS_OBJ_Power, STATS_TYPE_MAX },
 	{ 0, STATS_OBJ_Voltage, STATS_TYPE_MIN },
-	{ 0, STATS_OBJ_Voltage, STATS_TYPE_AVG },
 	{ 0, STATS_OBJ_Voltage, STATS_TYPE_MAX },
 };
 
@@ -103,8 +118,6 @@ public:
 private:
 	void	Error(const char *text, uint8_t what);
 	uint16_t counts;										// Кол-во уже совершенных обновлений
-	uint16_t counts_work;									// Кол-во уже совершенных обновлений во время работы компрессора
-	uint32_t compressor_on_timer;
 	uint32_t previous;
 	uint8_t	 day;
 	uint8_t	 month;

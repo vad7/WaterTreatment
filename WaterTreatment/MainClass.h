@@ -69,7 +69,6 @@ int8_t   Errors[10] = { 0,0,0,0,0,0,0,0,0,0 };// Active Errors array
 #define  RTC_SaveAll		((1<<bRTC_UsedToday) | (1<<bRTC_UsedRegen) | (1<<bRTC_Work) | (1<<bRTC_Urgently))
 uint8_t  NeedSaveRTC = 0;
 
-int32_t motohour_IN_work = 0;  // рабочий для счетчиков - энергия потребленная, мВт
 uint16_t task_updstat_chars = 0;
 
 //  Работа с отдельными флагами type_option
@@ -286,13 +285,15 @@ public:
 
 	// функции для работой с графикками
 	uint16_t get_tChart(){return Option.tChart;}           // Получить время накопления ститистики в секундах
-	void updateChart();                                     // обновить статистику
-	void startChart();                                      // Запуститьь статистику
-	char * get_listChart(char* str);				          // получить список доступных графиков
+	void updateChart();                                    // обновить графики
+	void startChart();                                     // Запустить графики
+	char * get_listChart(char* str);				       // получить список доступных графиков
 	void get_Chart(char *var,char* str);   				   // получить данные графика
 
 	// графики не по датчикам (по датчикам она хранится внутри датчика)
-	statChart ChartRCOMP;                                   // Статистика по включению компрессора
+	statChart ChartWaterBoost;
+	statChart ChartFeedPump;
+	statChart ChartFillTank;
 
 	TaskHandle_t xHandlePumps;
 	TaskHandle_t xHandleBooster;

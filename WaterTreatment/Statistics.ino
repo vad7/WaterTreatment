@@ -249,8 +249,7 @@ void Statistics::Init(uint8_t newyear)
 											break;
 										}
 									} else {
-										if(Stats_data[i].when == STATS_WHEN_WORKD) counts_work = 1;
-										else if(Stats_data[i].type == STATS_TYPE_AVG) counts = 1;
+										if(Stats_data[i].type == STATS_TYPE_AVG) counts = 1;
 									}
 									if((p = (char*)memchr(p, '\0', STATS_MAX_RECORD_LEN)) == NULL) break;
 								}
@@ -323,8 +322,6 @@ void Statistics::Reset()
 		}
 	}
 	counts = 0;
-	counts_work = 0;
-	compressor_on_timer = 0;
 	day = rtcSAM3X8.get_days();
 	month = rtcSAM3X8.get_months();
 	previous = millis();
@@ -347,53 +344,55 @@ void Statistics::Update()
 		}
 	}
 	int32_t newval = 0;
-//	if(MC.is_compressor_on()) {
-//		compressor_on_timer += tm;
-//		if(compressor_on_timer >= STATS_WORKD_TIME) counts_work++;
-//	} else compressor_on_timer = 0;
 	for(uint8_t i = 0; i < sizeof(Stats_data) / sizeof(Stats_data[0]); i++) {
-//		if(Stats_data[i].when == STATS_WHEN_WORKD && compressor_on_timer < STATS_WORKD_TIME) continue;
-		uint8_t skip_value = 0;
 		switch(Stats_data[i].object) {
 		case STATS_OBJ_Temp:
-			newval = MC.sTemp[Stats_data[i].number].get_Temp();
+			newval = MC.sTemp[STATS_ID_Temp].get_Temp();
 			break;
 		case STATS_OBJ_Press:
-			newval = MC.sADC[Stats_data[i].number].get_Press();
+			newval = MC.sADC[STATS_ID_Press].get_Press();
+			break;
+		case STATS_OBJ_Flow:
+			newval = MC.sFrequency[STATS_ID_Flow].get_Value();
 			break;
 		case STATS_OBJ_Voltage:
-		    #ifdef USE_ELECTROMETER_SDM
-			newval = MC.dSDM.get_Voltage();
-			#endif
+			newval = MC.dPWM.get_Voltage();
 			break;
 		case STATS_OBJ_Power: {
-			int32_t *ptr = NULL;
-			if(Stats_data[i].number == OBJ_power220) { // Электричество
+				int32_t *ptr = NULL;
 				newval = MC.dPWM.get_Power(); // Вт
-				ptr = &motohour_IN_work;
-			} else continue;
-			switch(Stats_data[i].type) {
-			case STATS_TYPE_SUM:
-			//case STATS_TYPE_AVG:
-				newval = newval * tm / 3600; // в мВт
-				if(ptr) *ptr += newval; // для motoHour
+				ptr = &Stats_Power_work;
+				switch(Stats_data[i].type) {
+				case STATS_TYPE_SUM:
+				//case STATS_TYPE_AVG:
+					newval = newval * tm / 3600; // в мВт
+					if(ptr) *ptr += newval;
+				}
+				break;
 			}
+		case STATS_OBJ_WaterBooster:
+			newval = Stats_WaterBooster_work;
+			Stats_WaterBooster_work = 0;
+			History_WaterBooster_work += newval;
 			break;
-		}
-		case STATS_OBJ_Sun:
-//			if(!GETBIT(MC.flags, SunActive)) continue;
+		case STATS_OBJ_FeedPump:
+			newval = Stats_FeedPump_work;
+			Stats_FeedPump_work = 0;
+			History_FeedPump_work += newval;
+			break;
+		case STATS_OBJ_BrineWeight:
+			newval = 0;
 			break;
 		}
 		switch(Stats_data[i].type){
 		case STATS_TYPE_MIN:
-			if(newval < Stats_data[i].value && !skip_value) Stats_data[i].value = newval;
+			if(newval < Stats_data[i].value) Stats_data[i].value = newval;
 			break;
 		case STATS_TYPE_MAX:
-			if(newval > Stats_data[i].value && !skip_value) Stats_data[i].value = newval;
+			if(newval > Stats_data[i].value) Stats_data[i].value = newval;
 			break;
 		case STATS_TYPE_AVG:
 		case STATS_TYPE_SUM:
-			if(skip_value) newval = Stats_data[i].value / (Stats_data[i].when == STATS_WHEN_WORKD ? counts_work : counts);
 			Stats_data[i].value += newval;
 			break;
 		case STATS_TYPE_TIME:
@@ -402,7 +401,6 @@ void Statistics::Update()
 		}
 	}
 	counts++;
-	if(compressor_on_timer >= STATS_WORKD_TIME) counts_work++;
 //	for(uint8_t i = 0; i < sizeof(Stats_data) / sizeof(Stats_data[0]); i++) journal.jprintf("%d=%d, ", i, Stats_data[i].value); journal.jprintf("\n");
 }
 
@@ -415,7 +413,6 @@ void Statistics::HistoryFileHeader(char *ret, uint8_t flag)
 		if(flag) {
 			switch(HistorySetup[i].object) {
 			case STATS_OBJ_Temp:
-			case STATS_OBJ_PressTemp:
 				strcat(ret, "T"); 		// ось температур
 				break;
 			case STATS_OBJ_Press:
@@ -428,7 +425,18 @@ void Statistics::HistoryFileHeader(char *ret, uint8_t flag)
 				strcat(ret, "W");		// ось мощность
 				break;
 			case STATS_OBJ_Flow:
-				strcat(ret, "F");	// ось частота
+				strcat(ret, "F");	// ось м3ч
+				break;
+			case STATS_OBJ_WaterUsed:
+			case STATS_OBJ_WaterRegen:
+				strcat(ret, "L");	// ось литры
+				break;
+			case STATS_OBJ_WaterBooster:
+			case STATS_OBJ_FeedPump:
+				strcat(ret, "S");	// ось секунды
+				break;
+			case STATS_OBJ_BrineWeight:
+				strcat(ret, "M");	// ось кг
 				break;
 			default: strcat(ret, "?");
 			}
@@ -445,11 +453,11 @@ void Statistics::StatsFieldHeader(char *ret, uint8_t i, uint8_t flag)
 	switch(Stats_data[i].object) {
 	case STATS_OBJ_Temp:
 		if(flag) strcat(ret, "T"); // ось температур
-		strcat(ret, MC.sTemp[Stats_data[i].number].get_note());
+		strcat(ret, MC.sTemp[STATS_ID_Temp].get_note());
 		break;
 	case STATS_OBJ_Press:
 		if(flag) strcat(ret, "P"); // ось давление
-		strcat(ret, MC.sADC[Stats_data[i].number].get_note());
+		strcat(ret, MC.sADC[STATS_ID_Press].get_note());
 		break;
 	case STATS_OBJ_Voltage:
 		if(flag) strcat(ret, "V"); // ось напряжение
@@ -457,16 +465,7 @@ void Statistics::StatsFieldHeader(char *ret, uint8_t i, uint8_t flag)
 		break;
 	case STATS_OBJ_Power:
 		if(flag) strcat(ret, "W"); // ось мощность
-		if(Stats_data[i].number == OBJ_powerCO) { // Система отопления
-			strcat(ret, "Выработано, кВтч"); // хранится в Вт
-		} else if(Stats_data[i].number == OBJ_powerGEO) { // Геоконтур
-			strcat(ret, "Геоконтур, кВтч"); // хранится в Вт
-		} else if(Stats_data[i].number == OBJ_power220) { // Геоконтур
-			strcat(ret, "Потребление, кВтч"); // хранится в Вт
-		}
-		break;
-	case STATS_OBJ_Sun:
-		strcat(ret, "СК время, м");
+		strcat(ret, "Потребление, кВтч"); // хранится в Вт
 		break;
 	default: strcat(ret, "?");
 	}
@@ -481,7 +480,6 @@ void Statistics::StatsFieldHeader(char *ret, uint8_t i, uint8_t flag)
 		strcat(ret, " (Сред)");
 		break;
 	}
-	if(Stats_data[i].when == STATS_WHEN_WORKD) strcat(ret, "(W)");
 }
 
 // Возвращает файл с заголовками полей, flag: +Axis char
@@ -499,14 +497,14 @@ void Statistics::StatsFieldString(char **ret, uint8_t i)
 {
 	int32_t val;
 	if(Stats_data[i].type == STATS_TYPE_AVG) {
-		val = Stats_data[i].when == STATS_WHEN_WORKD ? counts_work : counts;
+		val = counts;
 		if(val == 0) {
 xSkipEmpty:
 			**ret = '\0';
 			return;
 		}
 		val = Stats_data[i].value / val;
-	} else if(Stats_data[i].when == STATS_WHEN_WORKD && counts_work == 0) goto xSkipEmpty; else val = Stats_data[i].value;
+	} else val = Stats_data[i].value;
 	if((val == MIN_INT32_VALUE && Stats_data[i].type == STATS_TYPE_MAX) || (val == MAX_INT32_VALUE && Stats_data[i].type == STATS_TYPE_MIN)) goto xSkipEmpty;
 	switch(Stats_data[i].object) {
 	case STATS_OBJ_Temp:					// C
@@ -873,11 +871,7 @@ void Statistics::History()
 			int_to_dec_str(MC.sFrequency[HistorySetup[i].number].get_Value(), 100, &buf, 0); // F
 			break;
 		case STATS_OBJ_Power:
-			switch(HistorySetup[i].number) {
-			case OBJ_power220:
-				int_to_dec_str((int32_t)MC.dPWM.get_Power(), 1, &buf, 0);  // W
-				break;
-			}
+			int_to_dec_str((int32_t)MC.dPWM.get_Power(), 1, &buf, 0);  // W
 			break;
 		}
 		if(buf > mbuf + HISTORY_MAX_RECORD_LEN - HISTORY_MAX_FIELD_LEN) {
