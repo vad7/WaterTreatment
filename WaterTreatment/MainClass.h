@@ -32,8 +32,8 @@ struct type_WorkStats {
 	uint32_t UsedAverageDay;		// Liters, sum of UsedAverageDayNum
 	uint16_t UsedAverageDayNum;
 	uint16_t UsedYesterday;			// Liters
-	uint32_t LastDischarge;			// time
-	uint16_t UsedDischarge;			// Liters
+	uint32_t LastDrain;				// time
+	uint16_t UsedDrain;				// Liters
 	uint16_t UsedLastRegen;			// Liters
 	uint16_t UsedLastRegenSoftening;// Liters
 	uint16_t DaysFromLastRegen;
@@ -50,9 +50,9 @@ struct type_WorkStats {
 #define RTC_Work_NeedRegen_Softener	0x30
 
 struct type_RTC_memory { // DS3231/DS3232 used alarm memory, starts from 0x07, max size 7 bytes
-	uint16_t UsedToday;		// 0. used daily until switch to new day
-	uint16_t UsedRegen;		// 1.
-	uint8_t  Work;			// 2. NeedRegen + WeekDay
+	volatile uint16_t UsedToday;	// 0. used daily until switch to new day
+	volatile uint16_t UsedRegen;	// 1.
+	volatile uint8_t  Work;			// 2. NeedRegen + WeekDay
 } __attribute__((packed));
 
 
@@ -60,6 +60,7 @@ int8_t   WaterBoosterStatus = 0; // 0 - выключено, 1 - вкл твер�
 uint32_t TimeFeedPump = 0;
 int8_t   vPumpsNewError = 0;
 uint8_t  NeedSaveWorkStats = 0;
+uint32_t TimerDrainingWater = 0;
 int8_t   Errors[10] = { 0,0,0,0,0,0,0,0,0,0 };// Active Errors array
 
 #define  bRTC_UsedToday		0
@@ -81,7 +82,6 @@ uint16_t task_updstat_chars = 0;
 #define fLogWirelessSensors 6				// Логировать обмен между беспроводными датчиками
 #define fPWMLogErrors  		7               // флаг писать в лог ошибки электросчетчика
 #define fDontRegenOnWeekend	8				// Не делать регенерацию в выходные
-#define fDischargeEveryDay	9				// Сливать воду, если не было расхода за день
  
 // Структура для хранения опций
 struct type_option {
@@ -93,8 +93,8 @@ struct type_option {
 	uint16_t UsedBeforeRegen;			// Количество литров до регенерации
 	uint16_t MinPumpOnTime;				// Минимальное время включения дозатора, мсек
 	uint16_t MinRegenLiters;			// Тревога, если за регенерацию израсходовано меньше литров
-	uint16_t MinDischargeLiters;		// Тревога, если слито (Discharge) при сбросе меньше литров
-	uint16_t DischargeTime;				// Время слива воды, сек
+	uint16_t MinDrainLiters;			// Тревога, если слито (Drain) при сбросе меньше литров
+	uint16_t DrainTime;					// Время слива воды, сек
 
 } __attribute__((packed));
 

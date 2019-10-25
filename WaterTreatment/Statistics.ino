@@ -346,6 +346,13 @@ void Statistics::Update()
 	int32_t newval = 0;
 	for(uint8_t i = 0; i < sizeof(Stats_data) / sizeof(Stats_data[0]); i++) {
 		switch(Stats_data[i].object) {
+		case STATS_OBJ_WaterUsed:
+			newval = MC.RTC_store.UsedToday;
+			break;
+		case STATS_OBJ_WaterRegen:
+			newval = Stats_WaterRegen_work;
+			Stats_WaterRegen_work = 0;
+			break;
 		case STATS_OBJ_Temp:
 			newval = MC.sTemp[STATS_ID_Temp].get_Temp();
 			break;
@@ -359,26 +366,22 @@ void Statistics::Update()
 			newval = MC.dPWM.get_Voltage();
 			break;
 		case STATS_OBJ_Power: {
-				int32_t *ptr = NULL;
 				newval = MC.dPWM.get_Power(); // Вт
-				ptr = &Stats_Power_work;
 				switch(Stats_data[i].type) {
 				case STATS_TYPE_SUM:
 				//case STATS_TYPE_AVG:
 					newval = newval * tm / 3600; // в мВт
-					if(ptr) *ptr += newval;
+					Stats_Power_work += newval;
 				}
 				break;
 			}
 		case STATS_OBJ_WaterBooster:
 			newval = Stats_WaterBooster_work;
 			Stats_WaterBooster_work = 0;
-			History_WaterBooster_work += newval;
 			break;
 		case STATS_OBJ_FeedPump:
 			newval = Stats_FeedPump_work;
 			Stats_FeedPump_work = 0;
-			History_FeedPump_work += newval;
 			break;
 		case STATS_OBJ_BrineWeight:
 			newval = 0;
@@ -402,6 +405,84 @@ void Statistics::Update()
 	}
 	counts++;
 //	for(uint8_t i = 0; i < sizeof(Stats_data) / sizeof(Stats_data[0]); i++) journal.jprintf("%d=%d, ", i, Stats_data[i].value); journal.jprintf("\n");
+}
+
+// Логирование параметров работы , раз в 1 минуту
+void Statistics::History()
+{
+	if(!GETBIT(MC.Option.flags, fHistory)
+#ifndef TEST_BOARD
+//			|| MC.get_testMode() != NORMAL
+#endif
+		) return;
+	uint16_t y = rtcSAM3X8.get_years();
+	if(y != year) return;
+	char *mbuf = (char*) malloc(HISTORY_MAX_RECORD_LEN);
+	if(mbuf == NULL) {
+		Error("memory low", ID_HISTORY);
+		return;
+	}
+	char *buf = mbuf;
+	buf += m_snprintf(buf, 20, format_datetime, y, rtcSAM3X8.get_months(), rtcSAM3X8.get_days(), rtcSAM3X8.get_hours(), rtcSAM3X8.get_minutes());
+	//journal.printf("History:(%s)\n", mbuf);
+	for(uint8_t i = 0; i < sizeof(HistorySetup) / sizeof(HistorySetup[0]); i++) {
+		*buf++ = ';';
+		switch(HistorySetup[i].object) {
+		case STATS_OBJ_Temp:		// C
+			int_to_dec_str(MC.sTemp[HistorySetup[i].number].get_Temp(), 10, &buf, 0); // T
+			break;
+		case STATS_OBJ_Press:		// bar
+			int_to_dec_str(MC.sADC[HistorySetup[i].number].get_Press(), 10, &buf, 0); // P
+			break;
+		case STATS_OBJ_Flow:		// m3h
+			int_to_dec_str(MC.sFrequency[HistorySetup[i].number].get_Value(), 100, &buf, 0); // F
+			break;
+		case STATS_OBJ_Power:
+			int_to_dec_str((int32_t)MC.dPWM.get_Power(), 1, &buf, 0);  // W
+			break;
+		case STATS_OBJ_WaterUsed: {
+				int32_t tmp = History_WaterUsed_work;
+				History_WaterUsed_work = 0;
+				int_to_dec_str(tmp, 1, &buf, 0);  // l
+				break;
+			}
+		case STATS_OBJ_WaterRegen: {
+				int32_t tmp = History_WaterRegen_work;
+				History_WaterRegen_work = 0;
+				int_to_dec_str(tmp, 1, &buf, 0);  // l
+				break;
+			}
+		case STATS_OBJ_WaterBooster: {
+				int32_t tmp = History_WaterBooster_work;
+				History_WaterBooster_work = 0;
+				int_to_dec_str(tmp, 1000, &buf, 0);  // sec
+				break;
+			}
+		case STATS_OBJ_FeedPump: {
+				int32_t tmp = History_FeedPump_work;
+				History_FeedPump_work = 0;
+				int_to_dec_str(tmp, 1000, &buf, 0);  // sec
+				break;
+			}
+		}
+		if(buf > mbuf + HISTORY_MAX_RECORD_LEN - HISTORY_MAX_FIELD_LEN) {
+			journal.jprintf("%s memory overflow(%d): %d, max: %d\n", "History", i, buf - mbuf, HISTORY_MAX_RECORD_LEN);
+			break;
+		}
+	}
+	*buf++ = '\n'; *buf = '\0';
+	uint16_t lensav, len = buf - mbuf + 1;
+	memcpy(history_buffer + HistoryCurrentPos, mbuf, lensav = SD_BLOCK - HistoryCurrentPos < len ? SD_BLOCK - HistoryCurrentPos : len);
+	if(lensav != len) { // save when there is no space in buffer
+		if(SaveHistory(0) == OK) {
+			if(HistoryCurrentBlock >= HistoryBlockEnd) {
+				Error("File Overflow", ID_HISTORY);
+			} else HistoryCurrentBlock++;
+			memset(history_buffer, 0, SD_BLOCK);
+			memcpy(history_buffer, mbuf + lensav, HistoryCurrentPos = len - lensav - 1);
+		}
+	} else HistoryCurrentPos += lensav - 1;
+	free(mbuf);
 }
 
 // Возвращает файл с заголовками полей, flag: +Axis char
@@ -466,6 +547,14 @@ void Statistics::StatsFieldHeader(char *ret, uint8_t i, uint8_t flag)
 	case STATS_OBJ_Power:
 		if(flag) strcat(ret, "W"); // ось мощность
 		strcat(ret, "Потребление, кВтч"); // хранится в Вт
+		break;
+	case STATS_OBJ_WaterUsed:
+		if(flag) strcat(ret, "L");	// ось литры
+		strcat(ret, "Потреблено, л");
+		return;
+	case STATS_OBJ_WaterRegen:
+		if(flag) strcat(ret, "L");	// ось литры
+		strcat(ret, "Регенерация, л");
 		break;
 	default: strcat(ret, "?");
 	}
@@ -840,56 +929,3 @@ int8_t Statistics::SaveHistory(uint8_t from_web)
 	return retval;
 }
 
-// Логирование параметров работы , раз в 1 минуту
-void Statistics::History()
-{
-	if(!GETBIT(MC.Option.flags, fHistory)
-#ifndef TEST_BOARD
-//			|| MC.get_testMode() != NORMAL
-#endif
-		) return;
-	uint16_t y = rtcSAM3X8.get_years();
-	if(y != year) return;
-	char *mbuf = (char*) malloc(HISTORY_MAX_RECORD_LEN);
-	if(mbuf == NULL) {
-		Error("memory low", ID_HISTORY);
-		return;
-	}
-	char *buf = mbuf;
-	buf += m_snprintf(buf, 20, format_datetime, y, rtcSAM3X8.get_months(), rtcSAM3X8.get_days(), rtcSAM3X8.get_hours(), rtcSAM3X8.get_minutes());
-	//journal.printf("History:(%s)\n", mbuf);
-	for(uint8_t i = 0; i < sizeof(HistorySetup) / sizeof(HistorySetup[0]); i++) {
-		*buf++ = ';';
-		switch(HistorySetup[i].object) {
-		case STATS_OBJ_Temp:		// C
-			int_to_dec_str(MC.sTemp[HistorySetup[i].number].get_Temp(), 10, &buf, 0); // T
-			break;
-		case STATS_OBJ_Press:		// bar
-			int_to_dec_str(MC.sADC[HistorySetup[i].number].get_Press(), 10, &buf, 0); // P
-			break;
-		case STATS_OBJ_Flow:		// m3h
-			int_to_dec_str(MC.sFrequency[HistorySetup[i].number].get_Value(), 100, &buf, 0); // F
-			break;
-		case STATS_OBJ_Power:
-			int_to_dec_str((int32_t)MC.dPWM.get_Power(), 1, &buf, 0);  // W
-			break;
-		}
-		if(buf > mbuf + HISTORY_MAX_RECORD_LEN - HISTORY_MAX_FIELD_LEN) {
-			journal.jprintf("%s memory overflow(%d): %d, max: %d\n", "History", i, buf - mbuf, HISTORY_MAX_RECORD_LEN);
-			break;
-		}
-	}
-	*buf++ = '\n'; *buf = '\0';
-	uint16_t lensav, len = buf - mbuf + 1;
-	memcpy(history_buffer + HistoryCurrentPos, mbuf, lensav = SD_BLOCK - HistoryCurrentPos < len ? SD_BLOCK - HistoryCurrentPos : len);
-	if(lensav != len) { // save when there is no space in buffer
-		if(SaveHistory(0) == OK) {
-			if(HistoryCurrentBlock >= HistoryBlockEnd) {
-				Error("File Overflow", ID_HISTORY);
-			} else HistoryCurrentBlock++;
-			memset(history_buffer, 0, SD_BLOCK);
-			memcpy(history_buffer, mbuf + lensav, HistoryCurrentPos = len - lensav - 1);
-		}
-	} else HistoryCurrentPos += lensav - 1;
-	free(mbuf);
-}

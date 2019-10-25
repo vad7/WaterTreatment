@@ -131,8 +131,13 @@ void watchdogSetup(void)
 
 __attribute__((always_inline)) inline void _delay(int t) // Функция задержки (мсек) в зависимости от шедулера задач FreeRtos
 {
-  if(xTaskGetSchedulerState() == taskSCHEDULER_RUNNING) vTaskDelay(t/portTICK_PERIOD_MS);
-  else delay(t);
+	if(xTaskGetSchedulerState() == taskSCHEDULER_RUNNING) vTaskDelay(t/portTICK_PERIOD_MS);
+	else delay(t);
+}
+
+void yield(void)
+{
+	if(xTaskGetSchedulerState() == taskSCHEDULER_RUNNING) taskYIELD();
 }
 
 // Захватить семафор с проверкой, что шедуллер работает
@@ -746,12 +751,13 @@ void vReadSensor(void *)
 		xTaskResumeAll(); // Разрешение других задач
 		if(MC.sInput[REG_ACTIVE].get_Input() || MC.sInput[BACKWASH_ACTIVE].get_Input() || MC.sInput[REG_SOFTENING_ACTIVE].get_Input()) {
 			MC.RTC_store.UsedRegen += passed;
+			Stats_WaterRegen_work += passed;
+			History_WaterRegen_work += passed;
 			NeedSaveRTC |= (1<<bRTC_UsedRegen);
 		} else {
 			MC.RTC_store.UsedToday += passed;
+			History_WaterUsed_work += passed;
 			NeedSaveRTC |= (1<<bRTC_UsedToday);
-			MC.WorkStats.UsedSinceLastRegen += passed;
-			MC.WorkStats.UsedSinceLastRegenSoftening += passed;
 			if((MC.RTC_store.Work & RTC_Work_NeedRegen_Mask) == 0 && MC.WorkStats.UsedSinceLastRegen > MC.Option.UsedBeforeRegen) MC.RTC_store.Work |= RTC_Work_NeedRegen_WaitIron;
 		}
 		//
@@ -876,7 +882,10 @@ void vPumps( void * )
 	static uint32_t ADC_read_period = 0;
 	for(;;)
 	{
-		if(WaterBoosterStatus != 0) Stats_WaterBooster_work += TIME_SLICE_PUMPS;
+		if(WaterBoosterStatus != 0) {
+			Stats_WaterBooster_work += TIME_SLICE_PUMPS;
+			History_WaterBooster_work += TIME_SLICE_PUMPS;
+		}
 		// read sensors
 		for(uint8_t i = 0; i < INUMBER; i++) MC.sInput[i].Read(true);		// Прочитать данные сухой контакт
 		if(++ADC_read_period > 1000 / ADC_FREQ / TIME_SLICE_PUMPS) {		// Не чаще, чем ADC
@@ -924,6 +933,7 @@ void vPumps( void * )
 			if(TimeFeedPump) {
 				TimeFeedPump--;
 				Stats_FeedPump_work += TIME_SLICE_PUMPS;
+				History_FeedPump_work += TIME_SLICE_PUMPS;
 			}
 			taskEXIT_CRITICAL();
 			if(TimeFeedPump == 0) MC.dRelay[RFEEDPUMP].set_OFF();
@@ -980,6 +990,15 @@ void vPumps( void * )
 				NeedSaveWorkStats = 1;
 				break;
 			}
+		}
+		if(TimerDrainingWater && GetTickCount() - TimerDrainingWater >= MC.Option.DrainTime * 1000) {
+			MC.dRelay[RDRAIN].set_OFF();
+			if(MC.RTC_store.UsedToday < MC.Option.MinDrainLiters) {
+				if(vPumpsNewError == OK) {
+					vPumpsNewError = ERR_FEW_LITERS_DRAIN;
+					TimerDrainingWater = 0;
+				}
+			} else TimerDrainingWater = 0;
 		}
 
 		vTaskDelay(TIME_SLICE_PUMPS); // ms
@@ -1076,6 +1095,10 @@ void vService(void *)
 						NeedSaveRTC = RTC_SaveAll;
 						xTaskResumeAll(); // Разрешение других задач
 						update_RTC_store_memory(NeedSaveRTC);
+					}
+					if(MC.Option.DrainTime && MC.WorkStats.UsedYesterday < 10) { // Used less than 10 liters
+						TimerDrainingWater = GetTickCount() | 1;
+						MC.dRelay[RDRAIN].set_ON();
 					}
 				}
 				if((MC.RTC_store.Work & RTC_Work_NeedRegen_WaitIron) && rtcSAM3X8.get_hours() == MC.Option.RegenHour) {

@@ -195,7 +195,7 @@ public:
   uint8_t *get_save_addr(void) { return (uint8_t *)&number; } // Адрес структуры сохранения
   uint16_t get_save_size(void) { return (byte*)&minValue - (byte*)&number + sizeof(minValue); } // Размер структуры сохранения
   statChart Chart;                                       // Статистика по датчику
-  uint32_t Passed;										 // Счетчик литров
+  volatile uint32_t Passed;										 // Счетчик литров
   uint32_t PassedRest;									 // остаток счетчика
     
 private:

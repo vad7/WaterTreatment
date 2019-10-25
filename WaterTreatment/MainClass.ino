@@ -711,13 +711,15 @@ boolean MainClass::set_option(char *var, float xx)
    if(strcmp(var,option_History)==0)          {if (x==0) {SETBIT0(Option.flags,fHistory); return true;} else if (x==1) {SETBIT1(Option.flags,fHistory); return true;} else return false;       }else       // Сбрасывать статистику на карту
    if(strcmp(var,option_WebOnSPIFlash)==0)    { Option.flags = (Option.flags & ~(1<<fWebStoreOnSPIFlash)) | ((x!=0)<<fWebStoreOnSPIFlash); return true; } else
    if(strcmp(var,option_LogWirelessSensors)==0){ Option.flags = (Option.flags & ~(1<<fLogWirelessSensors)) | ((x!=0)<<fLogWirelessSensors); return true; } else
-   if(strcmp(var,option_FeedPumpMaxFlow)==0)       { Option.FeedPumpMaxFlow = x; return true; } else
+   if(strcmp(var,option_PWM_LOG_ERR)==0)	{ Option.flags = (Option.flags & ~(1<<fPWMLogErrors)) | ((x!=0)<<fPWMLogErrors); return true; } else
+   if(strcmp(var,option_fDontRegenOnWeekend)==0){ Option.flags = (Option.flags & ~(1<<fDontRegenOnWeekend)) | ((x!=0)<<fDontRegenOnWeekend); return true; } else
+   if(strcmp(var,option_FeedPumpMaxFlow)==0) { Option.FeedPumpMaxFlow = x; return true; } else
    if(strcmp(var,option_RegenHour)==0)       { Option.RegenHour = x; return true; } else
-   if(strcmp(var,option_UsedBeforeRegen)==0)       { Option.UsedBeforeRegen = x; return true; } else
-   if(strcmp(var,option_MinPumpOnTime)==0)       { Option.MinPumpOnTime = x / TIME_SLICE_PUMPS; return true; } else
-   if(strcmp(var,option_MinRegen)==0)       { Option.MinRegenLiters = x; return true; } else
-   if(strcmp(var,option_MinDischarge)==0)       { Option.MinDischargeLiters = x; return true; } else
-   if(strcmp(var,option_DischargeTime)==0)       { Option.DischargeTime = x; return true; } else
+   if(strcmp(var,option_UsedBeforeRegen)==0) { Option.UsedBeforeRegen = x; return true; } else
+   if(strcmp(var,option_MinPumpOnTime)==0)   { Option.MinPumpOnTime = x / TIME_SLICE_PUMPS; return true; } else
+   if(strcmp(var,option_MinRegen)==0)        { Option.MinRegenLiters = x; return true; } else
+   if(strcmp(var,option_MinDrain)==0)    { Option.MinDrainLiters = x; return true; } else
+   if(strcmp(var,option_DrainTime)==0)       { Option.DrainTime = x; return true; } else
    if(strncmp(var,option_SGL1W, sizeof(option_SGL1W)-1)==0) {
 	   uint8_t bit = var[sizeof(option_SGL1W)-1] - '0' - 2;
 	   if(bit <= 2) {
@@ -734,15 +736,17 @@ char* MainClass::get_option(char *var, char *ret)
    if(strcmp(var,option_TIME_CHART)==0)       {return _itoa(Option.tChart,ret);} else
    if(strcmp(var,option_BEEP)==0)             {if(GETBIT(Option.flags,fBeep)) return strcat(ret,(char*)cOne); else return strcat(ret,(char*)cZero); }else            // Подача звукового сигнала
    if(strcmp(var,option_History)==0)          {if(GETBIT(Option.flags,fHistory)) return strcat(ret,(char*)cOne); else return strcat(ret,(char*)cZero);   }else            // Сбрасывать статистику на карту
-   if(strcmp(var,option_WebOnSPIFlash)==0)    { return strcat(ret, (char*)(GETBIT(Option.flags,fWebStoreOnSPIFlash) ? cOne : cZero)); } else
-   if(strcmp(var,option_LogWirelessSensors)==0){ return strcat(ret, (char*)(GETBIT(Option.flags,fLogWirelessSensors) ? cOne : cZero)); } else
+   if(strcmp(var,option_WebOnSPIFlash)==0)    { return strcat(ret, (char*)(GETBIT(Option.flags, fWebStoreOnSPIFlash) ? cOne : cZero)); } else
+   if(strcmp(var,option_LogWirelessSensors)==0){ return strcat(ret, (char*)(GETBIT(Option.flags, fLogWirelessSensors) ? cOne : cZero)); } else
+   if(strcmp(var,option_PWM_LOG_ERR)==0){ return strcat(ret, (char*)(GETBIT(Option.flags, fPWMLogErrors) ? cOne : cZero)); } else
+   if(strcmp(var,option_fDontRegenOnWeekend)==0){ return strcat(ret, (char*)(GETBIT(Option.flags, fDontRegenOnWeekend) ? cOne : cZero)); } else
    if(strcmp(var,option_FeedPumpMaxFlow)==0){ return _itoa(Option.FeedPumpMaxFlow, ret); } else
    if(strcmp(var,option_RegenHour)==0){ return _itoa(Option.RegenHour, ret); } else
    if(strcmp(var,option_UsedBeforeRegen)==0){ return _itoa(Option.UsedBeforeRegen, ret); } else
    if(strcmp(var,option_MinPumpOnTime)==0){ return _itoa((uint32_t)Option.MinPumpOnTime * TIME_SLICE_PUMPS, ret); } else
    if(strcmp(var,option_MinRegen)==0){ return _itoa(Option.MinRegenLiters, ret); } else
-   if(strcmp(var,option_MinDischarge)==0){ return _itoa(Option.MinDischargeLiters, ret); } else
-   if(strcmp(var,option_DischargeTime)==0){ return _itoa(Option.DischargeTime, ret); } else
+   if(strcmp(var,option_MinDrain)==0){ return _itoa(Option.MinDrainLiters, ret); } else
+   if(strcmp(var,option_DrainTime)==0){ return _itoa(Option.DrainTime, ret); } else
    if(strncmp(var,option_SGL1W, sizeof(option_SGL1W)-1)==0) {
 	   uint8_t bit = var[sizeof(option_SGL1W)-1] - '0' - 2;
 	   if(bit <= 2) {

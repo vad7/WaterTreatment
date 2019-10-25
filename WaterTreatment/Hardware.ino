@@ -376,15 +376,7 @@ void sensorFrequency::initFrequency(int sensor)
 // Получить (точнее обновить) значение датчика, возвращает 1, если новое значение рассчитано
 int8_t sensorFrequency::Read()
 {
-	if(testMode != NORMAL) {    // В режиме теста
-		Value = testValue;
-#if defined(RBOOSTER2) && defined(FLOW)
-		if(number == FLOW && !MC.dRelay[RBOOSTER2].get_Relay()) Value = 0;
-#endif
-		Frequency = Value * kfValue / 360;
-		return 0;
-	}
-	if(GetTickCount() - sTime >= (uint32_t)FREQ_BASE_TIME_READ * 1000) {  // если только пришло время измерения
+	if(GetTickCount() - sTime >= (uint32_t) FREQ_BASE_TIME_READ * 1000) {  // если только пришло время измерения
 		uint32_t tickCount, cnt;
 		//if(xTaskGetSchedulerState() == taskSCHEDULER_RUNNING) taskENTER_CRITICAL();
 		{
@@ -395,24 +387,40 @@ int8_t sensorFrequency::Read()
 		//if(xTaskGetSchedulerState() == taskSCHEDULER_RUNNING) taskEXIT_CRITICAL();
 		//__asm__ volatile ("" ::: "memory");
 		uint32_t ticks = tickCount - sTime;
-		cnt *= 100;
-		PassedRest += cnt;
-		Passed += PassedRest / kfValue;
-		PassedRest %= kfValue;
-		if(ticks == FREQ_BASE_TIME_READ * 1000) {
-			Frequency = cnt * 5;
-		} else if(cnt > 858900) { // will overflow u32
-			Frequency = (cnt * 100) / ticks * 50;
+		if(testMode != NORMAL) {    // В режиме теста
+			Value = testValue;
+#if defined(RBOOSTER2) && defined(FLOW)
+			if(number == FLOW && !MC.dRelay[RBOOSTER2].get_Relay()) Value = 0;
+#endif
+			Frequency = Value * kfValue / 360;
+			cnt = 3600 * ticks / 1000;
+			Passed = Value / cnt + PassedRest / 1000;
+			PassedRest = PassedRest % 1000 + Value % cnt;
+
+
+
+
+			return 0;
 		} else {
-			Frequency = (cnt * 5 * 1000) / ticks; // ТЫСЯЧНЫЕ ГЦ время в миллисекундах частота в тысячных герца *2 (прерывание по обоим фронтам)!!!!!!!!
+			cnt *= 100;
+			PassedRest += cnt;
+			Passed += PassedRest / kfValue;
+			PassedRest %= kfValue;
+			if(ticks == FREQ_BASE_TIME_READ * 1000) {
+				Frequency = cnt * 5;
+			} else if(cnt > 858900) { // will overflow u32
+				Frequency = (cnt * 100) / ticks * 50;
+			} else {
+				Frequency = (cnt * 5 * 1000) / ticks; // ТЫСЯЧНЫЕ ГЦ время в миллисекундах частота в тысячных герца *2 (прерывание по обоим фронтам)!!!!!!!!
+			}
+			//   Value=60.0*Frequency/kfValue/1000.0;               // Frequency/kfValue  литры в минуту а нужны кубы
+			//       Value=((float)Frequency/1000.0)/((float)kfValue/360000.0);          // ЛИТРЫ В ЧАС (ИЛИ ТЫСЯЧНЫЕ КУБА) частота в тысячных, и коэффициент правим
+			Value = Frequency * 360 / kfValue; // ЛИТРЫ В ЧАС (ИЛИ ТЫСЯЧНЫЕ КУБА) частота в тысячных, и коэффициент правим
+			return 1;
 		}
 		sTime = tickCount;
-		//   Value=60.0*Frequency/kfValue/1000.0;               // Frequency/kfValue  литры в минуту а нужны кубы
-		//       Value=((float)Frequency/1000.0)/((float)kfValue/360000.0);          // ЛИТРЫ В ЧАС (ИЛИ ТЫСЯЧНЫЕ КУБА) частота в тысячных, и коэффициент правим
-		Value = Frequency * 360 / kfValue; // ЛИТРЫ В ЧАС (ИЛИ ТЫСЯЧНЫЕ КУБА) частота в тысячных, и коэффициент правим
-		return 1;
+		return 0;
 	}
-	return 0;
 }
 
 void sensorFrequency::reset(void)
@@ -602,7 +610,7 @@ char* devPWM::get_param(char *var, char *ret)
 }
 
 // Установить параметр счетчика в виде строки
-boolean devPWM::set_param(char *var, char *c)
+boolean devPWM::set_param(char *var, char *)
 {
    if(strcmp(var, pwm_RESET) == 0) {
 

@@ -702,8 +702,8 @@ xSaveStats:		if((i = MC.save_WorkStats()) == OK)
 			if(strcmp(str, webWS_UsedToday) == 0) _itoa(MC.RTC_store.UsedToday, strReturn); // get_WSUD
 			else if(strcmp(str, webWS_UsedYesterday) == 0) _itoa(MC.WorkStats.UsedYesterday, strReturn); // get_WSUY
 			else if(strcmp(str, webWS_UsedAverageDay) == 0) _itoa(MC.WorkStats.UsedAverageDay / MC.WorkStats.UsedAverageDayNum, strReturn); // get_WSA
-			else if(strcmp(str, webWS_LastDischarge) == 0) DecodeTimeDate(MC.WorkStats.LastDischarge, strReturn, 1); // get_WSDD
-			else if(strcmp(str, webWS_UsedDischarge) == 0) _itoa(MC.WorkStats.UsedDischarge, strReturn); // get_WSD
+			else if(strcmp(str, webWS_LastDrain) == 0) DecodeTimeDate(MC.WorkStats.LastDrain, strReturn, 1); // get_WSDD
+			else if(strcmp(str, webWS_UsedDrain) == 0) _itoa(MC.WorkStats.UsedDrain, strReturn); // get_WSD
 			else if(strcmp(str, webWS_UsedTotal) == 0) _itoa(MC.WorkStats.UsedTotal + MC.RTC_store.UsedToday, strReturn); // get_WST
 			else if(strcmp(str, webWS_RegCnt) == 0) _itoa(MC.WorkStats.RegCnt, strReturn); // get_WSRC
 			else if(strcmp(str, webWS_DaysFromLastRegen) == 0) _itoa(MC.WorkStats.DaysFromLastRegen, strReturn); // get_WSRD

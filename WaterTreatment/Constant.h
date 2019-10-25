@@ -20,8 +20,8 @@
 #include "Util.h"
 
 // ОПЦИИ КОМПИЛЯЦИИ ПРОЕКТА -------------------------------------------------------
-#define VERSION			"1.00"				// Версия прошивки
-#define VER_SAVE		1					// Версия формата сохраняемых данных в I2C память
+#define VERSION			  "1.00"				// Версия прошивки
+#define VER_SAVE		  1					// Версия формата сохраняемых данных в I2C память
 //#define LOG                               // В последовательный порт шлет лог веб сервера (логируются запросы)
 #define FAST_LIB                            // использование допиленной библиотеки езернета
 #define TIME_ZONE         3                 // поправка на часовой пояс по ДЕФОЛТУ
@@ -407,20 +407,21 @@ const char *option_SAVE_ON            = {"SAVE_ON"};            // флаг за
 const char option_SGL1W[]             = "SGL1W_";			    // SGLOW_n, На шине n (1-Wire, DS2482) только один датчик
 const char *option_WebOnSPIFlash      = {"WSPIF"};              // флаг, что веб морда лежит на SPI Flash, иначе на SD карте
 const char *option_LogWirelessSensors = {"LOGWS"};              // Логировать обмен между беспроводными датчиками
+const char *option_fDontRegenOnWeekend= {"NRW"};
 const char *option_FeedPumpMaxFlow 	  = {"FPMF"};
 const char *option_RegenHour			= {"RH"};
 const char *option_UsedBeforeRegen		= {"UBR"};
 const char *option_MinPumpOnTime		= {"MPOT"};
 const char *option_MinRegen				= {"MR"};
-const char *option_MinDischarge			= {"MD"};
-const char *option_DischargeTime		= {"DT"};
+const char *option_MinDrain				= {"MD"};
+const char *option_DrainTime			= {"DT"};
 
 // WorkStats, get_WS..., set_WS...(x)
 const char *webWS_UsedToday 					= { "UD" };
 const char *webWS_UsedYesterday 				= { "UY" };
 const char *webWS_UsedAverageDay 				= { "A" };
-const char *webWS_LastDischarge 		 		= { "DD" };
-const char *webWS_UsedDischarge  				= { "D" };
+const char *webWS_LastDrain		 		 		= { "DD" };
+const char *webWS_UsedDrain 	 				= { "D" };
 const char *webWS_UsedTotal  					= { "T" };
 const char *webWS_RegCnt  						= { "RC" };
 const char *webWS_DaysFromLastRegen 		 	= { "RD" };
@@ -488,7 +489,7 @@ const char *webWS_UsedLastRegenSoftening  		= { "RSL" };
 #define ERR_SD_WRITE		-49		   // ошибка записи на SD карту
 #define ERR_ADDRESS			-50        // Адрес датчика температуры не установлен
 #define ERR_FEW_LITERS_REG	-51			// Мало израсходовано воды при регенерации
-#define ERR_FEW_LITERS_DISCHARGE -52	// Мало израсходовано воды при сбросе воды
+#define ERR_FEW_LITERS_DRAIN -52		// Мало израсходовано воды при сбросе воды
 #define ERR_RTC_LOW_BATTERY -53			// Села батарея часов
 
 #define ERR_ERRMAX			-53 	   // Последняя ошибка
