@@ -393,13 +393,10 @@ int8_t sensorFrequency::Read()
 			if(number == FLOW && !MC.dRelay[RBOOSTER2].get_Relay()) Value = 0;
 #endif
 			Frequency = Value * kfValue / 360;
-			cnt = 3600 * ticks / 1000;
-			Passed = Value / cnt + PassedRest / 1000;
-			PassedRest = PassedRest % 1000 + Value % cnt;
-
-
-
-
+			cnt = 3600 * 1000 / ticks;
+			PassedRest += Value;
+			Passed = PassedRest / cnt;
+			PassedRest %= cnt;
 			return 0;
 		} else {
 			cnt *= 100;
