@@ -63,6 +63,15 @@ uint8_t  NeedSaveWorkStats = 0;
 uint32_t TimerDrainingWater = 0;
 int8_t   Errors[10] = { 0,0,0,0,0,0,0,0,0,0 };// Active Errors array
 
+// Weight
+bool Weight_NeedRead = false;
+int32_t  Weight_adc_sum;                          	// сумма
+int32_t  Weight_adc_filter[WEIGHT_AVERAGE_BUFFER]; 	// массив накопленных значений
+uint16_t Weight_adc_last;  			                // текущий индекс
+boolean  Weight_adc_flagFull;          			    // буфер полный
+float 	 Weight_value = 0;
+void Weight_Clear_Averaging(void);
+
 #define  bRTC_UsedToday		0
 #define  bRTC_UsedRegen		1
 #define  bRTC_Work			2
@@ -95,6 +104,8 @@ struct type_option {
 	uint16_t MinRegenLiters;			// Тревога, если за регенерацию израсходовано меньше литров
 	uint16_t MinDrainLiters;			// Тревога, если слито (Drain) при сбросе меньше литров
 	uint16_t DrainTime;					// Время слива воды, сек
+	float    WeightScale;				// Коэффициент калибровки весов
+	uint32_t WeightTare;				// Вес тары, сотые грамма
 
 } __attribute__((packed));
 

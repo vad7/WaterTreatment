@@ -49,6 +49,14 @@ int8_t set_Error(int8_t _err, char *nam)
 	return _err;
 }
 
+void Weight_Clear_Averaging(void)
+{
+	memset(&Weight_adc_filter, 0, sizeof(Weight_adc_filter));
+	Weight_adc_sum = 0;
+	Weight_adc_flagFull = false;
+	Weight_adc_last = 0;
+}
+
 void MainClass::init()
 {
 	uint8_t i;

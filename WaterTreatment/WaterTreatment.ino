@@ -444,6 +444,10 @@ void setup() {
 	//MC.scan_OneWire(Socket[0].outBuf);
 #endif
 
+	Weight.begin(HX711_DOUT_PIN, HX711_SCK_PIN);
+	Weight_Clear_Averaging();
+	journal.printf("* Scale inited, weight: %d\n", Weight.read());
+
 	// Создание задач FreeRTOS  ----------------------
 	journal.printf("* Create tasks FreeRTOS.\n");
 	MC.mRTOS=236;  //расчет памяти для задач 236 - размер данных шедуллера, каждая задача требует 64 байта+ стек (он в словах!!)
@@ -761,7 +765,7 @@ void vReadSensor(void *)
 			if((MC.RTC_store.Work & RTC_Work_NeedRegen_Mask) == 0 && MC.WorkStats.UsedSinceLastRegen > MC.Option.UsedBeforeRegen) MC.RTC_store.Work |= RTC_Work_NeedRegen_WaitIron;
 		}
 		//
-
+		Weight_NeedRead = true;
 		vReadSensor_delay8ms((cDELAY_DS1820 - (millis() - ttime)) / 8); 	// Ожидать время преобразования
 
 		if(OW_scan_flags == 0) {
@@ -850,6 +854,23 @@ void vReadSensor_delay8ms(int16_t ms8)
 {
 	do {
 		if(ms8) vTaskDelay(8);
+
+		if(Weight_NeedRead && Weight.is_ready()) {
+			Weight_NeedRead = false;
+			// Read HX711
+			int32_t adc_val = Weight.read();
+			// Усреднение значений
+			Weight_adc_sum = Weight_adc_sum + adc_val - Weight_adc_filter[Weight_adc_last];
+			Weight_adc_filter[Weight_adc_last] = adc_val;
+			if(Weight_adc_last < sizeof(Weight_adc_filter) / sizeof(Weight_adc_filter[0]) - 1) Weight_adc_last++;
+			else {
+				Weight_adc_last = 0;
+				Weight_adc_flagFull = true;
+			}
+			if(Weight_adc_flagFull) adc_val = Weight_adc_sum / (sizeof(Weight_adc_filter) / sizeof(Weight_adc_filter[0])); else adc_val = Weight_adc_sum / Weight_adc_last;
+			Weight_value = adc_val / MC.Option.WeightScale - MC.Option.WeightTare;
+		}
+
 #ifdef USE_UPS
 		MC.sInput[SPOWER].Read(true);
 		if(MC.sInput[SPOWER].is_alarm()) { // Электричество кончилось

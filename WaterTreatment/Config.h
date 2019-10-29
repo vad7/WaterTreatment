@@ -183,7 +183,12 @@ struct History_setup {
 	#define PIN_KEY_UP			32			// KEYS.2
 	#define PIN_KEY_DOWN		30			// KEYS.3
 	#define PIN_KEY_OK			12			// KEYS.4
-     
+
+	// Весы
+	#define HX711_DOUT_PIN		39			// ULN6
+	#define HX711_SCK_PIN		40			// ULN7
+	#define WEIGHT_AVERAGE_BUFFER 10
+
     // Контактные датчики (sInput[]------------------------------------------------------------------
     #define INUMBER             6   	// Число контактных датчиков цифровые входы
     // Имена индексов
