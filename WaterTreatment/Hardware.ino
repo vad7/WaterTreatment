@@ -385,6 +385,7 @@ int8_t sensorFrequency::Read()
 			count = 0;
 		}
 		//if(xTaskGetSchedulerState() == taskSCHEDULER_RUNNING) taskEXIT_CRITICAL();
+		sTime = tickCount;
 		//__asm__ volatile ("" ::: "memory");
 		uint32_t ticks = tickCount - sTime;
 		if(testMode != NORMAL) {    // В режиме теста
@@ -397,7 +398,6 @@ int8_t sensorFrequency::Read()
 			PassedRest += Value;
 			Passed = PassedRest / cnt;
 			PassedRest %= cnt;
-			return 0;
 		} else {
 			cnt *= 100;
 			PassedRest += cnt;
@@ -413,11 +413,10 @@ int8_t sensorFrequency::Read()
 			//   Value=60.0*Frequency/kfValue/1000.0;               // Frequency/kfValue  литры в минуту а нужны кубы
 			//       Value=((float)Frequency/1000.0)/((float)kfValue/360000.0);          // ЛИТРЫ В ЧАС (ИЛИ ТЫСЯЧНЫЕ КУБА) частота в тысячных, и коэффициент правим
 			Value = Frequency * 360 / kfValue; // ЛИТРЫ В ЧАС (ИЛИ ТЫСЯЧНЫЕ КУБА) частота в тысячных, и коэффициент правим
-			return 1;
 		}
-		sTime = tickCount;
-		return 0;
+		return 1;
 	}
+	return 0;
 }
 
 void sensorFrequency::reset(void)
@@ -535,11 +534,11 @@ int8_t devPWM::get_readState(uint8_t group)
 	for(int8_t i=0; i < PWM_NUM_READ; i++)   // делаем PWM_NUM_READ попыток чтения
 	{
 		if(group == 0) {
-			err = Modbus.readInputRegisters16(PWM_MODBUS_ADR, PWM_VOLTAGE, &Voltage);
-			if(err == OK) group = 1; else goto xErr;
+			err = Modbus.readInputRegisters32(PWM_MODBUS_ADR, PWM_POWER, &Power);
+			if(err == OK) /* group = 1 */; else goto xErr;
 		}
 		if(group == 1) {
-			err = Modbus.readInputRegisters32(PWM_MODBUS_ADR, PWM_POWER, &Power);
+			err = Modbus.readInputRegisters16(PWM_MODBUS_ADR, PWM_VOLTAGE, &Voltage);
 			if(err != OK) goto xErr;
 		}
 /*		else if(group == 2) {
@@ -561,7 +560,6 @@ xErr:
 		if(GETBIT(MC.Option.flags, fPWMLogErrors)) {
 			journal.jprintf(pP_TIME, "%s: Read #%d error %d, repeat...\n", name, group, err);      // Выводим сообщение о повторном чтении
 		}
-		WDT_Restart(WDT);          // Сбросить вачдог
 		_delay(PWM_DELAY_REPEAT);  // Чтение не удачно, делаем паузу
 	}
 	if(GETBIT(MC.Option.flags, fPWMLogErrors)) {
@@ -600,6 +598,11 @@ char* devPWM::get_param(char *var, char *ret)
 	} else if(strcmp(var, pwm_FREQ) == 0) {         // Частота
 		if(Modbus.readInputRegisters32(PWM_MODBUS_ADR, PWM_FREQ, &tmp) == OK) {
 			_ftoa(ret, (float) tmp / 10, 1);
+			return ret;
+		}
+	} else if(strcmp(var, pwm_ACENERGY) == 0) {
+		if(Modbus.readInputRegisters32(PWM_MODBUS_ADR, PWM_ENERGY, &tmp) == OK) {
+			_ftoa(ret, (float) tmp, 0);
 			return ret;
 		}
 	}

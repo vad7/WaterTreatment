@@ -675,14 +675,7 @@ xSaveStats:		if((i = MC.save_WorkStats()) == OK)
 		}
 		if(strncmp(str, "get_WL", 6) == 0) { // get water level
 			str += 6;
-			if(strcmp(str, "br") == 0) {	// get_WLbr
-
-
-				_itoa(9, strReturn);
-
-
-
-			} else if(strcmp(str, "1") == 0) {
+			if(strcmp(str, "1") == 0) {
 
 				strcat(strReturn, "1");
 
@@ -1759,6 +1752,42 @@ x_get_maxPress: 				_ftoa(strReturn,(float)MC.sADC[p].get_maxPress()/100.0,2);
 						continue;
 					}  // else end
 				} //if ((strstr(str,"Input")>0)
+
+				//  Весы
+				if(strcmp(str + 4, "Wgt") == 0) {
+					if(strncmp(str, "get_", 4) == 0) {
+xWgt_get:
+						if(strcmp(x, "L")==0) {       		// get_Wgt(L) - Level
+							_ftoa(strReturn, (float)Weight_Percent / 100.0f, 2);
+						} else if(strcmp(x, "W")==0) {      	// get_Wgt(W) - Weight
+							_ftoa(strReturn, Weight_value, 2);
+						} else if(strcmp(x, "T")==0) {      	// get_Wgt(T) - Tare
+							_ftoa(strReturn, (float)MC.Option.WeightTare / 10.0f, 1);
+						} else if(strcmp(x, "N")==0) {      	// get_Wgt(N) - full brine weight
+							_ftoa(strReturn, (float)MC.Option.WeightFull / 10.0f, 1);
+						} else if(strcmp(x, "A")==0) {      	// get_Wgt(A) - ADC value
+							_itoa(Weight_adc_filter[Weight_adc_idx ? Weight_adc_idx - 1 : sizeof(Weight_adc_filter) / sizeof(Weight_adc_filter[0]) - 1], strReturn);
+						} else if(strcmp(x, "K")==0) {      	// get_Wgt(K) - Coefficient
+							_ftoa(strReturn, MC.Option.WeightScale, 5);
+						} else if(strcmp(x, "P")==0) {      	// get_Wgt(P) - Pins
+							m_snprintf(strReturn + m_strlen(strReturn), 32, "D%d D%d", HX711_DOUT_PIN, HX711_SCK_PIN);
+						}
+						ADD_WEBDELIM(strReturn);
+						continue;
+					} else if(strncmp(str, "set_", 4) == 0) {
+						if(strcmp(x, "T")==0) {      	// set_Wgt(T=) - Tare
+							MC.Option.WeightTare = rd(pm, 10);
+						} else if(strcmp(x, "N")==0) {      	// set_Wgt(N=) - full brine weight
+							MC.Option.WeightFull = rd(pm, 10);
+						} else if(strcmp(x, "K")==0) {      	// set_Wgt(K=) - Coefficient
+							MC.Option.WeightScale = pm;
+						}
+						goto xWgt_get;
+					}
+					strcat(strReturn,"E08"); // выход за диапазон, значение не установлено
+					ADD_WEBDELIM(strReturn);
+					continue;
+				}
 
 			} // Массивы датчиков
 

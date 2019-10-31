@@ -415,6 +415,8 @@ const char *option_MinPumpOnTime		= {"MPOT"};
 const char *option_MinRegen				= {"MR"};
 const char *option_MinDrain				= {"MD"};
 const char *option_DrainTime			= {"DT"};
+const char *option_PWM_DryRun			= {"DR"};
+const char *option_PWM_Max				= {"PM"};
 
 // WorkStats, get_WS..., set_WS...(x)
 const char *webWS_UsedToday 					= { "UD" };

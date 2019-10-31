@@ -67,9 +67,10 @@ int8_t   Errors[10] = { 0,0,0,0,0,0,0,0,0,0 };// Active Errors array
 bool Weight_NeedRead = false;
 int32_t  Weight_adc_sum;                          	// сумма
 int32_t  Weight_adc_filter[WEIGHT_AVERAGE_BUFFER]; 	// массив накопленных значений
-uint16_t Weight_adc_last;  			                // текущий индекс
+uint16_t Weight_adc_idx;  			                // текущий индекс
 boolean  Weight_adc_flagFull;          			    // буфер полный
-float 	 Weight_value = 0;
+float 	 Weight_value = 0;							// десятые грамма
+uint16_t Weight_Percent = 0;						// %, сотые
 void Weight_Clear_Averaging(void);
 
 #define  bRTC_UsedToday		0
@@ -85,12 +86,13 @@ uint16_t task_updstat_chars = 0;
 #define fWebStoreOnSPIFlash 0				// флаг, что веб морда лежит на SPI Flash, иначе на SD карте
 #define fBeep               1               // флаг Использование звука
 #define fHistory            2               // флаг записи истории на карту памяти
-#define f1Wire2TSngl		3				// На 2-ой шине 1-Wire(DS2482) только один датчик
-#define f1Wire3TSngl		4				// На 3-ей шине 1-Wire(DS2482) только один датчик
-#define f1Wire4TSngl		5				// На 4-ей шине 1-Wire(DS2482) только один датчик
-#define fLogWirelessSensors 6				// Логировать обмен между беспроводными датчиками
-#define fPWMLogErrors  		7               // флаг писать в лог ошибки электросчетчика
-#define fDontRegenOnWeekend	8				// Не делать регенерацию в выходные
+#define f1Wire1TSngl		3				// На основной (1-ой) шине 1-Wire только один датчик
+#define f1Wire2TSngl		4				// На 2-ой шине 1-Wire(DS2482) только один датчик
+#define f1Wire3TSngl		5				// На 3-ей шине 1-Wire(DS2482) только один датчик
+#define f1Wire4TSngl		6				// На 4-ей шине 1-Wire(DS2482) только один датчик
+#define fLogWirelessSensors 7				// Логировать обмен между беспроводными датчиками
+#define fPWMLogErrors  		8               // флаг писать в лог ошибки электросчетчика
+#define fDontRegenOnWeekend	9				// Не делать регенерацию в выходные
  
 // Структура для хранения опций
 struct type_option {
@@ -104,9 +106,11 @@ struct type_option {
 	uint16_t MinRegenLiters;			// Тревога, если за регенерацию израсходовано меньше литров
 	uint16_t MinDrainLiters;			// Тревога, если слито (Drain) при сбросе меньше литров
 	uint16_t DrainTime;					// Время слива воды, сек
+	uint16_t PWM_DryRun;				// Мощность сухого хода, если ниже во время работы - то стоп, Вт
+	uint16_t PWM_Max;					// Максимальная мощность, если больше во время работы - то стоп, Вт
 	float    WeightScale;				// Коэффициент калибровки весов
-	uint32_t WeightTare;				// Вес тары, сотые грамма
-
+	uint32_t WeightTare;				// Вес тары, десятые грамма
+	uint32_t WeightFull;				// Полный вес жидкости без тары, десятые грамма
 } __attribute__((packed));
 
 //  Работа с отдельными флагами type_DateTime

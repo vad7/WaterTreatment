@@ -428,8 +428,10 @@ function loadParam(paramid, noretry, resultdiv) {
 											if(element2) element2.value = "0x" + Number(values[1]).toString(16).toUpperCase();
 										}
 									}
-								} else if(values[0] == "get_WLbr") {
-									var hgth = Number(values[1]) * 5; 
+								} else if(values[0] == "get_Wgt(L)") {
+									var elval = Number(values[1]);
+									if(elval > 100) elval = 105;
+									var hgth = Number(element.style["max-height"].replace("px", "")) * elval / 100;
 									var btm = Number(element.style["margin-top"].replace("px", "")) + Number(element.style.height.replace("px", "")) - hgth;
 									element.style = "margin-top:" + btm +"px;height:" + hgth + "px";
 								} else if(values[0] == "get_uptime") {

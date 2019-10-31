@@ -804,7 +804,7 @@ void vReadSensor(void *)
 	#endif
 			if(millis() - readPWM > PWM_READ_PERIOD) {
 				readPWM=millis();
-				MC.dPWM.get_readState(2);     // Последняя группа регистров
+				MC.dPWM.get_readState(1);     // Последняя группа регистров
 			}
 
 		MC.calculatePower();  // Расчет мощностей
@@ -860,15 +860,15 @@ void vReadSensor_delay8ms(int16_t ms8)
 			// Read HX711
 			int32_t adc_val = Weight.read();
 			// Усреднение значений
-			Weight_adc_sum = Weight_adc_sum + adc_val - Weight_adc_filter[Weight_adc_last];
-			Weight_adc_filter[Weight_adc_last] = adc_val;
-			if(Weight_adc_last < sizeof(Weight_adc_filter) / sizeof(Weight_adc_filter[0]) - 1) Weight_adc_last++;
+			Weight_adc_sum = Weight_adc_sum + adc_val - Weight_adc_filter[Weight_adc_idx];
+			Weight_adc_filter[Weight_adc_idx] = adc_val;
+			if(Weight_adc_idx < sizeof(Weight_adc_filter) / sizeof(Weight_adc_filter[0]) - 1) Weight_adc_idx++;
 			else {
-				Weight_adc_last = 0;
+				Weight_adc_idx = 0;
 				Weight_adc_flagFull = true;
 			}
-			if(Weight_adc_flagFull) adc_val = Weight_adc_sum / (sizeof(Weight_adc_filter) / sizeof(Weight_adc_filter[0])); else adc_val = Weight_adc_sum / Weight_adc_last;
-			Weight_value = adc_val / MC.Option.WeightScale - MC.Option.WeightTare;
+			if(Weight_adc_flagFull) adc_val = Weight_adc_sum / (sizeof(Weight_adc_filter) / sizeof(Weight_adc_filter[0])); else adc_val = Weight_adc_sum / Weight_adc_idx;
+			Weight_Percent = (Weight_value = adc_val / MC.Option.WeightScale - MC.Option.WeightTare) * 10000 / MC.Option.WeightFull;
 		}
 
 #ifdef USE_UPS

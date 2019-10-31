@@ -19,8 +19,11 @@ window.onload = function() {
 	loadParam("get_tblFlow");
 	loadParam("get_tblInput");
 	loadParam("get_listPress");
-	loadParam("get_PWM(NAME),get_PWM(NOTE)");
-	updateParam("get_PWM(V),get_PWM(I),get_PWM(P),get_PWM(K),get_PWM(F),get_PWM(ERR)");
+	loadParam("get_PWM(NAME),get_PWM(NOTE),get_Wgt(P)");
+	updateParam("get_PWM(V),get_PWM(P),get_PWM(ERR),get_Wgt(L),get_Wgt(W),get_Wgt(T),get_Wgt(N),get_Wgt(K)");
+	updateParam("get_PWM(K)");
+	updateParam("get_PWM(I)");
+	updateParam("get_PWM(E)");
 }
 function CalcAvgValue(sens) {
 	if(ClcAvgCnt > 0) return;
@@ -72,86 +75,55 @@ function loadParam_after(paramid) {
 </div>       
 
 <div class="row1">
-  <h2>Аналоговые датчики</h2>
-    <table>
-    <thead>
-    <tr>
-      <th>Имя</th>
-      <th>Описание</th>
-      <th>Значение</th>
-      <th>Минимум</th>
-      <th>Минимум<br>при регенерации</th>
-      <th>Максимум</th>
-      <th>"0" датчика</th>
-      <th>Коэффициент</th>
-      <th>Тест</th>
-      <th>Pin</th>
-      <th>ADC</th>
-      <th>Код ошибки</th>
-    </tr>
-    </thead>
-    <tbody id="get_listpress2"></tbody>
-  </table> 
-  <h3 style="">Калькулятор коэффициентов аналоговых датчиков <input style="float:right" type="submit" value="Расчёт коэффициентов"  onclick="toggletable('pcalc');"></h3>
-    <table id="pcalc" style="display:none;">
-    <thead>
-    <tr>
-      <th> </th>
-      <th>АЦП [отсчеты]</th>
-      <th>Манометрическое давление [бар]</th>
-      <th> </th>
-      <th>Результат вычислений</th>
-      <th>Установить для:</th>
-    </tr>
-    <tbody> 
-      <tr>
-        <td>Точка 1</td>
-        <td><input id="a1" type="number" min="0" max="4095" step="1" value="0"></td>
-        <td><input id="p1" type="number" min="0" max="100" step="0.01" value="0"></td>
-        <td rowspan="2"><input type="submit" value="Рассчитать коэффициенты"  onclick="calcacp();"></td>
-        <td>"0" датчика: <span id="k1"></span></td>
-        <td rowspan="2"><select id="get_listpress" onChange="setKanalog();"><option value="-" class="">--</option></select></td>
-      </tr>
-      <tr>
-        <td>Точка 2</td>
-        <td><input id="a2" type="number" min="0" max="4095" step="1" value="2500"></td>
-        <td><input id="p2" type="number" min="0" max="100" step="0.01" value="12"></td>
-        <td>Коэффициент: <span id="k2"></span></td>
-      </tr>     
-    </tbody>
-    </table>
+<h2>Аналоговые датчики</h2>
+	<table>
+	<thead><tr>
+		<th>Имя</th>
+		<th>Описание</th>
+		<th>Значение</th>
+		<th>Минимум</th>
+		<th>Минимум<br>при регенерации</th>
+		<th>Максимум</th>
+		<th>"0" датчика</th>
+		<th>Коэффициент</th>
+		<th>Тест</th>
+		<th>Pin</th>
+		<th>ADC</th>
+		<th>Код ошибки</th>
+	</tr></thead>
+	<tbody id="get_listpress2"></tbody>
+	</table> 
+<h3 style="">Калькулятор коэффициентов аналоговых датчиков <input style="float:right" type="submit" value="Расчёт коэффициентов"  onclick="toggletable('pcalc');"></h3>
+	<table id="pcalc" style="display:none;">
+	<thead><tr>
+	<th> </th>
+	<th>АЦП [отсчеты]</th>
+	<th>Манометрическое давление [бар]</th>
+	<th> </th>
+	<th>Результат вычислений</th>
+	<th>Установить для:</th>
+	</tr></thead>
+	<tbody> 
+	<tr>
+		<td>Точка 1</td>
+		<td><input id="a1" type="number" min="0" max="4095" step="1" value="0"></td>
+		<td><input id="p1" type="number" min="0" max="100" step="0.01" value="0"></td>
+		<td rowspan="2"><input type="submit" value="Рассчитать коэффициенты"  onclick="calcacp();"></td>
+		<td>"0" датчика: <span id="k1"></span></td>
+		<td rowspan="2"><select id="get_listpress" onChange="setKanalog();"><option value="-" class="">--</option></select></td>
+	</tr>
+	<tr>
+		<td>Точка 2</td>
+		<td><input id="a2" type="number" min="0" max="4095" step="1" value="2500"></td>
+		<td><input id="p2" type="number" min="0" max="100" step="0.01" value="12"></td>
+		<td>Коэффициент: <span id="k2"></span></td>
+	</tr>     
+	</tbody>
+	</table>
 </div>  
-  
-<div class="row1">
-  <h2>Электрический счётчик <span id="get_pwm-name"></span> Modbus <input type="submit" value="Программирование (3*)"  onclick='loadParam("settingSDM")'  style="float:right;"> <input type="submit" value="Восстановление связи (2*) "  onclick='loadParam("uplinkSDM")'  style="float:right;margin-right:10px;"> </h2>
-  <table>
-    <thead>
-    <tr>
-      <th>Напряжение (V)</th>
-      <th>Ток (А)</th>
-      <th>Мощность (W)</th>
-      <th>Коэффициент мощности (cos φ)</th>
-      <th>Частота (Hz)</th>
-      <th>Энергия (kWh)</th>
-      <th>Ошибок</th>
-      <th>Связь</th>
-    </tr>
-    <tr>
-        <td id="get_pwm-v"></td>
-        <td id="get_pwm-i"></td>
-        <td id="get_pwm-p"></td>
-        <td id="get_pwm-k"></td>
-        <td id="get_pwm-f"></td>
-        <td id="get_pwm-e"></td>
-        <td id="get_pwm-err"></td>
-        <td id="get_pwm-link"></td>
-      </tr>
-    </thead>
-  </table>
-</div>    
 
 <div class="row1">
-  <h2>Датчики сухой контакт</h2>
+<h2>Датчики сухой контакт</h2>
   <table>
     <thead>
     <tr>
@@ -169,6 +141,54 @@ function loadParam_after(paramid) {
     </tbody>
   </table>            
 </div>
+
+<div class="row1">
+<h2>Весы емкости раствора для дозатора</h2>
+	<table>
+	<thead><tr>
+		<th>Уровень, %</th>
+		<th>Вес, г</th>
+		<th>АЦП HX711</th>
+		<th>Вес тары, г</th>
+		<th>Полный вес раствора, г</th>
+		<th>Коэффициент</th>
+		<th>Пины DOUT,SCK</th>
+	</tr></thead>
+	<tbody><tr>
+		<td id="get_wgt_l"></td><td id="get_wgt_w"></td><td id="get_wgt_a"></td>
+		<td nowrap=""><input id="get_wgt_t" type="number" step="0.1"><input type="submit" value=">" onclick="setParam('get_Wgt(T)');"></td>
+		<td nowrap=""><input id="get_wgt_n" type="number" step="0.1"><input type="submit" value=">" onclick="setParam('get_Wgt(N)');"></td>
+		<td nowrap=""><input id="get_wgt_k" type="number"><input type="submit" value=">" onclick="setParam('get_Wgt(K)');"></td>
+		<td id="get_wgt_p"></td>
+	</tr></tbody>
+	</table>            
+</div>
+
+<div class="row1">
+  <h2>Электрический счётчик <span id="get_pwm-name"></span> Modbus <input type="submit" value="Программирование (3*)"  onclick='loadParam("settingSDM")'  style="float:right;"> <input type="submit" value="Восстановление связи (2*) "  onclick='loadParam("uplinkSDM")'  style="float:right;margin-right:10px;"> </h2>
+  <table>
+    <thead>
+    <tr>
+      <th>Напряжение (V)</th>
+      <th>Ток (А)</th>
+      <th>Мощность (W)</th>
+      <th>Коэффициент мощности (cos φ)</th>
+      <th>Энергия (kWh)</th>
+      <th>Ошибок</th>
+      <th>Связь</th>
+    </tr>
+    <tr>
+        <td id="get_pwm-v"></td>
+        <td id="get_pwm-i"></td>
+        <td id="get_pwm-p"></td>
+        <td id="get_pwm-k"></td>
+        <td id="get_pwm-e"></td>
+        <td id="get_pwm-err"></td>
+        <td id="get_pwm-link"></td>
+      </tr>
+    </thead>
+  </table>
+</div>    
 
 <div class="row1">
 1. Включение контроля минимального протока<br/>

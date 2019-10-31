@@ -511,11 +511,8 @@ int16_t x;
            }
        
        strcpy(tempBuf,"\n  6. Электросчетчик"); strcat(tempBuf,cStrEnd);  client.write(tempBuf,strlen(tempBuf));
-           strcpy(tempBuf,"Текущее входное напряжение [В]: ");                          MC.dPWM.get_param((char*)pwm_VOLTAGE,tempBuf);strcat(tempBuf,cStrEnd);  client.write(tempBuf,strlen(tempBuf));
-           strcpy(tempBuf,"Текущий потребляемый ток [А]: ");                         MC.dPWM.get_param((char*)pwm_CURRENT,tempBuf);strcat(tempBuf,cStrEnd);  client.write(tempBuf,strlen(tempBuf));
-           strcpy(tempBuf,"Текущая потребляемая суммараная мощность [Вт]: ");        MC.dPWM.get_param((char*)pwm_POWER,tempBuf); strcat(tempBuf,cStrEnd);  client.write(tempBuf,strlen(tempBuf));
-           strcpy(tempBuf,"Коэффициент мощности: ");                                    MC.dPWM.get_param((char*)pwm_PFACTOR,tempBuf);strcat(tempBuf,cStrEnd);  client.write(tempBuf,strlen(tempBuf));
-           strcpy(tempBuf,"Суммараная активная энергия [кВт*ч]: ");                     MC.dPWM.get_param((char*)pwm_ACENERGY,tempBuf); strcat(tempBuf,cStrEnd);  client.write(tempBuf,strlen(tempBuf));
+           strcpy(tempBuf,"Текущее входное напряжение [В]: ");            MC.dPWM.get_param((char*)pwm_VOLTAGE,tempBuf);strcat(tempBuf,cStrEnd);  client.write(tempBuf,strlen(tempBuf));
+           strcpy(tempBuf,"Текущая потребляемая мощность [Вт]: ");        MC.dPWM.get_param((char*)pwm_POWER,tempBuf); strcat(tempBuf,cStrEnd);  client.write(tempBuf,strlen(tempBuf));
 
         strcpy(tempBuf,"\n  7. Частотные датчики потока");
         strcat(tempBuf,cStrEnd);  client.write(tempBuf,strlen(tempBuf)); 
