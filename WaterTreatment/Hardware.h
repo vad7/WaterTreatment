@@ -300,7 +300,7 @@ class devPWM
       byte flags;                                      // флаги  0 - наличие счетчика,
       
       uint16_t Voltage;                                 // 0.1V
-      uint32_t Power;                                   // 0.1W
+      uint32_t Power;                                   // Моментальная мощность, 0.1W
 
       char *note;                                      // Описание
       char *name;                                      // Имя

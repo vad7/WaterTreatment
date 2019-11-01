@@ -417,6 +417,7 @@ const char *option_MinDrain				= {"MD"};
 const char *option_DrainTime			= {"DT"};
 const char *option_PWM_DryRun			= {"DR"};
 const char *option_PWM_Max				= {"PM"};
+const char *option_PWM_StartingTime		= {"PST"};
 
 // WorkStats, get_WS..., set_WS...(x)
 const char *webWS_UsedToday 					= { "UD" };
@@ -493,8 +494,10 @@ const char *webWS_UsedLastRegenSoftening  		= { "RSL" };
 #define ERR_FEW_LITERS_REG	-51			// Мало израсходовано воды при регенерации
 #define ERR_FEW_LITERS_DRAIN -52		// Мало израсходовано воды при сбросе воды
 #define ERR_RTC_LOW_BATTERY -53			// Села батарея часов
+#define ERR_PWM_DRY_RUN		-54			// Сухой ход двигателя насоса
+#define ERR_PWM_MAX			-55			// Перегрузка двигателя насоса
 
-#define ERR_ERRMAX			-53 	   // Последняя ошибка
+#define ERR_ERRMAX			-55 	   // Последняя ошибка
 
 // Предупреждения
 #define WARNING_VALUE        1         // Попытка установить значение за границами диапазона запрос типа SET
@@ -554,6 +557,8 @@ const char *noteError[] = {"Ok",                                                
 						   "Мало израсходовано воды при регенерации",											//-51
 						   "Мало израсходовано воды при сбросе воды",											//-52
 						   "Села батарея часов",																//-53
+						   "Суход ход двигателя насоса",														//-54
+						   "Перегрузка двигателя насоса",														//-55
                            
                            "NULL"
                            };

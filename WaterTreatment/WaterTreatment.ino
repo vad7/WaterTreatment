@@ -117,9 +117,9 @@ struct type_socketData
   };
 static type_socketData Socket[W5200_THREAD];   // Требует много памяти 4*W5200_MAX_LEN*W5200_THREAD=24 кб
 
-// Установка вачдога таймера вариант vad711 - адаптация для DUE 1.6.11
+// Установка вачдога таймера вариант vad711 - адаптация для DUE 1.6.11+
 // WDT_TIME период Watchdog таймера секунды но не более 16 секунд!!! ЕСЛИ WDT_TIME=0 то Watchdog будет отключен!!!
-volatile unsigned long ulHighFrequencyTimerTicks;   // vad711 - адаптация для DUE 1.6.11
+volatile unsigned long ulHighFrequencyTimerTicks;   // vad711 - адаптация для DUE 1.6.11+
 void watchdogSetup(void)
 {
 #if WDT_TIME == 0
@@ -742,7 +742,7 @@ void vReadSensor(void *)
 	#ifdef USE_UPS
 		if(!MC.NO_Power)
 	#endif
-			MC.dPWM.get_readState(0); // Основная группа регистров
+			MC.dPWM.get_readState(0); // Основная группа регистров, включая мощность
 		// read in vPumps():
 		//for(i = 0; i < INUMBER; i++) MC.sInput[i].Read();                // Прочитать данные сухой контакт
 		for(i = 0; i < FNUMBER; i++) MC.sFrequency[i].Read();			// Получить значения датчиков потока
@@ -906,6 +906,9 @@ void vPumps( void * )
 		if(WaterBoosterStatus != 0) {
 			Stats_WaterBooster_work += TIME_SLICE_PUMPS;
 			History_WaterBooster_work += TIME_SLICE_PUMPS;
+			WaterBoosterWorkingTime += TIME_SLICE_PUMPS;
+		} else {
+			WaterBoosterWorkingTime = 0;
 		}
 		// read sensors
 		for(uint8_t i = 0; i < INUMBER; i++) MC.sInput[i].Read(true);		// Прочитать данные сухой контакт
@@ -925,29 +928,41 @@ void vPumps( void * )
 		} else if(!WaterBoosterStatus && press <= (MC.sInput[REG_ACTIVE].get_Input() || MC.sInput[BACKWASH_ACTIVE].get_Input() || MC.sInput[REG_SOFTENING_ACTIVE].get_Input() ? MC.sADC[PWATER].get_minPressReg() : MC.sADC[PWATER].get_minPress())) { // Starting
 			MC.dRelay[RBOOSTER1].set_ON();
 			WaterBoosterStatus = 1;
-		} else if(WaterBoosterStatus > 0 && (press >= MC.sADC[PWATER].get_maxPress() || MC.sInput[TANK_EMPTY].get_Input())) { // Stopping
-			if(WaterBoosterStatus == 1) {
-				MC.dRelay[RBOOSTER1].set_OFF();
-				WaterBoosterStatus = 0;
+		} else if(WaterBoosterStatus > 0) {
+			if(WaterBoosterWorkingTime > MC.Option.PWM_StartingTime) {
+				if(MC.Option.PWM_DryRun && MC.dPWM.get_Power() < MC.Option.PWM_DryRun) { // Сухой ход
+					set_Error(ERR_PWM_DRY_RUN, (char*) __FUNCTION__);
+					goto xWaterBooster_OFF;
+				} else if(MC.Option.PWM_Max && MC.dPWM.get_Power() > MC.Option.PWM_Max) { // Перегрузка
+					set_Error(ERR_PWM_MAX, (char*) __FUNCTION__);
+					goto xWaterBooster_OFF;
+				}
+			}
+			if(press >= MC.sADC[PWATER].get_maxPress() || MC.sInput[TANK_EMPTY].get_Input()) { // Stopping
+xWaterBooster_OFF:
+				if(WaterBoosterStatus == 1) {
+					MC.dRelay[RBOOSTER1].set_OFF();
+					WaterBoosterStatus = 0;
+				} else if(WaterBoosterStatus == 2) {
+					MC.dRelay[RBOOSTER2].set_OFF();
+					WaterBoosterStatus = -1;
+				} else { // Off full cycle
+					MC.dRelay[RBOOSTER1].set_ON();
+					WaterBoosterStatus = -2;
+				}
+			} else if(WaterBoosterStatus == 1) {
+				MC.dRelay[RBOOSTER2].set_ON();
+				WaterBoosterStatus = 2;
 			} else if(WaterBoosterStatus == 2) {
+				MC.dRelay[RBOOSTER1].set_OFF();
+				WaterBoosterStatus = 3;
+			} else if(WaterBoosterStatus == -2) { // Start all off
 				MC.dRelay[RBOOSTER2].set_OFF();
 				WaterBoosterStatus = -1;
-			} else { // Off full cycle
-				MC.dRelay[RBOOSTER1].set_ON();
-				WaterBoosterStatus = -2;
+			} else if(WaterBoosterStatus == -1) {
+				MC.dRelay[RBOOSTER1].set_OFF();
+				WaterBoosterStatus = 0;
 			}
-		} else if(WaterBoosterStatus == 1) {
-			MC.dRelay[RBOOSTER2].set_ON();
-			WaterBoosterStatus = 2;
-		} else if(WaterBoosterStatus == 2) {
-			MC.dRelay[RBOOSTER1].set_OFF();
-			WaterBoosterStatus = 3;
-		} else if(WaterBoosterStatus == -2) { // Start all off
-			MC.dRelay[RBOOSTER2].set_OFF();
-			WaterBoosterStatus = -1;
-		} else if(WaterBoosterStatus == -1) {
-			MC.dRelay[RBOOSTER1].set_OFF();
-			WaterBoosterStatus = 0;
 		}
 		if(MC.dRelay[RFEEDPUMP].get_Relay()) {
 			taskENTER_CRITICAL();
