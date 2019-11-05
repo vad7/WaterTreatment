@@ -253,7 +253,7 @@ void  sensorDiditalInput::initInput(int sensor)
    number = sensor;
    testInput=TESTINPUT[sensor];    // Состояние датчика в режиме теста
    testMode=NORMAL;                // Значение режима тестирования
-   alarmInput=LEVELINPUT[sensor];  // Состояние датчика в режиме аварии
+   InputLevel=LEVELINPUT[sensor];  // Состояние датчика в режиме аварии
    err=OK;                         // ошибка датчика (работа)
    flags=0x00;                     // сброс флагов
    // флаги  0 - наличие датчика,  1- режим теста
@@ -273,15 +273,17 @@ int8_t sensorDiditalInput::Read(boolean fast)
 	err = OK;                                            // Ошибки сбросить
 	if(testMode != NORMAL) Input = testInput;            // В режиме теста
 	else {
-		boolean in = digitalReadDirect(pin) == alarmInput;
-		if(!fast && in != Input) {
-			uint8_t i;
-			for(i = 0; i < 2; i++) {
-				_delay(1);
-				if(in != digitalReadDirect(pin)) break;
+		boolean in = digitalReadDirect(pin) == InputLevel;
+		if(!fast) {
+			if(in != Input) {
+				uint8_t i;
+				for(i = 0; i < 2; i++) {
+					_delay(1);
+					if(in != (digitalReadDirect(pin) == InputLevel)) break;
+				}
+				if(i == 2) Input = in;
 			}
-			if(i == 2) Input = in;
-		}
+		} else Input = in;
 	}
 	if(type == pALARM && Input)     // Срабатывание аварийного датчика
 	{
@@ -302,8 +304,8 @@ int8_t sensorDiditalInput::set_testInput( int16_t i)
 // Установить Состояние датчика в режиме аварии
 int8_t sensorDiditalInput::set_alarmInput( int16_t i)         
 {
-  if(i==1)  { alarmInput=true; return OK;} 
-    else  if(i==0)  { alarmInput=false; return OK;} 
+  if(i==1)  { InputLevel=true; return OK;} 
+    else  if(i==0)  { InputLevel=false; return OK;} 
      else return WARNING_VALUE;
 }
 
@@ -585,6 +587,9 @@ char* devPWM::get_param(char *var, char *ret)
 	} else if(strcmp(var, pwm_POWER) == 0) {      // мощность
 		_ftoa(ret, (float) Power / 10, 1);
 		return ret;
+	} else if(strcmp(var, pwm_TestPower) == 0) {
+		_ftoa(ret, (float) TestPower / 10, 1);
+		return ret;
 	} else if(strcmp(var, pwm_CURRENT) == 0) {       // Ток
 		if(Modbus.readInputRegisters32(PWM_MODBUS_ADR, PWM_CURRENT, &tmp) == OK) {
 			_ftoa(ret, (float) tmp / 1000, 3);
@@ -610,12 +615,15 @@ char* devPWM::get_param(char *var, char *ret)
 }
 
 // Установить параметр счетчика в виде строки
-boolean devPWM::set_param(char *var, char *)
+boolean devPWM::set_param(char *var, float f)
 {
    if(strcmp(var, pwm_RESET) == 0) {
-
 	   // to do...
 
+	   journal.jprintf("PWM energy reseted!\n");
+	   return true;
+   } else if(strcmp(var, pwm_TestPower) == 0) {
+	   TestPower = rd(f, 10);
 	   return true;
    }
    return false;
@@ -719,7 +727,7 @@ int8_t devModbus::readInputRegisters16(uint8_t id, uint16_t cmd, uint16_t *ret)
 	return err;
 }
 
-// LITTLE-ENDIAN!
+// LITTLE-ENDIAN! 0x04
 int8_t devModbus::readInputRegisters32(uint8_t id, uint16_t cmd, uint32_t *ret)
 {
 	// Если шедулер запущен то захватываем семафор

@@ -138,20 +138,20 @@ public:
   boolean get_testInput(){return testInput;}             // Получить Состояние датчика в режиме теста
   int8_t  set_testInput(int16_t i);                      // Установить Состояние датчика в режиме теста
   void    set_testMode(TEST_MODE t){testMode=t;}       // Установить значение текущий режим работы
-  boolean get_alarmInput(){return alarmInput;}           // Состояние аварии датчика
-  boolean is_alarm() { return Input == alarmInput; }	// Датчик сработал?
+  boolean get_alarmInput(){return InputLevel;}           // Состояние аварии датчика
+  boolean is_alarm() { return Input == InputLevel; }	// Датчик сработал?
   int8_t  set_alarmInput(int16_t i);                     // Установить Состояние аварии датчика
   inline int8_t  get_pinD(){return pin;}                 // Получить ногу куда прицеплен датчик
   TYPE_SENSOR get_typeInput(){return type;}              // Получить тип датчика
   uint8_t *get_save_addr(void) { return (uint8_t *)&number; } // Адрес структуры сохранения
-  uint16_t get_save_size(void) { return (byte*)&alarmInput - (byte*)&number + sizeof(alarmInput); } // Размер структуры сохранения
+  uint16_t get_save_size(void) { return (byte*)&InputLevel - (byte*)&number + sizeof(InputLevel); } // Размер структуры сохранения
     
 private:
    boolean Input;                                        // Состояние датчика
    struct { // Save GROUP, firth number
    uint8_t number;										 // номер
    boolean testInput;                                    // !save! Состояние датчика в режиме теста
-   boolean alarmInput;                                   // !save! Состояние датчика в режиме аварии
+   boolean InputLevel;                                   // !save! Состояние сработавшего датчика
    } __attribute__((packed));// Save Group end, last alarmInput
    TYPE_SENSOR type;                                     // Тип датчика
    int8_t err;                                           // ошибка датчика (работа)
@@ -260,7 +260,7 @@ const char *notePWM = {"Электрический счетчик"};       // О
 #define fPWM           0              // флаг наличие счетчика
 #define fPWMLink       1              //  флаг связь установлена
 
-// PZEM-004T (Modbus UART)
+// PZEM-004T Modbus (UART)
 // Read Input register, Function code 04:
 #define PWM_VOLTAGE          0x0000			// int16, 0.1V
 #define PWM_CURRENT          0x0001			// int32, 0.001A
@@ -289,7 +289,7 @@ class devPWM
       uint16_t get_Voltage(){ return Voltage; }
 
       char* get_param(char *var, char *ret);           // Получить параметр PWM в виде строки
-      boolean set_param(char *var, char *c);
+      boolean set_param(char *var, float f);
       
        // Графики из счетчика
       statChart ChartVoltage;                          // Статистика по напряжению
@@ -299,8 +299,9 @@ class devPWM
       uint16_t numErr;                                 // число ошибок чтение по модбасу
       byte flags;                                      // флаги  0 - наличие счетчика,
       
-      uint16_t Voltage;                                 // 0.1V
-      uint32_t Power;                                   // Моментальная мощность, 0.1W
+      uint16_t Voltage;                                // 0.1V
+      uint32_t Power;                                  // Моментальная мощность, 0.1W
+      uint32_t TestPower;
 
       char *note;                                      // Описание
       char *name;                                      // Имя

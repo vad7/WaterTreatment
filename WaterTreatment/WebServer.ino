@@ -1112,7 +1112,7 @@ xSaveStats:		if((i = MC.save_WorkStats()) == OK)
 				MC.dPWM.get_param(x, strReturn);
 				ADD_WEBDELIM(strReturn); continue;
 			} else if(strcmp(str, "set_PWM") == 0) {          // Функция записать настройки счетчика
-				if(MC.dPWM.set_param(x, z)) MC.dPWM.get_param(x, strReturn); // преобразование удачно
+				if(MC.dPWM.set_param(x, pm)) MC.dPWM.get_param(x, strReturn); // преобразование удачно
 				else strcat(strReturn, "E31");            // ошибка преобразования строки
 				ADD_WEBDELIM(strReturn); continue;
 			}

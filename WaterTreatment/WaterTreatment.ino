@@ -956,13 +956,13 @@ xWaterBooster_OFF:
 			} else if(WaterBoosterStatus == 2) {
 				MC.dRelay[RBOOSTER1].set_OFF();
 				WaterBoosterStatus = 3;
-			} else if(WaterBoosterStatus == -2) { // Start all off
-				MC.dRelay[RBOOSTER2].set_OFF();
-				WaterBoosterStatus = -1;
-			} else if(WaterBoosterStatus == -1) {
-				MC.dRelay[RBOOSTER1].set_OFF();
-				WaterBoosterStatus = 0;
 			}
+		} else if(WaterBoosterStatus == -2) { // Start all off
+			MC.dRelay[RBOOSTER2].set_OFF();
+			WaterBoosterStatus = -1;
+		} else if(WaterBoosterStatus == -1) {
+			MC.dRelay[RBOOSTER1].set_OFF();
+			WaterBoosterStatus = 0;
 		}
 		if(MC.dRelay[RFEEDPUMP].get_Relay()) {
 			taskENTER_CRITICAL();

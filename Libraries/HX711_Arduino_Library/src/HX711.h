@@ -16,6 +16,8 @@
 #include "WProgram.h"
 #endif
 
+#define HX711_WAIT_TIMEOUT	500 // ms
+
 class HX711
 {
 	private:
@@ -44,9 +46,9 @@ class HX711
 		bool is_ready();
 
 		// Wait for the HX711 to become ready
-		void wait_ready(unsigned long delay_ms = 0);
-		bool wait_ready_retry(int retries = 3, unsigned long delay_ms = 0);
-		bool wait_ready_timeout(unsigned long timeout = 1000, unsigned long delay_ms = 0);
+		void wait_ready(unsigned long delay_ms = 1); // blocking!
+		bool wait_ready_retry(int retries = 3, unsigned long delay_ms = 1);
+		bool wait_ready_timeout(unsigned long timeout = HX711_WAIT_TIMEOUT, unsigned long delay_ms = 1);
 
 		// set the gain factor; takes effect only after a call to read()
 		// channel A can be set for a 128 or 64 gain; channel B has a fixed 32 gain
@@ -60,7 +62,7 @@ class HX711
 		long read_average(byte times = 10);
 
 		// returns (read_average() - OFFSET), that is the current value without the tare weight; times = how many readings to do
-		double get_value(byte times = 1);
+		long get_value(byte times = 1);
 
 		// returns get_value() divided by SCALE, that is the raw value divided by a value obtained via calibration
 		// times = how many readings to do

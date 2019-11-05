@@ -324,7 +324,7 @@ function loadParam(paramid, noretry, resultdiv) {
 												content = content + '<td>' + count[j] + '</td>';
 												content = content + '<td id="get_nflow-' + input + '">-</td>';
 												content = content + '<td nowrap><span id="get_flow-' + input + '">-</span> <input id="ClcFlow' + input + '" type="submit" value="*" onclick="CalcAvgValue(\''+ input + '\')"></td>';
-												content = content + '<td nowrap><input id="get_checkflow-' + input + '" type="checkbox" onChange="setParam(\'get_checkFlow(' + count[j] + ')\');"><input id="get_minflow-' + input + '" type="number" max="25.5" step="0.1"><input type="submit" value=">" onclick="setParam(\'get_minFlow(' + count[j] + ')\');"></td>';
+												//content = content + '<td nowrap><input id="get_checkflow-' + input + '" type="checkbox" onChange="setParam(\'get_checkFlow(' + count[j] + ')\');"><input id="get_minflow-' + input + '" type="number" max="25.5" step="0.1"><input type="submit" value=">" onclick="setParam(\'get_minFlow(' + count[j] + ')\');"></td>';
 												content = content + '<td nowrap><input id="get_kfflow-' + input + '" type="number" step="0.01" style="max-width:70px;" value=""><input type="submit" value=">"  onclick="setParam(\'get_kfFlow(' + count[j] + ')\');"></td>';
 												content = content + '<td id="get_frflow-' + input + '">-</td>';
 												content = content + '<td nowrap><input id="get_testflow-' + input + '" type="number" step="0.001" value=""><input type="submit" value=">"  onclick="setParam(\'get_testFlow(' + count[j] + ')\');"></td>';

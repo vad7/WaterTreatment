@@ -61,7 +61,6 @@ function loadParam_after(paramid) {
 		<th>Имя</th>
 		<th>Описание</th>
 		<th>Значение</th>
-		<th>Минимум<sup>1</sup></th>
 		<th>Коэфф, имп*л</th>
 		<th>Частота</th>
 		<th>Тест</th>
@@ -155,17 +154,17 @@ function loadParam_after(paramid) {
 		<th>Пины DOUT,SCK</th>
 	</tr></thead>
 	<tbody><tr>
-		<td id="get_wgt_l"></td><td id="get_wgt_w"></td><td id="get_wgt_a"></td>
-		<td nowrap=""><input id="get_wgt_t" type="number" step="0.1"><input type="submit" value=">" onclick="setParam('get_Wgt(T)');"></td>
-		<td nowrap=""><input id="get_wgt_n" type="number" step="0.1"><input type="submit" value=">" onclick="setParam('get_Wgt(N)');"></td>
-		<td nowrap=""><input id="get_wgt_k" type="number"><input type="submit" value=">" onclick="setParam('get_Wgt(K)');"></td>
-		<td id="get_wgt_p"></td>
+		<td id="get_wgt-l"></td><td id="get_wgt-w"></td><td id="get_wgt-a"></td>
+		<td nowrap=""><input id="get_wgt-t" type="number" step="0.1"><input type="submit" value=">" onclick="setParam('get_Wgt(T)');"></td>
+		<td nowrap=""><input id="get_wgt-n" type="number" step="0.1"><input type="submit" value=">" onclick="setParam('get_Wgt(N)');"></td>
+		<td nowrap=""><input id="get_wgt-k" type="number"><input type="submit" value=">" onclick="setParam('get_Wgt(K)');"></td>
+		<td id="get_wgt-p"></td>
 	</tr></tbody>
 	</table>            
 </div>
 
 <div class="row1">
-  <h2>Электрический счётчик <span id="get_pwm-name"></span> Modbus <input type="submit" value="Программирование (3*)"  onclick='loadParam("settingSDM")'  style="float:right;"> <input type="submit" value="Восстановление связи (2*) "  onclick='loadParam("uplinkSDM")'  style="float:right;margin-right:10px;"> </h2>
+  <h2>Электрический счётчик <span id="get_pwm-name"></span> Modbus <input type="submit" value="Сброс"  onclick='if(confirm("Сбросить накопленную энергию?")) setParam("set_PWM(RESET=1)");' style="float:right;"></h2>
   <table>
     <thead>
     <tr>
@@ -175,7 +174,6 @@ function loadParam_after(paramid) {
       <th>Коэффициент мощности (cos φ)</th>
       <th>Энергия (kWh)</th>
       <th>Ошибок</th>
-      <th>Связь</th>
     </tr>
     <tr>
         <td id="get_pwm-v"></td>
@@ -184,17 +182,10 @@ function loadParam_after(paramid) {
         <td id="get_pwm-k"></td>
         <td id="get_pwm-e"></td>
         <td id="get_pwm-err"></td>
-        <td id="get_pwm-link"></td>
       </tr>
     </thead>
   </table>
 </div>    
-
-<div class="row1">
-1. Включение контроля минимального протока<br/>
-2. При нажатии кнопки флаг сбоя связи сбрасывается и делается попытка прочитать данные со счетчика.<br/>
-3. Производится установка параметров связи счетчика под требуемые. Перед нажатием необходимо перевести счетчик в режим программирования (долгое нажате на кнопку, надпись  Set на экране). После этой операции счетчик надо сбросить (выключить питание).<br/>
-</div>
 </div>
 </body>
 </html>

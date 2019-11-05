@@ -762,9 +762,9 @@ char* MainClass::get_option(char *var, char *ret)
    if(strcmp(var,option_PWM_Max)==0){ return _itoa(Option.PWM_Max, ret); } else
    if(strcmp(var,option_PWM_StartingTime)==0){ return _itoa(Option.PWM_StartingTime, ret); } else
    if(strncmp(var,option_SGL1W, sizeof(option_SGL1W)-1)==0) {
-	   uint8_t bit = var[sizeof(option_SGL1W)-1] - '0' - 2;
+	   uint8_t bit = var[sizeof(option_SGL1W)-1] - '0' - 1;
 	   if(bit <= 2) {
-		   return strcat(ret,(char*)(GETBIT(Option.flags, f1Wire2TSngl + bit) ? cOne : cZero));
+		   return strcat(ret,(char*)(GETBIT(Option.flags, f1Wire1TSngl + bit) ? cOne : cZero));
 	   }
    }
    return  strcat(ret,(char*)cInvalid);                

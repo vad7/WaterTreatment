@@ -10,6 +10,8 @@
 #include <Arduino.h>
 #include <HX711.h>
 
+#define FREE_RTOS_AVAILABLE
+
 // TEENSYDUINO has a port of Dean Camera's ATOMIC_BLOCK macros for AVR to ARM Cortex M3.
 #define HAS_ATOMIC_BLOCK (defined(ARDUINO_ARCH_AVR) || defined(TEENSYDUINO))
 
@@ -17,7 +19,12 @@
 #define ARCH_ESPRESSIF (defined(ARDUINO_ARCH_ESP8266) || defined(ARDUINO_ARCH_ESP32))
 
 // Whether we are actually running on FreeRTOS.
-#define IS_FREE_RTOS (defined(ARDUINO_ARCH_ESP32) || defined(FREE_RTOS_ARM_VERSION))
+#define IS_FREE_RTOS defined(ARDUINO_ARCH_ESP32)
+#define IS_FREE_RTOS_8 //[vad7]
+#ifdef IS_FREE_RTOS_8
+#include "FreeRTOS_ARM.h"
+#define RTOS_delay(ms) { if(xTaskGetSchedulerState() == taskSCHEDULER_RUNNING) vTaskDelay(ms/portTICK_PERIOD_MS); else delay(ms); }
+#endif
 
 // Define macro designating whether we're running on a reasonable
 // fast CPU and so should slow down sampling from GPIO.
@@ -102,7 +109,7 @@ void HX711::set_gain(byte gain) {
 long HX711::read() {
 
 	// Wait for the chip to become ready.
-	wait_ready();
+	wait_ready_timeout();
 
 	// Define structures for reading data into.
 	unsigned long value = 0;
@@ -133,7 +140,8 @@ long HX711::read() {
 	// context switches and servicing of ISRs during a critical section.
 	portMUX_TYPE mux = portMUX_INITIALIZER_UNLOCKED;
 	portENTER_CRITICAL(&mux);
-
+	#elif defined(IS_FREE_RTOS_8) //[vad7]
+	if(xTaskGetSchedulerState() == taskSCHEDULER_RUNNING) portENTER_CRITICAL(); else noInterrupts();
 	#else
 	// Disable interrupts.
 	noInterrupts();
@@ -159,7 +167,8 @@ long HX711::read() {
 	#if IS_FREE_RTOS
 	// End of critical section.
 	portEXIT_CRITICAL(&mux);
-
+	#elif defined(IS_FREE_RTOS_8) //[vad7]
+	if(xTaskGetSchedulerState() == taskSCHEDULER_RUNNING) portEXIT_CRITICAL(); else interrupts();
 	#elif HAS_ATOMIC_BLOCK
 	}
 
@@ -191,7 +200,11 @@ void HX711::wait_ready(unsigned long delay_ms) {
 	while (!is_ready()) {
 		// Probably will do no harm on AVR but will feed the Watchdog Timer (WDT) on ESP.
 		// https://github.com/bogde/HX711/issues/73
+#if defined(IS_FREE_RTOS_8) //[vad7]
+		RTOS_delay(delay_ms);
+#else
 		delay(delay_ms);
+#endif
 	}
 }
 
@@ -204,7 +217,11 @@ bool HX711::wait_ready_retry(int retries, unsigned long delay_ms) {
 		if (is_ready()) {
 			return true;
 		}
+#if defined(IS_FREE_RTOS_8) //[vad7]
+		RTOS_delay(delay_ms);
+#else
 		delay(delay_ms);
+#endif
 		count++;
 	}
 	return false;
@@ -218,7 +235,11 @@ bool HX711::wait_ready_timeout(unsigned long timeout, unsigned long delay_ms) {
 		if (is_ready()) {
 			return true;
 		}
+#if defined(IS_FREE_RTOS_8) //[vad7]
+		RTOS_delay(delay_ms);
+#else
 		delay(delay_ms);
+#endif
 	}
 	return false;
 }
@@ -229,12 +250,16 @@ long HX711::read_average(byte times) {
 		sum += read();
 		// Probably will do no harm on AVR but will feed the Watchdog Timer (WDT) on ESP.
 		// https://github.com/bogde/HX711/issues/73
+#if defined(IS_FREE_RTOS_8) //[vad7]
+		RTOS_delay(1);
+#else
 		delay(0);
+#endif
 	}
 	return sum / times;
 }
 
-double HX711::get_value(byte times) {
+long HX711::get_value(byte times) {
 	return read_average(times) - OFFSET;
 }
 
@@ -243,7 +268,7 @@ float HX711::get_units(byte times) {
 }
 
 void HX711::tare(byte times) {
-	double sum = read_average(times);
+	long sum = read_average(times);
 	set_offset(sum);
 }
 
