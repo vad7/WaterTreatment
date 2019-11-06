@@ -618,9 +618,10 @@ char* devPWM::get_param(char *var, char *ret)
 boolean devPWM::set_param(char *var, float f)
 {
    if(strcmp(var, pwm_RESET) == 0) {
-	   // to do...
-
-	   journal.jprintf("PWM energy reseted!\n");
+	   Modbus.RS485.beginTransmission(PWM_MODBUS_ADR);
+	   Modbus.RS485.send((uint8_t) PWM_RESET_ENERGY);
+	   uint8_t st = Modbus.RS485.ModbusMasterTransaction(ku8MBCustomRequest);
+	   if(st) journal.jprintf("PWM energy reset error %d!\n", st); else journal.jprintf("PWM energy reseted!\n");
 	   return true;
    } else if(strcmp(var, pwm_TestPower) == 0) {
 	   TestPower = rd(f, 10);
