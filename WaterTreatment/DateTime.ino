@@ -341,7 +341,7 @@ char* TimeToStr(uint32_t idt)
 }
 
 // http://stackoverflow.com/questions/21593692/convert-unix-timestamp-to-date-without-system-libs
-// вывод Времи и даты  в формате: b0 = dd/mm/yyyy, b1 = hh:mm:ss
+// вывод Времени и даты  в формате: b0 = dd/mm/yyyy, b1 = hh:mm:ss
 // Результат ДОБАВЛЯЕТСЯ в ret
 char*  DecodeTimeDate(uint32_t idt, char *ret, uint8_t format)
 {

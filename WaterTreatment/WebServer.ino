@@ -800,11 +800,15 @@ xSaveStats:		if((i = MC.save_WorkStats()) == OK)
 				MC.resetCount();  // Полный сброс
 			} else if (strcmp(str,"SETTINGS")==0) // RESET_SETTINGS, Команда сброса настроек
 			{
-					journal.jprintf("$RESET All settings . . .\n");
-					uint16_t d = 0;
-					writeEEPROM_I2C(I2C_SETTING_EEPROM, (byte*)&d, sizeof(d));
-					//MC.sendCommand(pRESET);        // Послать команду на сброс
-					strcat(strReturn, "OK");
+				journal.jprintf("$RESET All settings . . .\n");
+				uint16_t d = 0;
+				writeEEPROM_I2C(I2C_SETTING_EEPROM, (byte*)&d, sizeof(d));
+				//MC.sendCommand(pRESET);        // Послать команду на сброс
+				strcat(strReturn, "OK");
+			} else if (strcmp(str,"ERR")==0) // RESET_ERR
+			{
+				memset(Errors, 0, sizeof(Errors));
+				WaterBoosterError = false;
 			}
 			ADD_WEBDELIM(strReturn); continue;
 		}
@@ -1020,6 +1024,13 @@ xSaveStats:		if((i = MC.save_WorkStats()) == OK)
 					m_snprintf(strReturn + m_strlen(strReturn), 64, "%s;%d;", MC.dRelay[correct_power220[i].num].get_name(), correct_power220[i].value);
 				}
 #endif
+			} else if(strcmp(str,"Err")==0)     // Функция get_tblErr
+			{
+				for(i = 0; i < sizeof(Errors) / sizeof(Errors[0]); i++) {
+					if(Errors[i] == OK) break;
+					DecodeTimeDate(ErrorsTime[i], strReturn, 3);
+					strReturn += m_snprintf(strReturn += m_strlen(strReturn), 128, "|%d|%s;", Errors[i], noteError[abs(Errors[i])]);
+				}
 			} else goto x_FunctionNotFound;
 			ADD_WEBDELIM(strReturn);
 			continue;

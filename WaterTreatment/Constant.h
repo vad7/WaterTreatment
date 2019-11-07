@@ -497,8 +497,9 @@ const char *webWS_UsedLastRegenSoftening  		= { "RSL" };
 #define ERR_RTC_LOW_BATTERY -53			// Села батарея часов
 #define ERR_PWM_DRY_RUN		-54			// Сухой ход двигателя насоса
 #define ERR_PWM_MAX			-55			// Перегрузка двигателя насоса
+#define ERR_PRESS			-56			// Ошибка давления
 
-#define ERR_ERRMAX			-55 	   // Последняя ошибка
+#define ERR_ERRMAX			-56 	   // Последняя ошибка
 
 // Предупреждения
 #define WARNING_VALUE        1         // Попытка установить значение за границами диапазона запрос типа SET
@@ -560,6 +561,7 @@ const char *noteError[] = {"Ok",                                                
 						   "Села батарея часов",																//-53
 						   "Суход ход двигателя насоса",														//-54
 						   "Перегрузка двигателя насоса",														//-55
+						   "Ошибка давления",																	//-56
                            
                            "NULL"
                            };

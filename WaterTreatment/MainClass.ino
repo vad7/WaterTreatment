@@ -26,15 +26,16 @@
 int8_t set_Error(int8_t _err, char *nam)
 {
 	uint8_t i = 0;
-	for(; i < sizeof(Errors); i++) {
+	for(; i < sizeof(Errors) / sizeof(Errors[0]); i++) {
 		if(Errors[i] == OK) break;
 		if(Errors[i] == _err) {
 			i = sizeof(Errors);
 			break;
 		}
 	}
-	if(i != sizeof(Errors)) Errors[i] = _err;
-	if(MC.error == OK) {
+	if(i != sizeof(Errors) / sizeof(Errors[0])) {
+		Errors[i] = _err;
+		ErrorsTime[i] = rtcSAM3X8.unixtime();
 		MC.error = _err;
 		strcpy(MC.source_error, nam);
 		strcpy(MC.note_error, NowTimeToStr());       // Cтереть всю строку и поставить время

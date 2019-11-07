@@ -260,7 +260,7 @@ const char *notePWM = {"Электрический счетчик"};       // О
 #define fPWM           0              // флаг наличие счетчика
 #define fPWMLink       1              //  флаг связь установлена
 
-// PZEM-004T Modbus (UART)
+// PZEM-004T v3 Modbus (UART)
 // Read Input register, Function code 04:
 #define PWM_VOLTAGE          0x0000			// int16, 0.1V
 #define PWM_CURRENT          0x0001			// int32, 0.001A

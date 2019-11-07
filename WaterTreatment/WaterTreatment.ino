@@ -920,21 +920,24 @@ void vPumps( void * )
 		int16_t press = MC.sADC[PWATER].get_Press();
 		if(press == ERROR_PRESS) {
 			if(WaterBoosterStatus) {
+				vPumpsNewError = ERR_PRESS;
 				MC.dRelay[RBOOSTER2].set_OFF();
 				_delay(20);
 				MC.dRelay[RBOOSTER1].set_OFF();
 				WaterBoosterStatus = 0;
 			}
-		} else if(!WaterBoosterStatus && press <= (MC.sInput[REG_ACTIVE].get_Input() || MC.sInput[BACKWASH_ACTIVE].get_Input() || MC.sInput[REG_SOFTENING_ACTIVE].get_Input() ? MC.sADC[PWATER].get_minPressReg() : MC.sADC[PWATER].get_minPress())) { // Starting
+		} else if(!WaterBoosterStatus && !WaterBoosterError && press <= (MC.sInput[REG_ACTIVE].get_Input() || MC.sInput[BACKWASH_ACTIVE].get_Input() || MC.sInput[REG_SOFTENING_ACTIVE].get_Input() ? MC.sADC[PWATER].get_minPressReg() : MC.sADC[PWATER].get_minPress())) { // Starting
 			MC.dRelay[RBOOSTER1].set_ON();
 			WaterBoosterStatus = 1;
 		} else if(WaterBoosterStatus > 0) {
 			if(WaterBoosterWorkingTime > MC.Option.PWM_StartingTime) {
 				if(MC.Option.PWM_DryRun && MC.dPWM.get_Power() < MC.Option.PWM_DryRun) { // Сухой ход
-					set_Error(ERR_PWM_DRY_RUN, (char*) __FUNCTION__);
+					WaterBoosterError = true;
+					vPumpsNewError = ERR_PWM_DRY_RUN;
 					goto xWaterBooster_OFF;
 				} else if(MC.Option.PWM_Max && MC.dPWM.get_Power() > MC.Option.PWM_Max) { // Перегрузка
-					set_Error(ERR_PWM_MAX, (char*) __FUNCTION__);
+					WaterBoosterError = true;
+					vPumpsNewError = ERR_PWM_MAX;
 					goto xWaterBooster_OFF;
 				}
 			}
@@ -1137,7 +1140,7 @@ void vService(void *)
 						MC.dRelay[RDRAIN].set_ON();
 					}
 				}
-				if((MC.RTC_store.Work & RTC_Work_NeedRegen_WaitIron) && rtcSAM3X8.get_hours() == MC.Option.RegenHour) {
+				if(!WaterBoosterError && (MC.RTC_store.Work & RTC_Work_NeedRegen_WaitIron) && rtcSAM3X8.get_hours() == MC.Option.RegenHour) {
 					if(MC.sInput[TANK_FULL].get_Input()) {
 						MC.dRelay[RSTARTREG].set_ON();
 					} else {

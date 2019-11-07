@@ -57,11 +57,13 @@ struct type_RTC_memory { // DS3231/DS3232 used alarm memory, starts from 0x07, m
 
 
 int8_t   WaterBoosterStatus = 0; // 0 - выключено, 1 - вкл твердотельное, 2 - вкл обычное, 3 - выкл твердотельное, -1 - выкл твердотельное, -2 - выкл обычное, -3 - нужно выключить (вкл твердотельное)
+bool	 WaterBoosterError = false;
 uint32_t TimeFeedPump = 0;
 int8_t   vPumpsNewError = 0;
 uint8_t  NeedSaveWorkStats = 0;
 uint32_t TimerDrainingWater = 0;
-int8_t   Errors[10] = { 0,0,0,0,0,0,0,0,0,0 };// Active Errors array
+int8_t   Errors[15] = { 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0 };// Active Errors array
+uint32_t ErrorsTime[15];
 
 // Weight
 bool Weight_NeedRead = false;

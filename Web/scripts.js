@@ -236,6 +236,10 @@ function loadParam(paramid, noretry, resultdiv) {
 										}
 									}
 								} else if(type == 'table') {
+									if(values[0] == 'get_tblErr') {
+										element = document.getElementById(valueid + "_t");
+										if(element) element.hidden = values[1] == "";
+									}
 									if(values[1] != null && values[1] != 0) {
 										if(values[0] == 'get_tblInput') {
 											var content = "", content2 = "", upsens = "", loadsens = "";

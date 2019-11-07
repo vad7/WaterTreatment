@@ -20,7 +20,7 @@ window.onload = function() {
 	loadParam("get_tblInput");
 	loadParam("get_listPress");
 	loadParam("get_PWM(NAME),get_PWM(NOTE),get_Wgt(P)");
-	updateParam("get_PWM(V),get_PWM(P),get_PWM(ERR),get_Wgt(L),get_Wgt(W),get_Wgt(T),get_Wgt(N),get_Wgt(K)");
+	updateParam("get_PWM(V),get_PWM(P),get_PWM(ERR),get_Wgt(L),get_Wgt(W),get_Wgt(T),get_Wgt(N),get_Wgt(K),get_Wgt(A)");
 	updateParam("get_PWM(K)");
 	updateParam("get_PWM(I)");
 	updateParam("get_PWM(E)");
@@ -150,7 +150,7 @@ function loadParam_after(paramid) {
 		<th>АЦП HX711</th>
 		<th>Вес тары, г</th>
 		<th>Полный вес раствора, г</th>
-		<th>Коэффициент</th>
+		<th><a data-tooltip="Вычисление коэффициента: установить тару = 0 и коэффициент = 1, установить эталонную гирю, подождать, разделить значение колонки 'Вес, г' на массу эталона.">Коэффициент</a></th>
 		<th>Пины DOUT,SCK</th>
 	</tr></thead>
 	<tbody><tr>
