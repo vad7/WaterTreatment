@@ -446,7 +446,7 @@ void setup() {
 
 	Weight.begin(HX711_DOUT_PIN, HX711_SCK_PIN);
 	Weight_Clear_Averaging();
-	journal.printf("* Scale inited, weight: %d\n", Weight.read());
+	journal.printf("* Scale inited, raw weight: %d\n", Weight.read() - MC.Option.WeightZero);
 
 	// Создание задач FreeRTOS  ----------------------
 	journal.printf("* Create tasks FreeRTOS.\n");
@@ -868,7 +868,7 @@ void vReadSensor_delay8ms(int16_t ms8)
 				Weight_adc_flagFull = true;
 			}
 			if(Weight_adc_flagFull) adc_val = Weight_adc_sum / (sizeof(Weight_adc_filter) / sizeof(Weight_adc_filter[0])); else adc_val = Weight_adc_sum / Weight_adc_idx;
-			Weight_Percent = (Weight_value = adc_val / MC.Option.WeightScale - MC.Option.WeightTare) * 10000 / MC.Option.WeightFull;
+			Weight_Percent = (Weight_value = (adc_val - MC.Option.WeightZero) / MC.Option.WeightScale - MC.Option.WeightTare) * 10000 / MC.Option.WeightFull;
 		}
 
 #ifdef USE_UPS

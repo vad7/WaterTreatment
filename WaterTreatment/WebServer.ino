@@ -1026,7 +1026,7 @@ xSaveStats:		if((i = MC.save_WorkStats()) == OK)
 #endif
 			} else if(strcmp(str,"Err")==0)     // Функция get_tblErr
 			{
-				for(i = 0; i < sizeof(Errors) / sizeof(Errors[0]); i++) {
+				for(i = 0; i < (int16_t)(sizeof(Errors) / sizeof(Errors[0])); i++) {
 					if(Errors[i] == OK) break;
 					DecodeTimeDate(ErrorsTime[i], strReturn, 3);
 					strReturn += m_snprintf(strReturn += m_strlen(strReturn), 128, "|%d|%s;", Errors[i], noteError[abs(Errors[i])]);
@@ -1777,7 +1777,10 @@ xWgt_get:
 						} else if(strcmp(x, "N")==0) {      	// get_Wgt(N) - full brine weight
 							_ftoa(strReturn, (float)MC.Option.WeightFull / 10.0f, 1);
 						} else if(strcmp(x, "A")==0) {      	// get_Wgt(A) - ADC value
-							_itoa(Weight_adc_filter[Weight_adc_idx ? Weight_adc_idx - 1 : sizeof(Weight_adc_filter) / sizeof(Weight_adc_filter[0]) - 1], strReturn);
+							//_itoa(Weight_adc_filter[Weight_adc_idx ? Weight_adc_idx - 1 : sizeof(Weight_adc_filter) / sizeof(Weight_adc_filter[0]) - 1], strReturn); // one reading
+							_itoa(Weight_adc_sum / (sizeof(Weight_adc_filter) / sizeof(Weight_adc_filter[0])), strReturn); // averaged
+						} else if(strcmp(x, "0")==0) {      	// get_Wgt(0) - Zero (ADC)
+							_itoa((float)MC.Option.WeightZero, strReturn);
 						} else if(strcmp(x, "K")==0) {      	// get_Wgt(K) - Coefficient
 							_ftoa(strReturn, MC.Option.WeightScale, 5);
 						} else if(strcmp(x, "P")==0) {      	// get_Wgt(P) - Pins
@@ -1792,6 +1795,8 @@ xWgt_get:
 							MC.Option.WeightFull = rd(pm, 10);
 						} else if(strcmp(x, "K")==0) {      	// set_Wgt(K=) - Coefficient
 							MC.Option.WeightScale = pm;
+						} else if(strcmp(x, "0")==0) {      	// set_Wgt(0=) - Zero
+							MC.Option.WeightZero = pm;
 						}
 						goto xWgt_get;
 					}

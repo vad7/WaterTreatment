@@ -113,8 +113,9 @@ struct type_option {
 	uint16_t PWM_Max;					// Максимальная мощность, если больше во время работы - то стоп, Вт
 	uint16_t PWM_StartingTime;			// Время пуска, мс
 	float    WeightScale;				// Коэффициент калибровки весов
-	uint32_t WeightTare;				// Вес тары, десятые грамма
-	uint32_t WeightFull;				// Полный вес жидкости без тары, десятые грамма
+	int32_t  WeightZero;				// Вес 0, АЦП
+	int32_t  WeightTare;				// Вес тары, десятые грамма
+	int32_t  WeightFull;				// Полный вес жидкости без тары, десятые грамма
 } __attribute__((packed));
 
 //  Работа с отдельными флагами type_DateTime
