@@ -26,6 +26,7 @@
 int8_t set_Error(int8_t _err, char *nam)
 {
 	uint8_t i = 0;
+	MC.error = _err;
 	for(; i < sizeof(Errors) / sizeof(Errors[0]); i++) {
 		if(Errors[i] == OK) break;
 		if(Errors[i] == _err) {
@@ -36,7 +37,6 @@ int8_t set_Error(int8_t _err, char *nam)
 	if(i != sizeof(Errors) / sizeof(Errors[0])) {
 		Errors[i] = _err;
 		ErrorsTime[i] = rtcSAM3X8.unixtime();
-		MC.error = _err;
 		strcpy(MC.source_error, nam);
 		strcpy(MC.note_error, NowTimeToStr());       // Cтереть всю строку и поставить время
 		strcat(MC.note_error, " ");
@@ -774,7 +774,8 @@ char* MainClass::get_option(char *var, char *ret)
 // Получить строку состояния  в виде строки
 void MainClass::StateToStr(char * ret)
 {
-	strcat(ret, "В работе");
+	if(error != OK) strcat(ret, "Сбой!");
+	else strcat(ret, "В работе");
 }
 
 // получить режим тестирования

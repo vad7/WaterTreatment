@@ -260,11 +260,9 @@ void  sensorDiditalInput::initInput(int sensor)
    SETBIT1(flags,fPresent);        // наличие датчика в текушей конфигурации
    type=SENSORTYPE[sensor];         // тип датчика
    pin=pinsInput[sensor];           // пин датчика
-   pinMode(pin, INPUT);             // Настроить ножку на вход
+   pinMode(pin, PULLUPINPUT[sensor] ? INPUT_PULLUP : INPUT); // Настроить ножку на вход
    note=(char*)noteInput[sensor];   // присвоить наименование датчика
    name=(char*)nameInput[sensor];   // присвоить имя датчика
- //  Read();                        // Нельзя читать до тех пор пока не ЗАГРУЖЕНЫ правильные настройки - можно уйти в аварию
-   Input=digitalReadDirect(pin);    // Состояние датчика прочитать датчик но не анализировать аварию (хотя этого можно не делать)
 };
 
 // Чтение датчика возвращает ошибку или ОК

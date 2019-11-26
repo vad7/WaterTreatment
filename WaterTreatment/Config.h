@@ -190,7 +190,7 @@ struct History_setup {
 	#define WEIGHT_AVERAGE_BUFFER 10
 
     // Контактные датчики (sInput[]------------------------------------------------------------------
-    #define INUMBER             6   	// Число контактных датчиков цифровые входы
+    #define INUMBER             7   	// Число контактных датчиков цифровые входы
     // Имена индексов
 	#define REG_ACTIVE          0        // Активна регенерация (INP2)
 	#define BACKWASH_ACTIVE     1        // Активна обратная промывка (INP3)
@@ -198,16 +198,18 @@ struct History_setup {
     #define TANK_PARTIAL        3        // Нужен долив емкости (500л) (INP4)
 	#define TANK_FULL           4        // Емкость полна (INP5)
 	#define TANK_EMPTY          5        // Емкость пуста (INP6)
+	#define FLOODING			6        // Протечка (REL8 [D5])
 
 	// Массив ног
-	const uint8_t pinsInput[INUMBER] = { 56, 43, 66, 54, 23, 24 };
+	const uint8_t pinsInput[INUMBER] = { 56, 43, 66, 54, 23, 24, 5 };
       // Описание датчиков
     const char *noteInput[INUMBER] = {	"Идет регенерация",
     		  	  	  	  	  	  	  	"Идет обратная промывка",
 										"Идет регенерация умягчителя",
 										"Долив бака",
 										"Бак полный",
-										"Пустой бак!"
+										"Пустой бак!",
+										"Затопление!"
                                      };
       // Имена датчиков
     const char *nameInput[INUMBER] = {	"REG",
@@ -215,12 +217,14 @@ struct History_setup {
 										"REGT2",
 										"LOW",
 										"FULL",
-										"EMPTY"
+										"EMPTY",
+										"FLOODING"
                                      };
      
-      const bool TESTINPUT[INUMBER]         = { 0, 0, 0, 0, 0, 0 };    // Значения датчиков при тестировании  опция TEST
-      const bool LEVELINPUT[INUMBER]        = { 0, 0, 0, 0, 0, 1 };    // Значение датчика, когда сработал или при аварии
-      const TYPE_SENSOR SENSORTYPE[INUMBER] = { pSENSOR, pSENSOR, pSENSOR, pSENSOR, pSENSOR, pALARM };    // тип контактного датчика  pALARM, pSENSOR, pPULSE
+      const bool TESTINPUT[INUMBER]         = { 0, 0, 0, 0, 0, 0, 0 };    // Значения датчиков при тестировании  опция TEST
+      const bool LEVELINPUT[INUMBER]        = { 0, 0, 0, 0, 0, 1, 0 };    // Значение датчика, когда сработал
+      const bool PULLUPINPUT[INUMBER]       = { 0, 0, 1, 0, 0, 0, 1 };    // если 1 - то на порту выставляется подтяжка к VCC.
+      const TYPE_SENSOR SENSORTYPE[INUMBER] = { pSENSOR, pSENSOR, pSENSOR, pSENSOR, pSENSOR, pALARM, pALARM };    // тип контактного датчика  pALARM, pSENSOR, pPULSE
     // ---------------------------------------------------------------------------------------------------------------------------------------
     // Частотные датчики ------------------------------------------------------------------
     #define FNUMBER             1       // Число частотных датчиков цифровые входы

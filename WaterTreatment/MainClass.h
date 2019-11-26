@@ -58,6 +58,8 @@ struct type_RTC_memory { // DS3231/DS3232 used alarm memory, starts from 0x07, m
 
 int8_t   WaterBoosterStatus = 0; // 0 - выключено, 1 - вкл твердотельное, 2 - вкл обычное, 3 - выкл твердотельное, -1 - выкл твердотельное, -2 - выкл обычное, -3 - нужно выключить (вкл твердотельное)
 bool	 WaterBoosterError = false;
+bool	 FloodingError = false;
+uint32_t FloodingTime = 0;
 uint32_t TimeFeedPump = 0;
 int8_t   vPumpsNewError = 0;
 uint8_t  NeedSaveWorkStats = 0;
@@ -71,7 +73,7 @@ int32_t  Weight_adc_sum;                          	// сумма
 int32_t  Weight_adc_filter[WEIGHT_AVERAGE_BUFFER]; 	// массив накопленных значений
 uint16_t Weight_adc_idx;  			                // текущий индекс
 boolean  Weight_adc_flagFull;          			    // буфер полный
-float 	 Weight_value = 0;							// десятые грамма
+int32_t	 Weight_value = 0;							// десятые грамма
 uint16_t Weight_Percent = 0;						// %, сотые
 void Weight_Clear_Averaging(void);
 uint32_t WaterBoosterWorkingTime = 0;
@@ -112,10 +114,12 @@ struct type_option {
 	uint16_t PWM_DryRun;				// Мощность сухого хода, если ниже во время работы - то стоп, Вт
 	uint16_t PWM_Max;					// Максимальная мощность, если больше во время работы - то стоп, Вт
 	uint16_t PWM_StartingTime;			// Время пуска, мс
-	float    WeightScale;				// Коэффициент калибровки весов
+	int32_t  WeightScale;				// Коэффициент калибровки весов, десятитысячные (~50.0)
 	int32_t  WeightZero;				// Вес 0, АЦП
 	int32_t  WeightTare;				// Вес тары, десятые грамма
 	int32_t  WeightFull;				// Полный вес жидкости без тары, десятые грамма
+	uint16_t FloodingDebounceTime;		// Время исключения помех срабюатывания датчика протечки, сек
+	uint16_t FloodingTimeout;			// Время ожидания перед началом работы после срабатывания датчика протечки, сек
 } __attribute__((packed));
 
 //  Работа с отдельными флагами type_DateTime

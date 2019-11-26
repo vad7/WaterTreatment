@@ -868,7 +868,7 @@ void vReadSensor_delay8ms(int16_t ms8)
 				Weight_adc_flagFull = true;
 			}
 			if(Weight_adc_flagFull) adc_val = Weight_adc_sum / (sizeof(Weight_adc_filter) / sizeof(Weight_adc_filter[0])); else adc_val = Weight_adc_sum / Weight_adc_idx;
-			Weight_Percent = (Weight_value = (adc_val - MC.Option.WeightZero) / MC.Option.WeightScale - MC.Option.WeightTare) * 10000 / MC.Option.WeightFull;
+			Weight_Percent = (Weight_value = (adc_val - MC.Option.WeightZero) * 10000 / MC.Option.WeightScale - MC.Option.WeightTare) * 10000 / MC.Option.WeightFull;
 		}
 
 #ifdef USE_UPS
@@ -921,12 +921,38 @@ void vPumps( void * )
 		if(press == ERROR_PRESS) {
 			if(WaterBoosterStatus) {
 				vPumpsNewError = ERR_PRESS;
-				MC.dRelay[RBOOSTER2].set_OFF();
-				_delay(20);
+				if(MC.dRelay[RBOOSTER2].get_Relay()) {
+					MC.dRelay[RBOOSTER1].set_ON();
+					_delay(10);
+					MC.dRelay[RBOOSTER2].set_OFF();
+					_delay(20);
+				}
 				MC.dRelay[RBOOSTER1].set_OFF();
 				WaterBoosterStatus = 0;
 			}
-		} else if(!WaterBoosterStatus && !WaterBoosterError && press <= (MC.sInput[REG_ACTIVE].get_Input() || MC.sInput[BACKWASH_ACTIVE].get_Input() || MC.sInput[REG_SOFTENING_ACTIVE].get_Input() ? MC.sADC[PWATER].get_minPressReg() : MC.sADC[PWATER].get_minPress())) { // Starting
+		} else if(MC.sInput[FLOODING].get_Input()) {
+			if(FloodingTime == 0) FloodingTime = rtcSAM3X8.unixtime();
+			else if(rtcSAM3X8.unixtime() - FloodingTime > MC.Option.FloodingDebounceTime) {
+				FloodingTime = rtcSAM3X8.unixtime();
+				vPumpsNewError = ERR_FLOODING;
+				if(MC.dRelay[RFILL].get_Relay()) MC.dRelay[RFILL].set_OFF();
+				if(MC.dRelay[RDRAIN].get_Relay()) MC.dRelay[RDRAIN].set_OFF();
+				MC.dRelay[RFEEDPUMP].set_OFF();
+				MC.dRelay[RWATEROFF].set_ON();
+				FloodingError = true;
+				if(WaterBoosterStatus > 0) goto xWaterBooster_OFF;
+			}
+		} else {
+			if(FloodingError) {
+				if(FloodingTime - rtcSAM3X8.unixtime() > MC.Option.FloodingTimeout) {
+					MC.dRelay[RWATEROFF].set_OFF();
+					FloodingError = false;
+					FloodingTime = 0;
+				}
+			} else FloodingTime = 0;
+		}
+		if(!WaterBoosterStatus && !WaterBoosterError && !FloodingError && press != ERROR_PRESS
+				&& press <= (MC.sInput[REG_ACTIVE].get_Input() || MC.sInput[BACKWASH_ACTIVE].get_Input() || MC.sInput[REG_SOFTENING_ACTIVE].get_Input() ? MC.sADC[PWATER].get_minPressReg() : MC.sADC[PWATER].get_minPress())) { // Starting
 			MC.dRelay[RBOOSTER1].set_ON();
 			WaterBoosterStatus = 1;
 		} else if(WaterBoosterStatus > 0) {

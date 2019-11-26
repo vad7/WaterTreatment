@@ -604,10 +604,20 @@ void parserGET(uint8_t thread, int8_t )
 			MC.num_resW5200++;                                                       // Добавить счетчик инициализаций
 			continue;
 		}
-		if (strcmp(str,"get_MODE")==0)  // Функция get_MODE в каком состояниии находится сейчас насос
+		if(strncmp(str, "get_MODE", 8)==0)  // Функция get_MODE в каком состояниии
 		{
-			MC.StateToStr(strReturn);
-			ADD_WEBDELIM(strReturn) ;    continue;
+			str += 8;
+			if(*str == '2') {
+				if(FloodingError) {
+					strcat(strReturn, "Затопление!");
+				} else {
+					strcat(strReturn, "Ok");
+				}
+				ADD_WEBDELIM(strReturn); continue;
+			} else {
+				MC.StateToStr(strReturn);
+				ADD_WEBDELIM(strReturn); continue;
+			}
 		}
 
 		if (strcmp(str,"get_testMode")==0)  // Функция get_testMode
@@ -653,13 +663,16 @@ xSaveStats:		if((i = MC.save_WorkStats()) == OK)
 		
 		STORE_DEBUG_INFO(22);
 
-		if (strcmp(str,"get_errcode")==0)  // Функция get_errcode
+		if(strncmp(str, "get_err", 7) == 0)
 		{
-			_itoa(MC.get_errcode(),strReturn); ADD_WEBDELIM(strReturn) ;    continue;
-		}
-		if (strcmp(str,"get_error")==0)  // Функция get_error
-		{
-			strcat(strReturn,MC.get_lastErr()); ADD_WEBDELIM(strReturn) ;    continue;
+			str += 7;
+			if(strcmp(str, "code")==0) { // Функция get_errcode
+				_itoa(MC.get_errcode(),strReturn);
+				ADD_WEBDELIM(strReturn); continue;
+			} else {   // Функция get_err
+				strcat(strReturn, MC.get_lastErr());
+				ADD_WEBDELIM(strReturn); continue;
+			}
 		}
 		if (strcmp(str,"get_tempSAM3x")==0)  // Функция get_tempSAM3x  - получение температуры чипа sam3x
 		{
@@ -809,6 +822,7 @@ xSaveStats:		if((i = MC.save_WorkStats()) == OK)
 			{
 				memset(Errors, 0, sizeof(Errors));
 				WaterBoosterError = false;
+				FloodingError = false;
 			}
 			ADD_WEBDELIM(strReturn); continue;
 		}
@@ -996,7 +1010,8 @@ xSaveStats:		if((i = MC.save_WorkStats()) == OK)
 		}   // test_Mail
 
 		// -------------- СПИСКИ ДАТЧИКОВ и ИСПОЛНИТЕЛЬНЫХ УСТРОЙСТВ  -----------------------------------------------------
-		// Список аналоговых датчиков выводятся только присутсвующие датчики список вида name:0;
+		// Список аналоговых датчиков выводятся только присутсвующие датчики список вида "name;"
+		// Таблица колонка_1|колонка_2;
 		if(strncmp(str, "get_tbl", 7) == 0) {
 			str += 7;
 			if(strcmp(str, "TempF") == 0) // get_tblTempF, Возвращает список датчиков через ";"
@@ -1078,6 +1093,16 @@ xSaveStats:		if((i = MC.save_WorkStats()) == OK)
 				else if(strcmp(str, webWS_RegCnt) == 0) MC.WorkStats.RegCnt = pm;  // set_WSRC(x)
 				else if(strcmp(str, webWS_RegCntSoftening) == 0) MC.WorkStats.RegCntSoftening = pm; // set_WSRSC(x)
 				ADD_WEBDELIM(strReturn) ;    continue;
+			}
+			if(strncmp(str, "get_Err", 7) == 0)  // Функция get_Err(X)
+			{
+				if(*x == 'B') { // get_Err(B) - WaterBoosterError
+					strcat(strReturn, WaterBoosterError ? "1" : "0");
+				} else if(*x == 'F') {  // get_ErrF - FloodingError
+					strcat(strReturn, FloodingError ? "1" : "0");
+				}
+				ADD_WEBDELIM(strReturn);
+				continue;
 			}
 
 
@@ -1299,7 +1324,7 @@ xSaveStats:		if((i = MC.save_WorkStats()) == OK)
 								ADD_WEBDELIM(strReturn); continue;
 							}
 
-							if(strncmp(str, "err", 3)==0)           // Функция get_errTemp
+							if(strncmp(str, "er", 3)==0)           // Функция get_erTemp
 							{ _ftoa(strReturn,(float)MC.sTemp[p].get_errTemp()/100,2); ADD_WEBDELIM(strReturn); continue; }
 
 							if(strncmp(str, "aT", 2) == 0)           // Функция get_aTemp (address)
@@ -1771,7 +1796,7 @@ xWgt_get:
 						if(strcmp(x, "L")==0) {       		// get_Wgt(L) - Level
 							_ftoa(strReturn, (float)Weight_Percent / 100.0f, 2);
 						} else if(strcmp(x, "W")==0) {      	// get_Wgt(W) - Weight
-							_ftoa(strReturn, Weight_value, 2);
+							_ftoa(strReturn, (float)Weight_value / 10.0f, 1);
 						} else if(strcmp(x, "T")==0) {      	// get_Wgt(T) - Tare
 							_ftoa(strReturn, (float)MC.Option.WeightTare / 10.0f, 1);
 						} else if(strcmp(x, "N")==0) {      	// get_Wgt(N) - full brine weight
@@ -1782,7 +1807,7 @@ xWgt_get:
 						} else if(strcmp(x, "0")==0) {      	// get_Wgt(0) - Zero (ADC)
 							_itoa((float)MC.Option.WeightZero, strReturn);
 						} else if(strcmp(x, "K")==0) {      	// get_Wgt(K) - Coefficient
-							_ftoa(strReturn, MC.Option.WeightScale, 5);
+							_ftoa(strReturn, (float)MC.Option.WeightScale / 10000.0f, 4);
 						} else if(strcmp(x, "P")==0) {      	// get_Wgt(P) - Pins
 							m_snprintf(strReturn + m_strlen(strReturn), 32, "D%d D%d", HX711_DOUT_PIN, HX711_SCK_PIN);
 						}
@@ -1794,7 +1819,7 @@ xWgt_get:
 						} else if(strcmp(x, "N")==0) {      	// set_Wgt(N=) - full brine weight
 							MC.Option.WeightFull = rd(pm, 10);
 						} else if(strcmp(x, "K")==0) {      	// set_Wgt(K=) - Coefficient
-							MC.Option.WeightScale = pm;
+							MC.Option.WeightScale = pm * 10000 + 0.00005f;
 						} else if(strcmp(x, "0")==0) {      	// set_Wgt(0=) - Zero
 							MC.Option.WeightZero = pm;
 						}

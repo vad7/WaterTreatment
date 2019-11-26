@@ -268,7 +268,7 @@ function loadParam(paramid, noretry, resultdiv) {
 												loadsens += "get_eTemp(" +T+ "),";
 												upsens += "get_eTemp(" +T+ "),";
 												if(tnum == 1) {
-													loadsens += "get_maxTemp(" +T+ "),get_errTemp(" +T+ "),get_esTemp(" +T+ "),get_minTemp(" +T+ "),get_fTemp4(" +T+ "),get_fTemp5(" +T+ "),get_fTemp6(" +T+ "),get_nTemp(" +T+ "),get_testTemp(" +T+ "),get_bTemp(" +T+ "),";
+													loadsens += "get_maxTemp(" +T+ "),get_erTemp(" +T+ "),get_esTemp(" +T+ "),get_minTemp(" +T+ "),get_fTemp4(" +T+ "),get_fTemp5(" +T+ "),get_fTemp6(" +T+ "),get_nTemp(" +T+ "),get_testTemp(" +T+ "),get_bTemp(" +T+ "),";
 													upsens += "get_fullTemp(" +T+ "),get_esTemp(" +T+ "),";
 												} else if(tnum == 2) {
 													loadsens += "get_aTemp(" +T+ "),get_fTemp1(" +T+ "),get_fTemp2(" +T+ "),get_fTemp3(" +T+ "),get_nTemp2(" +T+ "),get_bTemp(" +T+ "),";
@@ -282,7 +282,7 @@ function loadParam(paramid, noretry, resultdiv) {
 													content += '<td id="get_fulltemp-' +T+ '">-</td>';
 													content += '<td id="get_mintemp-' +T+ '">-</td>';
 													content += '<td id="get_maxtemp-' +T+ '">-</td>';
-													content += '<td nowrap><input id="get_errtemp-' +T+ '" type="number" step="0.01"><input type="submit" value=">" onclick="setParam(\'get_errTemp(' + count[j] + ')\');"></td>';
+													content += '<td nowrap><input id="get_ertemp-' +T+ '" type="number" step="0.01"><input type="submit" value=">" onclick="setParam(\'get_erTemp(' + count[j] + ')\');"></td>';
 													content += '<td nowrap><input id="get_testtemp-' +T+ '" type="number" step="0.1"><input type="submit" value=">" onclick="setParam(\'get_testTemp(' + count[j] + ')\');"></td>';
 													content += '<td nowrap><input type="checkbox" id="get_ftemp4-' +T+ '" onchange="setParam(\'get_fTemp4(' +count[j]+')\');"><input type="checkbox" id="get_ftemp5-' +T+ '" onchange="setParam(\'get_fTemp5(' +count[j]+')\');"><input type="checkbox" id="get_ftemp6-' +T+ '" onchange="setParam(\'get_fTemp6(' +count[j]+')\');"></td>';
 													content += '<td id="get_btemp-' +T+ '">-</td>';
@@ -360,7 +360,7 @@ function loadParam(paramid, noretry, resultdiv) {
 											}
 											document.getElementById(valueid).innerHTML = content;
 										} else {
-											var content = values[1].replace(/</g, "&lt;").replace(/\:$/g, "").replace(/\:/g, "</td><td>").replace(/\n/g, "</td></tr><tr><td>");
+											var content = values[1].replace(/</g, "&lt;").replace(/\|$/g, "").replace(/\|/g, "</td><td>").replace(/\n/g, "</td></tr><tr><td>");
 											var element = document.getElementById(valueid);
 											if(element) element.innerHTML = '<td>' + content + '</td>';
 										}
