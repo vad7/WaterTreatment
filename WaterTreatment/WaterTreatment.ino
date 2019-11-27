@@ -869,6 +869,7 @@ void vReadSensor_delay8ms(int16_t ms8)
 			}
 			if(Weight_adc_flagFull) adc_val = Weight_adc_sum / (sizeof(Weight_adc_filter) / sizeof(Weight_adc_filter[0])); else adc_val = Weight_adc_sum / Weight_adc_idx;
 			Weight_Percent = (Weight_value = (adc_val - MC.Option.WeightZero) * 10000 / MC.Option.WeightScale - MC.Option.WeightTare) * 10000 / MC.Option.WeightFull;
+			if(Weight_Percent < 0) Weight_Percent = 0; else if(Weight_Percent > 10000) Weight_Percent = 10000;
 		}
 
 #ifdef USE_UPS
@@ -1115,9 +1116,6 @@ void vService(void *)
 	static uint8_t  task_updstat_countm = rtcSAM3X8.get_minutes();
 	static uint8_t  task_every_min = task_updstat_countm;
 	static uint32_t timer_sec = GetTickCount();
-
-	vTaskDelete(NULL);
-
 
 	for(;;) {
 		register uint32_t t = GetTickCount();

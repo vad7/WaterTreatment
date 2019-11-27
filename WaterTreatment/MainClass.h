@@ -74,7 +74,7 @@ int32_t  Weight_adc_filter[WEIGHT_AVERAGE_BUFFER]; 	// массив накопл
 uint16_t Weight_adc_idx;  			                // текущий индекс
 boolean  Weight_adc_flagFull;          			    // буфер полный
 int32_t	 Weight_value = 0;							// десятые грамма
-uint16_t Weight_Percent = 0;						// %, сотые
+int16_t  Weight_Percent = 0;						// %, сотые
 void Weight_Clear_Averaging(void);
 uint32_t WaterBoosterWorkingTime = 0;
 

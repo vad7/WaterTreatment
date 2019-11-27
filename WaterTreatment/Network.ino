@@ -86,11 +86,11 @@ boolean linkStatusWiznet(boolean show)
 	uint8_t st = W5100.readPHYCFGR();
 	if(show) {
 #ifdef W5500_LOG_FULL_INFO
-		if(st & W5500_SPEED) journal.jprintf(" Speed Status: 100Mpbs\n"); else journal.jprintf(" Speed Status: 10Mpbs\n");
-		if(st & W5500_DUPLEX) journal.jprintf(" Duplex Status: full duplex\n"); else journal.jprintf(" Duplex Status: half duplex\n");
-		journal.jprintf(" Register PHYCFGR: 0x%02x\n", st);
+		if(st & W5500_SPEED) journal.printf(" Speed Status: 100Mpbs\n"); else journal.printf(" Speed Status: 10Mpbs\n");
+		if(st & W5500_DUPLEX) journal.printf(" Duplex Status: full duplex\n"); else journal.printf(" Duplex Status: half duplex\n");
+		journal.printf(" Register PHYCFGR: 0x%02x\n", st);
 #else
-		journal.jprintf(" %s%c ", st & W5500_SPEED ? "100" : "10", st & W5500_DUPLEX ? 'F' : 'H');
+		journal.printf(" %s%c ", st & W5500_SPEED ? "100" : "10", st & W5500_DUPLEX ? 'F' : 'H');
 #endif
 	}
 	if(st & W5500_LINK) return true;
@@ -116,9 +116,9 @@ boolean resetWiznet(boolean show)
      for (t = 0; t <  W5200_TIME_LINK; t=t+50)                                                                     // Ожидание установления связи но не более W5200_TIME_LINK мсек
        {
        _delay(50);                                                                                                 
-       if (linkStatusWiznet(false)) { if(show)journal.jprintf(" %s: link OK (time %d mc)\n",(char*)__FUNCTION__, t);return true;}  // link есть, едим дальше
+       if (linkStatusWiznet(false)) { if(show)journal.printf(" %s: link OK (time %d mc)\n",(char*)__FUNCTION__, t);return true;}  // link есть, едим дальше
        }
-     if (show) journal.jprintf(" %s: no link\n",(char*)__FUNCTION__);   
+     if (show) journal.printf(" %s: no link\n",(char*)__FUNCTION__);
     }
   return false;                                                                                                     // линка нет
 }
@@ -133,16 +133,16 @@ boolean initW5200(boolean flag)
 	uint8_t i;
 	boolean EthernetOK = true;   // флаг успешности инициализации
 	pinMode(PIN_ETH_RES, OUTPUT);
-	if(flag) journal.jprintf("Network setup:");
+	if(flag) journal.printf("Network setup:");
 	if(!resetWiznet(false))  // 1. Сброс и проверка провода (молча)
 	{
 #ifdef W5500_LOG_FULL_INFO
-		journal.jprintf(" WARNING: %s no link, check ethernet cable\n", nameWiznet);
-		journal.jprintf((char*) NetworkError, nameWiznet);
+		journal.printf(" WARNING: %s no link, check ethernet cable\n", nameWiznet);
+		journal.printf((char*) NetworkError, nameWiznet);
 		return false; // дальше ехать бесполезно
-	} else if(flag) journal.jprintf(" SUCCESS: %s link OK\n", nameWiznet);
+	} else if(flag) journal.printf(" SUCCESS: %s link OK\n", nameWiznet);
 #else
-		journal.jprintf(" WARNING: %s no link\n", nameWiznet);
+		journal.printf(" WARNING: %s no link\n", nameWiznet);
 		return false;
 	}
 #endif
@@ -153,19 +153,19 @@ boolean initW5200(boolean flag)
 #if defined(W5500_ETHERNET_SHIELD) // Определение соответстивия библиотеки и чипа
 		if(W5200VERSIONR() == 0x04) {
 #ifdef W5500_LOG_FULL_INFO
-			journal.jprintf((char*) NetworkChipOK, nameWiznet, W5200VERSIONR());
+			journal.printf((char*) NetworkChipOK, nameWiznet, W5200VERSIONR());
 #endif
 		} else {
-			journal.jprintf((char*) NetworkChipBad, nameWiznet, W5200VERSIONR());
-			journal.jprintf((char*) NetworkError, nameWiznet);
+			journal.printf((char*) NetworkChipBad, nameWiznet, W5200VERSIONR());
+			journal.printf((char*) NetworkError, nameWiznet);
 			return false;
 		} // дальше ехать бесполезно
 #elif defined(W5200_ETHERNET_SHIELD)
-		if (W5200VERSIONR()==0x03) journal.jprintf((char*)NetworkChipOK,nameWiznet,W5200VERSIONR());
-		else {journal.jprintf((char*)NetworkChipBad,nameWiznet,W5200VERSIONR());journal.jprintf((char*)NetworkError,nameWiznet); return false;} // дальше ехать бесполезно
+		if (W5200VERSIONR()==0x03) journal.printf((char*)NetworkChipOK,nameWiznet,W5200VERSIONR());
+		else {journal.printf((char*)NetworkChipBad,nameWiznet,W5200VERSIONR());journal.printf((char*)NetworkError,nameWiznet); return false;} // дальше ехать бесполезно
 #else
-		if (W5200VERSIONR()==0x51) journal.jprintf((char*)NetworkChipOK,nameWiznet,W5200VERSIONR());
-		else {journal.jprintf((char*)NetworkChipBad,nameWiznet,W5200VERSIONR());journal.jprintf((char*)NetworkError,nameWiznet); return false;} // дальше ехать бесполезно
+		if (W5200VERSIONR()==0x51) journal.printf((char*)NetworkChipOK,nameWiznet,W5200VERSIONR());
+		else {journal.printf((char*)NetworkChipBad,nameWiznet,W5200VERSIONR());journal.printf((char*)NetworkError,nameWiznet); return false;} // дальше ехать бесполезно
 #endif
 	}
 
@@ -185,18 +185,18 @@ boolean initW5200(boolean flag)
 		if(defaultIP != Ethernet.localIP()) EthernetOK = false;
 		else {
 			beginWeb(defaultPort);
-			journal.jprintf(" Set mode safeNetwork!\n");
+			journal.printf(" Set mode safeNetwork!\n");
 		}
 	} else {
 		if(MC.get_DHCP()) // Работаем по DHCP
 		{
-			journal.jprintf(" Try DHCP: ");
+			journal.printf(" Try DHCP: ");
 			WDT_Restart(WDT);
 			if(Ethernet.begin((uint8_t*) MC.get_mac()) == 0) {
-				journal.jprintf("Failed!\n");
+				journal.printf("Failed!\n");
 				goto x_TryStaticIP;
 			} else {
-				journal.jprintf("OK\n");
+				journal.printf("OK\n");
 				MC.set_ip(Ethernet.localIP());       // Получили удачно DHCP адрес - сохраняем в сетевые настройки
 				MC.set_subnet(Ethernet.subnetMask());
 				MC.set_sdns(Ethernet.dnsServerIP());
@@ -221,23 +221,23 @@ x_TryStaticIP:
 	if(flag)  // 5. Печать сетевых настроек
 	{
 		if(EthernetOK) {
-			journal.jprintf(" DHCP use: ");
-			if(MC.get_DHCP()) journal.jprintf("YES\n");
-			else journal.jprintf("NO\n");
+			journal.printf(" DHCP use: ");
+			if(MC.get_DHCP()) journal.printf("YES\n");
+			else journal.printf("NO\n");
 			IPAddress dip;
 			dip = Ethernet.localIP();
-			journal.jprintf(" IP: %s\n", IPAddress2String(dip));
+			journal.printf(" IP: %s\n", IPAddress2String(dip));
 			dip = Ethernet.subnetMask();
-			journal.jprintf(" Subnet: %s\n", IPAddress2String(dip));
+			journal.printf(" Subnet: %s\n", IPAddress2String(dip));
 			dip = Ethernet.dnsServerIP();
-			journal.jprintf(" DNS: %s\n", IPAddress2String(dip));
+			journal.printf(" DNS: %s\n", IPAddress2String(dip));
 			dip = Ethernet.gatewayIP();
-			journal.jprintf(" Gateway: %s\n", IPAddress2String(dip));
-		} else journal.jprintf((char*) NetworkError, nameWiznet);
+			journal.printf(" Gateway: %s\n", IPAddress2String(dip));
+		} else journal.printf((char*) NetworkError, nameWiznet);
 	} else   // Кратко выводим сообщение в журнал
 	{
-		if(EthernetOK) journal.jprintf(pP_TIME, "Reset %s . . . \n", nameWiznet);
-		else journal.jprintf((char*) NetworkError, nameWiznet);
+		if(EthernetOK) journal.printf(pP_TIME, "Reset %s . . . \n", nameWiznet);
+		else journal.printf((char*) NetworkError, nameWiznet);
 	}
 #else
 	if(flag)  // 5. Печать сетевых настроек
@@ -245,16 +245,16 @@ x_TryStaticIP:
 		if(EthernetOK) {
 			IPAddress dip;
 			dip = Ethernet.localIP();
-			journal.jprintf("%s%s/%d ", MC.get_DHCP() ? "DHCP " : "", IPAddress2String(dip), calc_bits_in_mask(Ethernet.subnetMask()));
+			journal.printf("%s%s/%d ", MC.get_DHCP() ? "DHCP " : "", IPAddress2String(dip), calc_bits_in_mask(Ethernet.subnetMask()));
 			dip = Ethernet.gatewayIP();
-			journal.jprintf("G:%s ", IPAddress2String(dip));
+			journal.printf("G:%s ", IPAddress2String(dip));
 			dip = Ethernet.dnsServerIP();
-			journal.jprintf("DNS:%s\n", IPAddress2String(dip));
-		} else journal.jprintf(" ERROR: setting %s", nameWiznet);
+			journal.printf("DNS:%s\n", IPAddress2String(dip));
+		} else journal.printf(" ERROR: setting %s", nameWiznet);
 	} else   // Кратко выводим сообщение в журнал
 	{
-		if(EthernetOK) journal.jprintf(pP_TIME, "Reset %s Ok.\n", nameWiznet);
-		else journal.jprintf(" ERROR: setting %s", nameWiznet);
+		if(EthernetOK) journal.printf("Reset %s Ok.\n", nameWiznet);
+		else journal.printf(" ERROR: setting %s", nameWiznet);
 	}
 #endif
 	return EthernetOK;
@@ -271,7 +271,7 @@ uint8_t check_address(char *adr, IPAddress &ip)
 	int8_t ret = 0;
 	// 1. Попытка преобразовать строку в IP (цифры, нам повезло DNS не нужен)
 	if(parseIPAddress(adr, '.', tempIP)) {
-		//        journal.jprintf("Input string is address %s\n",adr);  // Сообщение что ДНС не требуется, входная строка и так является адресом
+		//        journal.printf("Input string is address %s\n",adr);  // Сообщение что ДНС не требуется, входная строка и так является адресом
 		ip = tempIP;
 		return 1;
 	} // Удачно выходим
@@ -280,12 +280,12 @@ uint8_t check_address(char *adr, IPAddress &ip)
 	ret = dns.getHostByName(adr, tempIP, W5200_SOCK_SYS); // вот тут с сокетами начинаем работать
 	if(ret == 1)  // Адрес получен
 	{
-		journal.jprintf(" %s", adr);
-		journal.jprintf(" resolved by %s to %d.%d.%d.%d\n", dns.get_protocol() ? "TCP" : "UDP", tempIP[0], tempIP[1], tempIP[2], tempIP[3]);
+		journal.printf(" %s", adr);
+		journal.printf(" resolved by %s to %d.%d.%d.%d\n", dns.get_protocol() ? "TCP" : "UDP", tempIP[0], tempIP[1], tempIP[2], tempIP[3]);
 		ip = tempIP;
 		return 2;
 	} else {
-		journal.jprintf(" %s DNS lookup by %s failed! Code: %d\n", adr, dns.get_protocol() ? "TCP" : "UDP", ret);
+		journal.printf(" %s DNS lookup by %s failed! Code: %d\n", adr, dns.get_protocol() ? "TCP" : "UDP", ret);
 		ip = tempIP;
 		return 0;
 	}
@@ -386,7 +386,7 @@ char* socketInfo(char *buf)
 void checkSockStatus()
 {
   unsigned long thisTime = xTaskGetTickCount();
-  if(SemaphoreTake(xWebThreadSemaphore,(W5200_TIME_WAIT/portTICK_PERIOD_MS))==pdFALSE) {journal.jprintf((char*)cErrorMutex,__FUNCTION__,MutexWebThreadBuzy);return;} // Захват мютекса потока или ОЖИДАНИНЕ W5200_TIME_WAIT
+  if(SemaphoreTake(xWebThreadSemaphore,(W5200_TIME_WAIT/portTICK_PERIOD_MS))==pdFALSE) {journal.printf((char*)cErrorMutex,__FUNCTION__,MutexWebThreadBuzy);return;} // Захват мютекса потока или ОЖИДАНИНЕ W5200_TIME_WAIT
   for (uint8_t i = 0; i < MAX_SOCK_NUM; i++) {        // По всем сокетам!!
         // Не сбрасывать сокеты которые используется в потоке ОБЯЗАТЕЛЬНО!!
         #if    W5200_THREAD < 2
@@ -401,7 +401,7 @@ void checkSockStatus()
     uint8_t s = W5100.readSnSR(i);                                          // Прочитать статус сокета
     if((s == SnSR::ESTABLISHED) || (s == SnSR::CLOSE_WAIT) /*|| (s == 0x22)*/ ) { // если он "кандидат"
         if(thisTime - connectTime[i] > MC.time_socketRes()*1000UL) {        // Время пришло
-          journal.jprintf("%s : Socket frozen: %d\n",NowTimeToStr(),i); 
+          journal.printf("%s : Socket frozen: %d\n",NowTimeToStr(),i);
     //      close(i);
           W5100.execCmdSn(i, Sock_CLOSE);
           W5100.writeSnIR(i, 0xFF);
@@ -438,7 +438,7 @@ uint16_t sendPacketRTOS(uint8_t thread, const uint8_t * buf, uint16_t len, uint1
 				taskYIELD();
 			} else delay(1);
 			if(SemaphoreTake(xWebThreadSemaphore, (W5200_TIME_WAIT / portTICK_PERIOD_MS)) == pdFALSE) {
-				journal.jprintf("Socket: %d %s\n", Socket[thread].sock, MutexWebThreadBuzy);
+				journal.printf("Socket: %d %s\n", Socket[thread].sock, MutexWebThreadBuzy);
 				return 0;
 			} // Захват мютекса потока или ОЖИДАНИНЕ W5200_TIME_WAIT
 			//taskENTER_CRITICAL();
@@ -460,7 +460,7 @@ uint16_t sendPacketRTOS(uint8_t thread, const uint8_t * buf, uint16_t len, uint1
 		SemaphoreGive (xWebThreadSemaphore);                                                             // Мютекс потока отдать
 		_delay(pause);                                                            // Ждем pause мсек
 		if(SemaphoreTake(xWebThreadSemaphore, (W5200_TIME_WAIT / portTICK_PERIOD_MS)) == pdFALSE) {
-			journal.jprintf("Socket: %d %s\n", Socket[thread].sock, MutexWebThreadBuzy);
+			journal.printf("Socket: %d %s\n", Socket[thread].sock, MutexWebThreadBuzy);
 			return 0;
 		} // Захват мютекса потока или ОЖИДАНИНЕ W5200_TIME_WAIT
 	}
@@ -562,43 +562,44 @@ boolean pingServer()
 {
 	IPAddress ip;
 	if(SemaphoreTake(xWebThreadSemaphore,(W5200_TIME_WAIT/portTICK_PERIOD_MS))==pdFALSE)  {return false;}  // Захват семафора потока или ОЖИДАНИЕ W5200_TIME_WAIT, если семафор не получен то выходим
-	if(!check_address(MC.get_pingAdr(), ip)) {journal.jprintf("Wrong address ping server\n"); SemaphoreGive(xWebThreadSemaphore); return false;}  // адрес не верен, или DNS не работает - ничего не делаем
+	if(!check_address(MC.get_pingAdr(), ip)) {journal.printf("Wrong address ping server\n"); SemaphoreGive(xWebThreadSemaphore); return false;}  // адрес не верен, или DNS не работает - ничего не делаем
  	// Адрес правильный
 	ping.setTimeout(W5200_TIME_PING);                   // время между попытками пинга мсек
 	WDT_Restart(WDT);                                   // Сбросить вачдог
 	ICMPEchoReply echoReply = ping(ip,W5200_NUM_PING);  // адрес и число попыток
 	SemaphoreGive(xWebThreadSemaphore);                 // отдать семафор
 #ifndef DONT_LOG_SUCCESS_PING
-	journal.jprintf(pP_TIME,"Ping[%d] %d.%d.%d.%d: ", echoReply.data.seq, ip[0], ip[1], ip[2], ip[3]);
+	journal.printf("Ping[%d] ", echoReply.data.seq);
 #endif
 	if(echoReply.status == SUCCESS) {
 #ifndef DONT_LOG_SUCCESS_PING
-		//journal.jprintf("%dms TTL=%u\n", millis() - echoReply.data.time, echoReply.ttl);
+		//journal.printf("%dms TTL=%u\n", millis() - echoReply.data.time, echoReply.ttl);
 		if(ping.attempts()) {
-			journal.jprintf("%dms, lost: %d.\n", millis() - echoReply.data.time, ping.attempts());
+			journal.printf("%dms, lost: %d.\n", millis() - echoReply.data.time, ping.attempts());
 		} else {
-			journal.jprintf("%dms\n", millis() - echoReply.data.time);
+			journal.printf("%dms\n", millis() - echoReply.data.time);
 		}
 #endif
 		return true;
 	} else {
 #ifdef DONT_LOG_SUCCESS_PING
-		journal.jprintf(pP_TIME,"Ping[%d] %d.%d.%d.%d: FAILED - ", echoReply.data.seq, ip[0], ip[1], ip[2], ip[3]);
+		journal.printf(pP_TIME,"Ping[%d] %d.%d.%d.%d: FAILED - ", echoReply.data.seq, ip[0], ip[1], ip[2], ip[3]);
 #else
-		journal.jprintf("FAILED - ");                                 // Неудача, пинга нет
+		journal.printf("%d.%d.%d.%d: FAILED - ", ip[0], ip[1], ip[2], ip[3]);
 #endif
 		switch (echoReply.status)
 		{
-		case SEND_TIMEOUT: journal.jprintf( "send timed out");  break;
-		case NO_RESPONSE:  journal.jprintf( "no response");    break;
-		case BAD_RESPONSE: journal.jprintf( "bad reponse");        break;
-		default:           journal.jprintf( "error: %d", echoReply.status); break;
+		case SEND_TIMEOUT: journal.printf( "send timed out");  break;
+		case NO_RESPONSE:  journal.printf( "no response");    break;
+		case BAD_RESPONSE: journal.printf( "bad reponse");        break;
+		default:           journal.printf( "error: %d", echoReply.status); break;
 		}
-		journal.jprintf(", Resetting %s...\n", nameWiznet);
-		MC.num_resPing++;
-		initW5200(true);                                  // Инициализация сети с выводом инфы в консоль
-		for(uint8_t i = 0; i < W5200_THREAD; i++) SETBIT1(Socket[i].flags,fABORT_SOCK);                                 // Признак инициализации сокета, надо прерывать передачу в сервере
-		MC.num_resW5200++;                                                       // Добавить счетчик инициализаций
+		if(!MC.NO_Power) {
+			journal.printf(", Resetting %s...\n", nameWiznet);
+			initW5200(true);                                  // Инициализация сети с выводом инфы в консоль
+			for(uint8_t i = 0; i < W5200_THREAD; i++) SETBIT1(Socket[i].flags,fABORT_SOCK);                                 // Признак инициализации сокета, надо прерывать передачу в сервере
+			MC.num_resPing++;
+		}
 		return false;
 	}
 	return false;
@@ -614,12 +615,12 @@ void pingW5200(boolean f)
 	if(f) {
 		SETBIT1(x, MR_BIT_PB);
 #ifdef W5500_LOG_FULL_INFO
-		journal.jprintf(" Enable Ping block\n");
+		journal.printf(" Enable Ping block\n");
 #endif
 	} else {
 		SETBIT0(x, MR_BIT_PB);
 #ifdef W5500_LOG_FULL_INFO
-		journal.jprintf(" Disable Ping block\n");
+		journal.printf(" Disable Ping block\n");
 #endif
 	}
 	W5100.writeMR(x);

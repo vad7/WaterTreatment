@@ -499,8 +499,9 @@ const char *webWS_UsedLastRegenSoftening  		= { "RSL" };
 #define ERR_PWM_MAX			-55			// Перегрузка двигателя насоса
 #define ERR_PRESS			-56			// Ошибка давления
 #define ERR_FLOODING		-57			// Затопление
+//#define ERR_TANK_EMPTY		-58			// Пустой бак! (defined in config.h)
 
-#define ERR_ERRMAX			-57 	   // Последняя ошибка
+#define ERR_ERRMAX			-58 	   // Последняя ошибка
 
 // Предупреждения
 #define WARNING_VALUE        1         // Попытка установить значение за границами диапазона запрос типа SET
@@ -564,6 +565,7 @@ const char *noteError[] = {"Ok",                                                
 						   "Перегрузка двигателя насоса",														//-55
 						   "Ошибка давления",																	//-56
 						   "Затопление",																		//-57
+						   "Пустой бак",																		//-58
 
                            "NULL"
                            };

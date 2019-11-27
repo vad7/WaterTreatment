@@ -282,14 +282,8 @@ void get_txtSettings(uint8_t thread)
                  strcat(Socket[thread].outBuf," Test=");     _itoa(MC.sInput[i].get_testInput(),Socket[thread].outBuf);
                  strcat(Socket[thread].outBuf," Pin=");      _itoa(MC.sInput[i].get_pinD(),Socket[thread].outBuf);
                  strcat(Socket[thread].outBuf," Type=");
-                 switch((int)MC.sInput[i].get_typeInput())
-                   {
-                    case pALARM: strcat(Socket[thread].outBuf,"Alarm"); break;                // 0 Аварийный датчик, его срабатываение приводит к аварии и останове Тн
-                    case pSENSOR:strcat(Socket[thread].outBuf,"Work");  break;                // 1 Обычный датчик, его значение используется в алгоритмах
-                    case pPULSE: strcat(Socket[thread].outBuf,"Pulse"); break;                // 2 Импульсный висит на прерывании и считает частоты - выходная величина ЧАСТОТА
-                    default:     strcat(Socket[thread].outBuf,"err_type"); break;             // Ошибка??
-                   }
-                  if (MC.sInput[i].get_lastErr()!=OK) { strcat(Socket[thread].outBuf," error:"); _itoa(MC.sInput[i].get_lastErr(),Socket[thread].outBuf);}   STR_END;
+                 strcat(Socket[thread].outBuf, MC.sInput[i].get_alarm_error() == 0 ? "" : "Alarm");
+                 if(MC.sInput[i].get_lastErr()!=OK) { strcat(Socket[thread].outBuf," error:"); _itoa(MC.sInput[i].get_lastErr(),Socket[thread].outBuf);}   STR_END;
                 }
                 else strcat(Socket[thread].outBuf," absent \r\n");      
            } 

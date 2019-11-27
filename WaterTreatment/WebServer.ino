@@ -607,9 +607,14 @@ void parserGET(uint8_t thread, int8_t )
 		if(strncmp(str, "get_MODE", 8)==0)  // Функция get_MODE в каком состояниии
 		{
 			str += 8;
-			if(*str == '2') {
+			if(*str == 'D') {	// get_MODED
 				if(FloodingError) {
 					strcat(strReturn, "Затопление!");
+				} else if(MC.sInput[REG_ACTIVE].get_Input() || MC.sInput[BACKWASH_ACTIVE].get_Input() || MC.sInput[REG_SOFTENING_ACTIVE].get_Input()) {
+					strcat(strReturn, "Регенерация");
+				} else if(MC.error)
+					strcat(strReturn, "Ошибка: ");
+					_itoa(MC.error, strReturn);
 				} else {
 					strcat(strReturn, "Ok");
 				}
@@ -618,7 +623,6 @@ void parserGET(uint8_t thread, int8_t )
 				MC.StateToStr(strReturn);
 				ADD_WEBDELIM(strReturn); continue;
 			}
-		}
 
 		if (strcmp(str,"get_testMode")==0)  // Функция get_testMode
 		{
@@ -1044,7 +1048,7 @@ xSaveStats:		if((i = MC.save_WorkStats()) == OK)
 				for(i = 0; i < (int16_t)(sizeof(Errors) / sizeof(Errors[0])); i++) {
 					if(Errors[i] == OK) break;
 					DecodeTimeDate(ErrorsTime[i], strReturn, 3);
-					strReturn += m_snprintf(strReturn += m_strlen(strReturn), 128, "|%d|%s;", Errors[i], noteError[abs(Errors[i])]);
+					strReturn += m_snprintf(strReturn += m_strlen(strReturn), 128, "|%d|%s\n", Errors[i], noteError[abs(Errors[i])]);
 				}
 			} else goto x_FunctionNotFound;
 			ADD_WEBDELIM(strReturn);
@@ -1752,14 +1756,8 @@ x_get_maxPress: 				_ftoa(strReturn,(float)MC.sADC[p].get_maxPress()/100.0,2);
 								ADD_WEBDELIM(strReturn); continue; }
 							if(strncmp(str, "type", 4)==0)           // Функция get_typeInput
 							{
-								if (MC.sInput[p].get_present()==true) {  // датчик есть в кнфигурации
-									switch((int)MC.sInput[p].get_typeInput())
-									{
-										case pALARM: strcat(strReturn,"Alarm"); break;                // 0 Аварийный датчик, его срабатываение приводит к аварии и останове Тн
-										case pSENSOR:strcat(strReturn,"Work");  break;                // 1 Обычный датчик, его значение используется в алгоритмах 
-										case pPULSE: strcat(strReturn,"Pulse"); break;                // 2 Импульсный висит на прерывании и считает частоты - выходная величина ЧАСТОТА
-										default:strcat(strReturn,"err_type"); break;                  // Ошибка??
-									}
+								if(MC.sInput[p].get_present()) {  // датчик есть в кнфигурации
+									strcat(strReturn, MC.sInput[i].get_alarm_error() == 0 ? "" : "Тревога");
 								} else strcat(strReturn,"none");                                 // датчик отсутвует
 								ADD_WEBDELIM(strReturn); continue;
 							}
@@ -1815,9 +1813,9 @@ xWgt_get:
 						continue;
 					} else if(strncmp(str, "set_", 4) == 0) {
 						if(strcmp(x, "T")==0) {      	// set_Wgt(T=) - Tare
-							MC.Option.WeightTare = rd(pm, 10);
+							MC.Option.WeightTare = pm * 10 + 0.05f;
 						} else if(strcmp(x, "N")==0) {      	// set_Wgt(N=) - full brine weight
-							MC.Option.WeightFull = rd(pm, 10);
+							MC.Option.WeightFull = pm * 10 + 0.05f;
 						} else if(strcmp(x, "K")==0) {      	// set_Wgt(K=) - Coefficient
 							MC.Option.WeightScale = pm * 10000 + 0.00005f;
 						} else if(strcmp(x, "0")==0) {      	// set_Wgt(0=) - Zero

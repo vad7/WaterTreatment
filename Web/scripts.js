@@ -97,6 +97,7 @@ function loadParam(paramid, noretry, resultdiv) {
 									continue;
 								} else if(values[0].indexOf("get_Chart")==0) type = "chart"; // график
 								else if(values[0].indexOf("et_modbus_")==1) type = "tbv"; // таблица значений
+								else if(/Wgt\(L\)/.test(values[0])) type = "bar";
 								else if(values[0].indexOf("RELOAD")==0) { 
 									location.reload();
 								} else {
@@ -432,7 +433,8 @@ function loadParam(paramid, noretry, resultdiv) {
 											if(element2) element2.value = "0x" + Number(values[1]).toString(16).toUpperCase();
 										}
 									}
-								} else if(values[0] == "get_Wgt(L)") {
+								} else if(type == "bar") {
+									element = document.getElementById(valueid);
 									var elval = Number(values[1]);
 									if(elval > 100) elval = 105;
 									var hgth = Number(element.style["max-height"].replace("px", "")) * elval / 100;

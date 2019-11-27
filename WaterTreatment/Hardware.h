@@ -142,7 +142,7 @@ public:
   boolean is_alarm() { return Input == InputLevel; }	// Датчик сработал?
   int8_t  set_alarmInput(int16_t i);                     // Установить Состояние аварии датчика
   inline int8_t  get_pinD(){return pin;}                 // Получить ногу куда прицеплен датчик
-  TYPE_SENSOR get_typeInput(){return type;}              // Получить тип датчика
+  int8_t  get_alarm_error(){return alarm_error;}
   uint8_t *get_save_addr(void) { return (uint8_t *)&number; } // Адрес структуры сохранения
   uint16_t get_save_size(void) { return (byte*)&InputLevel - (byte*)&number + sizeof(InputLevel); } // Размер структуры сохранения
     
@@ -153,7 +153,7 @@ private:
    boolean testInput;                                    // !save! Состояние датчика в режиме теста
    boolean InputLevel;                                   // !save! Состояние сработавшего датчика
    } __attribute__((packed));// Save Group end, last alarmInput
-   TYPE_SENSOR type;                                     // Тип датчика
+   int8_t alarm_error;                                   // ошибка при срабатывании датчика, 0 - нет
    int8_t err;                                           // ошибка датчика (работа)
    byte flags;                                           // флаги  датчика
    TEST_MODE testMode;                                  // Значение режима тестирования

@@ -258,7 +258,7 @@ void  sensorDiditalInput::initInput(int sensor)
    flags=0x00;                     // сброс флагов
    // флаги  0 - наличие датчика,  1- режим теста
    SETBIT1(flags,fPresent);        // наличие датчика в текушей конфигурации
-   type=SENSORTYPE[sensor];         // тип датчика
+   alarm_error = SENSOR_ERROR[sensor];
    pin=pinsInput[sensor];           // пин датчика
    pinMode(pin, PULLUPINPUT[sensor] ? INPUT_PULLUP : INPUT); // Настроить ножку на вход
    note=(char*)noteInput[sensor];   // присвоить наименование датчика
@@ -283,9 +283,9 @@ int8_t sensorDiditalInput::Read(boolean fast)
 			}
 		} else Input = in;
 	}
-	if(type == pALARM && Input)     // Срабатывание аварийного датчика
+	if(alarm_error && Input)     // Срабатывание аварийного датчика
 	{
-		err = ERR_DINPUT;
+		err = alarm_error;
 		set_Error(err, name);
 	}
 	return err;
