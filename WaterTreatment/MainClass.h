@@ -50,7 +50,7 @@ struct type_WorkStats {
 #define RTC_Work_NeedRegen_Softener	0x30
 
 struct type_RTC_memory { // DS3231/DS3232 used alarm memory, starts from 0x07, max size 7 bytes
-	volatile uint16_t UsedToday;	// 0. used daily until switch to new day
+	volatile uint16_t UsedToday;	// 0. used daily until switch to new day, liters
 	volatile uint16_t UsedRegen;	// 1.
 	volatile uint8_t  Work;			// 2. NeedRegen + WeekDay
 } __attribute__((packed));
@@ -66,6 +66,7 @@ uint8_t  NeedSaveWorkStats = 0;
 uint32_t TimerDrainingWater = 0;
 int8_t   Errors[15] = { 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0 };// Active Errors array
 uint32_t ErrorsTime[15];
+uint32_t ResetDUE_countdown = 0;
 
 // Weight
 bool Weight_NeedRead = false;

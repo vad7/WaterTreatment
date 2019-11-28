@@ -41,51 +41,19 @@ const char format_datetime[] = "%04d%02d%02d%02d%02d";	// yyyymmddHHMM
 #define ID_STATS 	0
 #define ID_HISTORY	1
 
-enum {
-	STATS_TYPE_MIN = 0,
-	STATS_TYPE_AVG,
-	STATS_TYPE_MAX,
-	STATS_TYPE_SUM,
-	STATS_TYPE_TIME // Time, ms
-};
-
 //static char *stats_format = { "%.1f", "" }; // printf format string
 
-struct Stats_Data {
-	int32_t		value;			// Для среднего, макс единица: +-1491308
-	uint8_t		object;			// STATS_OBJ_*
-	uint8_t		type;			// STATS_TYPE_*
-};
-
-#define STATS_ID_Temp	TAIR
-#define STATS_ID_Press	PWATER
-#define STATS_ID_Flow	FLOW
-
 volatile int32_t Stats_Power_work = 0;  // рабочий для счетчиков - энергия потребленная, мВт
-volatile int32_t Stats_WaterRegen_work = 0;
-volatile int32_t Stats_FeedPump_work = 0;
-volatile int32_t Stats_WaterBooster_work = 0;
-volatile int32_t History_WaterUsed_work = 0;
-volatile int32_t History_WaterRegen_work = 0;
-volatile int32_t History_FeedPump_work = 0;
-volatile int32_t History_WaterBooster_work = 0;
+volatile int32_t Stats_WaterRegen_work = 0; 	// L
+volatile int32_t Stats_FeedPump_work = 0;		// ms
+volatile int32_t Stats_WaterBooster_work = 0;	// ms
+volatile int32_t History_WaterUsed_work = 0;	// L
+volatile int32_t History_WaterRegen_work = 0;	// L
+volatile int32_t History_FeedPump_work = 0;		// ms
+volatile int32_t History_WaterBooster_work = 0;	// ms
 volatile int32_t Charts_WaterBooster_work = 0;
 volatile int32_t Charts_FeedPump_work = 0;
 volatile int32_t Charts_FillTank_work = 0; // %
-
-Stats_Data Stats_data[] = {
-	{ 0, STATS_OBJ_WaterUsed, STATS_TYPE_MAX },
-	{ 0, STATS_OBJ_WaterRegen, STATS_TYPE_SUM },
-	{ 0, STATS_OBJ_Flow, STATS_TYPE_MAX },
-	{ 0, STATS_OBJ_WaterBooster, STATS_TYPE_SUM },
-	{ 0, STATS_OBJ_FeedPump, STATS_TYPE_SUM },
-	{ 0, STATS_OBJ_BrineWeight, STATS_TYPE_MAX },
-	{ 0, STATS_OBJ_Temp, STATS_TYPE_MIN },
-	{ 0, STATS_OBJ_Power, STATS_TYPE_SUM },
-	{ 0, STATS_OBJ_Power, STATS_TYPE_MAX },
-	{ 0, STATS_OBJ_Voltage, STATS_TYPE_MIN },
-	{ 0, STATS_OBJ_Voltage, STATS_TYPE_MAX },
-};
 
 const char stats_file_start[] = "stats_";
 const char stats_file_header[] = "head";

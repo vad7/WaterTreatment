@@ -604,26 +604,24 @@ void parserGET(uint8_t thread, int8_t )
 			MC.num_resW5200++;                                                       // Добавить счетчик инициализаций
 			continue;
 		}
-		if(strncmp(str, "get_MODE", 8)==0)  // Функция get_MODE в каком состояниии
-		{
+		if(strncmp(str, "get_MODE", 8)==0) { // Функция get_MODE в каком состояниии
 			str += 8;
 			if(*str == 'D') {	// get_MODED
 				if(FloodingError) {
 					strcat(strReturn, "Затопление!");
 				} else if(MC.sInput[REG_ACTIVE].get_Input() || MC.sInput[BACKWASH_ACTIVE].get_Input() || MC.sInput[REG_SOFTENING_ACTIVE].get_Input()) {
 					strcat(strReturn, "Регенерация");
-				} else if(MC.error)
+				} else if(MC.get_errcode()) {
 					strcat(strReturn, "Ошибка: ");
-					_itoa(MC.error, strReturn);
+					_itoa(MC.get_errcode(), strReturn);
 				} else {
 					strcat(strReturn, "Ok");
 				}
-				ADD_WEBDELIM(strReturn); continue;
 			} else {
 				MC.StateToStr(strReturn);
-				ADD_WEBDELIM(strReturn); continue;
 			}
-
+			ADD_WEBDELIM(strReturn); continue;
+		}
 		if (strcmp(str,"get_testMode")==0)  // Функция get_testMode
 		{
 			for(i=0;i<=HARD_TEST;i++) // Формирование списка
@@ -808,12 +806,15 @@ xSaveStats:		if((i = MC.save_WorkStats()) == OK)
 				MC.save_WorkStats();
 				Stats.SaveStats(0);
 				Stats.SaveHistory(0);
-				_delay(500);            // задержка что бы вывести сообщение в консоль
-				Software_Reset() ;      // Сброс
-			} else if (strcmp(str,"ALL_COUNT")==0) // Команда RESET_ALL_COUNT
+				update_RTC_store_memory(NeedSaveRTC);
+				ResetDUE_countdown = 3;
+			} else if (strcmp(str,"CNT")==0) // Команда RESET_CNT
 			{
 				journal.jprintf("$RESET All Counters . . .\n");
-				strcat(strReturn,"Сброс ВСЕХ счетчиков");
+				strcat(strReturn,"Сброс счетчиков");
+				memset(&MC.RTC_store, 0, sizeof(MC.RTC_store));
+				NeedSaveRTC = RTC_SaveAll;
+				update_RTC_store_memory(NeedSaveRTC);
 				MC.resetCount();  // Полный сброс
 			} else if (strcmp(str,"SETTINGS")==0) // RESET_SETTINGS, Команда сброса настроек
 			{
@@ -827,6 +828,23 @@ xSaveStats:		if((i = MC.save_WorkStats()) == OK)
 				memset(Errors, 0, sizeof(Errors));
 				WaterBoosterError = false;
 				FloodingError = false;
+				MC.eraseError();
+
+				type_RTC_memory store;
+
+				memset(&store, 0, sizeof(store));
+				uint8_t err = rtcI2C.writeRTC(RTC_STORE_ADDR, (uint8_t*)&store, sizeof(store));
+				if(err)	journal.printf("WriteRTC(%d,%d), err = %d\n", RTC_STORE_ADDR, sizeof(store), err);
+//				err = rtcI2C.writeRTC(RTC_STORE_ADDR + 1, 1);
+//				if(err)	journal.printf("WriteRTC(%d,%d), err = %d\n", RTC_STORE_ADDR+1, sizeof(store), err);
+//				err = rtcI2C.writeRTC(RTC_STORE_ADDR + 2, 2);
+//				if(err)	journal.printf("WriteRTC(%d,%d), err = %d\n", RTC_STORE_ADDR+2, sizeof(store), err);
+
+
+				err = rtcI2C.readRTC(RTC_STORE_ADDR, (uint8_t*)&store, sizeof(store));
+				journal.printf("RTC= %d,%d,%d. err = %d\n", store.UsedToday, store.UsedRegen, store.Work, err);
+
+
 			}
 			ADD_WEBDELIM(strReturn); continue;
 		}

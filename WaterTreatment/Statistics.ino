@@ -384,7 +384,7 @@ void Statistics::Update()
 			Stats_FeedPump_work = 0;
 			break;
 		case STATS_OBJ_BrineWeight:
-			newval = 0;
+			newval = Weight_value;
 			break;
 		}
 		switch(Stats_data[i].type){
@@ -443,13 +443,13 @@ void Statistics::History()
 		case STATS_OBJ_WaterUsed: {
 				int32_t tmp = History_WaterUsed_work;
 				History_WaterUsed_work = 0;
-				int_to_dec_str(tmp, 1, &buf, 0);  // l
+				int_to_dec_str(tmp, 1000, &buf, 3);  // m3
 				break;
 			}
 		case STATS_OBJ_WaterRegen: {
 				int32_t tmp = History_WaterRegen_work;
 				History_WaterRegen_work = 0;
-				int_to_dec_str(tmp, 1, &buf, 0);  // l
+				int_to_dec_str(tmp, 1000, &buf, 3);  // m3
 				break;
 			}
 		case STATS_OBJ_WaterBooster: {
@@ -462,6 +462,10 @@ void Statistics::History()
 				int32_t tmp = History_FeedPump_work;
 				History_FeedPump_work = 0;
 				int_to_dec_str(tmp, 1000, &buf, 0);  // sec
+				break;
+			}
+		case STATS_OBJ_BrineWeight: {
+				int_to_dec_str(Weight_value, 10000, &buf, 3); // kg
 				break;
 			}
 		}
@@ -510,7 +514,7 @@ void Statistics::HistoryFileHeader(char *ret, uint8_t flag)
 				break;
 			case STATS_OBJ_WaterUsed:
 			case STATS_OBJ_WaterRegen:
-				strcat(ret, "L");	// ось литры
+				strcat(ret, "L");	// ось m3
 				break;
 			case STATS_OBJ_WaterBooster:
 			case STATS_OBJ_FeedPump:
@@ -540,6 +544,18 @@ void Statistics::StatsFieldHeader(char *ret, uint8_t i, uint8_t flag)
 		if(flag) strcat(ret, "P"); // ось давление
 		strcat(ret, MC.sADC[STATS_ID_Press].get_note());
 		break;
+	case STATS_OBJ_Flow:
+		if(flag) strcat(ret, "F"); // ось проток
+		strcat(ret, MC.sADC[STATS_ID_Flow].get_note());
+		break;
+	case STATS_OBJ_WaterBooster:
+		if(flag) strcat(ret, "S"); // ось время
+		strcat(ret, "Насосная станция, сек");
+		break;
+	case STATS_OBJ_FeedPump:
+		if(flag) strcat(ret, "S"); // ось время
+		strcat(ret, "Дозирующий насос, сек");
+		break;
 	case STATS_OBJ_Voltage:
 		if(flag) strcat(ret, "V"); // ось напряжение
 		strcat(ret, "Напряжение, V");
@@ -550,11 +566,15 @@ void Statistics::StatsFieldHeader(char *ret, uint8_t i, uint8_t flag)
 		break;
 	case STATS_OBJ_WaterUsed:
 		if(flag) strcat(ret, "L");	// ось литры
-		strcat(ret, "Потреблено, л");
+		strcat(ret, "Потреблено, м³");
 		return;
 	case STATS_OBJ_WaterRegen:
 		if(flag) strcat(ret, "L");	// ось литры
-		strcat(ret, "Регенерация, л");
+		strcat(ret, "Регенерация, м³");
+		break;
+	case STATS_OBJ_BrineWeight:
+		if(flag) strcat(ret, "M");	// ось вес
+		strcat(ret, "Раствор, кг");
 		break;
 	default: strcat(ret, "?");
 	}
@@ -603,6 +623,15 @@ xSkipEmpty:
 	case STATS_OBJ_Voltage:					// V
 		int_to_dec_str(val, 1, ret, 0);
 		break;
+	case STATS_OBJ_WaterUsed:				// m3
+	case STATS_OBJ_WaterRegen:				// m3
+	case STATS_OBJ_BrineWeight:				// kg
+		int_to_dec_str(val, 1000, ret, 3);
+		break;
+	case STATS_OBJ_WaterBooster:			// s
+	case STATS_OBJ_FeedPump:				// s
+		int_to_dec_str(val, 1000, ret, 0);
+		break;
 	case STATS_OBJ_Power:					// кВт*ч
 		switch(Stats_data[i].type) {
 		case STATS_TYPE_SUM:
@@ -615,6 +644,7 @@ xSkipEmpty:
 		break;
 	default:
 		if(Stats_data[i].type == STATS_TYPE_TIME) int_to_dec_str(val, 60000, ret, 1);  // минуты;
+		else goto xSkipEmpty;
 		break;
 	}
 }

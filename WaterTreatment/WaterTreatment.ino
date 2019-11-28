@@ -415,6 +415,12 @@ void setup() {
 			update_RTC_store_memory(NeedSaveRTC = RTC_SaveAll);
 		} else {
 			if(rtcI2C.readRTC(RTC_STORE_ADDR, (uint8_t*)&MC.RTC_store, sizeof(MC.RTC_store))) journal.jprintf(" Error read RTC store!\n");
+
+
+			journal.printf("RTC = %d,%d,%d\n", MC.RTC_store.UsedToday, MC.RTC_store.UsedRegen, MC.RTC_store.Work);
+
+
+
 		}
 	} else journal.jprintf(" Error read RTC!\n");
 	set_time();
@@ -446,7 +452,7 @@ void setup() {
 
 	Weight.begin(HX711_DOUT_PIN, HX711_SCK_PIN);
 	Weight_Clear_Averaging();
-	journal.printf("* Scale inited, raw weight: %d\n", Weight.read() - MC.Option.WeightZero);
+	journal.printf("* Scale inited, ADC: %d\n", Weight.read() - MC.Option.WeightZero);
 
 	// Создание задач FreeRTOS  ----------------------
 	journal.printf("* Create tasks FreeRTOS.\n");
@@ -1159,7 +1165,7 @@ void vService(void *)
 						xTaskResumeAll(); // Разрешение других задач
 						update_RTC_store_memory(NeedSaveRTC);
 					}
-					if(MC.Option.DrainTime && MC.WorkStats.UsedYesterday < 10) { // Used less than 10 liters
+					if(MC.Option.DrainTime && MC.WorkStats.UsedYesterday < 10 && MC.get_errcode() == OK) { // Used less than 10 liters
 						TimerDrainingWater = GetTickCount() | 1;
 						MC.dRelay[RDRAIN].set_ON();
 					}
@@ -1183,6 +1189,7 @@ void vService(void *)
 				}
 			}
 			Stats.CheckCreateNewFile();
+			if(ResetDUE_countdown && --ResetDUE_countdown == 0) Software_Reset();      // Сброс
 		}
 		vTaskDelay(1); // задержка чтения уменьшаем загрузку процессора
 	}

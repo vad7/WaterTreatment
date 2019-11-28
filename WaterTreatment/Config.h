@@ -27,18 +27,32 @@ struct CORRECT_POWER220_STRUCT {
 	uint8_t  num;	// номер реле
 	int16_t  value; // Вт
 };
- 
+
+enum {
+	STATS_TYPE_MIN = 0,
+	STATS_TYPE_AVG,
+	STATS_TYPE_MAX,
+	STATS_TYPE_SUM,
+	STATS_TYPE_TIME // Time, ms
+};
+
+struct Stats_Data {
+	int32_t		value;			// Для среднего, макс единица: +-1491308
+	uint8_t		object;			// STATS_OBJ_*
+	uint8_t		type;			// STATS_TYPE_*
+};
+
 enum {
 	STATS_OBJ_Temp = 0,		// °C, TAIR
 	STATS_OBJ_Press,		// bar
 	STATS_OBJ_Flow,			// м³ч
 	STATS_OBJ_Voltage,		// V
 	STATS_OBJ_Power,		// кВт*ч
-	STATS_OBJ_WaterUsed,	// м³ч
-	STATS_OBJ_WaterRegen,	// м³ч
-	STATS_OBJ_BrineWeight,
-	STATS_OBJ_WaterBooster,
-	STATS_OBJ_FeedPump
+	STATS_OBJ_WaterUsed,	// м³
+	STATS_OBJ_WaterRegen,	// м³
+	STATS_OBJ_BrineWeight,	// кг
+	STATS_OBJ_WaterBooster,	// сек
+	STATS_OBJ_FeedPump		// сек
 };
 struct History_setup {
 	uint8_t		object;			// STATS_OBJ_*
@@ -362,10 +376,28 @@ struct History_setup {
 	#define FILTER_SIZE			3		// Длина фильтра для датчиков давления
 	//#define FILTER_SIZE_OTHER	4			// Длина фильтра для остальных датчиков
 
+	// Статистика по дням
+	#define STATS_ID_Temp	TAIR
+	#define STATS_ID_Press	PWATER
+	#define STATS_ID_Flow	FLOW
+	Stats_Data Stats_data[] = {
+		{ 0, STATS_OBJ_WaterUsed, STATS_TYPE_MAX },
+		{ 0, STATS_OBJ_WaterRegen, STATS_TYPE_SUM },
+		{ 0, STATS_OBJ_Flow, STATS_TYPE_MAX },
+		{ 0, STATS_OBJ_WaterBooster, STATS_TYPE_SUM },
+		{ 0, STATS_OBJ_FeedPump, STATS_TYPE_SUM },
+		{ 0, STATS_OBJ_BrineWeight, STATS_TYPE_MIN },
+		{ 0, STATS_OBJ_Temp, STATS_TYPE_MIN },
+		{ 0, STATS_OBJ_Power, STATS_TYPE_SUM },
+		{ 0, STATS_OBJ_Power, STATS_TYPE_MAX },
+		{ 0, STATS_OBJ_Voltage, STATS_TYPE_MIN },
+		{ 0, STATS_OBJ_Voltage, STATS_TYPE_MAX },
+	};
+
 	// История (графики)
 	const History_setup HistorySetup[] = {
-			{ STATS_OBJ_WaterUsed, 0, "Использовано, л" },
-			{ STATS_OBJ_WaterRegen, 0, "Регенерация, л" },
+			{ STATS_OBJ_WaterUsed, 0, "Использовано, м³" },
+			{ STATS_OBJ_WaterRegen, 0, "Регенерация, м³" },
 			{ STATS_OBJ_WaterBooster, 0, "Насосная станция, сек" },
 			{ STATS_OBJ_FeedPump, 0, "Дозирующий насос, сек" },
 			{ STATS_OBJ_BrineWeight, 0, "Вес раствора, кг" },

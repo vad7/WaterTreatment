@@ -97,7 +97,7 @@ function loadParam(paramid, noretry, resultdiv) {
 									continue;
 								} else if(values[0].indexOf("get_Chart")==0) type = "chart"; // график
 								else if(values[0].indexOf("et_modbus_")==1) type = "tbv"; // таблица значений
-								else if(/Wgt\(L\)/.test(values[0])) type = "bar";
+								else if(/Wgt\(L\)/.test(values[0]) && !!(element = document.getElementById(valueid)).getAttribute("name")) type = "bar";
 								else if(values[0].indexOf("RELOAD")==0) { 
 									location.reload();
 								} else {
@@ -434,12 +434,12 @@ function loadParam(paramid, noretry, resultdiv) {
 										}
 									}
 								} else if(type == "bar") {
-									element = document.getElementById(valueid);
 									var elval = Number(values[1]);
-									if(elval > 100) elval = 105;
-									var hgth = Number(element.style["max-height"].replace("px", "")) * elval / 100;
-									var btm = Number(element.style["margin-top"].replace("px", "")) + Number(element.style.height.replace("px", "")) - hgth;
-									element.style = "margin-top:" + btm +"px;height:" + hgth + "px";
+									if(elval > 100) elval = 100;
+									var mx = element.style["max-height"];
+									var hgth = Number(mx.replace("px", "")) * elval / 100;
+									var btm = Number(element.getAttribute("name").substr(4)) - hgth + 5;
+									element.style = "max-height:" + mx + ";margin-top:" + btm +"px;height:" + hgth + "px";
 								} else if(values[0] == "get_uptime") {
 									if((element = document.getElementById("get_uptime"))) element.innerHTML = values[1];
 									if((element = document.getElementById("get_uptime2"))) element.innerHTML = values[1];

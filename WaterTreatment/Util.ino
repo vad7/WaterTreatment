@@ -881,7 +881,7 @@ __attribute__((always_inline)) inline void setDate_RtcI2C(uint8_t date, uint8_t 
 	SemaphoreGive(xI2CSemaphore);
 }
 
-// 0x01 - UsedToday, 0x02 - UsedRegen, 0x04 - Work every
+// Using bRTC_* flags
 // Return 0 - when success
 uint8_t update_RTC_store_memory(uint8_t &what_to_save)
 {
@@ -893,21 +893,30 @@ uint8_t update_RTC_store_memory(uint8_t &what_to_save)
 	TaskSuspendAll(); // Запрет других задач
 	memcpy(&store, &MC.RTC_store, sizeof(store));
 	xTaskResumeAll(); // Разрешение других задач
-	uint32_t addr = 0;
+	uint32_t addr = 255;
 	uint32_t len = 0;
-	if(what_to_save & (1<<0)) {
+	if(what_to_save & (1<<bRTC_UsedToday)) {
+		addr = 0;
 		len = sizeof(store.UsedToday);
 	}
-	if(what_to_save & (1<<1)) {
-		if(addr == 0) addr = sizeof(store.UsedToday);
+	if(what_to_save & (1<<bRTC_UsedRegen)) {
+		if(addr == 255) addr = sizeof(store.UsedToday);
 		len += sizeof(store.UsedRegen);
-	}
-	if(what_to_save & (1<<2)) {
-		if(addr == 0) addr = sizeof(store.UsedToday) + sizeof(store.UsedRegen);
-		else if(what_to_save & (1<<0)) len += sizeof(store.UsedRegen);
+	} else if(addr == 0 && (what_to_save & (1<<bRTC_Work))) len += sizeof(store.UsedRegen);
+	if(what_to_save & (1<<bRTC_Work)) {
+		if(addr == 255) addr = sizeof(store.UsedToday) + sizeof(store.UsedRegen);
 		len += sizeof(store.Work);
 	}
-	if(len) if(!(len = rtcI2C.writeRTC(RTC_STORE_ADDR + addr, (uint8_t*)&MC.RTC_store + addr, len))) what_to_save = 0;
+
+	journal.printf("RTC%d(%d,%d) <= %d,%d,%d\n", what_to_save, addr, len, store.UsedToday, store.UsedRegen, store.Work);
+
+
+	if(len) {
+		if(!(len = rtcI2C.writeRTC(RTC_STORE_ADDR + addr, (uint8_t*)&store + addr, len))) what_to_save = 0;
+
+		else journal.printf("Error %d\n", len);
+	}
+
 	SemaphoreGive(xI2CSemaphore);
 	return len;
 }
