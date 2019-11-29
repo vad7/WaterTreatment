@@ -423,7 +423,7 @@ void parserGET(uint8_t thread, int8_t )
 	char *ptr;
 	int16_t a,b,c,d;
 #endif
-	int32_t e;
+	int32_t loc_i;
 
 	char *buf = Socket[thread].inPtr;
 	char *strReturn = Socket[thread].outBuf;
@@ -554,9 +554,9 @@ void parserGET(uint8_t thread, int8_t )
 				str = (char*)(i == 1 ? stats_file_start : history_file_start);
 				i = 1;
 				x = strReturn;
-				for(e = rtcSAM3X8.get_years(); e > 2000; e--) {
+				for(loc_i = rtcSAM3X8.get_years(); loc_i > 2000; loc_i--) {
 					x += m_strlen(x);
-					m_snprintf(x, 8 + 4 + sizeof(stats_csv_file_ext), "%s%04d%s", str, e, stats_file_ext);
+					m_snprintf(x, 8 + 4 + sizeof(stats_csv_file_ext), "%s%04d%s", str, loc_i, stats_file_ext);
 					if(!wFile.opens(x, O_READ, &wfname)) {
 						*x = '\0';
 						break;
@@ -655,8 +655,8 @@ xSaveStats:		if((i = MC.save_WorkStats()) == OK)
 					goto xSaveStats;
 				//}
 			} else {
-				e = MC.save();   // записать настройки в еепром, а потом будем их писать и получить размер записываемых данных
-				_itoa(e, strReturn); // сохранение настроек ВСЕХ!
+				loc_i = MC.save();   // записать настройки в еепром, а потом будем их писать и получить размер записываемых данных
+				_itoa(loc_i, strReturn); // сохранение настроек ВСЕХ!
 				MC.save_WorkStats();
 			}
 			ADD_WEBDELIM(strReturn);
@@ -668,7 +668,7 @@ xSaveStats:		if((i = MC.save_WorkStats()) == OK)
 		if(strncmp(str, "get_err", 7) == 0)
 		{
 			str += 7;
-			if(strcmp(str, "code")==0) { // Функция get_errcode
+			if(strcmp(str, "c")==0) { // Функция get_errc
 				_itoa(MC.get_errcode(),strReturn);
 				ADD_WEBDELIM(strReturn); continue;
 			} else {   // Функция get_err
@@ -684,7 +684,7 @@ xSaveStats:		if((i = MC.save_WorkStats()) == OK)
 		{
 			_ftoa(strReturn,getTemp_RtcI2C(),2); ADD_WEBDELIM(strReturn); continue;
 		}
-		if (strcmp(str,"get_Power220") == 0)
+		if (strcmp(str,"get_PWR") == 0)
 		{
 			_ftoa(strReturn, (float)MC.dPWM.get_Power()/1000.0,3); ADD_WEBDELIM(strReturn); continue;
 		}
@@ -705,22 +705,36 @@ xSaveStats:		if((i = MC.save_WorkStats()) == OK)
 			}
 			ADD_WEBDELIM(strReturn); continue;
 		}
-		if(strncmp(str, "get_WS", 6) == 0) { // get WorkStats
+		if(strncmp(str + 1, "et_WS", 5) == 0) { // get WorkStats
+			i = 0;
+			if(*str == 's') { // set
+				if((x = strchr(str, '='))) {
+					*x++ = '\0';
+					loc_i = atoi(x);
+					i = 1;
+				}
+			} else
 			str += 6;
 			if(strcmp(str, webWS_UsedToday) == 0) _itoa(MC.RTC_store.UsedToday, strReturn); // get_WSUD
 			else if(strcmp(str, webWS_UsedYesterday) == 0) _itoa(MC.WorkStats.UsedYesterday, strReturn); // get_WSUY
 			else if(strcmp(str, webWS_UsedAverageDay) == 0) _itoa(MC.WorkStats.UsedAverageDay / MC.WorkStats.UsedAverageDayNum, strReturn); // get_WSA
 			else if(strcmp(str, webWS_LastDrain) == 0) DecodeTimeDate(MC.WorkStats.LastDrain, strReturn, 1); // get_WSDD
 			else if(strcmp(str, webWS_UsedDrain) == 0) _itoa(MC.WorkStats.UsedDrain, strReturn); // get_WSD
-			else if(strcmp(str, webWS_UsedTotal) == 0) _itoa(MC.WorkStats.UsedTotal + MC.RTC_store.UsedToday, strReturn); // get_WST
-			else if(strcmp(str, webWS_RegCnt) == 0) _itoa(MC.WorkStats.RegCnt, strReturn); // get_WSRC
-			else if(strcmp(str, webWS_DaysFromLastRegen) == 0) _itoa(MC.WorkStats.DaysFromLastRegen, strReturn); // get_WSRD
+			else if(strcmp(str, webWS_UsedTotal) == 0) {  // get_WST
+				if(i) MC.WorkStats.UsedTotal = loc_i; // set_WST=x
+				_itoa(MC.WorkStats.UsedTotal + MC.RTC_store.UsedToday, strReturn);
+			} else if(strcmp(str, webWS_RegCnt) == 0) {  // get_WSRC
+				if(i) MC.WorkStats.RegCnt = loc_i;  // set_WSRC=x
+				_itoa(MC.WorkStats.RegCnt, strReturn);
+			} else if(strcmp(str, webWS_RegCntSoftening) == 0) {  // get_WSRSC
+				if(i) MC.WorkStats.RegCntSoftening = loc_i; // set_WSRSC=x
+				_itoa(MC.WorkStats.RegCntSoftening, strReturn);
+			} else if(strcmp(str, webWS_DaysFromLastRegen) == 0) _itoa(MC.WorkStats.DaysFromLastRegen, strReturn); // get_WSRD
 			else if(strcmp(str, webWS_UsedSinceLastRegen) == 0) _itoa(MC.WorkStats.UsedSinceLastRegen + MC.RTC_store.UsedToday, strReturn); // get_WSRS
 			else if(strcmp(str, webWS_UsedLastRegen) == 0) _itoa(MC.WorkStats.UsedLastRegen, strReturn); // get_WSRL
-			else if(strcmp(str, webWS_RegCntSoftening) == 0) _itoa(MC.WorkStats.RegCntSoftening, strReturn); // get_WSRSC
 			else if(strcmp(str, webWS_DaysFromLastRegenSoftening) == 0) _itoa(MC.WorkStats.DaysFromLastRegenSoftening, strReturn); // get_WSRSD
 			else if(strcmp(str, webWS_UsedSinceLastRegenSoftening) == 0) _itoa(MC.WorkStats.UsedSinceLastRegenSoftening + MC.RTC_store.UsedToday, strReturn); // get_WSRSS
-			else if(strcmp(str, webWS_UsedLastRegenSoftening) == 0) _itoa(MC.WorkStats.UsedLastRegenSoftening, strReturn); // get_WSRSL
+			else if(strcmp(str, webWS_UsedLastRegenSoftening) == 0) _itoa(MC.WorkStats.UsedLastRegenSoftening + MC.RTC_store.UsedToday, strReturn); // get_WSRSL
 			ADD_WEBDELIM(strReturn); continue;
 		}
 
@@ -813,9 +827,11 @@ xSaveStats:		if((i = MC.save_WorkStats()) == OK)
 				journal.jprintf("$RESET All Counters . . .\n");
 				strcat(strReturn,"Сброс счетчиков");
 				memset(&MC.RTC_store, 0, sizeof(MC.RTC_store));
+				MC.RTC_store.Work = (MC.RTC_store.Work & ~RTC_Work_WeekDay_Mask) | rtcSAM3X8.get_day_of_week();
 				NeedSaveRTC = RTC_SaveAll;
 				update_RTC_store_memory(NeedSaveRTC);
 				MC.resetCount();  // Полный сброс
+
 			} else if (strcmp(str,"SETTINGS")==0) // RESET_SETTINGS, Команда сброса настроек
 			{
 				journal.jprintf("$RESET All settings . . .\n");
@@ -829,22 +845,6 @@ xSaveStats:		if((i = MC.save_WorkStats()) == OK)
 				WaterBoosterError = false;
 				FloodingError = false;
 				MC.eraseError();
-
-				type_RTC_memory store;
-
-				memset(&store, 0, sizeof(store));
-				uint8_t err = rtcI2C.writeRTC(RTC_STORE_ADDR, (uint8_t*)&store, sizeof(store));
-				if(err)	journal.printf("WriteRTC(%d,%d), err = %d\n", RTC_STORE_ADDR, sizeof(store), err);
-//				err = rtcI2C.writeRTC(RTC_STORE_ADDR + 1, 1);
-//				if(err)	journal.printf("WriteRTC(%d,%d), err = %d\n", RTC_STORE_ADDR+1, sizeof(store), err);
-//				err = rtcI2C.writeRTC(RTC_STORE_ADDR + 2, 2);
-//				if(err)	journal.printf("WriteRTC(%d,%d), err = %d\n", RTC_STORE_ADDR+2, sizeof(store), err);
-
-
-				err = rtcI2C.readRTC(RTC_STORE_ADDR, (uint8_t*)&store, sizeof(store));
-				journal.printf("RTC= %d,%d,%d. err = %d\n", store.UsedToday, store.UsedRegen, store.Work, err);
-
-
 			}
 			ADD_WEBDELIM(strReturn); continue;
 		}
@@ -1109,13 +1109,6 @@ xSaveStats:		if((i = MC.save_WorkStats()) == OK)
 				} // else
 				ADD_WEBDELIM(strReturn) ;    continue;
 			}
-			if(strncmp(str, "set_WS", 6) == 0) { // set WorkStats
-				str += 6;
-				if(strcmp(str, webWS_UsedTotal) == 0) MC.WorkStats.UsedTotal = pm; // set_WST(x)
-				else if(strcmp(str, webWS_RegCnt) == 0) MC.WorkStats.RegCnt = pm;  // set_WSRC(x)
-				else if(strcmp(str, webWS_RegCntSoftening) == 0) MC.WorkStats.RegCntSoftening = pm; // set_WSRSC(x)
-				ADD_WEBDELIM(strReturn) ;    continue;
-			}
 			if(strncmp(str, "get_Err", 7) == 0)  // Функция get_Err(X)
 			{
 				if(*x == 'B') { // get_Err(B) - WaterBoosterError
@@ -1260,7 +1253,7 @@ xSaveStats:		if((i = MC.save_WorkStats()) == OK)
 							if(*y == 'w') {
 								if((i = Modbus.readHoldingRegisters16(id, par, &par)) == OK) _itoa(par, strReturn);
 							} else if(*y == 'l') {
-								if((i = Modbus.readHoldingRegisters32(id, par, (uint32_t *)&e)) == OK) _itoa(e, strReturn);
+								if((i = Modbus.readHoldingRegisters32(id, par, (uint32_t *)&loc_i)) == OK) _itoa(loc_i, strReturn);
 							} else if(*y == 'i') {
 								if((i = Modbus.readInputRegistersFloat(id, par, &pm)) == OK) _ftoa(strReturn, pm, 2);
 							} else if(*y == 'f') {
@@ -1346,7 +1339,7 @@ xSaveStats:		if((i = MC.save_WorkStats()) == OK)
 								ADD_WEBDELIM(strReturn); continue;
 							}
 
-							if(strncmp(str, "er", 3)==0)           // Функция get_erTemp
+							if(strncmp(str, "er", 2)==0)           // Функция get_erTemp
 							{ _ftoa(strReturn,(float)MC.sTemp[p].get_errTemp()/100,2); ADD_WEBDELIM(strReturn); continue; }
 
 							if(strncmp(str, "aT", 2) == 0)           // Функция get_aTemp (address)
@@ -1411,7 +1404,7 @@ x_get_aTemp:
 									{ _ftoa(strReturn,(float)MC.sTemp[p].get_testTemp()/100,1); ADD_WEBDELIM(strReturn);  continue;  }
 								else { strcat(strReturn,"E05" WEBDELIM);  continue;}       // выход за диапазон ПРЕДУПРЕЖДЕНИЕ значение не установлено
 							}
-							if(strncmp(str, "err", 3)==0)           // Функция set_errTemp
+							if(strncmp(str, "er", 2)==0)           // Функция set_erTemp
 							{ 	if (MC.sTemp[p].set_errTemp(rd(pm, 100))==OK)    // Установить значение в сотых градуса
 									{ _ftoa(strReturn,(float)MC.sTemp[p].get_errTemp()/100,2); ADD_WEBDELIM(strReturn); continue; }
 								else { strcat(strReturn,"E05" WEBDELIM);  continue;}      // выход за диапазон ПРЕДУПРЕЖДЕНИЕ значение не установлено

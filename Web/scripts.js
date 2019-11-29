@@ -85,7 +85,7 @@ function loadParam(paramid, noretry, resultdiv) {
 								var valueid = values[0].replace("(", "-").replace(")", "").replace("set_", "get_").toLowerCase();
 								var type, element;
 								if(/get_status|get_sys|^CONST|get_socketInfo/.test(values[0])) type = "const"; 
-								else if(/_list|et_mode|[(]RULE|et_testMode|[(]TARGET|NSL|SMS_SERVICE|et_slIP/.test(values[0])) type = "select"; // значения
+								else if(/_list|\(RULE|et_testMode|\(TARGET|NSL|SMS_SERVICE|et_slIP/.test(values[0])) type = "select"; // значения
 								else if(/get_tbl|listRelay|get_numberIP|TASK_/.test(values[0])) type = "table"; 
 								else if(values[0].indexOf("get_is")==0) type = "is"; // наличие датчика в конфигурации
 								else if(values[0].indexOf("scan_")==0) type = "scan"; // ответ на сканирование
@@ -443,17 +443,10 @@ function loadParam(paramid, noretry, resultdiv) {
 								} else if(values[0] == "get_uptime") {
 									if((element = document.getElementById("get_uptime"))) element.innerHTML = values[1];
 									if((element = document.getElementById("get_uptime2"))) element.innerHTML = values[1];
-								} else if(values[0] == "get_errcode" && values[1] == 0) {
-									document.getElementById("get_errcode").innerHTML = "OK";
-									document.getElementById("get_error").innerHTML = "";
-								} else if(values[0] == "get_errcode" && values[1] < 0) {
-									document.getElementById("get_errcode").innerHTML = "Ошибка";
 								} else if(values[0] == "test_Mail") {
 									setTimeout(loadParam('get_Message(MAIL_RET)'), 3000);
 								} else if(values[0] == "test_SMS") {
 									setTimeout(loadParam('get_Message(SMS_RET)'), 3000);
-								} else if(values[0] == "progFC") {
-									alert(values[1]);
 								} else if(values[0].indexOf("set_SAVE")==0) {
 									if(values[1] >= 0) {
 										if(values[0].match(/STATS$/)) alert("Статистика сохранена!");
@@ -462,12 +455,12 @@ function loadParam(paramid, noretry, resultdiv) {
 									} else alert("Ошибка, код: " + values[1]);
 								} else if(values[0] == "RESET_DUE" || values[0] == "RESET_JOURNAL" || values[0] == "set_updateNet" || values[0] == "RESET_ErrorFC") {
 									alert(values[1]);
-								} else if(values[0].toLowerCase() == "set_off" || values[0].toLowerCase() == "set_on") {
-									break;
 								} else {
 									if((element = document.getElementById(valueid))) {
 										element.value = values[1];
 										element.innerHTML = values[1];
+									    if(values[0] == "get_MODE") element.style = values[1] == "В работе" ? "color:green" : "color:red";
+									    if(values[0] == "get_MODED") element.style = values[1] == "Ok" ? "color:black" : "color:red";
 									}
 									if((element = document.getElementById(valueid + "2"))) {
 										element.value = values[1];
@@ -513,15 +506,6 @@ function validmac(valimac) {
 	var valid = /^[0-9a-fA-F]{2}:[0-9a-fA-F]{2}:[0-9a-fA-F]{2}:[0-9a-fA-F]{2}:[0-9a-fA-F]{2}:[0-9a-fA-F]{2}$/.test(document.getElementById(valimac).value);
 	if(!valid) alert('Аппаратный mac адрес введен неверно!');
 	return valid;
-}
-
-function swich(sw) {
-	swichid = document.getElementById(sw);
-	if(swichid.checked) {
-		loadParam("set_ON");
-	} else {
-		loadParam("set_OFF");
-	}
 }
 
 function unique(arr) {

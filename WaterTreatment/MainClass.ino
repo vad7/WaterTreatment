@@ -388,7 +388,7 @@ int8_t MainClass::load_WorkStats()
 		journal.jprintf("Bad header counters, skip load\n");
 		return ERR_HEADER2_EEPROM;
 	}
-	if(readEEPROM_I2C(I2C_COUNT_EEPROM, (byte*) &WorkStats + sizeof(WorkStats.Header), sizeof(WorkStats) - sizeof(WorkStats.Header))) { // прочитать счетчики
+	if(readEEPROM_I2C(I2C_COUNT_EEPROM + sizeof(WorkStats.Header), (byte*) &WorkStats + sizeof(WorkStats.Header), sizeof(WorkStats) - sizeof(WorkStats.Header))) { // прочитать счетчики
 		set_Error(ERR_LOAD2_EEPROM, (char*) __FUNCTION__);
 		return ERR_LOAD2_EEPROM;
 	}
@@ -400,7 +400,7 @@ int8_t MainClass::load_WorkStats()
 // параметр true - сброс всех счетчиков
 void MainClass::resetCount()
 {
-	memset(&MC.WorkStats, 0, sizeof(MC.WorkStats));
+	memset(&WorkStats, 0, sizeof(WorkStats));
 	WorkStats.ResetTime = rtcSAM3X8.unixtime();           // Дата сброса счетчиков
 	save_WorkStats();  // записать счетчики
 	Stats_Power_work = 0;

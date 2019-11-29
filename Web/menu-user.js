@@ -1,10 +1,9 @@
 document.write('<a href="index.html" class="logo"></a>');
 document.write('\
 <div class="menu-profiles">\
-	<span id="get_mode" style="color: red">-</span><br>\
+	<b><span id="get_mode"></span></b><br>\
 </div>');
 document.write('<ul>\
-<li class="index"><a href="index.html"><i></i>Состояние</a></li>\
 <li class="plan"><a href="plan.html"><i></i>Схема</a></li>\
 <li class="about"><a href="about.html"><i></i>О контроллере</a></li>\
 </ul>');

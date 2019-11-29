@@ -1,7 +1,7 @@
 ﻿document.write('<a href="index.html" class="logo"></a>');
 document.write('<br>\
 <div class="menu-profiles">\
-	<span id="get_mode" style="color: red">-</span><br>\
+	<b><span id="get_mode"></span></b><br>\
 </div>');
 document.write('\
 <ul class="cd-accordion-menu">\
@@ -28,7 +28,7 @@ document.write('\
 	<input type="checkbox" name="group-4" id="group-4">\
 	<label for="group-4"><i></i>Сервис</label>\
 	<ul>\
-		<li class="config"><a href="config.html">Опции</a></li>\
+		<li class="config"><a href="config.html">Настройки</a></li>\
 		<li class="lan"><a href="lan.html">Сеть</a></li>\
 		<li class="time"><a href="time.html">Дата/Время</a></li>\
 		<li class="notice"><a href="notice.html">Уведомления</a></li>\

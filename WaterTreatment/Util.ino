@@ -907,15 +907,7 @@ uint8_t update_RTC_store_memory(uint8_t &what_to_save)
 		if(addr == 255) addr = sizeof(store.UsedToday) + sizeof(store.UsedRegen);
 		len += sizeof(store.Work);
 	}
-
-	journal.printf("RTC%d(%d,%d) <= %d,%d,%d\n", what_to_save, addr, len, store.UsedToday, store.UsedRegen, store.Work);
-
-
-	if(len) {
-		if(!(len = rtcI2C.writeRTC(RTC_STORE_ADDR + addr, (uint8_t*)&store + addr, len))) what_to_save = 0;
-
-		else journal.printf("Error %d\n", len);
-	}
+	if(len) if(!(len = rtcI2C.writeRTC(RTC_STORE_ADDR + addr, (uint8_t*)&store + addr, len))) what_to_save = 0;
 
 	SemaphoreGive(xI2CSemaphore);
 	return len;

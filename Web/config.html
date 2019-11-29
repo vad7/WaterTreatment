@@ -7,22 +7,17 @@
 	<script type='text/javascript' src='scripts.js'></script>
 	<script type="text/javascript">
 		window.onload = function() {
-		loadParam("get_Opt(FPMF),get_Opt(MPOT),get_Opt(UBR),get_Opt(RH),get_Opt(NRW),get_Opt(DT),get_Opt(MR),get_Opt(MD),get_Opt(HIST),get_Opt(BEEP),get_Opt(WSPIF),get_Opt(LOGWS),get_Opt(TIME_CHART),get_Opt(PWMLOG),get_Opt(SGL1W_2),get_Opt(SGL1W_3),get_Opt(SGL1W_4),get_Opt(DR),get_Opt(PM),get_Opt(PST)");
+		loadParam("get_Opt(FPMF),get_Opt(MPOT),get_Opt(UBR),get_Opt(RH),get_Opt(NRW),get_Opt(DT),get_Opt(MR),get_Opt(MD),get_Opt(HIST),get_Opt(BEEP),get_Opt(WSPIF),get_Opt(LOGWS),get_Opt(TIME_CHART),get_Opt(PWMLOG),get_Opt(SGL1W_1),get_Opt(SGL1W_2),get_Opt(SGL1W_3),get_Opt(SGL1W_4),get_Opt(DR),get_Opt(PM),get_Opt(PST),get_WSRC,get_WSRSC,get_WST");
 	}; 
 	</script>
 </head>
 <body class="test">
 <div id="menu" class="menu"><script src='menu.js'></script></div>
 <div class="content">
-	<h1>Опции теплового насоса <input type="submit" value="Записать в EEPROM" onclick='loadParam("set_SAVE")'></h1>
+	<h1>Настройки<input type="submit" value="Записать в EEPROM" onclick='loadParam("set_SAVE")'></h1>
 	<div class="row1">
 		<table>
-		<thead>
-		<tr>
-			<th>Описание</th>
-			<th>Значение</th>
-		</tr>
-		</thead>			
+		<thead><tr><th>Описание</th><th>Значение</th></tr></thead>			
 		<tbody>
 		<tr>
 			<td>Максимальный проток до которого распределяется включение дозатора, лч</td>
@@ -69,8 +64,7 @@
 			<td nowrap><input id="get_opt-md" type="number"> <input type="submit" value=">" onclick="setParam('get_Opt(MD)');"></td>
 		</tr>
 		<tr>
-			<td><b>Дополнительно</b></td>
-			<td></td>
+			<td><b>Дополнительно</b></td><td></td>
 		</tr>
 		<tr>
 			<td>Расположение файлов веб-сервера на SPI Flash (иначе на SD карте)</td>
@@ -113,6 +107,21 @@
 			<td>На четвертой шине 1-Wire только один датчик температуры</td>
 			<td><input type="checkbox" id="get_opt-sgl1w_4" onchange="setParam('get_Opt(SGL1W_4)');"></td>
 		</tr>	
+		<tr>
+			<td><b>Начальные настройки</b></td><td></td>
+		</tr>
+		<tr>
+			<td>Всего использовано воды, л</td>
+			<td nowrap><input id="get_wst" type="number"> <input type="submit" value=">" onclick="if(confirm('Вы уверены?')) setParam('get_WST');"></td>
+		</tr>
+		<tr>
+			<td>Итого регенераций обезжелезивателя</td>
+			<td nowrap><input id="get_wsrc" type="number"> <input type="submit" value=">" onclick="if(confirm('Вы уверены?')) setParam('get_WSRC');"></td>
+		</tr>
+		<tr>
+			<td>Итого регенераций умягчителя</td>
+			<td nowrap><input id="get_wsrsc" type="number"> <input type="submit" value=">" onclick="if(confirm('Вы уверены?')) setParam('get_WSRSC');"></td>
+		</tr>
 	</tbody>
 	</table>
 	<br>

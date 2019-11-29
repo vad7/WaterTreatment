@@ -376,7 +376,7 @@ void setup() {
 		journal.printf("I2C memory is empty!\n");
 		MC.save_WorkStats();
 	} else {
-		MC.load((uint8_t *)Socket[0].outBuf, 0);      // Загрузить настройки 
+		MC.load((uint8_t *)Socket[0].outBuf, 0);      // Загрузить настройки
 	}
 
 	// обновить хеш для пользователей
@@ -415,12 +415,6 @@ void setup() {
 			update_RTC_store_memory(NeedSaveRTC = RTC_SaveAll);
 		} else {
 			if(rtcI2C.readRTC(RTC_STORE_ADDR, (uint8_t*)&MC.RTC_store, sizeof(MC.RTC_store))) journal.jprintf(" Error read RTC store!\n");
-
-
-			journal.printf("RTC = %d,%d,%d\n", MC.RTC_store.UsedToday, MC.RTC_store.UsedRegen, MC.RTC_store.Work);
-
-
-
 		}
 	} else journal.jprintf(" Error read RTC!\n");
 	set_time();
@@ -512,7 +506,7 @@ void setup() {
 	journal.printf("Temperature SAM3X8E: %.2f\n",temp_DUE());
 	journal.printf("Temperature DS2331: %.2f\n",getTemp_RtcI2C());
 	//MC.Stat.generate_TestData(STAT_POINT); // Сгенерировать статистику STAT_POINT точек только тестирование
-	journal.printf("Start FreeRTOS!\n");
+	journal.printf("Start FreeRTOS!\n\n");
 	eepromI2C.use_RTOS_delay = 1;       //vad711
 	//
 	vTaskStartScheduler();              // СТАРТ !!
@@ -1028,12 +1022,14 @@ xWaterBooster_OFF:
 				MC.RTC_store.Work = (MC.RTC_store.Work & ~RTC_Work_NeedRegen_Mask) | RTC_Work_NeedRegen_Iron;
 				MC.RTC_store.UsedRegen = 0;
 				NeedSaveRTC |= (1<<bRTC_UsedRegen) | (1<<bRTC_Work) | 0x80;
+				journal.printf("Regen iron start...\n");
 			}
 		} else if(MC.sInput[REG_SOFTENING_ACTIVE].get_Input()) {
 			if((MC.RTC_store.Work & RTC_Work_NeedRegen_Mask) != RTC_Work_NeedRegen_Softener) {
 				MC.RTC_store.Work = (MC.RTC_store.Work & ~RTC_Work_NeedRegen_Mask) | RTC_Work_NeedRegen_Softener;
 				MC.RTC_store.UsedRegen = 0;
 				NeedSaveRTC |= (1<<bRTC_UsedRegen) | (1<<bRTC_Work) | 0x80;
+				journal.printf("Regen softener start...\n");
 			}
 		} else {
 			switch (MC.RTC_store.Work & RTC_Work_NeedRegen_Mask) {
@@ -1050,6 +1046,7 @@ xWaterBooster_OFF:
 				NeedSaveRTC |= (1<<bRTC_Work) | 0x80;
 				taskEXIT_CRITICAL();
 				NeedSaveWorkStats = 1;
+				journal.printf("Regen iron finished.\n");
 				break;
 			case RTC_Work_NeedRegen_Softener:
 				MC.WorkStats.DaysFromLastRegenSoftening = 0;
@@ -1060,6 +1057,7 @@ xWaterBooster_OFF:
 				NeedSaveRTC |= (1<<bRTC_Work) | 0x80;
 				taskEXIT_CRITICAL();
 				NeedSaveWorkStats = 1;
+				journal.printf("Regen softener finished.\n");
 				break;
 			}
 		}
