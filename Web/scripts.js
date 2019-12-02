@@ -97,7 +97,7 @@ function loadParam(paramid, noretry, resultdiv) {
 									continue;
 								} else if(values[0].indexOf("get_Chart")==0) type = "chart"; // график
 								else if(values[0].indexOf("et_modbus_")==1) type = "tbv"; // таблица значений
-								else if(/Wgt\(L\)/.test(values[0]) && !!(element = document.getElementById(valueid)).getAttribute("name")) type = "bar";
+								else if(/LvL[()]/.test(values[0]) && !!(element = document.getElementById(valueid)).getAttribute("name")) type = "bar";
 								else if(values[0].indexOf("RELOAD")==0) { 
 									location.reload();
 								} else {
@@ -179,7 +179,6 @@ function loadParam(paramid, noretry, resultdiv) {
 												content += '<td id="get_npress-' +P+ '"></td>';
 												content += '<td id="get_press-' +P+ '" nowrap>-</td>';
 												content += '<td nowrap><input id="get_minpress-' +P+ '" type="number" min="-1" max="50" step="0.01"><input type="submit" value=">" onclick="setParam(\'get_minPress(' +count[j]+ ')\');"></td>';
-												content += '<td nowrap><input id="get_minrpress-' +P+ '" type="number" min="-1" max="50" step="0.01"><input type="submit" value=">" onclick="setParam(\'get_minrPress(' +count[j]+ ')\');"></td>';
 												content += '<td nowrap><input id="get_maxpress-' +P+ '" type="number" min="-1" max="50" step="0.01"><input type="submit" value=">" onclick="setParam(\'get_maxPress(' +count[j]+ ')\');"></td>';
 												content += '<td nowrap><input id="get_zeropress-' +P+ '" type="number" min="0" max="2048" step="1"><input type="submit" value=">" onclick="setParam(\'get_zeroPress(' +count[j]+ ')\');"></td>';
 												content += '<td nowrap><input id="get_transpress-' +P+ '" type="number" min="0" max="4" step="0.001"><input type="submit" value=">" onclick="setParam(\'get_transPress(' +count[j]+ ')\');"></td>';

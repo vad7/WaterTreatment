@@ -725,6 +725,7 @@ boolean MainClass::set_option(char *var, float xx)
    if(strcmp(var,option_RegenHour)==0)       { Option.RegenHour = x; return true; } else
    if(strcmp(var,option_UsedBeforeRegen)==0) { Option.UsedBeforeRegen = x; return true; } else
    if(strcmp(var,option_MinPumpOnTime)==0)   { Option.MinPumpOnTime = x / TIME_SLICE_PUMPS; return true; } else
+   if(strcmp(var,option_MinWaterBoostOnTime)==0){ Option.MinWaterBoostOnTime = x / TIME_SLICE_PUMPS; return true; } else
    if(strcmp(var,option_MinRegen)==0)        { Option.MinRegenLiters = x; return true; } else
    if(strcmp(var,option_MinDrain)==0)        { Option.MinDrainLiters = x; return true; } else
    if(strcmp(var,option_DrainTime)==0)       { Option.DrainTime = x; return true; } else
@@ -732,6 +733,10 @@ boolean MainClass::set_option(char *var, float xx)
    if(strcmp(var,option_PWM_DryRun)==0)      { Option.PWM_DryRun = x; return true; } else
    if(strcmp(var,option_PWM_Max)==0)         { Option.PWM_Max = x; return true; } else
    if(strcmp(var,option_PWM_StartingTime)==0){ Option.PWM_StartingTime = x; return true; } else
+   if(strcmp(var,option_PWATER_RegMin)==0)   { Option.PWATER_RegMin = rd(xx, 100); return true; } else
+   if(strcmp(var,option_LTANK_Low)==0)       { Option.LTANK_Low = rd(xx, 10); return true; } else
+   if(strcmp(var,option_FloodingDebounceTime)==0){ Option.FloodingDebounceTime = x; return true; } else
+   if(strcmp(var,option_FloodingTimeout)==0) { Option.FloodingTimeout = x; return true; } else
    if(strncmp(var,option_SGL1W, sizeof(option_SGL1W)-1)==0) {
 	   uint8_t bit = var[sizeof(option_SGL1W)-1] - '0' - 1;
 	   if(bit <= 3) {
@@ -755,6 +760,7 @@ char* MainClass::get_option(char *var, char *ret)
    if(strcmp(var,option_RegenHour)==0){ return _itoa(Option.RegenHour, ret); } else
    if(strcmp(var,option_UsedBeforeRegen)==0){ return _itoa(Option.UsedBeforeRegen, ret); } else
    if(strcmp(var,option_MinPumpOnTime)==0){ return _itoa((uint32_t)Option.MinPumpOnTime * TIME_SLICE_PUMPS, ret); } else
+   if(strcmp(var,option_MinWaterBoostOnTime)==0){ return _itoa((uint32_t)Option.MinWaterBoostOnTime * TIME_SLICE_PUMPS, ret); } else
    if(strcmp(var,option_MinRegen)==0){ return _itoa(Option.MinRegenLiters, ret); } else
    if(strcmp(var,option_MinDrain)==0){ return _itoa(Option.MinDrainLiters, ret); } else
    if(strcmp(var,option_DrainTime)==0){ return _itoa(Option.DrainTime, ret); } else
@@ -762,6 +768,10 @@ char* MainClass::get_option(char *var, char *ret)
    if(strcmp(var,option_PWM_DryRun)==0){ return _itoa(Option.PWM_DryRun, ret); } else
    if(strcmp(var,option_PWM_Max)==0){ return _itoa(Option.PWM_Max, ret); } else
    if(strcmp(var,option_PWM_StartingTime)==0){ return _itoa(Option.PWM_StartingTime, ret); } else
+   if(strcmp(var,option_PWATER_RegMin)==0){ _ftoa(ret, (float) Option.PWATER_RegMin / 100, 2); return ret; } else
+   if(strcmp(var,option_LTANK_Low)==0){ _ftoa(ret, (float) Option.LTANK_Low / 10, 1); return ret; } else
+   if(strcmp(var,option_FloodingDebounceTime)==0){ return _itoa(Option.FloodingDebounceTime, ret); } else
+   if(strcmp(var,option_FloodingTimeout)==0){ return _itoa(Option.FloodingTimeout, ret); } else
    if(strncmp(var,option_SGL1W, sizeof(option_SGL1W)-1)==0) {
 	   uint8_t bit = var[sizeof(option_SGL1W)-1] - '0' - 1;
 	   if(bit <= 2) {

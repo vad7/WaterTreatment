@@ -399,26 +399,31 @@ const char *chart_FeedPump   = {"FeedPump"};
 const char *chart_FillTank   = {"FillTank"};
 
 // Описание имен параметров опций   для функций get_option ("get_Opt") set_option ("set_Opt")
-const char *option_ATTEMPT            = {"ATTEMPT"};            // число попыток пуска
-const char *option_TIME_CHART         = {"TIME_CHART"};         // период сбора статистики
-const char *option_BEEP               = {"BEEP"};               // включение звука
-const char *option_History            = {"HIST"};               // запись истории на SD карту
-const char *option_PWM_LOG_ERR        = {"PWMLOG"};          // флаг писать в лог нерегулярные ошибки счетчика
-const char *option_SAVE_ON            = {"SAVE_ON"};            // флаг записи в EEPROM включения (восстановление работы после перезагрузки)
-const char option_SGL1W[]             = "SGL1W_";			    // SGLOW_n, На шине n (1-Wire, DS2482) только один датчик
-const char *option_WebOnSPIFlash      = {"WSPIF"};              // флаг, что веб морда лежит на SPI Flash, иначе на SD карте
-const char *option_LogWirelessSensors = {"LOGWS"};              // Логировать обмен между беспроводными датчиками
-const char *option_fDontRegenOnWeekend= {"NRW"};
-const char *option_FeedPumpMaxFlow 	  = {"FPMF"};
+const char *option_ATTEMPT            	= {"ATTEMPT"};            // число попыток пуска
+const char *option_TIME_CHART         	= {"TIME_CHART"};         // период сбора статистики
+const char *option_BEEP               	= {"BEEP"};               // включение звука
+const char *option_History            	= {"HIST"};               // запись истории на SD карту
+const char *option_PWM_LOG_ERR        	= {"PWMLOG"};          // флаг писать в лог нерегулярные ошибки счетчика
+const char *option_SAVE_ON            	= {"SAVE_ON"};            // флаг записи в EEPROM включения (восстановление работы после перезагрузки)
+const char option_SGL1W[]             	= "SGL1W_";			    // SGLOW_n, На шине n (1-Wire, DS2482) только один датчик
+const char *option_WebOnSPIFlash		= {"WSPIF"};              // флаг, что веб морда лежит на SPI Flash, иначе на SD карте
+const char *option_LogWirelessSensors	= {"LOGWS"};              // Логировать обмен между беспроводными датчиками
+const char *option_fDontRegenOnWeekend	= {"NRW"};
+const char *option_FeedPumpMaxFlow		= {"FPMF"};
 const char *option_RegenHour			= {"RH"};
 const char *option_UsedBeforeRegen		= {"UBR"};
 const char *option_MinPumpOnTime		= {"MPOT"};
+const char *option_MinWaterBoostOnTime	= {"MWBT"};
 const char *option_MinRegen				= {"MR"};
 const char *option_MinDrain				= {"MD"};
 const char *option_DrainTime			= {"DT"};
 const char *option_PWM_DryRun			= {"DR"};
 const char *option_PWM_Max				= {"PM"};
 const char *option_PWM_StartingTime		= {"PST"};
+const char *option_FloodingDebounceTime	= {"FDT"};
+const char *option_FloodingTimeout		= {"FT"};
+const char *option_PWATER_RegMin		= {"WRM"};
+const char *option_LTANK_Low			= {"TL"};
 
 // WorkStats, get_WS..., set_WS...(x)
 const char *webWS_UsedToday 					= { "UD" };

@@ -192,47 +192,71 @@ struct History_setup {
 	#define PIN_KEY_DOWN		30			// KEYS.3
 	#define PIN_KEY_OK			12			// KEYS.4
 
+	#define TANK_ANALOG_LEVEL				// Использовать аналоговый датчик уровня в баке, MINPRESS = уровень сухого бака, MAXPRESS = уровень перелива.
+
 	// Весы
 	#define HX711_DOUT_PIN		39			// ULN6
 	#define HX711_SCK_PIN		40			// ULN7
 	#define WEIGHT_AVERAGE_BUFFER 10
 
     // Контактные датчики (sInput[]------------------------------------------------------------------
+#ifndef TANK_ANALOG_LEVEL
     #define INUMBER             7   	// Число контактных датчиков цифровые входы
+#else
+	#define INUMBER             5   	// Число контактных датчиков цифровые входы
+#endif
     // Имена индексов
 	#define REG_ACTIVE          0        // Активна регенерация (INP2)
 	#define BACKWASH_ACTIVE     1        // Активна обратная промывка (INP3)
-	#define REG_SOFTENING_ACTIVE 2       // Активная регенерация умягчителя (DAC0 [D66])
-    #define TANK_PARTIAL        3        // Нужен долив емкости (500л) (INP4)
-	#define TANK_FULL           4        // Емкость полна (INP5)
-	#define TANK_EMPTY          5        // Емкость пуста (INP6)
-	#define FLOODING			6        // Протечка (REL8 [D5])
+	#define REG_SOFTENING_ACTIVE 2       // Активная регенерация умягчителя (INP4)
+	#define FLOODING			3        // Протечка (INP5)
+	#define TANK_EMPTY          4        // Емкость пуста (INP6)
+#ifndef TANK_ANALOG_LEVEL
+    #define TANK_LOW            5        // Нужен долив бака 500л (DAC0 [D66])
+	#define TANK_FULL           6        // Емкость полна (REL8 [D5])
+#endif
 
 	// Массив ног
-	const uint8_t pinsInput[INUMBER] = { 56, 43, 66, 54, 23, 24, 5 };
+	const uint8_t pinsInput[INUMBER] = { 56, 43, 54, 23, 24
+#ifndef TANK_ANALOG_LEVEL
+			, 66, 5
+#endif
+		};
       // Описание датчиков
     const char *noteInput[INUMBER] = {	"Идет регенерация",
     		  	  	  	  	  	  	  	"Идет обратная промывка",
 										"Идет регенерация умягчителя",
-										"Долив бака",
-										"Бак полный",
-										"Пустой бак!",
-										"Затопление!"
+										"Затопление!",
+										"Пустой бак!"
+#ifndef TANK_ANALOG_LEVEL
+
+										,"Долив бака",
+										"Бак полный"
+#endif
                                      };
       // Имена датчиков
     const char *nameInput[INUMBER] = {	"REG",
 										"BWASH",
 										"REGT2",
-										"LOW",
-										"FULL",
-										"EMPTY",
-										"FLOODING"
+										"FLOODING",
+										"EMPTY"
+#ifndef TANK_ANALOG_LEVEL
+										,"LOW",
+										"FULL"
+#endif
                                      };
      
-      const bool TESTINPUT[INUMBER]        = { 0, 0, 0, 0, 0, 0, 0 };    // Значения датчиков при тестировании  опция TEST
-      const bool LEVELINPUT[INUMBER]       = { 0, 0, 0, 0, 0, 1, 0 };    // Значение датчика, когда сработал
-      const bool PULLUPINPUT[INUMBER]      = { 0, 0, 1, 0, 0, 0, 1 };    // если 1 - то на порту выставляется подтяжка к VCC.
-      const int8_t SENSOR_ERROR[INUMBER]   = { 0, 0, 0, 0, 0, ERR_TANK_EMPTY, 0 };  // При срабатывании генерить ошибку с заданным кодом, если не 0
+#ifndef TANK_ANALOG_LEVEL
+    const bool TESTINPUT[INUMBER]        = { 0, 0, 0, 0, 0, 0, 0 };    // Значения датчиков при тестировании  опция TEST
+    const bool LEVELINPUT[INUMBER]       = { 0, 0, 0, 1, 0, 0, 0 };    // Значение датчика, когда сработал
+    const bool PULLUPINPUT[INUMBER]      = { 0, 0, 0, 0, 0, 1, 1 };    // если 1 - то на порту выставляется подтяжка к VCC.
+    const int8_t SENSOR_ERROR[INUMBER]   = { 0, 0, 0, ERR_TANK_EMPTY, 0, 0, 0 };  // При срабатывании генерить ошибку с заданным кодом, если не 0
+#else
+      const bool TESTINPUT[INUMBER]        = { 0, 0, 0, 0, 0 };    // Значения датчиков при тестировании  опция TEST
+      const bool LEVELINPUT[INUMBER]       = { 0, 0, 0, 1, 0  };    // Значение датчика, когда сработал
+      const bool PULLUPINPUT[INUMBER]      = { 0, 0, 0, 0, 0 };    // если 1 - то на порту выставляется подтяжка к VCC.
+      const int8_t SENSOR_ERROR[INUMBER]   = { 0, 0, 0, ERR_TANK_EMPTY, 0 };  // При срабатывании генерить ошибку с заданным кодом, если не 0
+#endif
     // ---------------------------------------------------------------------------------------------------------------------------------------
     // Частотные датчики ------------------------------------------------------------------
     #define FNUMBER             1       // Число частотных датчиков цифровые входы
@@ -339,28 +363,32 @@ struct History_setup {
 	#define GAP_NUMBER_CRC    7       	  // Датчики с флагом игнорировать CRC. Максимальное число идущих подряд показаний превышающих на GAP_TEMP_VAL, после этого эти показания выдаются за действительные
 
     // АНАЛОГОВЫЕ ДАТЧИКИ  -------------------------------------------------------------------
-    // Давление харится в сотых бара
-	#define ANUMBER			1       // Число аналоговых датчиков
-	#define PWATER			0       // Датчик давления испарителя.
+    // Давление харится в сотых единиц
+	#define ANUMBER			2       // Число аналоговых датчиков
+	#define PWATER			0       // Датчик давления воды, в сотых бара
+	#define LTANK			1       // Датчик уровня воды в баке, в сотых %
 	// Имена датчиков
-	const char *namePress[] = { "WATER"
+	const char *namePress[] = { "PWATER",
+								"LTANK"
 							  };
 	// Описание датчиков
-	const char *notePress[] = { "Датчик давления воды"
+	const char *notePress[] = { "Датчик давления воды",
+								"Датчик уровня бака"
 							  };
 
 	// Номера каналов АЦП, в нумерации SAM3X (AD*):
-	const uint8_t pinsAnalog[ANUMBER] = {	10 // A8(D62), INA1 - желтый, красный "+5V", черный "-".
+	const uint8_t pinsAnalog[ANUMBER] = {	10, // A8(D62), INA1 - желтый, красный "+5V", черный "-".
+											 1	// A6(D60), INA4-20_1.2 - (+12V)-красный, INA4-20_1.1 - (-12V)-черный.
 										};
 	// Коэффициент преобразования отсчеты АЦП-давление, тысячные
-	const uint16_t TRANsADC[ANUMBER]  = { 181 };
+	const uint16_t TRANsADC[ANUMBER]  = { 181, 200 };
 	// напряжение (отсчеты АЦП) соответсвующее cZero
-	const uint16_t ZEROPRESS[ANUMBER] = { 70 };
+	const uint16_t ZEROPRESS[ANUMBER] = { 70, 80 };
 
-	const boolean SENSORPRESS[ANUMBER]= { true };	// Присутствие датчика в конфигурации
-	const int16_t MINPRESS[ANUMBER]   = {  250 };	// минимальные значения давления, в сотых бар
-	const uint16_t MAXPRESS[ANUMBER]  = {  370 };	// Максимальные значения давления, в сотых бар
-	const uint16_t TESTPRESS[ANUMBER] = {  300 };	// Значения датчиков при тестировании  опция TEST, в сотых бар
+	const boolean SENSORPRESS[ANUMBER]= { true, true };	// Присутствие датчика в конфигурации
+	const int16_t MINPRESS[ANUMBER]   = {  250, 0 };	// минимальные значения давления, в сотых бар
+	const uint16_t MAXPRESS[ANUMBER]  = {  370, 0 };	// Максимальные значения давления, в сотых бар
+	const uint16_t TESTPRESS[ANUMBER] = {  300, 0 };	// Значения датчиков при тестировании  опция TEST, в сотых бар
 	//#define ANALOG_MODBUS 									// Данные аналоговых датчиков читаются по Modbus RTU
 	#ifdef ANALOG_MODBUS
 	  #define ANALOG_MODBUS_NUM_READ				3			// Число попыток чтения

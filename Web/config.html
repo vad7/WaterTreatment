@@ -7,7 +7,8 @@
 	<script type='text/javascript' src='scripts.js'></script>
 	<script type="text/javascript">
 		window.onload = function() {
-		loadParam("get_Opt(FPMF),get_Opt(MPOT),get_Opt(UBR),get_Opt(RH),get_Opt(NRW),get_Opt(DT),get_Opt(MR),get_Opt(MD),get_Opt(HIST),get_Opt(BEEP),get_Opt(WSPIF),get_Opt(LOGWS),get_Opt(TIME_CHART),get_Opt(PWMLOG),get_Opt(SGL1W_1),get_Opt(SGL1W_2),get_Opt(SGL1W_3),get_Opt(SGL1W_4),get_Opt(DR),get_Opt(PM),get_Opt(PST),get_WSRC,get_WSRSC,get_WST");
+		loadParam("get_Opt(FPMF),get_Opt(UBR),get_Opt(RH),get_Opt(NRW),get_Opt(DT),get_Opt(MR),get_Opt(MD),get_Opt(HIST),get_Opt(BEEP),get_Opt(WSPIF),get_Opt(LOGWS),get_Opt(TIME_CHART),get_Opt(PWMLOG),get_Opt(SGL1W_1),get_Opt(SGL1W_2),get_Opt(SGL1W_3),get_Opt(SGL1W_4)");
+		loadParam("get_Opt(MWBT),get_Opt(MPOT),get_Opt(DR),get_Opt(PM),get_Opt(PST),get_WSRC,get_WSRSC,get_WST,get_Opt(WRM),get_Opt(TL),get_Opt(FDT),get_Opt(FT)");
 	}; 
 	</script>
 </head>
@@ -24,20 +25,12 @@
 			<td nowrap><input id="get_opt-fpmf" type="number"> <input type="submit" value=">" onclick="setParam('get_Opt(FPMF)');"></td>
 		</tr>
 		<tr>
-			<td>Минимальное время включения дозатора, мсек</td>
+			<td>Минимальное время работы насосной станции, мсек</td>
+			<td nowrap><input id="get_opt-mwbt" type="number"> <input type="submit" value=">" onclick="setParam('get_Opt(MWBT)');"></td>
+		</tr>
+		<tr>
+			<td>Минимальное время работы дозатора, мсек</td>
 			<td nowrap><input id="get_opt-mpot" type="number"> <input type="submit" value=">" onclick="setParam('get_Opt(MPOT)');"></td>
-		</tr>
-		<tr>
-			<td>Защита от сухого хода насосной станции - мин. мощность, Вт</td>
-			<td nowrap><input id="get_opt-dr" type="number"> <input type="submit" value=">" onclick="setParam('get_Opt(DR)');"></td>
-		</tr>
-		<tr>
-			<td>Защита от перегрузки насосной станции - макс. мощность, Вт</td>
-			<td nowrap><input id="get_opt-pm" type="number"> <input type="submit" value=">" onclick="setParam('get_Opt(PM)');"></td>
-		</tr>
-		<tr>
-			<td>Время пуска мотора насосной станции, мсек</td>
-			<td nowrap><input id="get_opt-pst" type="number"> <input type="submit" value=">" onclick="setParam('get_Opt(PST)');"></td>
 		</tr>
 		<tr>
 			<td>Количество литров до регенерации</td>
@@ -56,12 +49,46 @@
 			<td nowrap><input id="get_opt-dt" type="number"> <input type="submit" value=">" onclick="setParam('get_Opt(DT)');"></td>
 		</tr>
 		<tr>
+			<td><b>Аналоговые датчики</b></td><td></td>
+		</tr>
+		<tr>
+			<td>Нижний предел давления при регенерации, бар</td>
+			<td nowrap><input id="get_opt-wrm" type="number" step="0.01"> <input type="submit" value=">" onclick="setParam('get_Opt(WRM)');"></td>
+		</tr>
+		<tr>
+			<td>Низкий уровень воды в баке для включения заполнения, %</td>
+			<td nowrap><input id="get_opt-tl" type="number" step="0.1"> <input type="submit" value=">" onclick="setParam('get_Opt(TL)');"></td>
+		</tr>
+		<tr>
+			<td><b>Защиты</b></td><td></td>
+		</tr>
+		<tr>
+			<td>Время пуска мотора насосной станции (для защит), мсек</td>
+			<td nowrap><input id="get_opt-pst" type="number"> <input type="submit" value=">" onclick="setParam('get_Opt(PST)');"></td>
+		</tr>
+		<tr>
+			<td>Защита от сухого хода насосной станции - мин. мощность, Вт</td>
+			<td nowrap><input id="get_opt-dr" type="number"> <input type="submit" value=">" onclick="setParam('get_Opt(DR)');"></td>
+		</tr>
+		<tr>
+			<td>Защита от перегрузки насосной станции - макс. мощность, Вт</td>
+			<td nowrap><input id="get_opt-pm" type="number"> <input type="submit" value=">" onclick="setParam('get_Opt(PM)');"></td>
+		</tr>
+		<tr>
 			<td>Тревога, если за регенерацию израсходовано меньше литров</td>
 			<td nowrap><input id="get_opt-mr" type="number"> <input type="submit" value=">" onclick="setParam('get_Opt(MR)');"></td>
 		</tr>
 		<tr>
 			<td>Тревога, если слито при сбросе меньше литров</td>
 			<td nowrap><input id="get_opt-md" type="number"> <input type="submit" value=">" onclick="setParam('get_Opt(MD)');"></td>
+		</tr>
+		<tr>
+			<td>Время срабатывания датчика протечки для регистрации события, сек</td>
+			<td nowrap><input id="get_opt-fdt" type="number"> <input type="submit" value=">" onclick="setParam('get_Opt(FDT)');"></td>
+		</tr>
+		<tr>
+			<td>Время ожидания после ликвидации протечки, сек</td>
+			<td nowrap><input id="get_opt-ft" type="number"> <input type="submit" value=">" onclick="setParam('get_Opt(FT)');"></td>
 		</tr>
 		<tr>
 			<td><b>Дополнительно</b></td><td></td>

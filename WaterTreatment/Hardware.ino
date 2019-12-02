@@ -138,7 +138,7 @@ void sensorADC::initSensorADC(uint8_t sensor, uint8_t pinA, uint16_t filter_size
 	clearBuffer();
 
 	testMode = NORMAL;                           // Значение режима тестирования
-	cfg.minPress = cfg.minPressReg = MINPRESS[sensor];                 // минимально разрешенное давление
+	cfg.minPress = MINPRESS[sensor];                 // минимально разрешенное давление
 	cfg.maxPress = MAXPRESS[sensor];                 // максимально разрешенное давление
 	cfg.testPress = TESTPRESS[sensor];               // Значение при тестировании
 	cfg.zeroPress = ZEROPRESS[sensor];               // отсчеты АЦП при нуле датчика

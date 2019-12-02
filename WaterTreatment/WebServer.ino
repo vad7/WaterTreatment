@@ -1522,13 +1522,6 @@ x_get_minPress: 				_ftoa(strReturn,(float)MC.sADC[p].get_minPress()/100.0,2);
 								else strcat(strReturn,"-");              // Датчика нет ставим прочерк
 								ADD_WEBDELIM(strReturn); continue;
 							}
-							if(strncmp(str, "minr", 3)==0)           // Функция get_minrPress
-							{
-								if (MC.sADC[p].get_present())          // Если датчик есть в конфигурации то выводим значение
-x_get_minPressReg: 				_ftoa(strReturn,(float)MC.sADC[p].get_minPressReg()/100.0,2);
-								else strcat(strReturn,"-");              // Датчика нет ставим прочерк
-								ADD_WEBDELIM(strReturn); continue;
-							}
 
 							if(strncmp(str, "max", 3)==0)           // Функция get_maxPress
 							{
@@ -1571,6 +1564,11 @@ x_get_maxPress: 				_ftoa(strReturn,(float)MC.sADC[p].get_maxPress()/100.0,2);
 							if(strncmp(str, "nP", 2)==0)           // Функция get_nPress (note)
 							{ strcat(strReturn,MC.sADC[p].get_note()); ADD_WEBDELIM(strReturn); continue; }
 
+							if(strcmp(str, "PressLvL")==0) {   // Функция get_PressLvL()
+								_itoa(MC.sADC[p].get_Press() / 100, strReturn);
+								ADD_WEBDELIM(strReturn); continue;
+							}
+
 						// ---- SET ----------------- Для аналоговых  датчиков - запросы на УСТАНОВКУ парметров
 						} else if(strncmp(str,"set_", 4)==0) {              // Функция set_
 							str += 4;
@@ -1591,10 +1589,6 @@ x_get_maxPress: 				_ftoa(strReturn,(float)MC.sADC[p].get_maxPress()/100.0,2);
 							}
 							if(strncmp(str, "min", 3) == 0) {  // set_minPress
 								if(MC.sADC[p].set_minPress(rd(pm, 100)) == OK) goto x_get_minPress;
-								else { strcat(strReturn, "E05" WEBDELIM);  continue; }         // выход за диапазон ПРЕДУПРЕЖДЕНИЕ значение не установлено
-							}
-							if(strncmp(str, "minr", 3) == 0) {  // set_minrPress
-								if(MC.sADC[p].set_minPressReg(rd(pm, 100)) == OK) goto x_get_minPressReg;
 								else { strcat(strReturn, "E05" WEBDELIM);  continue; }         // выход за диапазон ПРЕДУПРЕЖДЕНИЕ значение не установлено
 							}
 							if(strncmp(str, "max", 3) == 0) { // set_maxPress
@@ -1802,34 +1796,34 @@ x_get_maxPress: 				_ftoa(strReturn,(float)MC.sADC[p].get_maxPress()/100.0,2);
 				if(strcmp(str + 4, "Wgt") == 0) {
 					if(strncmp(str, "get_", 4) == 0) {
 xWgt_get:
-						if(strcmp(x, "L")==0) {       		// get_Wgt(L) - Level
-							_ftoa(strReturn, (float)Weight_Percent / 100.0f, 2);
-						} else if(strcmp(x, "W")==0) {      	// get_Wgt(W) - Weight
+						if(*x == 'W') {      	// get_Wgt(W) - Weight
 							_ftoa(strReturn, (float)Weight_value / 10.0f, 1);
-						} else if(strcmp(x, "T")==0) {      	// get_Wgt(T) - Tare
+						} else if(*x == 'T') {      	// get_Wgt(T) - Tare
 							_ftoa(strReturn, (float)MC.Option.WeightTare / 10.0f, 1);
-						} else if(strcmp(x, "N")==0) {      	// get_Wgt(N) - full brine weight
+						} else if(*x == 'N') {      	// get_Wgt(N) - full brine weight
 							_ftoa(strReturn, (float)MC.Option.WeightFull / 10.0f, 1);
-						} else if(strcmp(x, "A")==0) {      	// get_Wgt(A) - ADC value
+						} else if(*x == 'A') {      	// get_Wgt(A) - ADC value
 							//_itoa(Weight_adc_filter[Weight_adc_idx ? Weight_adc_idx - 1 : sizeof(Weight_adc_filter) / sizeof(Weight_adc_filter[0]) - 1], strReturn); // one reading
 							_itoa(Weight_adc_sum / (sizeof(Weight_adc_filter) / sizeof(Weight_adc_filter[0])), strReturn); // averaged
-						} else if(strcmp(x, "0")==0) {      	// get_Wgt(0) - Zero (ADC)
+						} else if(*x == '0') {      	// get_Wgt(0) - Zero (ADC)
 							_itoa((float)MC.Option.WeightZero, strReturn);
-						} else if(strcmp(x, "K")==0) {      	// get_Wgt(K) - Coefficient
+						} else if(*x == 'K') {      	// get_Wgt(K) - Coefficient
 							_ftoa(strReturn, (float)MC.Option.WeightScale / 10000.0f, 4);
-						} else if(strcmp(x, "P")==0) {      	// get_Wgt(P) - Pins
+						} else if(*x == 'P') {      	// get_Wgt(P) - Pins
 							m_snprintf(strReturn + m_strlen(strReturn), 32, "D%d D%d", HX711_DOUT_PIN, HX711_SCK_PIN);
+						} else if(strcmp(x, "LvL")==0) {       		// get_Wgt(LvL) - Level
+								_ftoa(strReturn, (float)Weight_Percent / 100.0f, 2);
 						}
 						ADD_WEBDELIM(strReturn);
 						continue;
 					} else if(strncmp(str, "set_", 4) == 0) {
-						if(strcmp(x, "T")==0) {      	// set_Wgt(T=) - Tare
+						if(*x == 'T') {      	// set_Wgt(T=) - Tare
 							MC.Option.WeightTare = pm * 10 + 0.05f;
-						} else if(strcmp(x, "N")==0) {      	// set_Wgt(N=) - full brine weight
+						} else if(*x == 'N') {      	// set_Wgt(N=) - full brine weight
 							MC.Option.WeightFull = pm * 10 + 0.05f;
-						} else if(strcmp(x, "K")==0) {      	// set_Wgt(K=) - Coefficient
+						} else if(*x == 'K') {      	// set_Wgt(K=) - Coefficient
 							MC.Option.WeightScale = pm * 10000 + 0.00005f;
-						} else if(strcmp(x, "0")==0) {      	// set_Wgt(0=) - Zero
+						} else if(*x == '0') {      	// set_Wgt(0=) - Zero
 							MC.Option.WeightZero = pm;
 						}
 						goto xWgt_get;

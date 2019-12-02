@@ -953,7 +953,7 @@ void vPumps( void * )
 			} else FloodingTime = 0;
 		}
 		if(!WaterBoosterStatus && !WaterBoosterError && !FloodingError && press != ERROR_PRESS
-				&& press <= (MC.sInput[REG_ACTIVE].get_Input() || MC.sInput[BACKWASH_ACTIVE].get_Input() || MC.sInput[REG_SOFTENING_ACTIVE].get_Input() ? MC.sADC[PWATER].get_minPressReg() : MC.sADC[PWATER].get_minPress())) { // Starting
+				&& press <= (MC.sInput[REG_ACTIVE].get_Input() || MC.sInput[BACKWASH_ACTIVE].get_Input() || MC.sInput[REG_SOFTENING_ACTIVE].get_Input() ? MC.Option.PWATER_RegMin : MC.sADC[PWATER].get_minPress())) { // Starting
 			MC.dRelay[RBOOSTER1].set_ON();
 			WaterBoosterStatus = 1;
 		} else if(WaterBoosterStatus > 0) {
@@ -1006,13 +1006,22 @@ xWaterBooster_OFF:
 		} else if(TimeFeedPump >= MC.Option.MinPumpOnTime) {
 			MC.dRelay[RFEEDPUMP].set_ON();
 		}
-		if(MC.sInput[TANK_PARTIAL].get_Input()) {
+#ifdef TANK_ANALOG_LEVEL
+		if(MC.sADC[LTANK].get_Press() <= MC.sADC[LTANK].get_minPress()) {
+#else
+		if(MC.sInput[TANK_LOW].get_Input()) {
+#endif
 			if(MC.dRelay[RFILL].get_Relay()) {
 				taskENTER_CRITICAL();
 				Charts_FillTank_work += TIME_SLICE_PUMPS * 100 / 1000; // in percent
 				taskEXIT_CRITICAL();
 			} else MC.dRelay[RFILL].set_ON();	// Start filing tank
+#ifdef TANK_ANALOG_LEVEL
+		if(MC.sADC[LTANK].get_Press() >= MC.sADC[LTANK].get_maxPress()) {
+#else
 		} else if(MC.sInput[TANK_FULL].get_Input()) {
+#endif
+		}
 			if(!MC.dRelay[RFILL].get_Relay()) MC.dRelay[RFILL].set_OFF();	// Stop filing tank
 		}
 
@@ -1169,7 +1178,11 @@ void vService(void *)
 					}
 				}
 				if(!WaterBoosterError && (MC.RTC_store.Work & RTC_Work_NeedRegen_WaitIron) && rtcSAM3X8.get_hours() == MC.Option.RegenHour) {
+#ifdef TANK_ANALOG_LEVEL
+					if(MC.sADC[LTANK].get_Press() >= MC.sADC[LTANK].get_maxPress()) {
+#else
 					if(MC.sInput[TANK_FULL].get_Input()) {
+#endif
 						MC.dRelay[RSTARTREG].set_ON();
 					} else {
 						MC.dRelay[RFILL].set_ON();	// Start filing tank
