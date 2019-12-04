@@ -908,6 +908,7 @@ void vPumps( void * )
 			Stats_WaterBooster_work += TIME_SLICE_PUMPS;
 			History_WaterBooster_work += TIME_SLICE_PUMPS;
 			WaterBoosterWorkingTime += TIME_SLICE_PUMPS;
+			if(WaterBoosterWorkingTime < TIME_SLICE_PUMPS) WaterBoosterWorkingTime = 0xFFFFFFFF;
 		} else {
 			WaterBoosterWorkingTime = 0;
 		}
@@ -952,7 +953,7 @@ void vPumps( void * )
 				}
 			} else FloodingTime = 0;
 		}
-		if(!WaterBoosterStatus && !WaterBoosterError && !FloodingError && press != ERROR_PRESS
+		if(!WaterBoosterStatus && !WaterBoosterError && !FloodingError && press != ERROR_PRESS && !MC.sInput[TANK_EMPTY].get_Input()
 				&& press <= (MC.sInput[REG_ACTIVE].get_Input() || MC.sInput[BACKWASH_ACTIVE].get_Input() || MC.sInput[REG_SOFTENING_ACTIVE].get_Input() ? MC.Option.PWATER_RegMin : MC.sADC[PWATER].get_minPress())) { // Starting
 			MC.dRelay[RBOOSTER1].set_ON();
 			WaterBoosterStatus = 1;
@@ -968,7 +969,7 @@ void vPumps( void * )
 					goto xWaterBooster_OFF;
 				}
 			}
-			if(press >= MC.sADC[PWATER].get_maxPress() || MC.sInput[TANK_EMPTY].get_Input()) { // Stopping
+			if(WaterBoosterWorkingTime >= MC.Option.MinWaterBoostOnTime && (press >= MC.sADC[PWATER].get_maxPress() || MC.sInput[TANK_EMPTY].get_Input())) { // Stopping
 xWaterBooster_OFF:
 				if(WaterBoosterStatus == 1) {
 					MC.dRelay[RBOOSTER1].set_OFF();

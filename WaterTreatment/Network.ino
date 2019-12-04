@@ -651,24 +651,24 @@ boolean sendNarodMon(boolean debug)
      // посылка отдельных топиков
      strcpy(topic,root);
      strcat(topic,MC.sTemp[TOUT].get_name());
-     ftoa(temp,(float)MC.sTemp[TOUT].get_Temp()/100.0,1);
+     ftoa(temp,(float)MC.sTemp[TOUT].get_Temp()/100.0f,1);
      if (MC.clMQTT.sendTopic(topic,temp,true,debug,false)) {if (debug) journal.jprintf((char*)MQTTDebugStr, topic,temp);} else return false;
     
      strcpy(topic,root);
      strcat(topic,MC.sTemp[TIN].get_name());
-     ftoa(temp,(float)MC.sTemp[TIN].get_Temp()/100.0,1);
+     ftoa(temp,(float)MC.sTemp[TIN].get_Temp()/100.0f,1);
      if (MC.clMQTT.sendTopic(topic,temp,true,debug,false)) {if (debug) journal.jprintf((char*)MQTTDebugStr, topic,temp);} else return false;
      
      strcpy(topic,root);
      strcat(topic,MC.sTemp[TBOILER].get_name());
-     ftoa(temp,(float)MC.sTemp[TBOILER].get_Temp()/100.0,1);
+     ftoa(temp,(float)MC.sTemp[TBOILER].get_Temp()/100.0f,1);
      if (MC.clMQTT.sendTopic(topic,temp,true,debug,false)) {if (debug) journal.jprintf((char*)MQTTDebugStr, topic,temp);} else return false;
 
      strcpy(topic,root);
      if(MC.dFC.get_present())
          {
           strcat(topic,"FC");
-          ftoa(temp,(float)MC.dFC.get_frequency()/100.0,2);
+          ftoa(temp,(float)MC.dFC.get_frequency()/100.0f,2);
           if (MC.clMQTT.sendTopic(topic,temp,true,debug,false)) {if (debug) journal.jprintf((char*)MQTTDebugStr, topic,temp);} else return false;
          }
      else

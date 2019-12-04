@@ -205,32 +205,77 @@ float my_atof(const char* s){
   return rez * fact;
 };
 
+// Decimal (дробное приведенное к целому) в строку, precision: 1..10000
+void _dtoa(char *outstr, int32_t val, int32_t precision)
+{
+    while(*outstr) outstr++;
+    int32_t div;
+    switch(precision) {
+    	case 1: div = 10; break;
+    	case 2: div = 100; break;
+    	case 3: div = 1000; break;
+    	case 4: div = 10000; break;
+    	default: div = 1;
+    }
+    outstr += i32toa(val / div, outstr, 0);
+    if(precision > 0) {
+		*(outstr++) = '.';
+		outstr += i32toa(val % div, outstr, precision);
+    }
+}
+
 //float в *char в строку ДОБАВЛЯЕТСЯ значение экономим место и скорость и стек -----------------------------------
 uint8_t _ftoa(char *outstr, float val, unsigned char precision)
 {
     while(*outstr) outstr++;
 	char *instr = outstr;
-	
+
 	// compute the rounding factor and fractional multiplier
-	float roundingFactor = 0.5;
+	float roundingFactor = 0.5f;
 	unsigned long mult = 1;
 	unsigned char padding = precision;
 	while(precision--) {
-		roundingFactor /= 10.0;
+		roundingFactor /= 10.0f;
 		mult *= 10;
 	}
-	if(val < 0.0){
+	if(val < 0.0f){
 		*outstr++ = '-';
 		val = -val;
 	}
 	val += roundingFactor;
-	outstr += m_itoa((long)val, outstr, 10, 0);
+	outstr += i32toa((long)val, outstr, 0);
 	if(padding > 0) {
 		*(outstr++) = '.';
-		outstr += m_itoa((val - (long)val) * mult, outstr, 10, padding);
+		outstr += i32toa((val - (long)val) * mult, outstr, padding);
 	}
 	return outstr - instr;
 }
+
+//int в *char в строку ДОБАВЛЯЕТСЯ значение экономим место и скорость и стек radix=10
+uint32_t i32toa(int32_t value, char *string, uint8_t zero_pad)
+{
+	char *pbuffer = string;
+	unsigned char	negative;
+	if(value < 0) {
+		negative = 1;
+		value = -value;
+	} else negative = 0;
+	do {
+		*(pbuffer++) = '0' + value % 10;
+		value /= 10;
+	} while (value > 0);
+	for(uint32_t i = (pbuffer - string); i < zero_pad; i++)	*(pbuffer++) = '0';
+	if(negative) *(pbuffer++) = '-';
+	*(pbuffer) = '\0';
+	uint32_t len = (pbuffer - string);
+	for(uint32_t i = 0; i < len / 2; i++) {
+		char j = string[i];
+		string[i] = string[len-i-1];
+		string[len-i-1] = j;
+	}
+	return len;
+}
+
 //int в *char в строку ДОБАВЛЯЕТСЯ значение экономим место и скорость и стек radix=10
 char* _itoa( int value, char *string)
 {
@@ -247,8 +292,7 @@ char* _itoa( int value, char *string)
 
 	/* This builds the string back to front ... */
 	do {
-		unsigned char digit = value % 10;
-		*(pbuffer++) = (digit < 10 ? '0' + digit : 'a' + digit - 10);
+		*(pbuffer++) = '0' + value % 10;
 		value /= 10;
 	} while (value > 0);
 
@@ -259,8 +303,8 @@ char* _itoa( int value, char *string)
 
 	/* ... now we reverse it (could do it recursively but will
 	 * conserve the stack space) */
-	uint8_t len = (pbuffer - string);
-	for (uint8_t i = 0; i < len / 2; i++) {
+	uint32_t len = (pbuffer - string);
+	for (uint32_t i = 0; i < len / 2; i++) {
 		char j = string[i];
 		string[i] = string[len-i-1];
 		string[len-i-1] = j;

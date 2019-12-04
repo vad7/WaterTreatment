@@ -47,7 +47,7 @@ void get_txtState(uint8_t thread, boolean header)
               strcat(Socket[thread].outBuf,MC.sTemp[i].get_note());  strcat(Socket[thread].outBuf,": ");
               if (MC.sTemp[i].get_present())
                 {
-                  _ftoa(Socket[thread].outBuf,(float)MC.sTemp[i].get_Temp()/100.0,2);
+                  _ftoa(Socket[thread].outBuf,(float)MC.sTemp[i].get_Temp()/100.0f,2);
                   if (MC.sTemp[i].get_lastErr()!=OK) { strcat(Socket[thread].outBuf," error:"); _itoa(MC.sTemp[i].get_lastErr(),Socket[thread].outBuf); }
                   STR_END; 
                 }
@@ -63,7 +63,7 @@ void get_txtState(uint8_t thread, boolean header)
             strcat(Socket[thread].outBuf,MC.sADC[i].get_note());  strcat(Socket[thread].outBuf,": ");
             if (MC.sADC[i].get_present())
                 { 
-                  _ftoa(Socket[thread].outBuf,(float)MC.sADC[i].get_Press()/100.0,2); if (MC.sADC[i].get_lastErr()!=OK ) { strcat(Socket[thread].outBuf," error:"); _itoa(MC.sADC[i].get_lastErr(),Socket[thread].outBuf); }
+                  _ftoa(Socket[thread].outBuf,(float)MC.sADC[i].get_Press()/100.0f,2); if (MC.sADC[i].get_lastErr()!=OK ) { strcat(Socket[thread].outBuf," error:"); _itoa(MC.sADC[i].get_lastErr(),Socket[thread].outBuf); }
                   STR_END; 
       
                 } 
@@ -108,7 +108,7 @@ void get_txtState(uint8_t thread, boolean header)
            {
             strcat(Socket[thread].outBuf,MC.sFrequency[i].get_name()); if((x=8-strlen(MC.sFrequency[i].get_name()))>0) { for(j=0;j<x;j++)  strcat(Socket[thread].outBuf," "); }
             strcat(Socket[thread].outBuf,MC.sFrequency[i].get_note());  strcat(Socket[thread].outBuf,": ");
-            if (MC.sFrequency[i].get_present()) _ftoa(Socket[thread].outBuf,(float)MC.sFrequency[i].get_Value()/1000.0,3);
+            if (MC.sFrequency[i].get_present()) _ftoa(Socket[thread].outBuf,(float)MC.sFrequency[i].get_Value()/1000.0f,3);
             else strcat(Socket[thread].outBuf," absent"); 
             STR_END;         
            }
@@ -236,11 +236,11 @@ void get_txtSettings(uint8_t thread)
         
               if (MC.sTemp[i].get_present())
                 {
-                  strcat(Socket[thread].outBuf," T=");      _ftoa(Socket[thread].outBuf,(float)MC.sTemp[i].get_Temp()/100.0,2);
-                  strcat(Socket[thread].outBuf,", Tmin=");  _ftoa(Socket[thread].outBuf,(float)MC.sTemp[i].get_minTemp()/100.0,2);
-                  strcat(Socket[thread].outBuf,", Tmax=");  _ftoa(Socket[thread].outBuf,(float)MC.sTemp[i].get_maxTemp()/100.0,2);
-                  strcat(Socket[thread].outBuf,", Terr=");  _ftoa(Socket[thread].outBuf,(float)MC.sTemp[i].get_errTemp()/100.0,2);
-                  strcat(Socket[thread].outBuf,", Ttest="); _ftoa(Socket[thread].outBuf,(float)MC.sTemp[i].get_testTemp()/100.0,2);
+                  strcat(Socket[thread].outBuf," T=");      _ftoa(Socket[thread].outBuf,(float)MC.sTemp[i].get_Temp()/100.0f,2);
+                  strcat(Socket[thread].outBuf,", Tmin=");  _ftoa(Socket[thread].outBuf,(float)MC.sTemp[i].get_minTemp()/100.0f,2);
+                  strcat(Socket[thread].outBuf,", Tmax=");  _ftoa(Socket[thread].outBuf,(float)MC.sTemp[i].get_maxTemp()/100.0f,2);
+                  strcat(Socket[thread].outBuf,", Terr=");  _ftoa(Socket[thread].outBuf,(float)MC.sTemp[i].get_errTemp()/100.0f,2);
+                  strcat(Socket[thread].outBuf,", Ttest="); _ftoa(Socket[thread].outBuf,(float)MC.sTemp[i].get_testTemp()/100.0f,2);
                   if (MC.sTemp[i].get_lastErr()!=OK) { strcat(Socket[thread].outBuf," error:"); _itoa(MC.sTemp[i].get_lastErr(),Socket[thread].outBuf); }  STR_END;
                 }
                 else strcat(Socket[thread].outBuf," absent \r\n"); 
@@ -256,10 +256,10 @@ void get_txtSettings(uint8_t thread)
             strcat(Socket[thread].outBuf,MC.sADC[i].get_note());  strcat(Socket[thread].outBuf,": ");
             if (MC.sADC[i].get_present())
                 { 
-                  strcat(Socket[thread].outBuf," P=");    _ftoa(Socket[thread].outBuf,(float)MC.sADC[i].get_Press()/100.0,2);
-                  strcat(Socket[thread].outBuf," Pmin="); _ftoa(Socket[thread].outBuf,(float)MC.sADC[i].get_minPress()/100.0,2);
-                  strcat(Socket[thread].outBuf," Pmax="); _ftoa(Socket[thread].outBuf,(float)MC.sADC[i].get_maxPress()/100.0,2);
-                  strcat(Socket[thread].outBuf," Ptest=");_ftoa(Socket[thread].outBuf,(float)MC.sADC[i].get_testPress()/100.0,2);
+                  strcat(Socket[thread].outBuf," P=");    _ftoa(Socket[thread].outBuf,(float)MC.sADC[i].get_Press()/100.0f,2);
+                  strcat(Socket[thread].outBuf," Pmin="); _ftoa(Socket[thread].outBuf,(float)MC.sADC[i].get_minPress()/100.0f,2);
+                  strcat(Socket[thread].outBuf," Pmax="); _ftoa(Socket[thread].outBuf,(float)MC.sADC[i].get_maxPress()/100.0f,2);
+                  strcat(Socket[thread].outBuf," Ptest=");_ftoa(Socket[thread].outBuf,(float)MC.sADC[i].get_testPress()/100.0f,2);
                   strcat(Socket[thread].outBuf," Zero="); _itoa(MC.sADC[i].get_zeroPress(),Socket[thread].outBuf);
                   strcat(Socket[thread].outBuf," Kof=");  _ftoa(Socket[thread].outBuf,(float)MC.sADC[i].get_transADC(),3);
                   strcat(Socket[thread].outBuf," Pin=AD");_itoa(MC.sADC[i].get_pinA(),Socket[thread].outBuf);
@@ -312,9 +312,9 @@ void get_txtSettings(uint8_t thread)
             if (MC.sFrequency[i].get_present())
             {
              strcat(Socket[thread].outBuf," Контроль мин. потока: ");  if (MC.sFrequency[i].get_checkFlow())  strcat(Socket[thread].outBuf,(char*)cOne);else strcat(Socket[thread].outBuf,(char*)cZero);
-             strcat(Socket[thread].outBuf,", Минимальный поток (куб/ч)="); _ftoa(Socket[thread].outBuf,(float)MC.sFrequency[i].get_minValue()/1000.0,3);
-             strcat(Socket[thread].outBuf,", Коэффициент (имп*л)=");       _ftoa(Socket[thread].outBuf,(float)MC.sFrequency[i].get_kfValue()/100.0,3);
-             strcat(Socket[thread].outBuf,", Тест (куб/ч)="); _ftoa(Socket[thread].outBuf,(float)MC.sFrequency[i].get_testValue()/1000,3);
+             strcat(Socket[thread].outBuf,", Минимальный поток (куб/ч)="); _ftoa(Socket[thread].outBuf,(float)MC.sFrequency[i].get_minValue()/1000.0f,3);
+             strcat(Socket[thread].outBuf,", Коэффициент (имп*л)=");       _ftoa(Socket[thread].outBuf,(float)MC.sFrequency[i].get_kfValue()/100.0f,3);
+             strcat(Socket[thread].outBuf,", Тест (куб/ч)="); _ftoa(Socket[thread].outBuf,(float)MC.sFrequency[i].get_testValue()/1000.0f,3);
              
             }
             else strcat(Socket[thread].outBuf," absent"); 
@@ -458,7 +458,7 @@ int16_t x;
               strcpy(tempBuf,MC.sTemp[i].get_name()); if((x=8-strlen(MC.sTemp[i].get_name()))>0) { for(j=0;j<x;j++)  strcat(tempBuf," "); }
               strcat(tempBuf,"["); strcat(tempBuf,addressToHex(MC.sTemp[i].get_address())); strcat(tempBuf,"] ");
               strcat(tempBuf,MC.sTemp[i].get_note());  strcat(tempBuf,": ");
-              _ftoa(tempBuf,(float)MC.sTemp[i].get_Temp()/100.0,2);
+              _ftoa(tempBuf,(float)MC.sTemp[i].get_Temp()/100.0f,2);
               if (MC.sTemp[i].get_lastErr()!=OK) { strcat(tempBuf," error:"); _itoa(MC.sTemp[i].get_lastErr(),tempBuf); }
               strcat(tempBuf,cStrEnd);  client.write(tempBuf,strlen(tempBuf));
             }  //   if (MC.sTemp[i].get_present())
@@ -471,7 +471,7 @@ int16_t x;
             {          
             strcpy(tempBuf,MC.sADC[i].get_name()); if((x=8-strlen(MC.sADC[i].get_name()))>0) { for(j=0;j<x;j++)  strcat(tempBuf," "); }
             strcat(tempBuf,MC.sADC[i].get_note());  strcat(tempBuf,": ");
-            _ftoa(tempBuf,(float)MC.sADC[i].get_Press()/100.0,2);
+            _ftoa(tempBuf,(float)MC.sADC[i].get_Press()/100.0f,2);
             if (MC.sADC[i].get_lastErr()!=OK ) { strcat(tempBuf," error:"); _itoa(MC.sADC[i].get_lastErr(),tempBuf); }
             strcat(tempBuf,cStrEnd);  client.write(tempBuf,strlen(tempBuf));
             }
@@ -516,7 +516,7 @@ int16_t x;
                 {
                 strcpy(tempBuf,MC.sFrequency[i].get_name()); if((x=8-strlen(MC.sFrequency[i].get_name()))>0) { for(j=0;j<x;j++)  strcat(tempBuf," "); }
                 strcat(tempBuf,MC.sFrequency[i].get_note());  strcat(tempBuf,": ");
-                _ftoa(tempBuf,(float)MC.sFrequency[i].get_Value()/1000.0,3);
+                _ftoa(tempBuf,(float)MC.sFrequency[i].get_Value()/1000.0f,3);
                 strcat(tempBuf,cStrEnd);  client.write(tempBuf,strlen(tempBuf));    
                 }      
            }        

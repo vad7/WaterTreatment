@@ -399,13 +399,13 @@ char*   Message::get_messageSetting(char *var, char *ret)
           default:       return strcat(ret, (char*)"Password");       break; // Этого не должно быть, но если будет то установить по умолчанию
         }
       } else if (strcmp(var, mess_MESS_TIN) == 0) {
-        _ftoa(ret, (float)messageSetting.mTIN / 100.0, 1);
+        _ftoa(ret, (float)messageSetting.mTIN / 100.0f, 1);
         return ret;
       } else if (strcmp(var, mess_MESS_TBOILER) == 0) {
-        _ftoa(ret, (float)messageSetting.mTBOILER / 100.0, 1);
+        _ftoa(ret, (float)messageSetting.mTBOILER / 100.0f, 1);
         return ret;
       } else if (strcmp(var, mess_MESS_TCOMP) == 0) {
-        _ftoa(ret, (float)messageSetting.mTCOMP / 100.0, 1);
+        _ftoa(ret, (float)messageSetting.mTCOMP / 100.0f, 1);
         return ret;
       } else if (strcmp(var, mess_MAIL_RET) == 0) {
         if (waitSend) return strcat(ret, (char*)"wait response...");                // В зависимости готов ответ или нет
@@ -570,7 +570,7 @@ boolean Message::setMessage(MESSAGE ms, char *c, int p1)
   // в сообщение pMESSAGE_TEMP добавить значение температуры
   if (ms == pMESSAGE_TEMP) {
     strcat(messageData.data, " t=");
-    _ftoa(messageData.data, (float)p1 / 100.0, 1);
+    _ftoa(messageData.data, (float)p1 / 100.0f, 1);
   }
   messageData.p1 = p1;
   // очистить ответы

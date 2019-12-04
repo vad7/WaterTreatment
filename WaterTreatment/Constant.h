@@ -192,7 +192,7 @@ const uint16_t  defaultPort=80;
 
 #define HOUR_SIGNAL_LIFE  12             // Час когда генерится сигнал жизни
 
-#define ATOF_ERROR       -9876543.00     // Код ошибки преобразования строки во флоат
+#define ATOF_ERROR       -9876543.0f     // Код ошибки преобразования строки во флоат
 
 //----------------------- WEB ----------------------------
 const char WEB_HEADER_OK_CT[] 			= "HTTP/1.1 200 OK\r\nAccess-Control-Allow-Origin: *\r\nContent-Type: ";

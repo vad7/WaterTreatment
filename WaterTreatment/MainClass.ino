@@ -679,7 +679,7 @@ boolean MainClass::set_datetime(char *var, char *c)
 		} else return false;
 	} else if(strcmp(var, time_TIMEZONE) == 0) {
 		tz = my_atof(c);
-		if(tz == -9876543.00) return false;
+		if(tz == -9876543.00f) return false;
 		else if((tz < -12) || (tz > 12)) return false;
 		else DateTime.timeZone = (int) tz;
 		return true;

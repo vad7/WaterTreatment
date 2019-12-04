@@ -225,7 +225,7 @@ int8_t sensorADC::set_zeroPress(int16_t p)
 // Установить значение коэффициента преобразования напряжение (отсчеты ацп)-температура
 int8_t sensorADC::set_transADC(float p)
 {
-	if((p >= 0.0) && (p <= 4.0)) {
+	if((p >= 0.0f) && (p <= 4.0f)) {
 		clearBuffer();   // Суммы обнулить надо
 		cfg.transADC = rd(p, 1000);
 		return OK;

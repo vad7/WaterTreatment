@@ -1302,13 +1302,13 @@ xSaveStats:		if((i = MC.save_WorkStats()) == OK)
 							if(strcmp(str,"Temp")==0)              // Функция get_Temp
 							{
 								if(MC.sTemp[p].get_present() && MC.sTemp[p].get_Temp() != STARTTEMP)  // Если датчик есть в конфигурации то выводим значение
-									_ftoa(strReturn,(float)MC.sTemp[p].get_Temp()/100,2);
+									_dtoa(strReturn, MC.sTemp[p].get_Temp(), 2);
 								else strcat(strReturn,"-");             // Датчика нет ставим прочерк
 								ADD_WEBDELIM(strReturn); continue;
 							}
 							if (strncmp(str,"raw",3)==0)           // Функция get_RawTemp
 							{ 	if(MC.sTemp[p].get_present() && MC.sTemp[p].get_Temp() != STARTTEMP)  // Если датчик есть в конфигурации то выводим значение
-									_ftoa(strReturn,(float)MC.sTemp[p].get_rawTemp()/100,2);
+									_dtoa(strReturn, MC.sTemp[p].get_rawTemp(), 2);
 								else strcat(strReturn,"-");             // Датчика нет ставим прочерк
 								ADD_WEBDELIM(strReturn); continue;
 							}
@@ -1317,7 +1317,7 @@ xSaveStats:		if((i = MC.save_WorkStats()) == OK)
 								if(MC.sTemp[p].get_present() && MC.sTemp[p].get_Temp() != STARTTEMP) // Если датчик есть в конфигурации то выводим значение
 								{
 									if(MC.sTemp[p].get_lastTemp() == STARTTEMP) strcat(strReturn, "-.-");
-									else _ftoa(strReturn, (float) MC.sTemp[p].get_Temp() / 100, MC.sTemp[p].get_fRadio() ? 1 : 2);
+									else _dtoa(strReturn, MC.sTemp[p].get_Temp(), 2); //MC.sTemp[p].get_fRadio() ? 1 : 2);
 								} else strcat(strReturn, "-");             // Датчика нет ставим прочерк
 								ADD_WEBDELIM(strReturn);
 								continue;
@@ -1326,7 +1326,7 @@ xSaveStats:		if((i = MC.save_WorkStats()) == OK)
 							if(strncmp(str, "min", 3)==0)           // Функция get_minTemp
 							{
 								if (MC.sTemp[p].get_present()) // Если датчик есть в конфигурации то выводим значение
-									_ftoa(strReturn,(float)MC.sTemp[p].get_minTemp()/100,1);
+									_dtoa(strReturn, MC.sTemp[p].get_minTemp(), 2);
 								else strcat(strReturn,"-");              // Датчика нет ставим прочерк
 								ADD_WEBDELIM(strReturn); continue;
 							}
@@ -1334,13 +1334,15 @@ xSaveStats:		if((i = MC.save_WorkStats()) == OK)
 							if(strncmp(str, "max", 3)==0)           // Функция get_maxTemp
 							{
 								if (MC.sTemp[p].get_present())          // Если датчик есть в конфигурации то выводим значение
-									_ftoa(strReturn,(float)MC.sTemp[p].get_maxTemp()/100,1);
+									_dtoa(strReturn, MC.sTemp[p].get_maxTemp(), 2);
 								else strcat(strReturn,"-");             // Датчика нет ставим прочерк
 								ADD_WEBDELIM(strReturn); continue;
 							}
 
 							if(strncmp(str, "er", 2)==0)           // Функция get_erTemp
-							{ _ftoa(strReturn,(float)MC.sTemp[p].get_errTemp()/100,2); ADD_WEBDELIM(strReturn); continue; }
+							{
+xget_erTemp:					_dtoa(strReturn, MC.sTemp[p].get_errTemp(), 2); ADD_WEBDELIM(strReturn); continue;
+							}
 
 							if(strncmp(str, "aT", 2) == 0)           // Функция get_aTemp (address)
 							{
@@ -1352,7 +1354,9 @@ x_get_aTemp:
 							}
 
 							if(strncmp(str, "test", 4)==0)           // Функция get_testTemp
-							{ _ftoa(strReturn,(float)MC.sTemp[p].get_testTemp()/100,1); ADD_WEBDELIM(strReturn); continue; }
+							{
+xget_testTemp:					_dtoa(strReturn, MC.sTemp[p].get_testTemp(), 2); ADD_WEBDELIM(strReturn); continue;
+							}
 
 							if (strncmp(str, "eT", 2)==0)           // Функция get_eTemp (errcode)
 							{ _itoa(MC.sTemp[p].get_lastErr(),strReturn); ADD_WEBDELIM(strReturn); continue; }
@@ -1401,12 +1405,12 @@ x_get_aTemp:
 							}
 							if(strncmp(str, "test", 4)==0)           // Функция set_testTemp
 							{ 	if (MC.sTemp[p].set_testTemp(rd(pm, 100))==OK)    // Установить значение в сотых градуса
-									{ _ftoa(strReturn,(float)MC.sTemp[p].get_testTemp()/100,1); ADD_WEBDELIM(strReturn);  continue;  }
+									goto xget_testTemp;
 								else { strcat(strReturn,"E05" WEBDELIM);  continue;}       // выход за диапазон ПРЕДУПРЕЖДЕНИЕ значение не установлено
 							}
 							if(strncmp(str, "er", 2)==0)           // Функция set_erTemp
 							{ 	if (MC.sTemp[p].set_errTemp(rd(pm, 100))==OK)    // Установить значение в сотых градуса
-									{ _ftoa(strReturn,(float)MC.sTemp[p].get_errTemp()/100,2); ADD_WEBDELIM(strReturn); continue; }
+									goto xget_erTemp;
 								else { strcat(strReturn,"E05" WEBDELIM);  continue;}      // выход за диапазон ПРЕДУПРЕЖДЕНИЕ значение не установлено
 							}
 
