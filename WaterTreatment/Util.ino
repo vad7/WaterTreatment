@@ -206,22 +206,10 @@ float my_atof(const char* s){
 };
 
 // Decimal (дробное приведенное к целому) в строку, precision: 1..10000
-void _dtoa(char *outstr, int32_t val, int32_t precision)
+void _dtoa(char *outstr, int val, int precision)
 {
     while(*outstr) outstr++;
-    int32_t div;
-    switch(precision) {
-    	case 1: div = 10; break;
-    	case 2: div = 100; break;
-    	case 3: div = 1000; break;
-    	case 4: div = 10000; break;
-    	default: div = 1;
-    }
-    outstr += i32toa(val / div, outstr, 0);
-    if(precision > 0) {
-		*(outstr++) = '.';
-		outstr += i32toa(val % div, outstr, precision);
-    }
+    dptoa(outstr, val, precision);
 }
 
 //float в *char в строку ДОБАВЛЯЕТСЯ значение экономим место и скорость и стек -----------------------------------
@@ -243,37 +231,12 @@ uint8_t _ftoa(char *outstr, float val, unsigned char precision)
 		val = -val;
 	}
 	val += roundingFactor;
-	outstr += i32toa((long)val, outstr, 0);
+	outstr += i10toa((long)val, outstr, 0);
 	if(padding > 0) {
 		*(outstr++) = '.';
-		outstr += i32toa((val - (long)val) * mult, outstr, padding);
+		outstr += i10toa((val - (long)val) * mult, outstr, padding);
 	}
 	return outstr - instr;
-}
-
-//int в *char в строку ДОБАВЛЯЕТСЯ значение экономим место и скорость и стек radix=10
-uint32_t i32toa(int32_t value, char *string, uint8_t zero_pad)
-{
-	char *pbuffer = string;
-	unsigned char	negative;
-	if(value < 0) {
-		negative = 1;
-		value = -value;
-	} else negative = 0;
-	do {
-		*(pbuffer++) = '0' + value % 10;
-		value /= 10;
-	} while (value > 0);
-	for(uint32_t i = (pbuffer - string); i < zero_pad; i++)	*(pbuffer++) = '0';
-	if(negative) *(pbuffer++) = '-';
-	*(pbuffer) = '\0';
-	uint32_t len = (pbuffer - string);
-	for(uint32_t i = 0; i < len / 2; i++) {
-		char j = string[i];
-		string[i] = string[len-i-1];
-		string[len-i-1] = j;
-	}
-	return len;
 }
 
 //int в *char в строку ДОБАВЛЯЕТСЯ значение экономим место и скорость и стек radix=10
@@ -1022,12 +985,12 @@ int16_t rd(float num, int16_t mul)
 // format int/div value to string with decimal point
 void int_to_dec_str(int32_t value, int32_t div, char **ret, uint8_t maxfract)
 {
-	*ret += m_itoa(value / div, *ret, 10, 0);
+	*ret += i10toa(value / div, *ret, 0);
 	if(div > 1 && maxfract) {
 		value = abs(value) % div;
 		if(value == 0) return;
 		**ret = '.';
-		m_itoa(value, ++*ret, 10, maxfract);
+		i10toa(value, ++*ret, maxfract);
 		*ret += maxfract;
 		**ret = '\0'; // max after dot
 	}

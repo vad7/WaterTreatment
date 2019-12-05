@@ -229,21 +229,24 @@ private:
 class devRelay
 {
 public:
-  void initRelay(int sensor);                            // Инициализация реле
+  void    initRelay(int sensor);                            // Инициализация реле
   __attribute__((always_inline)) inline int8_t  set_ON() {return set_Relay(fR_StatusMain);}    // Включить реле
   __attribute__((always_inline)) inline int8_t  set_OFF(){return set_Relay(-fR_StatusMain);}   // Выключить реле
   int8_t  set_Relay(int8_t r);                           // Установить реле в состояние (0/-1 - выкл основной алгоритм, fR_Status* - включить, -fR_Status* - выключить)
   __attribute__((always_inline)) inline boolean get_Relay(){return Relay;}                    // Прочитать состояние реле
+  __attribute__((always_inline)) inline boolean get_RelayTimerOn(){ return TimerOn ? true : Relay; }                    // Прочитать состояние реле
   int8_t  get_pinD(){return pin;}                        // Получить ногу куда прицеплено реле
   char*   get_note(){return note;}                       // Получить наименование реле
   char*   get_name(){return name;}                       // Получить имя реле
   __attribute__((always_inline)) inline boolean get_present(){return GETBIT(flags,fPresent);} // Наличие датчика в текущей конфигурации
   void    set_testMode(TEST_MODE t){testMode=t;}       // Установить значение текущий режим работы
+  void    NextTimerOn(void);
   byte flags;                                           // флаги  0 - наличие реле, 1.. - fR_Status*
 private:
-   uint8_t number;										// Номер массива реле
-   boolean Relay;                                        // Состояние реле
+   uint8_t  number;										// Номер массива реле
+   boolean  Relay;                                        // Состояние реле
    uint8_t  pin;                                         // Ножка куда прицеплено реле
+   uint32_t TimerOn;									// мсек, Время показа активного состояния
    TEST_MODE testMode;                                  // Значение режима тестирования
    char *note;                                           // наименование реле
    char *name;                                           // Имя реле

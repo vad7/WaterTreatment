@@ -912,12 +912,17 @@ void vPumps( void * )
 		} else {
 			WaterBoosterWorkingTime = 0;
 		}
-		// read sensors
+		for(uint8_t i = 0; i < RNUMBER; i++) MC.dRelay[i].NextTimerOn();
+
+		// Read sensors
 		for(uint8_t i = 0; i < INUMBER; i++) MC.sInput[i].Read(true);		// Прочитать данные сухой контакт
+		bool TankEmpty = MC.sInput[TANK_EMPTY].get_Input();
 		if(++ADC_read_period > 1000 / ADC_FREQ / TIME_SLICE_PUMPS) {		// Не чаще, чем ADC
 			ADC_read_period = 0;
 			for(uint8_t i = 0; i < ANUMBER; i++) MC.sADC[i].Read();			// Прочитать данные с датчиков давления
+			if(MC.sADC[LTANK].get_Press() < MC.Option.LTANK_Empty) TankEmpty = true;
 		}
+		if(TankEmpty) vPumpsNewError = ERR_TANK_EMPTY;
 
 		int16_t press = MC.sADC[PWATER].get_Press();
 		if(press == ERROR_PRESS) {
@@ -953,7 +958,7 @@ void vPumps( void * )
 				}
 			} else FloodingTime = 0;
 		}
-		if(!WaterBoosterStatus && !WaterBoosterError && !FloodingError && press != ERROR_PRESS && !MC.sInput[TANK_EMPTY].get_Input()
+		if(!WaterBoosterStatus && !WaterBoosterError && !FloodingError && press != ERROR_PRESS && !TankEmpty
 				&& press <= (MC.sInput[REG_ACTIVE].get_Input() || MC.sInput[BACKWASH_ACTIVE].get_Input() || MC.sInput[REG_SOFTENING_ACTIVE].get_Input() ? MC.Option.PWATER_RegMin : MC.sADC[PWATER].get_minPress())) { // Starting
 			MC.dRelay[RBOOSTER1].set_ON();
 			WaterBoosterStatus = 1;
@@ -969,7 +974,7 @@ void vPumps( void * )
 					goto xWaterBooster_OFF;
 				}
 			}
-			if(WaterBoosterWorkingTime >= MC.Option.MinWaterBoostOnTime && (press >= MC.sADC[PWATER].get_maxPress() || MC.sInput[TANK_EMPTY].get_Input())) { // Stopping
+			if(WaterBoosterWorkingTime >= MC.Option.MinWaterBoostOnTime && (press >= MC.sADC[PWATER].get_maxPress() || TankEmpty)) { // Stopping
 xWaterBooster_OFF:
 				if(WaterBoosterStatus == 1) {
 					MC.dRelay[RBOOSTER1].set_OFF();
@@ -1016,14 +1021,14 @@ xWaterBooster_OFF:
 				taskENTER_CRITICAL();
 				Charts_FillTank_work += TIME_SLICE_PUMPS * 100 / 1000; // in percent
 				taskEXIT_CRITICAL();
-			} else MC.dRelay[RFILL].set_ON();	// Start filing tank
+			} else MC.dRelay[RFILL].set_ON();	// Start filling tank
 #ifdef TANK_ANALOG_LEVEL
 		if(MC.sADC[LTANK].get_Press() >= MC.sADC[LTANK].get_maxPress()) {
 #else
 		} else if(MC.sInput[TANK_FULL].get_Input()) {
 #endif
 		}
-			if(!MC.dRelay[RFILL].get_Relay()) MC.dRelay[RFILL].set_OFF();	// Stop filing tank
+			if(!MC.dRelay[RFILL].get_Relay()) MC.dRelay[RFILL].set_OFF();	// Stop filling tank
 		}
 
 		if(MC.sInput[REG_ACTIVE].get_Input() || MC.sInput[BACKWASH_ACTIVE].get_Input()) { // Regen remove iron filter

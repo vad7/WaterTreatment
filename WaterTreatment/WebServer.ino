@@ -1451,7 +1451,7 @@ xget_testTemp:					_dtoa(strReturn, MC.sTemp[p].get_testTemp(), 2); ADD_WEBDELIM
 							str += 4;
 							if(strncmp(str, "Relay", 5)==0)           // Функция get_Relay
 							{
-								if (MC.dRelay[p].get_Relay()==true)  strcat(strReturn,cOne); else  strcat(strReturn,cZero);
+								if(MC.dRelay[p].get_RelayTimerOn()) strcat(strReturn,cOne); else strcat(strReturn,cZero);
 								ADD_WEBDELIM(strReturn) ;    continue;
 							}
 							if(strncmp(str, "is", 2)==0)           // Функция get_isRelay
@@ -1638,42 +1638,42 @@ x_get_maxPress: 				_ftoa(strReturn,(float)MC.sADC[p].get_maxPress()/100.0,2);
 							if(strncmp(str, "Flow", 4)==0)           // Функция get_Flow
 							{
 								if (MC.sFrequency[p].get_present())          // Если датчик есть в конфигурации то выводим значение
-									_ftoa(strReturn,(float)MC.sFrequency[p].get_Value()/1000.0,3);
+									_dtoa(strReturn, MC.sFrequency[p].get_Value(), 3);
 								else strcat(strReturn,"-");               // Датчика нет ставим прочерк
 								ADD_WEBDELIM(strReturn) ;    continue;
 							}
 							if(strncmp(str, "PFlow", 4)==0)           // Функция get_PFlow
 							{
 								if (MC.sFrequency[p].get_present())          // Если датчик есть в конфигурации то выводим значение
-									_ftoa(strReturn,(float)MC.sFrequency[p].Passed / 1000.0,3);
+									_dtoa(strReturn, MC.sFrequency[p].Passed, 3);
 								else strcat(strReturn,"-");               // Датчика нет ставим прочерк
 								ADD_WEBDELIM(strReturn) ;    continue;
 							}
 							if(strncmp(str, "frF", 3)==0)           // Функция get_frFlow
 							{
 								if (MC.sFrequency[p].get_present())          // Если датчик есть в конфигурации то выводим значение
-									_ftoa(strReturn,(float)MC.sFrequency[p].get_Frequency()/1000.0,3);
+									_dtoa(strReturn, MC.sFrequency[p].get_Frequency(), 3);
 								else strcat(strReturn,"-");               // Датчика нет ставим прочерк
 								ADD_WEBDELIM(strReturn) ;    continue;
 							}
 							if(strncmp(str, "min", 3)==0)           // Функция get_minFlow
 							{
 								if (MC.sFrequency[p].get_present())          // Если датчик есть в конфигурации то выводим значение
-									_ftoa(strReturn,(float)MC.sFrequency[p].get_minValue()/1000.0,1);
+									_dtoa(strReturn, MC.sFrequency[p].get_minValue(), 3);
 								else strcat(strReturn,"-");               // Датчика нет ставим прочерк
 								ADD_WEBDELIM(strReturn) ;    continue;
 							}
 							if(strncmp(str, "kfF", 3)==0)           // Функция get_kfFlow
 							{
 								if (MC.sFrequency[p].get_present())          // Если датчик есть в конфигурации то выводим значение
-									_ftoa(strReturn,(float)MC.sFrequency[p].get_kfValue()/100,2);
+									_dtoa(strReturn, MC.sFrequency[p].get_kfValue(), 2);
 								else strcat(strReturn,"-");               // Датчика нет ставим прочерк
 								ADD_WEBDELIM(strReturn) ;    continue;
 							}
 							if(strncmp(str, "test", 4)==0)           // Функция get_testFlow
 							{
 								if (MC.sFrequency[p].get_present())          // Если датчик есть в конфигурации то выводим значение
-									_ftoa(strReturn,(float)MC.sFrequency[p].get_testValue()/1000.0,3);
+									_dtoa(strReturn, MC.sFrequency[p].get_testValue(), 3);
 								else strcat(strReturn,"-");               // Датчика нет ставим прочерк
 								ADD_WEBDELIM(strReturn) ;    continue;
 							}
@@ -1699,7 +1699,7 @@ x_get_maxPress: 				_ftoa(strReturn,(float)MC.sADC[p].get_maxPress()/100.0,2);
 							}
 							if(strncmp(str, "min", 3)==0) {           // Функция set_minFlow
 								MC.sFrequency[p].set_minValue(pm);
-								_ftoa(strReturn,(float)MC.sFrequency[p].get_minValue()/1000.0,1); ADD_WEBDELIM(strReturn); continue;
+								_dtoa(strReturn, MC.sFrequency[p].get_minValue(), 3); ADD_WEBDELIM(strReturn); continue;
 							}
 							if(strncmp(str, "check", 5)==0) {           // Функция set_checkFlow
 								MC.sFrequency[p].set_checkFlow(pm != 0);
@@ -1707,12 +1707,12 @@ x_get_maxPress: 				_ftoa(strReturn,(float)MC.sADC[p].get_maxPress()/100.0,2);
 							}
 							if(strncmp(str, "test", 4)==0)           // Функция set_testFlow
 							{ if (MC.sFrequency[p].set_testValue(rd(pm, 1000))==OK)    // Установить значение
-								{_ftoa(strReturn,(float)MC.sFrequency[p].get_testValue()/1000.0,3); ADD_WEBDELIM(strReturn); continue; }
+								{_dtoa(strReturn, MC.sFrequency[p].get_testValue(), 3); ADD_WEBDELIM(strReturn); continue; }
 								else { strcat(strReturn,"E35" WEBDELIM); continue;}         // выход за диапазон ПРЕДУПРЕЖДЕНИЕ значение не установлено
 							}
 							if(strncmp(str, "kfF", 3)==0)           // Функция set_kfFlow float
 							{ MC.sFrequency[p].set_kfValue(rd(pm, 100));    // Установить значение
-								_ftoa(strReturn,(float)MC.sFrequency[p].get_kfValue()/100,2); ADD_WEBDELIM(strReturn); continue;
+								_dtoa(strReturn, MC.sFrequency[p].get_kfValue(), 2); ADD_WEBDELIM(strReturn); continue;
 							}
 						}
 						strcat(strReturn,"E08"); // выход за диапазон, значение не установлено
@@ -1801,11 +1801,11 @@ x_get_maxPress: 				_ftoa(strReturn,(float)MC.sADC[p].get_maxPress()/100.0,2);
 					if(strncmp(str, "get_", 4) == 0) {
 xWgt_get:
 						if(*x == 'W') {      	// get_Wgt(W) - Weight
-							_ftoa(strReturn, (float)Weight_value / 10.0f, 1);
+							_dtoa(strReturn, Weight_value, 1);
 						} else if(*x == 'T') {      	// get_Wgt(T) - Tare
-							_ftoa(strReturn, (float)MC.Option.WeightTare / 10.0f, 1);
+							_dtoa(strReturn, MC.Option.WeightTare, 1);
 						} else if(*x == 'N') {      	// get_Wgt(N) - full brine weight
-							_ftoa(strReturn, (float)MC.Option.WeightFull / 10.0f, 1);
+							_dtoa(strReturn, MC.Option.WeightFull, 1);
 						} else if(*x == 'A') {      	// get_Wgt(A) - ADC value
 							//_itoa(Weight_adc_filter[Weight_adc_idx ? Weight_adc_idx - 1 : sizeof(Weight_adc_filter) / sizeof(Weight_adc_filter[0]) - 1], strReturn); // one reading
 							_itoa(Weight_adc_sum / (sizeof(Weight_adc_filter) / sizeof(Weight_adc_filter[0])), strReturn); // averaged
@@ -1816,7 +1816,7 @@ xWgt_get:
 						} else if(*x == 'P') {      	// get_Wgt(P) - Pins
 							m_snprintf(strReturn + m_strlen(strReturn), 32, "D%d D%d", HX711_DOUT_PIN, HX711_SCK_PIN);
 						} else if(strcmp(x, "LvL")==0) {       		// get_Wgt(LvL) - Level
-								_ftoa(strReturn, (float)Weight_Percent / 100.0f, 2);
+							_dtoa(strReturn, Weight_Percent, 2);
 						}
 						ADD_WEBDELIM(strReturn);
 						continue;

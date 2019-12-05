@@ -56,7 +56,7 @@ struct type_RTC_memory { // DS3231/DS3232 used alarm memory, starts from 0x07, m
 } __attribute__((packed));
 
 
-int8_t   WaterBoosterStatus = 0; // 0 - выключено, 1 - вкл твердотельное, 2 - вкл обычное, 3 - выкл твердотельное, -1 - выкл твердотельное, -2 - выкл обычное, -3 - нужно выключить (вкл твердотельное)
+int		 WaterBoosterStatus = 0; // 0 - выключено, 1 - вкл твердотельное, 2 - вкл обычное, 3 - выкл твердотельное, -1 - выкл твердотельное, -2 - выкл обычное, -3 - нужно выключить (вкл твердотельное)
 bool	 WaterBoosterError = false;
 uint32_t WaterBoosterWorkingTime = 0;
 bool	 FloodingError = false;
@@ -123,7 +123,7 @@ struct type_option {
 	uint16_t FloodingDebounceTime;		// Время исключения помех срабатывания датчика протечки, сек
 	uint16_t FloodingTimeout;			// Время ожидания перед началом работы после срабатывания датчика протечки, сек
 	int16_t  PWATER_RegMin;				// Нижний предел давления PWATER при регенерации, сотые бара
-	int16_t  LTANK_Low;					// Низкий уровень воды в баке - нужно включить заполнение бака до максимального
+	int16_t  LTANK_Empty;				// Низкий уровень воды в баке - нужно включить заполнение бака до максимального, сотые %
 
 } __attribute__((packed));
 

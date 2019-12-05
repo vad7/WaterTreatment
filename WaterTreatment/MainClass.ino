@@ -25,12 +25,12 @@
 // Возвращает ошибку останова 
 int8_t set_Error(int8_t _err, char *nam)
 {
-	uint8_t i = 0;
 	MC.error = _err;
+	uint32_t i = 0;
 	for(; i < sizeof(Errors) / sizeof(Errors[0]); i++) {
 		if(Errors[i] == OK) break;
 		if(Errors[i] == _err) {
-			i = sizeof(Errors);
+			i = sizeof(Errors) / sizeof(Errors[0]);
 			break;
 		}
 	}
@@ -734,7 +734,7 @@ boolean MainClass::set_option(char *var, float xx)
    if(strcmp(var,option_PWM_Max)==0)         { Option.PWM_Max = x; return true; } else
    if(strcmp(var,option_PWM_StartingTime)==0){ Option.PWM_StartingTime = x; return true; } else
    if(strcmp(var,option_PWATER_RegMin)==0)   { Option.PWATER_RegMin = rd(xx, 100); return true; } else
-   if(strcmp(var,option_LTANK_Low)==0)       { Option.LTANK_Low = rd(xx, 10); return true; } else
+   if(strcmp(var,option_LTANK_Low)==0)       { Option.LTANK_Empty = rd(xx, 100); return true; } else
    if(strcmp(var,option_FloodingDebounceTime)==0){ Option.FloodingDebounceTime = x; return true; } else
    if(strcmp(var,option_FloodingTimeout)==0) { Option.FloodingTimeout = x; return true; } else
    if(strncmp(var,option_SGL1W, sizeof(option_SGL1W)-1)==0) {
@@ -768,8 +768,8 @@ char* MainClass::get_option(char *var, char *ret)
    if(strcmp(var,option_PWM_DryRun)==0){ return _itoa(Option.PWM_DryRun, ret); } else
    if(strcmp(var,option_PWM_Max)==0){ return _itoa(Option.PWM_Max, ret); } else
    if(strcmp(var,option_PWM_StartingTime)==0){ return _itoa(Option.PWM_StartingTime, ret); } else
-   if(strcmp(var,option_PWATER_RegMin)==0){ _ftoa(ret, (float) Option.PWATER_RegMin / 100, 2); return ret; } else
-   if(strcmp(var,option_LTANK_Low)==0){ _ftoa(ret, (float) Option.LTANK_Low / 10, 1); return ret; } else
+   if(strcmp(var,option_PWATER_RegMin)==0){ _dtoa(ret, Option.PWATER_RegMin, 2); return ret; } else
+   if(strcmp(var,option_LTANK_Low)==0){ _dtoa(ret, Option.LTANK_Empty, 2); return ret; } else
    if(strcmp(var,option_FloodingDebounceTime)==0){ return _itoa(Option.FloodingDebounceTime, ret); } else
    if(strcmp(var,option_FloodingTimeout)==0){ return _itoa(Option.FloodingTimeout, ret); } else
    if(strncmp(var,option_SGL1W, sizeof(option_SGL1W)-1)==0) {
@@ -785,6 +785,7 @@ char* MainClass::get_option(char *var, char *ret)
 void MainClass::StateToStr(char * ret)
 {
 	if(error != OK) strcat(ret, "Сбой!");
+	else if(get_testMode() != NORMAL) strcat(ret, "Тест!");
 	else strcat(ret, "В работе");
 }
 

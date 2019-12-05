@@ -104,7 +104,9 @@ const uint16_t  defaultPort=80;
 #define PWM_NUM_READ        2              // Число попыток чтения счетчика (подряд) до ошибки
 #define PWM_DELAY_REPEAT    50             // мсек Время между ПОВТОРНЫМИ попытками чтения
 
-#define DISPLAY_UPDATE    5000             // Время обновления информации на дисплее (мсек)
+#define DISPLAY_UPDATE		5000             // Время обновления информации на дисплее (мсек)
+
+#define TIMER_TO_SHOW_STATUS 2500			// мсек, Время показа активного состояния (дозирующего насоса, ...)
 
 // ------------------- I2C ----------------------------------
 // Устройства I2C Размер и тип памяти, определен в config.h т.к. он часто меняется
@@ -504,7 +506,7 @@ const char *webWS_UsedLastRegenSoftening  		= { "RSL" };
 #define ERR_PWM_MAX			-55			// Перегрузка двигателя насоса
 #define ERR_PRESS			-56			// Ошибка давления
 #define ERR_FLOODING		-57			// Затопление
-//#define ERR_TANK_EMPTY		-58			// Пустой бак! (defined in config.h)
+//#define ERR_TANK_EMPTY	-58			// Пустой бак! (defined in config.h)
 
 #define ERR_ERRMAX			-58 	   // Последняя ошибка
 

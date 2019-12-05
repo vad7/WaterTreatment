@@ -381,15 +381,15 @@ struct History_setup {
 											 1	// A6(D60), INA4-20_1.2 - (+12V)-красный, INA4-20_1.1 - (-12V)-черный.
 										};
 	// Коэффициент преобразования отсчеты АЦП-давление, тысячные
-	const uint16_t TRANsADC[ANUMBER]  = { 181, 200 };
+	const uint16_t TRANsADC[ANUMBER]  = { 181, 2442 };
 	// напряжение (отсчеты АЦП) соответсвующее cZero
-	const uint16_t ZEROPRESS[ANUMBER] = { 70, 80 };
+	const uint16_t ZEROPRESS[ANUMBER] = { 70, 0 };
 
-	const boolean SENSORPRESS[ANUMBER]= { true, true };	// Присутствие датчика в конфигурации
-	const int16_t MINPRESS[ANUMBER]   = {  250, 0 };	// минимальные значения давления, в сотых бар
-	const uint16_t MAXPRESS[ANUMBER]  = {  370, 0 };	// Максимальные значения давления, в сотых бар
-	const uint16_t TESTPRESS[ANUMBER] = {  300, 0 };	// Значения датчиков при тестировании  опция TEST, в сотых бар
-	//#define ANALOG_MODBUS 									// Данные аналоговых датчиков читаются по Modbus RTU
+	const boolean SENSORPRESS[ANUMBER]= { true, true };		// Присутствие датчика в конфигурации
+	const int16_t MINPRESS[ANUMBER]   = {  250, 500 };		// минимальные значения давления, в сотых
+	const uint16_t MAXPRESS[ANUMBER]  = {  370, 10000 };	// Максимальные значения давления, в сотых
+	const uint16_t TESTPRESS[ANUMBER] = {  300, 8000 };		// Значения датчиков при тестировании  опция TEST, в сотых
+	//#define ANALOG_MODBUS 								// Данные аналоговых датчиков читаются по Modbus RTU
 	#ifdef ANALOG_MODBUS
 	  #define ANALOG_MODBUS_NUM_READ				3			// Число попыток чтения
 	  #define ANALOG_MODBUS_ERR_DELAY				50			// Задержка при ошибки чтения

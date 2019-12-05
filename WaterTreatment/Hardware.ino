@@ -385,14 +385,11 @@ int8_t sensorFrequency::Read()
 			count = 0;
 		}
 		//if(xTaskGetSchedulerState() == taskSCHEDULER_RUNNING) taskEXIT_CRITICAL();
-		sTime = tickCount;
 		//__asm__ volatile ("" ::: "memory");
 		uint32_t ticks = tickCount - sTime;
+		sTime = tickCount;
 		if(testMode != NORMAL) {    // В режиме теста
 			Value = testValue;
-#if defined(RBOOSTER2) && defined(FLOW)
-			if(number == FLOW && !MC.dRelay[RBOOSTER2].get_Relay()) Value = 0;
-#endif
 			Frequency = Value * kfValue / 360;
 			cnt = 3600 * 1000 / ticks;
 			PassedRest += Value;
@@ -414,6 +411,7 @@ int8_t sensorFrequency::Read()
 			//       Value=((float)Frequency/1000.0)/((float)kfValue/360000.0);          // ЛИТРЫ В ЧАС (ИЛИ ТЫСЯЧНЫЕ КУБА) частота в тысячных, и коэффициент правим
 			Value = Frequency * 360 / kfValue; // ЛИТРЫ В ЧАС (ИЛИ ТЫСЯЧНЫЕ КУБА) частота в тысячных, и коэффициент правим
 		}
+		//journal.printf("Flow(%d): %d = %d (%d, %d) f: %d\n", ticks, cnt / 100, Value, Passed, PassedRest / 100, Frequency);
 		return 1;
 	}
 	return 0;
@@ -457,6 +455,7 @@ void devRelay::initRelay(int sensor)
    pin=pinsRelay[sensor];  
    pinMode(pin, OUTPUT);           // Настроить ножку на выход
    Relay=false;                    // Состояние реле - выключено
+   TimerOn = 0;
 #ifndef RELAY_INVERT            // Нет инвертирования реле -  Влючение реле (Relay=true) соответсвует НИЗКИЙ уровень на выходе МК
 	#ifdef R4WAY_INVERT              // Признак инвертирования 4х ходового
    	   digitalWriteDirect(pin, number != R4WAY);  // Установить значение
@@ -474,6 +473,12 @@ void devRelay::initRelay(int sensor)
    name=(char*)nameRelay[sensor];  // присвоить имя реле
 }
 
+// Уменьшить таймер отображения активного состояния
+void devRelay::NextTimerOn(void) {
+	if(TimerOn) {
+		if(TimerOn >= TIME_SLICE_PUMPS) TimerOn -= TIME_SLICE_PUMPS; else TimerOn = 0;
+	}
+}
 
 // Установить реле в состояние r, базовая функция все остальные функции используют ее
 // Если состояния совпадают то ничего не делаем, 0/-1 - выкл основной алгоритм, fR_Status* - включить, -fR_Status* - выключить)
@@ -489,6 +494,7 @@ int8_t devRelay::set_Relay(int8_t r)
 	r = (flags & fR_StatusMask) != 0;
 	if(Relay == r) return OK;   // Ничего менять не надо выходим
     Relay = r;                  // Все удачно, сохранить
+    if(Relay) TimerOn = TIMER_TO_SHOW_STATUS;
 	if(testMode == NORMAL || testMode == HARD_TEST) {
 #ifndef RELAY_INVERT            // Нет инвертирования реле -  Влючение реле (Relay=true) соответсвует НИЗКИЙ уровень на выходе МК
 		r = !r;
