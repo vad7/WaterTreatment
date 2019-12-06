@@ -1,16 +1,20 @@
 <html>
 <head>
-	<title>Настройки Водоподготовки.</title>
-	<meta charset="utf-8" />
-	<meta name="viewport" content="width=device-width, initial-scale=1.0">
-	<link rel="stylesheet" type="text/css" href="style.css">
-	<script type='text/javascript' src='scripts.js'></script>
-	<script type="text/javascript">
-		window.onload = function() {
-		loadParam("get_Opt(FPMF),get_Opt(UBR),get_Opt(RH),get_Opt(NRW),get_Opt(DT),get_Opt(MR),get_Opt(MD),get_Opt(HIST),get_Opt(BEEP),get_Opt(WSPIF),get_Opt(LOGWS),get_Opt(TIME_CHART),get_Opt(PWMLOG),get_Opt(SGL1W_1),get_Opt(SGL1W_2),get_Opt(SGL1W_3),get_Opt(SGL1W_4)");
-		loadParam("get_Opt(MWBT),get_Opt(MPOT),get_Opt(DR),get_Opt(PM),get_Opt(PST),get_WSRC,get_WSRSC,get_WST,get_Opt(WRM),get_Opt(TL),get_Opt(FDT),get_Opt(FT)");
-	}; 
-	</script>
+<title>Настройки Водоподготовки.</title>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="stylesheet" type="text/css" href="style.css">
+<script type='text/javascript' src='scripts.js'></script>
+<script type="text/javascript">
+window.onload = function() {
+	loadParam("get_Opt(FPMF),get_Opt(UBR),get_Opt(RH),get_Opt(NRW),get_Opt(DT),get_Opt(MR),get_Opt(MD),get_Opt(HIST),get_Opt(BEEP),get_Opt(WSPIF),get_Opt(LOGWS),get_Opt(TIME_CHART),get_Opt(PWMLOG),get_Opt(SGL1W_1),get_Opt(SGL1W_2),get_Opt(SGL1W_3),get_Opt(SGL1W_4)");
+	loadParam("get_Opt(MWBT),get_Opt(MWBTF),get_Opt(MPOT),get_Opt(DR),get_Opt(PM),get_Opt(PST),get_WSRC,get_WSRSC,get_WST,get_Opt(WRM),get_Opt(TL),get_Opt(FDT),get_Opt(FT)");
+}; 
+function show_all() {
+	var elements = document.getElementsByTagName('input');
+	for(i=0; i<elements.length; i++) elements[i].disabled = false;
+}
+</script>
 </head>
 <body class="test">
 <div id="menu" class="menu"><script src='menu.js'></script></div>
@@ -27,6 +31,10 @@
 		<tr>
 			<td>Минимальное время работы насосной станции, мсек</td>
 			<td nowrap><input id="get_opt-mwbt" type="number"> <input type="submit" value=">" onclick="setParam('get_Opt(MWBT)');"></td>
+		</tr>
+		<tr>
+			<td>Минимальная пауза в работе насосной станции, мсек</td>
+			<td nowrap><input id="get_opt-mwbtf" type="number"> <input type="submit" value=">" onclick="setParam('get_Opt(MWBTF)');"></td>
 		</tr>
 		<tr>
 			<td>Минимальное время работы дозатора, мсек</td>
@@ -135,19 +143,19 @@
 			<td><input type="checkbox" id="get_opt-sgl1w_4" onchange="setParam('get_Opt(SGL1W_4)');"></td>
 		</tr>	
 		<tr>
-			<td><b>Начальные настройки</b></td><td></td>
+			<td><b>Начальные настройки <input type="checkbox" id="manual_override" onchange="if(this.checked) { if(confirm('ВЫ УВЕРЕНЫ?')) show_all(this); else this.checked = false; }"></b></td><td></td>
 		</tr>
 		<tr>
-			<td>Всего использовано воды, л</td>
-			<td nowrap><input id="get_wst" type="number"> <input type="submit" value=">" onclick="if(confirm('Вы уверены?')) setParam('get_WST');"></td>
+			<td>Всего использовано воды, м³</td>
+			<td nowrap><input id="get_wst" type="number" disabled> <input type="submit" value=">" onclick="if(confirm('ВЫ УВЕРЕНЫ?')) setParam('get_WST');" disabled></td>
 		</tr>
 		<tr>
 			<td>Итого регенераций обезжелезивателя</td>
-			<td nowrap><input id="get_wsrc" type="number"> <input type="submit" value=">" onclick="if(confirm('Вы уверены?')) setParam('get_WSRC');"></td>
+			<td nowrap><input id="get_wsrc" type="number" disabled> <input type="submit" value=">" onclick="if(confirm('ВЫ УВЕРЕНЫ?')) setParam('get_WSRC');" disabled></td>
 		</tr>
 		<tr>
 			<td>Итого регенераций умягчителя</td>
-			<td nowrap><input id="get_wsrsc" type="number"> <input type="submit" value=">" onclick="if(confirm('Вы уверены?')) setParam('get_WSRSC');"></td>
+			<td nowrap><input id="get_wsrsc" type="number" disabled> <input type="submit" value=">" onclick="if(confirm('ВЫ УВЕРЕНЫ?')) setParam('get_WSRSC');" disabled></td>
 		</tr>
 	</tbody>
 	</table>

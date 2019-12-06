@@ -58,7 +58,7 @@ struct type_RTC_memory { // DS3231/DS3232 used alarm memory, starts from 0x07, m
 
 int		 WaterBoosterStatus = 0; // 0 - выключено, 1 - вкл твердотельное, 2 - вкл обычное, 3 - выкл твердотельное, -1 - выкл твердотельное, -2 - выкл обычное, -3 - нужно выключить (вкл твердотельное)
 bool	 WaterBoosterError = false;
-uint32_t WaterBoosterWorkingTime = 0;
+uint32_t WaterBoosterTimeout = 0;
 bool	 FloodingError = false;
 uint32_t FloodingTime = 0;
 uint32_t TimeFeedPump = 0;
@@ -68,6 +68,7 @@ uint32_t TimerDrainingWater = 0;
 int8_t   Errors[15] = { 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0 };// Active Errors array
 uint32_t ErrorsTime[15];
 uint32_t ResetDUE_countdown = 0;
+bool	 DebugToSerialOn = false;
 
 // Weight
 bool Weight_NeedRead = false;
@@ -108,11 +109,11 @@ struct type_option {
 	uint32_t FeedPumpMaxFlow;			// Максимальный проток до которого распределяется время включения дозатора, литры в час
 	uint8_t  RegenHour;					// Час регенерации (0..23)
 	uint16_t UsedBeforeRegen;			// Количество литров до регенерации
-	uint16_t MinWaterBoostOnTime;		// Минимальное время работы насосной станции, мсек
+	uint16_t MinWaterBoostOnTime;		// Минимальное время работы насосной станции,
+	uint16_t MinWaterBoostOffTime;		// Минимальное перерыва работы насосной станции,
 	uint16_t MinPumpOnTime;				// Минимальное время работы дозатора, мсек
 	uint16_t MinRegenLiters;			// Тревога, если за регенерацию израсходовано меньше литров
 	uint16_t MinDrainLiters;			// Тревога, если слито (Drain) при сбросе меньше литров
-	uint16_t DrainTime;					// Время слива воды, сек
 	uint16_t PWM_DryRun;				// Мощность сухого хода, если ниже во время работы - то стоп, Вт
 	uint16_t PWM_Max;					// Максимальная мощность, если больше во время работы - то стоп, Вт
 	uint16_t PWM_StartingTime;			// Время пуска, мс
@@ -124,7 +125,7 @@ struct type_option {
 	uint16_t FloodingTimeout;			// Время ожидания перед началом работы после срабатывания датчика протечки, сек
 	int16_t  PWATER_RegMin;				// Нижний предел давления PWATER при регенерации, сотые бара
 	int16_t  LTANK_Empty;				// Низкий уровень воды в баке - нужно включить заполнение бака до максимального, сотые %
-
+	uint16_t DrainTime;					// Время слива воды, сек
 } __attribute__((packed));
 
 //  Работа с отдельными флагами type_DateTime

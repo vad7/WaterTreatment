@@ -354,9 +354,7 @@ const char *mess_SMS_P1       = {"SMS_P1"};              // первый пар�
 const char *mess_SMS_P2       = {"SMS_P2"};              // второй параметр для отправки смс
 const char *mess_SMS_NAMEP1   = {"SMS_NAMEP1"};          // описание первого параметра для отправки смс
 const char *mess_SMS_NAMEP2   = {"SMS_NAMEP2"};          // описание второго параметра для отправки смс
-const char *mess_MESS_TIN     = {"MESS_TIN"};            // Критическая температура в доме (если меньше то генерится уведомление)
-const char *mess_MESS_TBOILER = {"MESS_TBOILER"};        // Критическая температура бойлера (если меньше то генерится уведомление)
-const char *mess_MESS_TCOMP   = {"MESS_TCOMP"};          // Критическая температура компрессора (если больше то генериться уведомление)
+const char *mess_MESS_TAIR    = {"MESS_TAIR"};           // Критическая температура (если меньше то генерится уведомление)
 const char *mess_MAIL_RET     = {"MAIL_RET"};            // Ответ на тестовую почту
 const char *mess_SMS_RET      = {"SMS_RET"};             // Ответ на тестовую  sms
 
@@ -416,6 +414,7 @@ const char *option_RegenHour			= {"RH"};
 const char *option_UsedBeforeRegen		= {"UBR"};
 const char *option_MinPumpOnTime		= {"MPOT"};
 const char *option_MinWaterBoostOnTime	= {"MWBT"};
+const char *option_MinWaterBoostOffTime	= {"MWBTF"};
 const char *option_MinRegen				= {"MR"};
 const char *option_MinDrain				= {"MD"};
 const char *option_DrainTime			= {"DT"};
@@ -426,6 +425,7 @@ const char *option_FloodingDebounceTime	= {"FDT"};
 const char *option_FloodingTimeout		= {"FT"};
 const char *option_PWATER_RegMin		= {"WRM"};
 const char *option_LTANK_Low			= {"TL"};
+const char *option_DebugToSerialOn		= {"DBG"};
 
 // WorkStats, get_WS..., set_WS...(x)
 const char *webWS_UsedToday 					= { "UD" };

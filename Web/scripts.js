@@ -384,15 +384,19 @@ function loadParam(paramid, noretry, resultdiv) {
 										} else if(valueid == "get_opt-time_chart") {
 											window.time_chart = valuevar;
 										}
-										element3 = document.getElementById(valueid + "3");
-										if(element3) {
-											element3.value = values[1];
-											element3.innerHTML = values[1];
+										element = document.getElementById(valueid + "3");
+										if(element) {
+											if(element.nodeName == "DIV") {
+												if(valuevar == '0') element.style = "display:none"; else element.style = "display:default";
+											} else {
+												element.value = values[1];
+												element.innerHTML = values[1];
+											}
 										}
 										element = document.getElementById(valueid);
 										if(element) {
 											if(element.nodeName == "DIV") { // css visualization
-												if(valuevar == '0') element.style = "display:none"; else element.style = "display:default"; 
+												if(valuevar == '0') element.style = "display:none"; else element.style = "display:default";
 											} else if(element.className == "charsw") {
 												element.innerHTML = element.title.substr(valuevar,1);
 											} else if(/^E\d+/.test(values[1])) {

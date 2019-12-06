@@ -468,6 +468,10 @@ void Statistics::History()
 				int_to_dec_str(Weight_value, 10000, &buf, 3); // kg
 				break;
 			}
+		case STATS_OBJ_Level: {
+				int_to_dec_str(MC.sADC[HistorySetup[i].number].get_Press(), 100, &buf, 0); // %
+				break;
+			}
 		}
 		if(buf > mbuf + HISTORY_MAX_RECORD_LEN - HISTORY_MAX_FIELD_LEN) {
 			journal.jprintf("%s memory overflow(%d): %d, max: %d\n", "History", i, buf - mbuf, HISTORY_MAX_RECORD_LEN);
@@ -522,6 +526,9 @@ void Statistics::HistoryFileHeader(char *ret, uint8_t flag)
 				break;
 			case STATS_OBJ_BrineWeight:
 				strcat(ret, "M");	// ось кг
+				break;
+			case STATS_OBJ_Level:
+				strcat(ret, "R");	// ось %
 				break;
 			default: strcat(ret, "?");
 			}

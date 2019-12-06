@@ -193,7 +193,7 @@ int8_t  deviceOneWire::Scan(char *result_str)
 				int16_t t = CalcTemp(addr[0], data, 0);
 				if(OneWireDrv.crc8(data,8) != data[8] || t == ERROR_TEMPERATURE)  // Дополнительная проверка для DS18B20
 					strcat(result_str, "CRC");
-				else _ftoa(result_str, (float)t / 100.0f, 2);
+				else _dtoa(result_str, t, 2);
 			}
 			strcat(result_str, ":");
 			// 8. Адрес добавить

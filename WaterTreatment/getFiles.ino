@@ -178,9 +178,7 @@ void get_txtSettings(uint8_t thread)
      strcat(Socket[thread].outBuf,"Возникновение ошибок: "); MC.message.get_messageSetting((char*)mess_MESS_ERROR,Socket[thread].outBuf); STR_END;
      strcat(Socket[thread].outBuf,"Сигнал «жизни» (ежедневно в 12-00): "); MC.message.get_messageSetting((char*)mess_MESS_LIFE,Socket[thread].outBuf); STR_END;
      strcat(Socket[thread].outBuf,"Достижение граничной температуры: "); MC.message.get_messageSetting((char*)mess_MESS_TEMP,Socket[thread].outBuf);  STR_END;
-     strcat(Socket[thread].outBuf," Граничная температура в доме (если меньше то посылается уведомление): "); MC.message.get_messageSetting((char*)mess_MESS_TIN,Socket[thread].outBuf);STR_END;
-     strcat(Socket[thread].outBuf," Граничная температура бойлера (если меньше то посылается уведомление): "); MC.message.get_messageSetting((char*)mess_MESS_TBOILER,Socket[thread].outBuf);STR_END;
-     strcat(Socket[thread].outBuf," Граничная температура компрессора (если больше то посылается уведомление): "); MC.message.get_messageSetting((char*)mess_MESS_TCOMP,Socket[thread].outBuf);STR_END;
+     strcat(Socket[thread].outBuf," Граничная температура в доме (если меньше то посылается уведомление): "); MC.message.get_messageSetting((char*)mess_MESS_TAIR,Socket[thread].outBuf);STR_END;
      strcat(Socket[thread].outBuf,"Проблемы с SD картой и SPI flash: "); MC.message.get_messageSetting((char*)mess_MESS_SD,Socket[thread].outBuf); STR_END;
      strcat(Socket[thread].outBuf,"Прочие уведомления: "); MC.message.get_messageSetting((char*)mess_MESS_WARNING,Socket[thread].outBuf);STR_END;
      strcat(Socket[thread].outBuf," - Настройка отправки почты -\r\n");

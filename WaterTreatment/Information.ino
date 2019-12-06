@@ -164,6 +164,7 @@ void Journal::Format(char *buf)
 void Journal::printf(const char *format, ...)             
 {
 #ifdef DEBUG
+	if(!DebugToSerialOn) return;
 	va_list ap;
 	va_start(ap, format);
 	m_vsnprintf(pbuf, PRINTF_BUF, format, ap);

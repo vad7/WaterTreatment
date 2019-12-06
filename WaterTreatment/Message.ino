@@ -299,18 +299,10 @@ boolean Message::set_messageSetting(char *var, char *c)
         if (strcmp(var, mess_SMS_NAMEP2) == 0) {
           return true;
         } else  //  Только на чтение. описание второго параметра для отправки смс
-          if (strcmp(var, mess_MESS_TIN) == 0) {
+          if (strcmp(var, mess_MESS_TAIR) == 0) {
             x = my_atof(c);
             if (x == ATOF_ERROR) return   false;
             else messageSetting.mTIN = rd(x, 100); return true;
-          } else if (strcmp(var, mess_MESS_TBOILER) == 0) {
-            x = my_atof(c);
-            if (x == ATOF_ERROR) return   false;
-            else messageSetting.mTBOILER = rd(x, 100); return true;
-          } else if (strcmp(var, mess_MESS_TCOMP) == 0) {
-            x = my_atof(c);
-            if (x == ATOF_ERROR) return   false;
-            else messageSetting.mTCOMP = rd(x, 100); return true;
           } else if (strcmp(var, mess_MAIL_RET) == 0) {
             return true;
           } else if (strcmp(var, mess_SMS_RET) == 0) {
@@ -398,14 +390,8 @@ char*   Message::get_messageSetting(char *var, char *ret)
           case pSMS_RU:     return strcat(ret, (char*)"none");      break;
           default:       return strcat(ret, (char*)"Password");       break; // Этого не должно быть, но если будет то установить по умолчанию
         }
-      } else if (strcmp(var, mess_MESS_TIN) == 0) {
-        _ftoa(ret, (float)messageSetting.mTIN / 100.0f, 1);
-        return ret;
-      } else if (strcmp(var, mess_MESS_TBOILER) == 0) {
-        _ftoa(ret, (float)messageSetting.mTBOILER / 100.0f, 1);
-        return ret;
-      } else if (strcmp(var, mess_MESS_TCOMP) == 0) {
-        _ftoa(ret, (float)messageSetting.mTCOMP / 100.0f, 1);
+      } else if (strcmp(var, mess_MESS_TAIR) == 0) {
+        _dtoa(ret, messageSetting.mTIN, 2);
         return ret;
       } else if (strcmp(var, mess_MAIL_RET) == 0) {
         if (waitSend) return strcat(ret, (char*)"wait response...");                // В зависимости готов ответ или нет

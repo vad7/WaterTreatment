@@ -52,7 +52,8 @@ enum {
 	STATS_OBJ_WaterRegen,	// м³
 	STATS_OBJ_BrineWeight,	// кг
 	STATS_OBJ_WaterBooster,	// сек
-	STATS_OBJ_FeedPump		// сек
+	STATS_OBJ_FeedPump,		// сек
+	STATS_OBJ_Level			// %
 };
 struct History_setup {
 	uint8_t		object;			// STATS_OBJ_*
@@ -431,6 +432,7 @@ struct History_setup {
 			{ STATS_OBJ_BrineWeight, 0, "Вес раствора, кг" },
 			{ STATS_OBJ_Temp, TAIR, noteTemp[TAIR] },
 			{ STATS_OBJ_Flow, FLOW, noteFrequency[FLOW] },
+			{ STATS_OBJ_Level, LTANK, "Уровень в баке, %" },
 			{ STATS_OBJ_Power, 0, "Потребление, кВт" },
 	};
 

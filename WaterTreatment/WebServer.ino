@@ -682,11 +682,11 @@ xSaveStats:		if((i = MC.save_WorkStats()) == OK)
 		}
 		if (strcmp(str,"get_tempDS3231")==0)  // Функция get_tempDS3231  - получение температуры DS3231
 		{
-			_ftoa(strReturn,getTemp_RtcI2C(),2); ADD_WEBDELIM(strReturn); continue;
+			_dtoa(strReturn, getTemp_RtcI2C(), 2); ADD_WEBDELIM(strReturn); continue;
 		}
 		if (strcmp(str,"get_PWR") == 0)
 		{
-			_ftoa(strReturn, (float)MC.dPWM.get_Power()/1000.0,3); ADD_WEBDELIM(strReturn); continue;
+			_dtoa(strReturn, MC.dPWM.get_Power(), 3); ADD_WEBDELIM(strReturn); continue;
 		}
 		if(strncmp(str, "get_WL", 6) == 0) { // get water level
 			str += 6;
@@ -722,7 +722,7 @@ xSaveStats:		if((i = MC.save_WorkStats()) == OK)
 			else if(strcmp(str, webWS_UsedDrain) == 0) _itoa(MC.WorkStats.UsedDrain, strReturn); // get_WSD
 			else if(strcmp(str, webWS_UsedTotal) == 0) {  // get_WST
 				if(i) MC.WorkStats.UsedTotal = loc_i; // set_WST=x
-				_itoa(MC.WorkStats.UsedTotal + MC.RTC_store.UsedToday, strReturn);
+				_dtoa(strReturn, MC.WorkStats.UsedTotal + MC.RTC_store.UsedToday, 3);
 			} else if(strcmp(str, webWS_RegCnt) == 0) {  // get_WSRC
 				if(i) MC.WorkStats.RegCnt = loc_i;  // set_WSRC=x
 				_itoa(MC.WorkStats.RegCnt, strReturn);
@@ -908,8 +908,8 @@ xSaveStats:		if((i = MC.save_WorkStats()) == OK)
 			// Датчики
 			strcat(strReturn,"P_NUMSAMLES|Число значений для усреднения показаний давления|");_itoa(P_NUMSAMLES,strReturn);strcat(strReturn,";");
 			strcat(strReturn,"T_NUMSAMLES|Число значений для усреднения показаний температуры|");_itoa(T_NUMSAMLES,strReturn);strcat(strReturn,";");
-			strcat(strReturn,"GAP_TEMP_VAL|Допустимая разница показаний между двумя считываниями (°C)|");_ftoa(strReturn,(float)GAP_TEMP_VAL/100.0,2);strcat(strReturn,";");
-			strcat(strReturn,"MAX_TEMP_ERR|Максимальная систематическая ошибка датчика температуры (°C)|");_ftoa(strReturn,(float)MAX_TEMP_ERR/100.0,2);strcat(strReturn,";");
+			strcat(strReturn,"GAP_TEMP_VAL|Допустимая разница показаний между двумя считываниями (°C)|");_dtoa(strReturn,GAP_TEMP_VAL,2);strcat(strReturn,";");
+			strcat(strReturn,"MAX_TEMP_ERR|Максимальная систематическая ошибка датчика температуры (°C)|");_dtoa(strReturn,MAX_TEMP_ERR,2);strcat(strReturn,";");
 			strcat(strReturn,"VER_SAVE|Версия формата сохраненных данных в I2C памяти|");
 			_itoa(VER_SAVE,strReturn);
 			//if(VER_SAVE != MC.Option.ver) { strcat(strReturn," ("); _itoa(MC.Option.ver, strReturn); strcat(strReturn,")"); }
@@ -962,7 +962,7 @@ xSaveStats:		if((i = MC.save_WorkStats()) == OK)
 				}
 
 				strcat(strReturn,"Входное напряжение питания контроллера (В): |");
-				m_snprintf(strReturn+strlen(strReturn), 256, "если ниже %.1fV - сброс;", (float)((SUPC->SUPC_SMMR & SUPC_SMMR_SMTH_Msk) >> SUPC_SMMR_SMTH_Pos) / 10 + 1.9);
+				m_snprintf(strReturn+strlen(strReturn), 256, "если ниже %.1dV - сброс;", ((SUPC->SUPC_SMMR & SUPC_SMMR_SMTH_Msk) >> SUPC_SMMR_SMTH_Pos) + 19);
 				m_snprintf(strReturn += strlen(strReturn), 256, "Режим safeNetwork (%sадрес:%d.%d.%d.%d шлюз:%d.%d.%d.%d, не спрашивать пароль)|%s;", defaultDHCP ?"DHCP, ":"",defaultIP[0],defaultIP[1],defaultIP[2],defaultIP[3],defaultGateway[0],defaultGateway[1],defaultGateway[2],defaultGateway[3],MC.safeNetwork ?cYes:cNo);
 				//strcat(strReturn,"Уникальный ID чипа SAM3X8E|");
 				//getIDchip(strReturn); strcat(strReturn,";");
@@ -991,7 +991,7 @@ xSaveStats:		if((i = MC.save_WorkStats()) == OK)
 				strcat(strReturn,"Счетчик числа ошибок чтения датчиков температуры (DS18x20)|");_itoa(MC.get_errorReadDS18B20(),strReturn);strcat(strReturn,";");
 
 				strcat(strReturn,"<b> Глобальные счетчики (Всего за весь период)</b>|;");
-				//strcat(strReturn,"Потребленная энергия (кВт*ч)|");_ftoa(strReturn, (float)MC.get_motoHourE1() / 1000.0, 2);strcat(strReturn,";");
+				//strcat(strReturn,"Потребленная энергия (кВт*ч)|");_dtoa(strReturn, MC.get_motoHourE1(), 2);strcat(strReturn,";");
 
 				STORE_DEBUG_INFO(48);
 				strcat(strReturn,"<b> Статистика за день</b>|;");
@@ -1377,7 +1377,7 @@ xget_testTemp:					_dtoa(strReturn, MC.sTemp[p].get_testTemp(), 2); ADD_WEBDELIM
 									i = MC.sTemp[p].get_radio_received_idx();
 									if(i >= 0) {
 										m_snprintf(strReturn + strlen(strReturn), 20, " \xF0\x9F\x93\xB6%c", Radio_RSSI_to_Level(radio_received[i].RSSI));
-										if(str[9] == '2') m_snprintf(strReturn + strlen(strReturn), 20, ", %.1fV", (float)radio_received[i].battery / 10.0);
+										if(str[9] == '2') m_snprintf(strReturn + strlen(strReturn), 20, ", %.1dV", radio_received[i].battery);
 									} else strcat(strReturn, " \xF0\x9F\x93\xB6");
 								}
 	#endif
@@ -1506,12 +1506,7 @@ xget_testTemp:					_dtoa(strReturn, MC.sTemp[p].get_testTemp(), 2); ADD_WEBDELIM
 							{
 								if(MC.sADC[p].get_present())         // Если датчик есть в конфигурации то выводим значение
 								{
-									_ftoa(strReturn,(float)MC.sADC[p].get_Press() / 100, 2);
-	#ifdef EEV_DEF
-									if(p < 2) {
-										m_snprintf(strReturn + m_strlen(strReturn), 20, " [%.2f°]", (float)PressToTemp(p) / 100);
-									}
-	#endif
+									_dtoa(strReturn, MC.sADC[p].get_Press(), 2);
 								} else strcat(strReturn,"-");             // Датчика нет ставим прочерк
 								ADD_WEBDELIM(strReturn); continue;
 							}
@@ -1522,7 +1517,7 @@ xget_testTemp:					_dtoa(strReturn, MC.sTemp[p].get_testTemp(), 2); ADD_WEBDELIM
 							if(strncmp(str, "min", 3)==0)           // Функция get_minPress
 							{
 								if (MC.sADC[p].get_present())          // Если датчик есть в конфигурации то выводим значение
-x_get_minPress: 				_ftoa(strReturn,(float)MC.sADC[p].get_minPress()/100.0,2);
+x_get_minPress: 				_dtoa(strReturn, MC.sADC[p].get_minPress(), 2);
 								else strcat(strReturn,"-");              // Датчика нет ставим прочерк
 								ADD_WEBDELIM(strReturn); continue;
 							}
@@ -1530,7 +1525,7 @@ x_get_minPress: 				_ftoa(strReturn,(float)MC.sADC[p].get_minPress()/100.0,2);
 							if(strncmp(str, "max", 3)==0)           // Функция get_maxPress
 							{
 								if (MC.sADC[p].get_present())           // Если датчик есть в конфигурации то выводим значение
-x_get_maxPress: 				_ftoa(strReturn,(float)MC.sADC[p].get_maxPress()/100.0,2);
+x_get_maxPress: 				_dtoa(strReturn, MC.sADC[p].get_maxPress(), 2);
 								else strcat(strReturn,"-");               // Датчика нет ставим прочерк
 								ADD_WEBDELIM(strReturn); continue;
 							}
@@ -1539,7 +1534,7 @@ x_get_maxPress: 				_ftoa(strReturn,(float)MC.sADC[p].get_maxPress()/100.0,2);
 							{ _itoa(MC.sADC[p].get_zeroPress(),strReturn); ADD_WEBDELIM(strReturn); continue; }
 
 							if(strncmp(str, "trans", 5)==0)           // Функция get_transPress
-							{ _ftoa(strReturn,(float)MC.sADC[p].get_transADC() / 1000, 3); ADD_WEBDELIM(strReturn); continue; }
+							{ _dtoa(strReturn, MC.sADC[p].get_transADC(), 3); ADD_WEBDELIM(strReturn); continue; }
 
 							if(strncmp(str, "pin", 3)==0)           // Функция get_pinPress
 							{
@@ -1555,7 +1550,7 @@ x_get_maxPress: 				_ftoa(strReturn,(float)MC.sADC[p].get_maxPress()/100.0,2);
 							}
 
 							if(strncmp(str, "test", 4)==0)           // Функция get_testPress
-							{ _ftoa(strReturn,(float)MC.sADC[p].get_testPress()/100.0,2); ADD_WEBDELIM(strReturn); continue; }
+							{ _dtoa(strReturn, MC.sADC[p].get_testPress(), 2); ADD_WEBDELIM(strReturn); continue; }
 
 							if(strncmp(str, "eP", 2)==0)           // Функция get_ePress (errorcode)
 							{ _itoa(MC.sADC[p].get_lastErr(),strReturn); ADD_WEBDELIM(strReturn); continue; }
@@ -1585,7 +1580,7 @@ x_get_maxPress: 				_ftoa(strReturn,(float)MC.sADC[p].get_maxPress()/100.0,2);
 							{
 								if(MC.sADC[p].set_testPress(rd(pm, 100)) == OK)    // Установить значение
 								{
-									_ftoa(strReturn, (float) MC.sADC[p].get_testPress() / 100.0, 2);
+									_dtoa(strReturn, MC.sADC[p].get_testPress(), 2);
 									ADD_WEBDELIM(strReturn); continue;
 								} else {// выход за диапазон ПРЕДУПРЕЖДЕНИЕ значение не установлено
 									strcat(strReturn, "E05" WEBDELIM);	continue;
@@ -1602,7 +1597,7 @@ x_get_maxPress: 				_ftoa(strReturn,(float)MC.sADC[p].get_maxPress()/100.0,2);
 
 							if(strncmp(str, "trans", 5)==0)           // Функция set_transPress float
 							{ if (MC.sADC[p].set_transADC(pm)==OK)    // Установить значение
-								{_ftoa(strReturn,(float)MC.sADC[p].get_transADC() / 1000, 3); ADD_WEBDELIM(strReturn); continue;}
+								{_dtoa(strReturn, MC.sADC[p].get_transADC(), 3); ADD_WEBDELIM(strReturn); continue;}
 								else { strcat(strReturn,"E05" WEBDELIM);  continue;}         // выход за диапазон ПРЕДУПРЕЖДЕНИЕ значение не установлено
 							}
 
@@ -1812,7 +1807,7 @@ xWgt_get:
 						} else if(*x == '0') {      	// get_Wgt(0) - Zero (ADC)
 							_itoa((float)MC.Option.WeightZero, strReturn);
 						} else if(*x == 'K') {      	// get_Wgt(K) - Coefficient
-							_ftoa(strReturn, (float)MC.Option.WeightScale / 10000.0f, 4);
+							_dtoa(strReturn, MC.Option.WeightScale, 4);
 						} else if(*x == 'P') {      	// get_Wgt(P) - Pins
 							m_snprintf(strReturn + m_strlen(strReturn), 32, "D%d D%d", HX711_DOUT_PIN, HX711_SCK_PIN);
 						} else if(strcmp(x, "LvL")==0) {       		// get_Wgt(LvL) - Level
@@ -2046,7 +2041,7 @@ TYPE_RET_POST parserPOST(uint8_t thread, uint16_t size)
 			return pNULL;
 		} else if(strcmp(nameFile, LOAD_FLASH_END) == 0 || strcmp(nameFile, LOAD_SD_END) == 0) {  // Окончание загрузки вебморды
 			if(SemaphoreTake(xLoadingWebSemaphore, 0) == pdFALSE) { // Семафор не захвачен (был захвачен ранее) все ок
-				journal.jprintf(pP_TIME, "Ok, %d files uploaded, free %.1f KB\n", numFilesWeb, fWebUploadingFilesTo == 1 ? (float)SerialFlash.free_size() / 1024 : (float)card.vol()->freeClusterCount() * card.vol()->blocksPerCluster() * 512 / 1024);
+				journal.jprintf(pP_TIME, "Ok, %d files uploaded, free %.1d KB\n", numFilesWeb, fWebUploadingFilesTo == 1 ? SerialFlash.free_size() / 102 : card.vol()->freeClusterCount() * card.vol()->blocksPerCluster() / 2 * 10); // *512/1024
 				fWebUploadingFilesTo = 0;
 				SemaphoreGive (xLoadingWebSemaphore);
 				return pLOAD_OK;

@@ -715,17 +715,19 @@ return strcat(ret,(char*)cInvalid);
 boolean MainClass::set_option(char *var, float xx)
 {
    int32_t x = (int32_t) xx;
-   if(strcmp(var,option_TIME_CHART)==0)       { if(x>0) { startChart(); Option.tChart = x; return true; } else return false; } else // Сбросить статистистику, начать отсчет заново
-   if(strcmp(var,option_BEEP)==0)             {if (x==0) {SETBIT0(Option.flags,fBeep); return true;} else if (x==1) {SETBIT1(Option.flags,fBeep); return true;} else return false;  }else            // Подача звукового сигнала
-   if(strcmp(var,option_History)==0)          {if (x==0) {SETBIT0(Option.flags,fHistory); return true;} else if (x==1) {SETBIT1(Option.flags,fHistory); return true;} else return false;       }else       // Сбрасывать статистику на карту
-   if(strcmp(var,option_WebOnSPIFlash)==0)    { Option.flags = (Option.flags & ~(1<<fWebStoreOnSPIFlash)) | ((x!=0)<<fWebStoreOnSPIFlash); return true; } else
+   if(strcmp(var,option_TIME_CHART)==0)      { if(x>0) { startChart(); Option.tChart = x; return true; } else return false; } else // Сбросить статистистику, начать отсчет заново
+   if(strcmp(var,option_BEEP)==0)            {if (x==0) {SETBIT0(Option.flags,fBeep); return true;} else if (x==1) {SETBIT1(Option.flags,fBeep); return true;} else return false;  }else            // Подача звукового сигнала
+   if(strcmp(var,option_History)==0)         {if (x==0) {SETBIT0(Option.flags,fHistory); return true;} else if (x==1) {SETBIT1(Option.flags,fHistory); return true;} else return false;       }else       // Сбрасывать статистику на карту
+   if(strcmp(var,option_WebOnSPIFlash)==0)   { Option.flags = (Option.flags & ~(1<<fWebStoreOnSPIFlash)) | ((x!=0)<<fWebStoreOnSPIFlash); return true; } else
    if(strcmp(var,option_LogWirelessSensors)==0){ Option.flags = (Option.flags & ~(1<<fLogWirelessSensors)) | ((x!=0)<<fLogWirelessSensors); return true; } else
    if(strcmp(var,option_fDontRegenOnWeekend)==0){ Option.flags = (Option.flags & ~(1<<fDontRegenOnWeekend)) | ((x!=0)<<fDontRegenOnWeekend); return true; } else
+   if(strcmp(var,option_DebugToSerialOn)==0) { DebugToSerialOn = x; return true; } else
    if(strcmp(var,option_FeedPumpMaxFlow)==0) { Option.FeedPumpMaxFlow = x; return true; } else
    if(strcmp(var,option_RegenHour)==0)       { Option.RegenHour = x; return true; } else
    if(strcmp(var,option_UsedBeforeRegen)==0) { Option.UsedBeforeRegen = x; return true; } else
-   if(strcmp(var,option_MinPumpOnTime)==0)   { Option.MinPumpOnTime = x / TIME_SLICE_PUMPS; return true; } else
-   if(strcmp(var,option_MinWaterBoostOnTime)==0){ Option.MinWaterBoostOnTime = x / TIME_SLICE_PUMPS; return true; } else
+   if(strcmp(var,option_MinPumpOnTime)==0)   { Option.MinPumpOnTime = x; return true; } else
+   if(strcmp(var,option_MinWaterBoostOnTime)==0){ Option.MinWaterBoostOnTime = x; return true; } else
+   if(strcmp(var,option_MinWaterBoostOffTime)==0){ Option.MinWaterBoostOffTime = x; return true; } else
    if(strcmp(var,option_MinRegen)==0)        { Option.MinRegenLiters = x; return true; } else
    if(strcmp(var,option_MinDrain)==0)        { Option.MinDrainLiters = x; return true; } else
    if(strcmp(var,option_DrainTime)==0)       { Option.DrainTime = x; return true; } else
@@ -756,11 +758,13 @@ char* MainClass::get_option(char *var, char *ret)
    if(strcmp(var,option_WebOnSPIFlash)==0)    { return strcat(ret, (char*)(GETBIT(Option.flags, fWebStoreOnSPIFlash) ? cOne : cZero)); } else
    if(strcmp(var,option_LogWirelessSensors)==0){ return strcat(ret, (char*)(GETBIT(Option.flags, fLogWirelessSensors) ? cOne : cZero)); } else
    if(strcmp(var,option_fDontRegenOnWeekend)==0){ return strcat(ret, (char*)(GETBIT(Option.flags, fDontRegenOnWeekend) ? cOne : cZero)); } else
+   if(strcmp(var,option_DebugToSerialOn)==0){ return strcat(ret, (char*)(DebugToSerialOn ? cOne : cZero)); } else
    if(strcmp(var,option_FeedPumpMaxFlow)==0){ return _itoa(Option.FeedPumpMaxFlow, ret); } else
    if(strcmp(var,option_RegenHour)==0){ return _itoa(Option.RegenHour, ret); } else
    if(strcmp(var,option_UsedBeforeRegen)==0){ return _itoa(Option.UsedBeforeRegen, ret); } else
-   if(strcmp(var,option_MinPumpOnTime)==0){ return _itoa((uint32_t)Option.MinPumpOnTime * TIME_SLICE_PUMPS, ret); } else
-   if(strcmp(var,option_MinWaterBoostOnTime)==0){ return _itoa((uint32_t)Option.MinWaterBoostOnTime * TIME_SLICE_PUMPS, ret); } else
+   if(strcmp(var,option_MinPumpOnTime)==0){ return _itoa((uint32_t)Option.MinPumpOnTime, ret); } else
+   if(strcmp(var,option_MinWaterBoostOnTime)==0){ return _itoa((uint32_t)Option.MinWaterBoostOnTime, ret); } else
+   if(strcmp(var,option_MinWaterBoostOffTime)==0){ return _itoa((uint32_t)Option.MinWaterBoostOffTime, ret); } else
    if(strcmp(var,option_MinRegen)==0){ return _itoa(Option.MinRegenLiters, ret); } else
    if(strcmp(var,option_MinDrain)==0){ return _itoa(Option.MinDrainLiters, ret); } else
    if(strcmp(var,option_DrainTime)==0){ return _itoa(Option.DrainTime, ret); } else
@@ -949,13 +953,13 @@ void MainClass::calculatePower()
 void MainClass::save_DumpJournal(void)
 {
 	uint8_t i;
-	journal.jprintf(" State:");
+	journal.printf(" State:");
 	for(i = 0; i < RNUMBER; i++) journal.jprintf(" %s:%d", MC.dRelay[i].get_name(), MC.dRelay[i].get_Relay());
-	journal.jprintf(" Power:%.3f\n", (float)dPWM.get_Power() / 1000.0);
+	journal.printf(" Power:%.3f\n", (float)dPWM.get_Power() / 1000.0);
 	// Доп инфо
-	for(i = 0; i < TNUMBER; i++) if(sTemp[i].get_present() && sTemp[i].Chart.get_present()) journal.jprintf(" %s:%.2f", sTemp[i].get_name(), (float) sTemp[i].get_Temp() / 100);
+	for(i = 0; i < TNUMBER; i++) if(sTemp[i].get_present() && sTemp[i].Chart.get_present()) journal.printf(" %s:%.2f", sTemp[i].get_name(), (float) sTemp[i].get_Temp() / 100);
 	for(i = 0; i < ANUMBER; i++) if(sADC[i].get_present()) journal.jprintf(" %s:%.2f", sADC[i].get_name(), (float) sADC[i].get_Press() / 100);
-	journal.jprintf(cStrEnd);
+	journal.printf(cStrEnd);
 }
 
 // Возвращает 0 - Нет ошибок или ни одного активного датчика, 1 - ошибка, 2 - превышен предел ошибок

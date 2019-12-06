@@ -185,6 +185,20 @@ function createChart() {
 			id: 'W'
 		}, {
 			title: {
+				text: 'м³ч', align: 'high', offset: 15
+			},
+			opposite: true,
+			showEmpty: false,
+			id: 'F'
+		}, {
+			title: {
+				text: 'кг', align: 'high', offset: 15
+			},
+			opposite: true,
+			showEmpty: false,
+			id: 'M'
+		}, {
+			title: {
 				text: 'COP', align: 'high', offset: 15
 			},
 			opposite: true,
@@ -199,25 +213,18 @@ function createChart() {
 			id: 'R'
 		}, {
 			title: {
-				text: 'Шаги', align: 'high', offset: 15
+				text: 'м³', align: 'high', offset: 15
+			},
+			opposite: true,
+			showEmpty: false,
+			id: 'L'
+		}, {
+			title: {
+				text: 'сек.', align: 'high', offset: 15
 			},
 			opposite: true,
 			showEmpty: false,
 			id: 'S'
-		}, {
-			title: {
-				text: 'м³ч', align: 'high', offset: 15
-			},
-			opposite: true,
-			showEmpty: false,
-			id: 'F'
-		}, {
-			title: {
-				text: 'Гц', align: 'high', offset: 15
-			},
-			opposite: true,
-			showEmpty: false,
-			id: 'H'
 		}],
 		exporting: {
 			enabled: true,

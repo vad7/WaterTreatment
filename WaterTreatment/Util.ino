@@ -323,10 +323,10 @@ int freeRam()
 
 // Чтение температуры чипа SAM3X ----------------------------------------------
 //http://arduino.cc/forum/index.php/topic,129013.0.html
-#define TEMP_TRANS       (float)(SAM3X_ADC_REF/4096.0)
-#define TEMP_OFFSET      0.80
-#define TEMP_FACTOR      0.00265
-#define TEMP_FIXTEMP     27.0
+#define TEMP_TRANS       (float)(SAM3X_ADC_REF/4096.0f)
+#define TEMP_OFFSET      0.80f
+#define TEMP_FACTOR      0.00265f
+#define TEMP_FIXTEMP     27.0f
 float temp_DUE() 
 {
   uint32_t ulValue = 0;
@@ -350,11 +350,11 @@ float temp_DUE()
 void SupplyMonitorON(uint32_t voltage)
 {
 	startSupcStatusReg = SUPC->SUPC_SR;                        // запомнить состояние при старте
-	journal.jprintf("Supply Controller Status Register [SUPC_SR]: 0x%08x\n", startSupcStatusReg);
+	journal.printf("Supply Controller Status Register [SUPC_SR]: 0x%08x\n", startSupcStatusReg);
 
 	SUPC->SUPC_SMMR |= voltage | SUPC_SMMR_SMRSTEN_ENABLE | SUPC_SMMR_SMSMPL_CSM;   // RESET если напряжение просело, контроль 1/32768 сек
 	SUPC->SUPC_MR |= SUPC_MR_KEY(SUPC_KEY_VALUE) | SUPC_MR_BODDIS_ENABLE; // Включение контроля (это лишнее при сбросе это включено)
-	journal.jprintf("Supply monitor ON, voltage: %.1fV\n", (float) voltage / 10 + 1.9);
+	journal.printf("Supply monitor ON, voltage: %.1fV\n", (float) voltage / 10 + 1.9);
 }
 
 // Программный сброс контроллера
@@ -842,7 +842,7 @@ __attribute__((always_inline))   inline byte readEEPROM_I2C(unsigned long addr, 
 }
 // ЧАСЫ  есть проблема - работают на прямую с i2c не через wire ----------------------------------
 // Часы на I2C   Чтение температуры
-__attribute__((always_inline)) inline float getTemp_RtcI2C()
+__attribute__((always_inline)) inline int16_t getTemp_RtcI2C()
 {
 	if(SemaphoreTake(xI2CSemaphore, I2C_TIME_WAIT / portTICK_PERIOD_MS) == pdFALSE) {  // Если шедулер запущен то захватываем семафор
 		journal.printf((char*) cErrorMutex, __FUNCTION__, MutexI2CBuzy);
@@ -850,7 +850,7 @@ __attribute__((always_inline)) inline float getTemp_RtcI2C()
 	}
 	int16_t rtc_temp = rtcI2C.temperature();
 	SemaphoreGive(xI2CSemaphore);
-	return (float) rtc_temp / 100.0;
+	return rtc_temp;
 }
 
 // Часы на I2C   Чтение времени
