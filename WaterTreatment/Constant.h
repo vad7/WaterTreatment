@@ -104,7 +104,7 @@ const uint16_t  defaultPort=80;
 #define PWM_NUM_READ        2              // Число попыток чтения счетчика (подряд) до ошибки
 #define PWM_DELAY_REPEAT    50             // мсек Время между ПОВТОРНЫМИ попытками чтения
 
-#define DISPLAY_UPDATE		5000             // Время обновления информации на дисплее (мсек)
+#define DISPLAY_UPDATE		2500             // Время обновления информации на дисплее (мсек)
 
 #define TIMER_TO_SHOW_STATUS 2500			// мсек, Время показа активного состояния (дозирующего насоса, ...)
 
@@ -168,7 +168,8 @@ const uint16_t  defaultPort=80;
 
 #define RTC_STORE_ADDR RTC_ALM1_SECONDS		// Starting address of RTC store memory
 // ------------------- ОБЩИЕ НАСТРОЙКИ ----------------------------------
-
+#define LCD_COLS			20			// Колонок на LCD экране
+#define LCD_ROWS			4			// Строк на LCD экране
 // ------------------- SENSOR TEMP----------------------------------
 #define MAX_TEMP_ERR      700            // Максимальная систематическая ошибка датчика температуры (сотые градуса)
 #define NUM_READ_TEMP_ERR 10             // Число ошибок подряд чтения датчика температуры после которого считается что датчик не исправен

@@ -911,7 +911,7 @@ uint8_t MainClass::set_hashUser()
 	strcat(buf, Network.passUser);
 	base64_encode(Security.hashUser, buf, strlen(buf));
 	Security.hashUserLen = strlen(Security.hashUser);
-	journal.jprintf(" Hash user: %s\n", Security.hashUser);
+	journal.printf(" Hash user: %s\n", Security.hashUser);
 	return Security.hashUserLen;
 }
 // расчитать хеш для администратора возвращает длину хеша
@@ -923,7 +923,7 @@ uint8_t MainClass::set_hashAdmin()
 	strcat(buf, Network.passAdmin);
 	base64_encode(Security.hashAdmin, buf, strlen(buf));
 	Security.hashAdminLen = strlen(Security.hashAdmin);
-	journal.jprintf(" Hash admin: %s\n", Security.hashAdmin);
+	journal.printf(" Hash admin: %s\n", Security.hashAdmin);
 	return Security.hashAdminLen;
 }
 

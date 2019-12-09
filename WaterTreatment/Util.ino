@@ -301,11 +301,11 @@ void freeRamShow()
   register char * stack_ptr asm( "sp" );
   struct mallinfo mi = mallinfo();
  
-  journal.jprintf("Ram used (bytes):\n");
-  journal.jprintf("  dynamic: %d\n",mi.uordblks); 
-  journal.jprintf("  static:  %d\n",&_end - ramstart); 
-  journal.jprintf("  stack:   %d\n",ramend - stack_ptr); 
-  journal.jprintf("Estimation free Ram: %d\n",stack_ptr - heapend + mi.fordblks);
+  journal.printf("Ram used (bytes):\n");
+  journal.printf("  dynamic: %d\n",mi.uordblks);
+  journal.printf("  static:  %d\n",&_end - ramstart);
+  journal.printf("  stack:   %d\n",ramend - stack_ptr);
+  journal.printf("Estimation free Ram: %d\n",stack_ptr - heapend + mi.fordblks);
  
 }
 
@@ -529,7 +529,8 @@ uint8_t initSD(void)
 	journal.printf((char*) " Volume is FAT%d\n", int(card.vol()->fatType()));
 	journal.printf((char*) " blocksPerCluster: %d\n", int(card.vol()->blocksPerCluster()));
 	journal.printf((char*) " clusterCount: %d\n", card.vol()->clusterCount());
-	journal.printf((char*) " freeSpace: %.2f Mb\n", (float) 0.000512 * card.vol()->freeClusterCount() * card.vol()->blocksPerCluster());
+	// too slow on some cards:
+	//journal.printf((char*) " freeSpace: %.2f Mb\n", (float) 0.000512 * card.vol()->freeClusterCount() * card.vol()->blocksPerCluster());
 
 	// 3. Проверка наличия индексного файла
 	if(!card.exists(INDEX_FILE)) {
@@ -1005,4 +1006,20 @@ int32_t round_div_int32(int32_t value, int16_t div)
 		if(value % div <= -(div >> 1)) value = value / div - 1; else value /= div;
 	}
 	return value;
+}
+
+// Send string to LCD with waiting delay 1ms between chars
+void LCD_print(char *buf)
+{
+	char ch;
+	while((ch = *buf++)) {
+		lcd.write(ch);
+		vTaskDelay(1);
+	}
+}
+
+inline void buffer_space_padding(char * buf, int add)
+{
+	while(add--) *buf++ = ' ';
+	*buf = '\0';
 }

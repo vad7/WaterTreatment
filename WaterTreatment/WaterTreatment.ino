@@ -187,6 +187,7 @@ void setup() {
 	SPI_switchAllOFF();                         // Выключить все устройства на SPI
 
 	delay(10);
+	DebugToSerialOn = true;
 
 	// Борьба с зависшими устройствами на шине  I2C (в первую очередь часы) неудачный сброс
 	Recover_I2C_bus();
@@ -507,6 +508,9 @@ void setup() {
 	journal.printf("Temperature DS2331: %.2d\n", getTemp_RtcI2C());
 	//MC.Stat.generate_TestData(STAT_POINT); // Сгенерировать статистику STAT_POINT точек только тестирование
 	journal.printf("Start FreeRTOS!\n\n");
+#ifndef TEST_BOARD
+	DebugToSerialOn = false;
+#endif
 	eepromI2C.use_RTOS_delay = 1;       //vad711
 	//
 	vTaskStartScheduler();              // СТАРТ !!
@@ -529,7 +533,8 @@ extern "C" void vApplicationIdleHook(void)  // FreeRTOS expects C linkage
 	static unsigned long countLED = 0;
 	static unsigned long ulIdleCycleCount = 0;                                    // наш трудяга счетчик
 
-	WDT_Restart(WDT);                                                            // Сбросить вачдог
+	// в
+	//WDT_Restart(WDT);                                                            // Сбросить вачдог
 	ulIdleCycleCount++;                                                          // приращение счетчика
 
 	if(xTaskGetTickCount() - countLastTick >= 3000)		// мсек
@@ -719,7 +724,7 @@ void vReadSensor(void *)
 	
 	for(;;) {
 		int8_t i;
-		WDT_Restart(WDT);
+		//WDT_Restart(WDT);
 
 		ttime = millis();
 #ifdef RADIO_SENSORS		
@@ -905,6 +910,7 @@ void vPumps( void * )
 	vTaskDelay(1000 / ADC_FREQ + TIME_SLICE_PUMPS); // ms
 	for(;;)
 	{
+		WDT_Restart(WDT); // Reset Watchdog here, most important task.
 		if(WaterBoosterStatus != 0) {
 			Stats_WaterBooster_work += TIME_SLICE_PUMPS;
 			History_WaterBooster_work += TIME_SLICE_PUMPS;
@@ -1047,14 +1053,14 @@ xWaterBooster_OFF:
 				MC.RTC_store.Work = (MC.RTC_store.Work & ~RTC_Work_NeedRegen_Mask) | RTC_Work_NeedRegen_Iron;
 				MC.RTC_store.UsedRegen = 0;
 				NeedSaveRTC |= (1<<bRTC_UsedRegen) | (1<<bRTC_Work) | 0x80;
-				journal.printf("Regen iron start...\n");
+				journal.printf("Regen Fe start...\n");
 			}
 		} else if(MC.sInput[REG_SOFTENING_ACTIVE].get_Input()) {
 			if((MC.RTC_store.Work & RTC_Work_NeedRegen_Mask) != RTC_Work_NeedRegen_Softener) {
 				MC.RTC_store.Work = (MC.RTC_store.Work & ~RTC_Work_NeedRegen_Mask) | RTC_Work_NeedRegen_Softener;
 				MC.RTC_store.UsedRegen = 0;
 				NeedSaveRTC |= (1<<bRTC_UsedRegen) | (1<<bRTC_Work) | 0x80;
-				journal.printf("Regen softener start...\n");
+				journal.printf("Regen Softener start...\n");
 			}
 		} else {
 			switch (MC.RTC_store.Work & RTC_Work_NeedRegen_Mask) {
@@ -1071,7 +1077,7 @@ xWaterBooster_OFF:
 				NeedSaveRTC |= (1<<bRTC_Work) | 0x80;
 				taskEXIT_CRITICAL();
 				NeedSaveWorkStats = 1;
-				journal.printf("Regen iron finished.\n");
+				journal.printf("Regen Fe finished.\n");
 				break;
 			case RTC_Work_NeedRegen_Softener:
 				MC.WorkStats.DaysFromLastRegenSoftening = 0;
@@ -1082,7 +1088,7 @@ xWaterBooster_OFF:
 				NeedSaveRTC |= (1<<bRTC_Work) | 0x80;
 				taskEXIT_CRITICAL();
 				NeedSaveWorkStats = 1;
-				journal.printf("Regen softener finished.\n");
+				journal.printf("Regen Softener finished.\n");
 				break;
 			}
 		}
@@ -1107,17 +1113,21 @@ xWaterBooster_OFF:
 void vKeysLCD( void * )
 {
 
-	lcd.begin(20, 4); // Setup: cols, rows
-	lcd.print("WaterTreatment v");
-	lcd.print(VERSION);
+	lcd.begin(LCD_COLS, LCD_ROWS); // Setup: cols, rows
+	LCD_print((char*)"WaterTreatment v");
+	LCD_print((char*)VERSION);
 	lcd.setCursor(0, 1);
-	lcd.print(F("Vadim Kulakov(c)2019"));
+	_delay(1);
+	LCD_print((char*)"Vadim Kulakov(c)2019");
 	lcd.setCursor(0, 2);
-	lcd.print(F("vad7@yahoo.com"));
+	_delay(1);
+	LCD_print((char*)"vad7@yahoo.com");
 	pinMode(PIN_KEY_UP, INPUT_PULLUP);
 	pinMode(PIN_KEY_DOWN, INPUT_PULLUP);
 	pinMode(PIN_KEY_OK, INPUT_PULLUP);
 	static uint32_t DisplayTick = xTaskGetTickCount();
+	static char buffer[LCD_COLS + 1];
+	//static uint32_t displayed_area = 0; // b1 - Yd,Days Fe,Soft
 	for(;;)
 	{
 		if(!digitalReadDirect(PIN_KEY_OK)) {
@@ -1127,9 +1137,57 @@ void vKeysLCD( void * )
 		} else if(!digitalReadDirect(PIN_KEY_DOWN)) {
 			journal.printf("[DWN]\n");
 		}
-		if(xTaskGetTickCount() - DisplayTick > DISPLAY_UPDATE) {
-			lcd.setCursor(0, 1);
-			lcd.print(NowDateToStr()); lcd.print(' '); lcd.print(NowTimeToStr());
+		if(xTaskGetTickCount() - DisplayTick > DISPLAY_UPDATE) { // Update display
+			// Display:
+			// 12345678901234567890
+			// F: 0.000 m3h > 0.000
+			// P: 0.00 Tank: 100 %
+			// Days Fe:123 Soft:123
+			// Day: 0.000 Yd: 0.000
+			char *buf = buffer;
+			lcd.setCursor(0, 0); vTaskDelay(1);
+			int32_t tmp = MC.sFrequency[FLOW].get_Value();
+			strcpy(buf, "F:"); buf += 2;
+			if(tmp < 10000) *buf++ = ' ';
+			buf = dptoa(buf, tmp, 3);
+			strcpy(buf, " m3h \x7E"); buf += 6;
+			tmp = MC.WorkStats.UsedSinceLastRegen + MC.RTC_store.UsedToday;
+			if(tmp < 10000) *buf++ = ' ';
+			buf = dptoa(buf, tmp, 3);
+			buffer_space_padding(buf, LCD_COLS - (buf - buffer));
+			LCD_print(buffer);
+
+			lcd.setCursor(0, 1); vTaskDelay(1);
+			strcpy(buf = buffer, "P: "); buf += 3;
+			buf = dptoa(buf, MC.sADC[PWATER].get_Press(), 2);
+			strcpy(buf, " Tank: "); buf += 7;
+			buf = dptoa(buf, MC.sADC[LTANK].get_Press() / 100, 0);
+			buffer_space_padding(buf, LCD_COLS - (buf - buffer));
+			lcd.print(buffer);
+
+			lcd.setCursor(0, 2); vTaskDelay(1);
+			strcpy(buf = buffer, "Days,Fe:"); buf += 8;
+			tmp = MC.WorkStats.DaysFromLastRegen;
+			if(tmp < 100) *buf++ = ' ';
+			buf = dptoa(buf, tmp, 0);
+			strcpy(buf = buffer, " Soft:"); buf += 6;
+			tmp = MC.WorkStats.DaysFromLastRegenSoftening;
+			if(tmp < 100) *buf++ = ' ';
+			buf = dptoa(buf, tmp, 0);
+			buffer_space_padding(buf, LCD_COLS - (buf - buffer));
+			LCD_print(buffer);
+
+			lcd.setCursor(0, 3); vTaskDelay(1);
+			strcpy(buf = buffer, "Day:"); buf += 4;
+			tmp = MC.RTC_store.UsedToday;
+			if(tmp < 10000) *buf++ = ' ';
+			buf = dptoa(buf, tmp, 3);
+			strcpy(buf = buffer, " Yd:"); buf += 4;
+			tmp = MC.WorkStats.UsedYesterday;
+			if(tmp < 10000) *buf++ = ' ';
+			buf = dptoa(buf, tmp, 3);
+			buffer_space_padding(buf, LCD_COLS - (buf - buffer));
+			lcd.print(buffer);
 
 			DisplayTick = xTaskGetTickCount();
 		}
