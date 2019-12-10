@@ -44,10 +44,10 @@ struct type_WorkStats {
 
 
 #define RTC_Work_WeekDay_Mask		0x07	// Active weekday (1-7)
-#define RTC_Work_NeedRegen_Mask		0x30	// 0 - not, 1 - wait a regen iron hour, 2 - regen iron in process, 3 - regen softener in process
+#define RTC_Work_NeedRegen_Mask		0x70	// 0 - not, 1 - wait a regen iron hour, 2 - regen iron in process, 3 - regen softener in process
 #define RTC_Work_NeedRegen_WaitIron	0x10
 #define RTC_Work_NeedRegen_Iron		0x20
-#define RTC_Work_NeedRegen_Softener	0x30
+#define RTC_Work_NeedRegen_Softener	0x40
 
 struct type_RTC_memory { // DS3231/DS3232 used alarm memory, starts from 0x07, max size 7 bytes
 	volatile uint16_t UsedToday;	// 0. used daily until switch to new day, liters
@@ -60,7 +60,10 @@ int		 WaterBoosterStatus = 0; // 0 - выключено, 1 - вкл твердо
 bool	 WaterBoosterError = false;
 uint32_t WaterBoosterTimeout = 0;
 bool	 FloodingError = false;
-uint32_t FloodingTime = 0;
+uint32_t FloodingTime = 0;	// unixtime
+uint32_t FillingTankTimer = 0;
+int16_t  FillingTankLastLevel = 0;
+bool	 TankEmpty = false;
 uint32_t TimeFeedPump = 0;
 int8_t   vPumpsNewError = 0;
 uint8_t  NeedSaveWorkStats = 0;
@@ -103,29 +106,32 @@ uint16_t task_updstat_chars = 0;
  
 // Структура для хранения опций
 struct type_option {
-	uint8_t ver;						// номер версии для сохранения
-	uint16_t flags;						// Флаги опций до 16 флагов
-	uint16_t tChart;					// период графиков в секундах!!
-	uint32_t FeedPumpMaxFlow;			// Максимальный проток до которого распределяется время включения дозатора, литры в час
-	uint8_t  RegenHour;					// Час регенерации (0..23)
-	uint16_t UsedBeforeRegen;			// Количество литров до регенерации
-	uint16_t MinWaterBoostOnTime;		// Минимальное время работы насосной станции,
-	uint16_t MinWaterBoostOffTime;		// Минимальное перерыва работы насосной станции,
-	uint16_t MinPumpOnTime;				// Минимальное время работы дозатора, мсек
-	uint16_t MinRegenLiters;			// Тревога, если за регенерацию израсходовано меньше литров
-	uint16_t MinDrainLiters;			// Тревога, если слито (Drain) при сбросе меньше литров
-	uint16_t PWM_DryRun;				// Мощность сухого хода, если ниже во время работы - то стоп, Вт
-	uint16_t PWM_Max;					// Максимальная мощность, если больше во время работы - то стоп, Вт
-	uint16_t PWM_StartingTime;			// Время пуска, мс
-	int32_t  WeightScale;				// Коэффициент калибровки весов, десятитысячные (~50.0)
-	int32_t  WeightZero;				// Вес 0, АЦП
-	int32_t  WeightTare;				// Вес тары, десятые грамма
-	int32_t  WeightFull;				// Полный вес жидкости без тары, десятые грамма
-	uint16_t FloodingDebounceTime;		// Время исключения помех срабатывания датчика протечки, сек
-	uint16_t FloodingTimeout;			// Время ожидания перед началом работы после срабатывания датчика протечки, сек
-	int16_t  PWATER_RegMin;				// Нижний предел давления PWATER при регенерации, сотые бара
-	int16_t  LTANK_Empty;				// Низкий уровень воды в баке - нужно включить заполнение бака до максимального, сотые %
-	uint16_t DrainTime;					// Время слива воды, сек
+	uint8_t ver;					// номер версии для сохранения
+	uint16_t flags;					// Флаги опций до 16 флагов
+	uint16_t tChart;				// период графиков в секундах!!
+	uint32_t FeedPumpMaxFlow;		// лч, Максимальный проток до которого распределяется время включения дозатора
+	uint8_t  RegenHour;				// Час регенерации (0..23)
+	uint16_t DaysBeforeRegen;		// Дней до регенерации, 0 - не проверять
+	uint16_t UsedBeforeRegen;		// Количество литров до регенерации обезжелезивателя, 0 - нет
+	uint16_t UsedBeforeRegenSofener;// Количество литров до регенерации умягчителя, 0 - нет
+	uint16_t MinWaterBoostOnTime;	// Минимальное время работы насосной станции,
+	uint16_t MinWaterBoostOffTime;	// Минимальное перерыва работы насосной станции,
+	uint16_t MinPumpOnTime;			// мсек, Минимальное время работы дозатора
+	uint16_t MinRegenLiters;		// Тревога, если за регенерацию израсходовано меньше литров
+	uint16_t MinDrainLiters;		// Тревога, если слито (Drain) при сбросе меньше литров
+	uint16_t PWM_DryRun;			// Вт, Мощность сухого хода, если ниже во время работы - то стоп
+	uint16_t PWM_Max;				// Вт, Максимальная мощность, если больше во время работы - то стоп
+	uint16_t PWM_StartingTime;		// мсек, Время пуска
+	int32_t  WeightScale;			// Коэффициент калибровки весов, десятитысячные (~50.0)
+	int32_t  WeightZero;			// Вес 0, АЦП
+	int32_t  WeightTare;			// Вес тары, десятые грамма
+	int32_t  WeightFull;			// Полный вес жидкости без тары, десятые грамма
+	uint16_t FloodingDebounceTime;	// сек, Время исключения помех срабатывания датчика протечки
+	uint16_t FloodingTimeout;		// сек, Время ожидания перед началом работы после срабатывания датчика протечки
+	int16_t  PWATER_RegMin;			// сотые бара, Нижний предел давления PWATER при регенерации
+	int16_t  LTANK_Empty;			// сотые %, Низкий уровень воды в баке - нужно включить заполнение бака до максимального
+	uint16_t DrainTime;				// Время слива воды, сек
+	uint16_t FillingTankTimeout;	// сек, Время заполнения бака на 1% при отсутствии потребления
 } __attribute__((packed));
 
 //  Работа с отдельными флагами type_DateTime

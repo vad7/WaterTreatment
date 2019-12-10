@@ -456,7 +456,7 @@ function loadParam(paramid, noretry, resultdiv) {
 										else if(values[0].match(/UPD$/)) alert("Успешно!");
 										else alert("Настройки сохранены, записано " + values[1] + " байт");
 									} else alert("Ошибка, код: " + values[1]);
-								} else if(values[0] == "RESET_DUE" || values[0] == "RESET_JOURNAL" || values[0] == "set_updateNet" || values[0] == "RESET_ErrorFC") {
+								} else if(values[0].substr(0, 6) == "RESET_" || values[0] == "set_updateNet") {
 									alert(values[1]);
 								} else {
 									if((element = document.getElementById(valueid))) {

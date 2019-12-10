@@ -498,6 +498,25 @@ void MainClass::resetSetting()
 	SETBIT1(Option.flags, fBeep);         //  Звук
 	SETBIT1(Option.flags, fHistory);      //  Сброс статистика на карту
 
+	Option.DrainTime = 20;
+	Option.FeedPumpMaxFlow = 4000;
+	Option.FillingTankTimeout = 60;
+	Option.FloodingDebounceTime = 10;
+	Option.FloodingTimeout = 600;
+	Option.LTANK_Empty = 100;
+	Option.MinDrainLiters = 10;
+	Option.MinPumpOnTime = 1000;
+	Option.MinRegenLiters = 500;
+	Option.MinWaterBoostOnTime = 2000;
+	Option.MinWaterBoostOffTime = 10000;
+	Option.PWATER_RegMin = 300;
+	Option.PWM_StartingTime = 500;
+	Option.PWM_DryRun = 800;
+	Option.PWM_Max = 1500;
+	Option.RegenHour = 3;
+	Option.DaysBeforeRegen = 20;
+	Option.UsedBeforeRegen = 6000;
+	Option.UsedBeforeRegenSofener = 3500;
 }
 
 // --------------------------------------------------------------------
@@ -739,6 +758,7 @@ boolean MainClass::set_option(char *var, float xx)
    if(strcmp(var,option_LTANK_Low)==0)       { Option.LTANK_Empty = rd(xx, 100); return true; } else
    if(strcmp(var,option_FloodingDebounceTime)==0){ Option.FloodingDebounceTime = x; return true; } else
    if(strcmp(var,option_FloodingTimeout)==0) { Option.FloodingTimeout = x; return true; } else
+   if(strcmp(var,option_FillingTankTimeout)==0){ Option.FillingTankTimeout = x; return true; } else
    if(strncmp(var,option_SGL1W, sizeof(option_SGL1W)-1)==0) {
 	   uint8_t bit = var[sizeof(option_SGL1W)-1] - '0' - 1;
 	   if(bit <= 3) {
@@ -776,6 +796,7 @@ char* MainClass::get_option(char *var, char *ret)
    if(strcmp(var,option_LTANK_Low)==0){ _dtoa(ret, Option.LTANK_Empty, 2); return ret; } else
    if(strcmp(var,option_FloodingDebounceTime)==0){ return _itoa(Option.FloodingDebounceTime, ret); } else
    if(strcmp(var,option_FloodingTimeout)==0){ return _itoa(Option.FloodingTimeout, ret); } else
+   if(strcmp(var,option_FillingTankTimeout)==0){ return _itoa(Option.FillingTankTimeout, ret); } else
    if(strncmp(var,option_SGL1W, sizeof(option_SGL1W)-1)==0) {
 	   uint8_t bit = var[sizeof(option_SGL1W)-1] - '0' - 1;
 	   if(bit <= 2) {

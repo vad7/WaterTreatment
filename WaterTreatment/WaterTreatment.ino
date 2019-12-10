@@ -753,7 +753,7 @@ void vReadSensor(void *)
 		for(i = 0; i < FNUMBER; i++) MC.sFrequency[i].Read();			// Получить значения датчиков потока
 
 		// Flow
-		TimeFeedPump +=	MC.sFrequency[FLOW].get_Value() * (TIME_READ_SENSOR / TIME_SLICE_PUMPS) / MC.Option.FeedPumpMaxFlow;
+		TimeFeedPump +=	(uint32_t)MC.sFrequency[FLOW].get_Value() * TIME_READ_SENSOR / MC.Option.FeedPumpMaxFlow;
 		TaskSuspendAll(); // Запрет других задач
 		uint32_t passed = MC.sFrequency[FLOW].Passed;
 		MC.sFrequency[FLOW].Passed = 0;
@@ -767,7 +767,11 @@ void vReadSensor(void *)
 			MC.RTC_store.UsedToday += passed;
 			History_WaterUsed_work += passed;
 			NeedSaveRTC |= (1<<bRTC_UsedToday);
-			if((MC.RTC_store.Work & RTC_Work_NeedRegen_Mask) == 0 && MC.WorkStats.UsedSinceLastRegen > MC.Option.UsedBeforeRegen) MC.RTC_store.Work |= RTC_Work_NeedRegen_WaitIron;
+			passed = MC.WorkStats.UsedSinceLastRegen + MC.RTC_store.UsedToday;
+			if((MC.RTC_store.Work & RTC_Work_NeedRegen_Mask) == 0) {
+				if(MC.Option.UsedBeforeRegen && passed >= MC.Option.UsedBeforeRegen) MC.RTC_store.Work |= RTC_Work_NeedRegen_WaitIron;
+				if(MC.Option.UsedBeforeRegenSofener && passed >= MC.Option.UsedBeforeRegenSofener) MC.RTC_store.Work |= RTC_Work_NeedRegen_Softener;
+			}
 		}
 		//
 		Weight_NeedRead = true;
@@ -920,7 +924,7 @@ void vPumps( void * )
 
 		// Read sensors
 		for(uint8_t i = 0; i < INUMBER; i++) MC.sInput[i].Read(true);		// Прочитать данные сухой контакт
-		bool TankEmpty = MC.sInput[TANK_EMPTY].get_Input();
+		TankEmpty = MC.sInput[TANK_EMPTY].get_Input();
 		if(++ADC_read_period > 1000 / ADC_FREQ / TIME_SLICE_PUMPS) {		// Не чаще, чем ADC
 			ADC_read_period = 0;
 			for(uint8_t i = 0; i < ANUMBER; i++) MC.sADC[i].Read();			// Прочитать данные с датчиков давления
@@ -1016,34 +1020,48 @@ xWaterBooster_OFF:
 		// Feed Pump
 		if(MC.dRelay[RFEEDPUMP].get_Relay()) {
 			taskENTER_CRITICAL();
-			if(TimeFeedPump) {
-				TimeFeedPump--;
+			if(TimeFeedPump >= TIME_SLICE_PUMPS) {
+				TimeFeedPump -= TIME_SLICE_PUMPS;
 				Stats_FeedPump_work += TIME_SLICE_PUMPS;
 				History_FeedPump_work += TIME_SLICE_PUMPS;
 			}
 			taskEXIT_CRITICAL();
-			if(TimeFeedPump == 0) MC.dRelay[RFEEDPUMP].set_OFF();
+			if(TimeFeedPump < TIME_SLICE_PUMPS) MC.dRelay[RFEEDPUMP].set_OFF();
 		} else if(TimeFeedPump >= MC.Option.MinPumpOnTime) {
 			MC.dRelay[RFEEDPUMP].set_ON();
 		}
 		// Fill tank
-#ifdef TANK_ANALOG_LEVEL
-		if(MC.sADC[LTANK].get_Press() <= MC.sADC[LTANK].get_minPress()) {
-#else
+#ifndef TANK_ANALOG_LEVEL
 		if(MC.sInput[TANK_LOW].get_Input()) {
-#endif
 			if(MC.dRelay[RFILL].get_Relay()) {
+#else
+		if(MC.sADC[LTANK].get_Press() <= MC.sADC[LTANK].get_minPress()) {
+			if(MC.dRelay[RFILL].get_Relay()) {
+				if(MC.Option.FillingTankTimeout) {
+					if(WaterBoosterStatus == 0 && TimerDrainingWater == 0 && !MC.sInput[REG_ACTIVE].get_Input() && !MC.sInput[BACKWASH_ACTIVE].get_Input()) { // No water consuming
+						if(millis() - FillingTankTimer >= MC.Option.FillingTankTimeout * 1000) {
+							if(FillingTankLastLevel + FILLING_TANK_STEP > MC.sADC[LTANK].get_Press()) vPumpsNewError = ERR_TANK_NO_FILLING;
+							FillingTankLastLevel = MC.sADC[LTANK].get_Press();
+							FillingTankTimer = millis();
+						}
+					} else FillingTankTimer = millis();
+				}
+#endif
 				taskENTER_CRITICAL();
 				Charts_FillTank_work += TIME_SLICE_PUMPS * 100 / 1000; // in percent
 				taskEXIT_CRITICAL();
-			} else if(!FloodingError) MC.dRelay[RFILL].set_ON();	// Start filling tank
+			} else if(!FloodingError) {
+				MC.dRelay[RFILL].set_ON();	// Start filling tank
+				FillingTankLastLevel = MC.sADC[LTANK].get_Press();
+				FillingTankTimer = millis();
+			}
 #ifdef TANK_ANALOG_LEVEL
 		} else if(MC.sADC[LTANK].get_Press() >= MC.sADC[LTANK].get_maxPress()) {
 #else
 		}
 		if(MC.sInput[TANK_FULL].get_Input()) {
 #endif
-			if(!MC.dRelay[RFILL].get_Relay()) MC.dRelay[RFILL].set_OFF();	// Stop filling tank
+			if(MC.dRelay[RFILL].get_Relay()) MC.dRelay[RFILL].set_OFF();	// Stop filling tank
 		}
 
 		// Regenerating
@@ -1206,13 +1224,13 @@ void vService(void *)
 	static uint32_t timer_sec = GetTickCount();
 
 	for(;;) {
+		if(vPumpsNewError != 0) {
+			set_Error(vPumpsNewError, (char*)"vPumps");
+			vPumpsNewError = 0;
+		}
 		register uint32_t t = GetTickCount();
 		if(t - timer_sec >= 1000) { // 1 sec
 			timer_sec = t;
-			if(vPumpsNewError != 0) {
-				set_Error(vPumpsNewError, (char*)"vPumps");
-				vPumpsNewError = 0;
-			}
 
 			if(++task_updstat_chars >= MC.get_tChart()) { // пришло время
 				task_updstat_chars = 0;
@@ -1252,7 +1270,9 @@ void vService(void *)
 						MC.dRelay[RDRAIN].set_ON();
 					}
 				}
-				if(!WaterBoosterError && (MC.RTC_store.Work & RTC_Work_NeedRegen_WaitIron) && rtcSAM3X8.get_hours() == MC.Option.RegenHour) {
+				if(!WaterBoosterError && !FloodingError && !TankEmpty
+						&& ((MC.RTC_store.Work & RTC_Work_NeedRegen_WaitIron) || (MC.Option.DaysBeforeRegen && MC.WorkStats.DaysFromLastRegen >= MC.Option.DaysBeforeRegen))
+						&& rtcSAM3X8.get_hours() == MC.Option.RegenHour) {
 #ifdef TANK_ANALOG_LEVEL
 					if(MC.sADC[LTANK].get_Press() >= MC.sADC[LTANK].get_maxPress()) {
 #else
@@ -1269,8 +1289,6 @@ void vService(void *)
 				} else if((NeedSaveRTC & (1<<bRTC_Urgently)) || (NeedSaveRTC && m != task_every_min)) {
 					task_every_min = m;
 					update_RTC_store_memory(NeedSaveRTC);
-
-
 
 				}
 			}

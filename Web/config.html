@@ -8,7 +8,7 @@
 <script type="text/javascript">
 window.onload = function() {
 	loadParam("get_Opt(FPMF),get_Opt(UBR),get_Opt(RH),get_Opt(NRW),get_Opt(DT),get_Opt(MR),get_Opt(MD),get_Opt(HIST),get_Opt(BEEP),get_Opt(WSPIF),get_Opt(LOGWS),get_Opt(TIME_CHART),get_Opt(PWMLOG),get_Opt(SGL1W_1),get_Opt(SGL1W_2),get_Opt(SGL1W_3),get_Opt(SGL1W_4)");
-	loadParam("get_Opt(MWBT),get_Opt(MWBTF),get_Opt(MPOT),get_Opt(DR),get_Opt(PM),get_Opt(PST),get_WSRC,get_WSRSC,get_WST,get_Opt(WRM),get_Opt(TL),get_Opt(FDT),get_Opt(FT)");
+	loadParam("get_Opt(MWBT),get_Opt(MWBTF),get_Opt(MPOT),get_Opt(DR),get_Opt(PM),get_Opt(PST),get_WSRC,get_WSRSC,get_WST,get_Opt(WRM),get_Opt(TL),get_Opt(FDT),get_Opt(FT),get_Opt(FTT)");
 }; 
 function show_all() {
 	var elements = document.getElementsByTagName('input');
@@ -83,7 +83,7 @@ function show_all() {
 			<td nowrap><input id="get_opt-pm" type="number"> <input type="submit" value=">" onclick="setParam('get_Opt(PM)');"></td>
 		</tr>
 		<tr>
-			<td>Тревога, если за регенерацию израсходовано меньше литров</td>
+			<td>Тревога, если за регенерацию обезжелезивателя израсходовано меньше литров</td>
 			<td nowrap><input id="get_opt-mr" type="number"> <input type="submit" value=">" onclick="setParam('get_Opt(MR)');"></td>
 		</tr>
 		<tr>
@@ -97,6 +97,10 @@ function show_all() {
 		<tr>
 			<td>Время ожидания после ликвидации протечки, сек</td>
 			<td nowrap><input id="get_opt-ft" type="number"> <input type="submit" value=">" onclick="setParam('get_Opt(FT)');"></td>
+		</tr>
+		<tr>
+			<td>Время заполнения бака на 3% при отсутствии потребления, сек</td>
+			<td nowrap><input id="get_opt-ftt" type="number"> <input type="submit" value=">" onclick="setParam('get_Opt(FTT)');"></td>
 		</tr>
 		<tr>
 			<td><b>Дополнительно</b></td><td></td>

@@ -427,6 +427,7 @@ const char *option_FloodingTimeout		= {"FT"};
 const char *option_PWATER_RegMin		= {"WRM"};
 const char *option_LTANK_Low			= {"TL"};
 const char *option_DebugToSerialOn		= {"DBG"};
+const char *option_FillingTankTimeout	= {"FTT"};
 
 // WorkStats, get_WS..., set_WS...(x)
 const char *webWS_UsedToday 					= { "UD" };
@@ -508,8 +509,9 @@ const char *webWS_UsedLastRegenSoftening  		= { "RSL" };
 #define ERR_PRESS			-56			// Ошибка давления
 #define ERR_FLOODING		-57			// Затопление
 //#define ERR_TANK_EMPTY	-58			// Пустой бак! (defined in config.h)
+#define ERR_TANK_NO_FILLING	-59			// Бак не заполняется
 
-#define ERR_ERRMAX			-58 	   // Последняя ошибка
+#define ERR_ERRMAX			-59 	   // Последняя ошибка
 
 // Предупреждения
 #define WARNING_VALUE        1         // Попытка установить значение за границами диапазона запрос типа SET
@@ -574,6 +576,7 @@ const char *noteError[] = {"Ok",                                                
 						   "Ошибка давления",																	//-56
 						   "Затопление",																		//-57
 						   "Пустой бак",																		//-58
+						   "Бак не заполняется",																//-59
 
                            "NULL"
                            };

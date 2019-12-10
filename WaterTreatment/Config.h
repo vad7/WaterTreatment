@@ -390,6 +390,7 @@ struct History_setup {
 	const int16_t MINPRESS[ANUMBER]   = {  250, 500 };		// минимальные значения давления, в сотых
 	const uint16_t MAXPRESS[ANUMBER]  = {  370, 10000 };	// Максимальные значения давления, в сотых
 	const uint16_t TESTPRESS[ANUMBER] = {  300, 8000 };		// Значения датчиков при тестировании  опция TEST, в сотых
+
 	//#define ANALOG_MODBUS 								// Данные аналоговых датчиков читаются по Modbus RTU
 	#ifdef ANALOG_MODBUS
 	  #define ANALOG_MODBUS_NUM_READ				3			// Число попыток чтения
@@ -404,6 +405,9 @@ struct History_setup {
 	#define ADC_FREQ			10	// период опроса аналоговых датчиков в секунду
 	#define FILTER_SIZE			3		// Длина фильтра для датчиков давления
 	//#define FILTER_SIZE_OTHER	4			// Длина фильтра для остальных датчиков
+	#define FILLING_TANK_STEP	300		// сотые %, На сколько должен заполняться бак за время Option.FillingTankTimeout
+
+	#define DELAY_AFTER_SWITCH_RELAY    250            // Задержка после переключения реле, для сглаживания потребления и уменьшения помех(мс)
 
 	// Статистика по дням
 	#define STATS_ID_Temp	TAIR
@@ -437,7 +441,6 @@ struct History_setup {
 	};
 
 
-	#define DELAY_AFTER_SWITCH_RELAY    250            // Задержка после переключения реле, для сглаживания потребления и уменьшения помех(мс)
 
 #endif  // CONFIG_1
   

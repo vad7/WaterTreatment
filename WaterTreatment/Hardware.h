@@ -99,9 +99,9 @@ class sensorADC
 				uint16_t _reserved_2;
 			} __attribute__((packed));
 		};
-		int16_t testPress;                                   // давление датчика в режиме тестирования
-		int16_t minPress;                                    // минимальное давление
-		int16_t maxPress;                                    // максимальное давление
+		int16_t testPress;                                   // давление датчика в режиме тестирования, сотые
+		int16_t minPress;                                    // минимальное давление, сотые
+		int16_t maxPress;                                    // максимальное давление, сотые
     } __attribute__((packed)) cfg;// Save Group end
     TEST_MODE testMode;                                  // Значение режима тестирования
     uint16_t lastADC;                                    // Последние значение отсчета ацп
