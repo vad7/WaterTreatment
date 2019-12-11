@@ -541,7 +541,7 @@ void parserGET(uint8_t thread, int8_t )
 				ADD_WEBDELIM(strReturn) ;
 				continue;
 			}
-			if(strcmp(str,"Press")==0)     // Функция get_listPress
+			if(strcmp(str,"ADC")==0)     // Функция get_listADC
 			{
 				for(i=0;i<ANUMBER;i++) if (MC.sADC[i].get_present()){strcat(strReturn,MC.sADC[i].get_name());strcat(strReturn,";");}
 				ADD_WEBDELIM(strReturn);
@@ -609,7 +609,7 @@ void parserGET(uint8_t thread, int8_t )
 			if(*str == 'D') {	// get_MODED
 				if(FloodingError) {
 					strcat(strReturn, "Затопление!");
-				} else if(MC.sInput[REG_ACTIVE].get_Input() || MC.sInput[BACKWASH_ACTIVE].get_Input() || MC.sInput[REG_SOFTENING_ACTIVE].get_Input()) {
+				} else if(MC.sInput[REG_ACTIVE].get_Input() || MC.sInput[REG_BACKWASH_ACTIVE].get_Input() || MC.sInput[REG2_ACTIVE].get_Input()) {
 					strcat(strReturn, "Регенерация");
 				} else if(MC.get_errcode()) {
 					strcat(strReturn, "Ошибка: ");
@@ -797,10 +797,6 @@ xSaveStats:		if((i = MC.save_WorkStats()) == OK)
 			str += 6;
 			if(strcmp(str,"TERR")==0) {     // Функция RESET_TERR
 				MC.Reset_TempErrors();
-			} else if (strcmp(str,"STAT")==0)   // RESET_STAT, Команда очистки статистики (в зависимости от типа)
-			{
-				//strcat(strReturn,"Форматирование I2C статистики, ожидайте 10 сек . . .");
-				//MC.sendCommand(pSFORMAT);
 			} else if (strcmp(str,"JOURNAL")==0)   // RESET_JOURNAL,  Команда очистки журнала (в зависимости от типа)
 			{
 #ifdef I2C_JOURNAL_IN_RAM     // журнал в памяти
@@ -831,7 +827,7 @@ xSaveStats:		if((i = MC.save_WorkStats()) == OK)
 				NeedSaveRTC = RTC_SaveAll;
 				update_RTC_store_memory(NeedSaveRTC);
 				MC.resetCount();  // Полный сброс
-
+				strcat(strReturn, "OK");
 			} else if (strcmp(str,"SETTINGS")==0) // RESET_SETTINGS, Команда сброса настроек
 			{
 				journal.jprintf("$RESET All settings . . .\n");
@@ -1493,7 +1489,7 @@ xget_testTemp:					_dtoa(strReturn, MC.sTemp[p].get_testTemp(), 2); ADD_WEBDELIM
 				} //if ((strstr(str,"Relay")>0)  5
 
 				// Датчики аналоговые, давления, ТОЧНОСТЬ СОТЫЕ
-				if(strstr(str,"Press"))          // Проверка для запросов содержащих Press
+				if(strstr(str,"ADC"))          // Проверка для запросов содержащих ADC
 				{
 					STORE_DEBUG_INFO(41);
 					for(i=0;i<ANUMBER;i++) if(strcmp(x,MC.sADC[i].get_name())==0) {p=i; break;} // Поиск среди имен
@@ -1502,41 +1498,41 @@ xget_testTemp:					_dtoa(strReturn, MC.sTemp[p].get_testTemp(), 2); ADD_WEBDELIM
 					{
 						if(strncmp(str,"get_", 4)==0) {              // Функция get_
 							str += 4;
-							if(strcmp(str,"Press")==0)           // Функция get_Press
+							if(strcmp(str,"ADC")==0)           // Функция get_ADC
 							{
 								if(MC.sADC[p].get_present())         // Если датчик есть в конфигурации то выводим значение
 								{
-									_dtoa(strReturn, MC.sADC[p].get_Press(), 2);
+									_dtoa(strReturn, MC.sADC[p].get_Value(), 2);
 								} else strcat(strReturn,"-");             // Датчика нет ставим прочерк
 								ADD_WEBDELIM(strReturn); continue;
 							}
 
-							if(strncmp(str, "adc", 3)==0)           // Функция get_adcPress
+							if(strncmp(str, "adc", 3)==0)           // Функция get_adcADC
 							{ _itoa(MC.sADC[p].get_lastADC(),strReturn); ADD_WEBDELIM(strReturn); continue; }
 
-							if(strncmp(str, "min", 3)==0)           // Функция get_minPress
+							if(strncmp(str, "min", 3)==0)           // Функция get_minADC
 							{
 								if (MC.sADC[p].get_present())          // Если датчик есть в конфигурации то выводим значение
-x_get_minPress: 				_dtoa(strReturn, MC.sADC[p].get_minPress(), 2);
+x_get_minValue: 				_dtoa(strReturn, MC.sADC[p].get_minValue(), 2);
 								else strcat(strReturn,"-");              // Датчика нет ставим прочерк
 								ADD_WEBDELIM(strReturn); continue;
 							}
 
-							if(strncmp(str, "max", 3)==0)           // Функция get_maxPress
+							if(strncmp(str, "max", 3)==0)           // Функция get_maxADC
 							{
 								if (MC.sADC[p].get_present())           // Если датчик есть в конфигурации то выводим значение
-x_get_maxPress: 				_dtoa(strReturn, MC.sADC[p].get_maxPress(), 2);
+x_get_maxValue: 				_dtoa(strReturn, MC.sADC[p].get_maxValue(), 2);
 								else strcat(strReturn,"-");               // Датчика нет ставим прочерк
 								ADD_WEBDELIM(strReturn); continue;
 							}
 
-							if(strncmp(str, "zero", 4)==0)           // Функция get_zeroPress
-							{ _itoa(MC.sADC[p].get_zeroPress(),strReturn); ADD_WEBDELIM(strReturn); continue; }
+							if(strncmp(str, "zero", 4)==0)           // Функция get_zeroADC
+							{ _itoa(MC.sADC[p].get_zeroValue(),strReturn); ADD_WEBDELIM(strReturn); continue; }
 
-							if(strncmp(str, "trans", 5)==0)           // Функция get_transPress
+							if(strncmp(str, "trans", 5)==0)           // Функция get_transADC
 							{ _dtoa(strReturn, MC.sADC[p].get_transADC(), 3); ADD_WEBDELIM(strReturn); continue; }
 
-							if(strncmp(str, "pin", 3)==0)           // Функция get_pinPress
+							if(strncmp(str, "pin", 3)==0)           // Функция get_pinADC
 							{
 	#ifdef ANALOG_MODBUS
 								if(MC.sADC[p].get_fmodbus()) {
@@ -1549,26 +1545,26 @@ x_get_maxPress: 				_dtoa(strReturn, MC.sADC[p].get_maxPress(), 2);
 								ADD_WEBDELIM(strReturn); continue;
 							}
 
-							if(strncmp(str, "test", 4)==0)           // Функция get_testPress
-							{ _dtoa(strReturn, MC.sADC[p].get_testPress(), 2); ADD_WEBDELIM(strReturn); continue; }
+							if(strncmp(str, "test", 4)==0)           // Функция get_testADC
+							{ _dtoa(strReturn, MC.sADC[p].get_testValue(), 2); ADD_WEBDELIM(strReturn); continue; }
 
-							if(strncmp(str, "eP", 2)==0)           // Функция get_ePress (errorcode)
+							if(strncmp(str, "eP", 2)==0)           // Функция get_eADC (errorcode)
 							{ _itoa(MC.sADC[p].get_lastErr(),strReturn); ADD_WEBDELIM(strReturn); continue; }
 
-							if(strncmp(str, "isP", 3)==0)           // Функция get_isPress
+							if(strncmp(str, "isP", 3)==0)           // Функция get_isADC
 							{
 								if (MC.sADC[p].get_present()==true)  strcat(strReturn,cOne); else  strcat(strReturn,cZero);
 								ADD_WEBDELIM(strReturn) ;    continue;
 							}
-							if(strncmp(str, "nP", 2)==0)           // Функция get_nPress (note)
+							if(strncmp(str, "nP", 2)==0)           // Функция get_nADC (note)
 							{ strcat(strReturn,MC.sADC[p].get_note()); ADD_WEBDELIM(strReturn); continue; }
 
-							if(strcmp(str, "PressLvL")==0) {   // Функция get_PressLvL()
-								_itoa(MC.sADC[p].get_Press() / 100, strReturn);
+							if(strcmp(str, "ADCLvL")==0) {   // Функция get_ADCLvL()
+								_itoa(MC.sADC[p].get_Value() / 100, strReturn);
 								ADD_WEBDELIM(strReturn); continue;
 							}
 
-						// ---- SET ----------------- Для аналоговых  датчиков - запросы на УСТАНОВКУ парметров
+						// ---- SET ----------------- Для аналоговых  датчиков - запросы на УСТАНОВКУ параметров
 						} else if(strncmp(str,"set_", 4)==0) {              // Функция set_
 							str += 4;
 							if(pm == ATOF_ERROR) {   // Ошибка преобразования для чисел - завершить запрос с ошибкой
@@ -1576,36 +1572,36 @@ x_get_maxPress: 				_dtoa(strReturn, MC.sADC[p].get_maxPress(), 2);
 								ADD_WEBDELIM(strReturn);
 								continue;
 							}
-							if(strncmp(str, "test", 4) == 0)           // Функция set_testPress
+							if(strncmp(str, "test", 4) == 0)           // Функция set_testADC
 							{
-								if(MC.sADC[p].set_testPress(rd(pm, 100)) == OK)    // Установить значение
+								if(MC.sADC[p].set_testValue(rd(pm, 100)) == OK)    // Установить значение
 								{
-									_dtoa(strReturn, MC.sADC[p].get_testPress(), 2);
+									_dtoa(strReturn, MC.sADC[p].get_testValue(), 2);
 									ADD_WEBDELIM(strReturn); continue;
 								} else {// выход за диапазон ПРЕДУПРЕЖДЕНИЕ значение не установлено
 									strcat(strReturn, "E05" WEBDELIM);	continue;
 								}
 							}
-							if(strncmp(str, "min", 3) == 0) {  // set_minPress
-								if(MC.sADC[p].set_minPress(rd(pm, 100)) == OK) goto x_get_minPress;
+							if(strncmp(str, "min", 3) == 0) {  // set_minADC
+								if(MC.sADC[p].set_minValue(rd(pm, 100)) == OK) goto x_get_minValue;
 								else { strcat(strReturn, "E05" WEBDELIM);  continue; }         // выход за диапазон ПРЕДУПРЕЖДЕНИЕ значение не установлено
 							}
-							if(strncmp(str, "max", 3) == 0) { // set_maxPress
-								if(MC.sADC[p].set_maxPress(rd(pm, 100)) == OK) goto x_get_maxPress;
+							if(strncmp(str, "max", 3) == 0) { // set_maxADC
+								if(MC.sADC[p].set_maxValue(rd(pm, 100)) == OK) goto x_get_maxValue;
 								else {  strcat(strReturn, "E05" WEBDELIM); continue;  }         // выход за диапазон ПРЕДУПРЕЖДЕНИЕ значение не установлено
 							}
 
-							if(strncmp(str, "trans", 5)==0)           // Функция set_transPress float
+							if(strncmp(str, "trans", 5)==0)           // Функция set_transADC
 							{ if (MC.sADC[p].set_transADC(pm)==OK)    // Установить значение
 								{_dtoa(strReturn, MC.sADC[p].get_transADC(), 3); ADD_WEBDELIM(strReturn); continue;}
 								else { strcat(strReturn,"E05" WEBDELIM);  continue;}         // выход за диапазон ПРЕДУПРЕЖДЕНИЕ значение не установлено
 							}
 
-							if(strncmp(str, "zero", 4) == 0)           // Функция set_zeroPress
+							if(strncmp(str, "zero", 4) == 0)           // Функция set_zeroADC
 							{
-								if(MC.sADC[p].set_zeroPress((int16_t) pm) == OK)    // Установить значение
+								if(MC.sADC[p].set_zeroValue((int16_t) pm) == OK)    // Установить значение
 								{
-									_itoa(MC.sADC[p].get_zeroPress(), strReturn);
+									_itoa(MC.sADC[p].get_zeroValue(), strReturn);
 									ADD_WEBDELIM(strReturn);
 									continue;
 								} else {   // выход за диапазон ПРЕДУПРЕЖДЕНИЕ значение не установлено
@@ -1618,7 +1614,7 @@ x_get_maxPress: 				_dtoa(strReturn, MC.sADC[p].get_maxPress(), 2);
 						continue;
 
 					}  // end else
-				} //if ((strstr(str,"Press")>0)
+				} //if ((strstr(str,"ADC")>0)
 
 				// Частотные датчики ДАТЧИКИ ПОТОКА
 				if(strstr(str,"Flow"))          // Проверка для запросов содержащих Frequency

@@ -13,7 +13,7 @@
 	urltimeout = 2000;
 	window.onload = function() {
 		loadParam("get_WSUY,get_WSA,get_WSDD,get_WSD,get_WSRC,get_WSRD,get_WSRL,get_WSRSC,get_WSRSD,get_WSRSL");
-		updateParam("get_MODED,get_PWR,get_Relay(RWOFF),get_Relay(RDRAIN),get_Relay(RBST2),get_Relay(RFILL),get_Relay(RFEEDP),get_PressLvL(LTANK),get_Wgt(LvL),get_Input(REG),get_Input(BWASH),get_Temp(AIR),get_Flow(FLOW),get_Press(PWATER),get_WSRS,get_WSRSS,get_WSUD,get_WST,get_Err(B)");
+		updateParam("get_MODED,get_PWR,get_Relay(RWOFF),get_Relay(RDRAIN),get_Relay(RBST2),get_Relay(RFILL),get_Relay(RFEEDP),get_ADCLvL(LTANK),get_Wgt(LvL),get_Input(REG),get_Input(REGBW),get_Temp(AIR),get_Flow(FLOW),get_ADC(PWATER),get_WSRS,get_WSRSS,get_WSUD,get_WST,get_Err(B)");
 		updateParam("get_tblErr");
 	};
 </script>	
@@ -29,12 +29,13 @@
 	<div id="get_relay-rbst2" style="display:none"></div>
 	<div id="get_relay-rfill" style="display:none"></div>
 	<div id="get_relay-rfeedp" style="display:none"></div>
-	<div id="get_presslvl-ltank" name="Top-318" style="height:0;max-height:212"></div>
+	<div id="get_adclvl-ltank" name="Top-318" style="height:0;max-height:212"></div>
 	<div id="get_wgt-lvl" name="Top-324" style="height:0;max-height:92"></div>
 	<div id="get_input-reg" style="display:none"></div>
-	<div id="get_input-bwash" style="display:none"></div>
+	<div id="get_input-regbw" style="display:none"></div>
+	<div id="get_input-reg2" style="display:none"></div>
 	<span id="get_flow-flow" class="blue">-.-</span>
-	<span id="get_press-pwater" class="red">-.-</span>
+	<span id="get_adc-pwater" class="red">-.-</span>
 	<span id="get_err-b" class="charsw" title=" ⚠"></span>
 </div>
 <div class="row1">

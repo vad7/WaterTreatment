@@ -404,6 +404,9 @@ void MainClass::resetCount()
 	WorkStats.ResetTime = rtcSAM3X8.unixtime();           // Дата сброса счетчиков
 	save_WorkStats();  // записать счетчики
 	Stats_Power_work = 0;
+	Stats_FeedPump_work = 0;
+	Stats_WaterBooster_work = 0;
+	Stats_WaterRegen_work = 0;
 }
 
 // Обновление счетчиков моточасов, вызывается раз в минуту
@@ -835,7 +838,7 @@ char * MainClass::TestToStr()
 void  MainClass::updateChart()
 {
 	for(uint8_t i=0;i<TNUMBER;i++) if(sTemp[i].Chart.get_present())  sTemp[i].Chart.addPoint(sTemp[i].get_Temp());
-	for(uint8_t i=0;i<ANUMBER;i++) if(sADC[i].Chart.get_present()) sADC[i].Chart.addPoint(sADC[i].get_Press());
+	for(uint8_t i=0;i<ANUMBER;i++) if(sADC[i].Chart.get_present()) sADC[i].Chart.addPoint(sADC[i].get_Value());
 	for(uint8_t i=0;i<FNUMBER;i++) if(sFrequency[i].Chart.get_present()) sFrequency[i].Chart.addPoint(sFrequency[i].get_Value()); // Частотные датчики
 	int32_t tmp1, tmp2, tmp3;
 	taskENTER_CRITICAL();
@@ -979,7 +982,7 @@ void MainClass::save_DumpJournal(void)
 	journal.printf(" Power:%.3f\n", (float)dPWM.get_Power() / 1000.0);
 	// Доп инфо
 	for(i = 0; i < TNUMBER; i++) if(sTemp[i].get_present() && sTemp[i].Chart.get_present()) journal.printf(" %s:%.2f", sTemp[i].get_name(), (float) sTemp[i].get_Temp() / 100);
-	for(i = 0; i < ANUMBER; i++) if(sADC[i].get_present()) journal.jprintf(" %s:%.2f", sADC[i].get_name(), (float) sADC[i].get_Press() / 100);
+	for(i = 0; i < ANUMBER; i++) if(sADC[i].get_present()) journal.jprintf(" %s:%.2f", sADC[i].get_name(), (float) sADC[i].get_Value() / 100);
 	journal.printf(cStrEnd);
 }
 

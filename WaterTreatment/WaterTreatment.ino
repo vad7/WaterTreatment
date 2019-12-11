@@ -456,24 +456,24 @@ void setup() {
 	//MC.mRTOS=MC.mRTOS+4*configTIMER_TASK_STACK_DEPTH;  // программные таймера (их теперь нет)
 
 	// ПРИОРИТЕТ 4 Высший приоритет
-	if(xTaskCreate(vPumps, "Pumps", 170, NULL, 4, &MC.xHandlePumps) == errCOULD_NOT_ALLOCATE_REQUIRED_MEMORY) set_Error(ERR_MEM_FREERTOS,(char*)nameFREERTOS);
-	MC.mRTOS=MC.mRTOS+64+4* 170;
+	if(xTaskCreate(vPumps, "Pumps", 160, NULL, 4, &MC.xHandlePumps) == errCOULD_NOT_ALLOCATE_REQUIRED_MEMORY) set_Error(ERR_MEM_FREERTOS,(char*)nameFREERTOS);
+	MC.mRTOS=MC.mRTOS+64+4* 160;
 	//vTaskSuspend(MC.xHandleFeedPump);      // Остановить задачу
 
 	// ПРИОРИТЕТ 3 Очень высокий приоритет
-	if(xTaskCreate(vReadSensor, "ReadSensor", 170, NULL, 3, &MC.xHandleReadSensor) == errCOULD_NOT_ALLOCATE_REQUIRED_MEMORY) set_Error(ERR_MEM_FREERTOS,(char*)nameFREERTOS);
-	MC.mRTOS=MC.mRTOS+64+4* 170;
+	if(xTaskCreate(vReadSensor, "ReadSensor", 150, NULL, 3, &MC.xHandleReadSensor) == errCOULD_NOT_ALLOCATE_REQUIRED_MEMORY) set_Error(ERR_MEM_FREERTOS,(char*)nameFREERTOS);
+	MC.mRTOS=MC.mRTOS+64+4* 150;
 
 	// ПРИОРИТЕТ 2 средний
-	if(xTaskCreate(vKeysLCD, "KeysLCD", 170, NULL, 4, &MC.xHandleKeysLCD) == errCOULD_NOT_ALLOCATE_REQUIRED_MEMORY) set_Error(ERR_MEM_FREERTOS,(char*)nameFREERTOS);
+	if(xTaskCreate(vKeysLCD, "KeysLCD", 70, NULL, 4, &MC.xHandleKeysLCD) == errCOULD_NOT_ALLOCATE_REQUIRED_MEMORY) set_Error(ERR_MEM_FREERTOS,(char*)nameFREERTOS);
+	MC.mRTOS=MC.mRTOS+64+4* 70;
+	if(xTaskCreate(vService, "Service", 150, NULL, 2, &MC.xHandleService) == errCOULD_NOT_ALLOCATE_REQUIRED_MEMORY) set_Error(ERR_MEM_FREERTOS,(char*)nameFREERTOS);
 	MC.mRTOS=MC.mRTOS+64+4* 150;
-	if(xTaskCreate(vService, "Service", 180, NULL, 2, &MC.xHandleService) == errCOULD_NOT_ALLOCATE_REQUIRED_MEMORY) set_Error(ERR_MEM_FREERTOS,(char*)nameFREERTOS);
-	MC.mRTOS=MC.mRTOS+64+4* 180;
 
 	// ПРИОРИТЕТ 1 низкий - обслуживание вебморды в несколько потоков
 	// ВНИМАНИЕ первый поток должен иметь больший стек для обработки фоновых сетевых задач
 	// 1 - поток
-	#define STACK_vWebX 200
+	#define STACK_vWebX 180
 	if(xTaskCreate(vWeb0,"Web0", STACK_vWebX+10,NULL,1,&MC.xHandleUpdateWeb0)==errCOULD_NOT_ALLOCATE_REQUIRED_MEMORY) set_Error(ERR_MEM_FREERTOS,(char*)nameFREERTOS);
 	MC.mRTOS=MC.mRTOS+64+4*STACK_vWebX+10;
 	if(xTaskCreate(vWeb1,"Web1", STACK_vWebX,NULL,1,&MC.xHandleUpdateWeb1)==errCOULD_NOT_ALLOCATE_REQUIRED_MEMORY) set_Error(ERR_MEM_FREERTOS,(char*)nameFREERTOS);
@@ -598,7 +598,7 @@ void vWeb0(void *)
 		if (active) active=MC.clMQTT.dnsUpdate();                          // Обновить адреса через dns если надо MQTT
 #endif
 		if(thisTime > xTaskGetTickCount()) thisTime = 0;                         // переполнение счетчика тиков
-		if(xTaskGetTickCount() - thisTime > 10 * 1000)                             // Делим частоту - период 10 сек
+		if(xTaskGetTickCount() - thisTime > (uint32_t) 10 * 1000)                // Делим частоту - период 10 сек
 		{
 			thisTime = xTaskGetTickCount();                                      // Запомнить тики
 			// 1. Проверка захваченого семафора сети ожидаем  3 времен W5200_TIME_WAIT если мютекса не получаем то сбрасывае мютекс
@@ -758,7 +758,7 @@ void vReadSensor(void *)
 		uint32_t passed = MC.sFrequency[FLOW].Passed;
 		MC.sFrequency[FLOW].Passed = 0;
 		xTaskResumeAll(); // Разрешение других задач
-		if(MC.sInput[REG_ACTIVE].get_Input() || MC.sInput[BACKWASH_ACTIVE].get_Input() || MC.sInput[REG_SOFTENING_ACTIVE].get_Input()) {
+		if(MC.sInput[REG_ACTIVE].get_Input() || MC.sInput[REG_BACKWASH_ACTIVE].get_Input() || MC.sInput[REG2_ACTIVE].get_Input()) {
 			MC.RTC_store.UsedRegen += passed;
 			Stats_WaterRegen_work += passed;
 			History_WaterRegen_work += passed;
@@ -767,11 +767,6 @@ void vReadSensor(void *)
 			MC.RTC_store.UsedToday += passed;
 			History_WaterUsed_work += passed;
 			NeedSaveRTC |= (1<<bRTC_UsedToday);
-			passed = MC.WorkStats.UsedSinceLastRegen + MC.RTC_store.UsedToday;
-			if((MC.RTC_store.Work & RTC_Work_NeedRegen_Mask) == 0) {
-				if(MC.Option.UsedBeforeRegen && passed >= MC.Option.UsedBeforeRegen) MC.RTC_store.Work |= RTC_Work_NeedRegen_WaitIron;
-				if(MC.Option.UsedBeforeRegenSofener && passed >= MC.Option.UsedBeforeRegenSofener) MC.RTC_store.Work |= RTC_Work_NeedRegen_Softener;
-			}
 		}
 		//
 		Weight_NeedRead = true;
@@ -910,8 +905,7 @@ void vReadSensor_delay8ms(int16_t ms8)
 // Задача Управления насосами (MC.xHandlePumps) "Pumps"
 void vPumps( void * )
 {
-	static uint32_t ADC_read_period = 0;
-	vTaskDelay(1000 / ADC_FREQ + TIME_SLICE_PUMPS); // ms
+	while(!ADC_has_been_read) vTaskDelay(1000 / ADC_FREQ + TIME_SLICE_PUMPS); // ms
 	for(;;)
 	{
 		WDT_Restart(WDT); // Reset Watchdog here, most important task.
@@ -925,15 +919,15 @@ void vPumps( void * )
 		// Read sensors
 		for(uint8_t i = 0; i < INUMBER; i++) MC.sInput[i].Read(true);		// Прочитать данные сухой контакт
 		TankEmpty = MC.sInput[TANK_EMPTY].get_Input();
-		if(++ADC_read_period > 1000 / ADC_FREQ / TIME_SLICE_PUMPS) {		// Не чаще, чем ADC
-			ADC_read_period = 0;
+		if(ADC_has_been_read) {		// Не чаще, чем ADC
+			ADC_has_been_read = false;
 			for(uint8_t i = 0; i < ANUMBER; i++) MC.sADC[i].Read();			// Прочитать данные с датчиков давления
-			if(MC.sADC[LTANK].get_Press() < MC.Option.LTANK_Empty) TankEmpty = true;
+			if(MC.sADC[LTANK].get_Value() < MC.Option.LTANK_Empty) TankEmpty = true;
 		}
 		if(TankEmpty) vPumpsNewError = ERR_TANK_EMPTY;
 
 		// Check Errors
-		int16_t press = MC.sADC[PWATER].get_Press();
+		int16_t press = MC.sADC[PWATER].get_Value();
 		if(press == ERROR_PRESS) {
 			if(WaterBoosterStatus) {
 				vPumpsNewError = ERR_PRESS;
@@ -948,9 +942,9 @@ void vPumps( void * )
 				WaterBoosterStatus = 0;
 			}
 		} else if(MC.sInput[FLOODING].get_Input()) {
-			if(FloodingTime == 0) FloodingTime = rtcSAM3X8.unixtime();
-			else if(rtcSAM3X8.unixtime() - FloodingTime > MC.Option.FloodingDebounceTime) {
-				FloodingTime = rtcSAM3X8.unixtime();
+			if(FloodingTime == 0) FloodingTime = millis();
+			else if(millis() - FloodingTime > (uint32_t) MC.Option.FloodingDebounceTime * 1000) {
+				FloodingTime = millis() | 1;
 				vPumpsNewError = ERR_FLOODING;
 				if(MC.dRelay[RFILL].get_Relay()) MC.dRelay[RFILL].set_OFF();
 				if(MC.dRelay[RDRAIN].get_Relay()) MC.dRelay[RDRAIN].set_OFF();
@@ -973,7 +967,7 @@ void vPumps( void * )
 		// Water Booster
 		if(!WaterBoosterStatus && !WaterBoosterError && !FloodingError && press != ERROR_PRESS && !TankEmpty
 				&& WaterBoosterTimeout >= MC.Option.MinWaterBoostOffTime
-				&& press <= (MC.sInput[REG_ACTIVE].get_Input() || MC.sInput[BACKWASH_ACTIVE].get_Input() || MC.sInput[REG_SOFTENING_ACTIVE].get_Input() ? MC.Option.PWATER_RegMin : MC.sADC[PWATER].get_minPress())) { // Starting
+				&& press <= (MC.sInput[REG_ACTIVE].get_Input() || MC.sInput[REG_BACKWASH_ACTIVE].get_Input() || MC.sInput[REG2_ACTIVE].get_Input() ? MC.Option.PWATER_RegMin : MC.sADC[PWATER].get_minValue())) { // Starting
 			MC.dRelay[RBOOSTER1].set_ON();
 			WaterBoosterTimeout = 0;
 			WaterBoosterStatus = 1;
@@ -989,7 +983,7 @@ void vPumps( void * )
 					goto xWaterBooster_OFF;
 				}
 			}
-			if(WaterBoosterTimeout >= MC.Option.MinWaterBoostOnTime && (press >= MC.sADC[PWATER].get_maxPress() || TankEmpty)) { // Stopping
+			if(WaterBoosterTimeout >= MC.Option.MinWaterBoostOnTime && (press >= MC.sADC[PWATER].get_maxValue() || TankEmpty)) { // Stopping
 xWaterBooster_OFF:
 				if(WaterBoosterStatus == 1) {
 					MC.dRelay[RBOOSTER1].set_OFF();
@@ -1035,13 +1029,13 @@ xWaterBooster_OFF:
 		if(MC.sInput[TANK_LOW].get_Input()) {
 			if(MC.dRelay[RFILL].get_Relay()) {
 #else
-		if(MC.sADC[LTANK].get_Press() <= MC.sADC[LTANK].get_minPress()) {
+		if(MC.sADC[LTANK].get_Value() <= MC.sADC[LTANK].get_minValue()) {
 			if(MC.dRelay[RFILL].get_Relay()) {
 				if(MC.Option.FillingTankTimeout) {
-					if(WaterBoosterStatus == 0 && TimerDrainingWater == 0 && !MC.sInput[REG_ACTIVE].get_Input() && !MC.sInput[BACKWASH_ACTIVE].get_Input()) { // No water consuming
-						if(millis() - FillingTankTimer >= MC.Option.FillingTankTimeout * 1000) {
-							if(FillingTankLastLevel + FILLING_TANK_STEP > MC.sADC[LTANK].get_Press()) vPumpsNewError = ERR_TANK_NO_FILLING;
-							FillingTankLastLevel = MC.sADC[LTANK].get_Press();
+					if(WaterBoosterStatus == 0 && TimerDrainingWater == 0 && !MC.sInput[REG_ACTIVE].get_Input() && !MC.sInput[REG_BACKWASH_ACTIVE].get_Input() && !MC.sInput[REG2_ACTIVE].get_Input()) { // No water consuming
+						if(millis() - FillingTankTimer >= (uint32_t) MC.Option.FillingTankTimeout * 1000) {
+							if(FillingTankLastLevel + FILLING_TANK_STEP > MC.sADC[LTANK].get_Value()) vPumpsNewError = ERR_TANK_NO_FILLING;
+							FillingTankLastLevel = MC.sADC[LTANK].get_Value();
 							FillingTankTimer = millis();
 						}
 					} else FillingTankTimer = millis();
@@ -1052,11 +1046,11 @@ xWaterBooster_OFF:
 				taskEXIT_CRITICAL();
 			} else if(!FloodingError) {
 				MC.dRelay[RFILL].set_ON();	// Start filling tank
-				FillingTankLastLevel = MC.sADC[LTANK].get_Press();
+				FillingTankLastLevel = MC.sADC[LTANK].get_Value();
 				FillingTankTimer = millis();
 			}
 #ifdef TANK_ANALOG_LEVEL
-		} else if(MC.sADC[LTANK].get_Press() >= MC.sADC[LTANK].get_maxPress()) {
+		} else if(MC.sADC[LTANK].get_Value() >= MC.sADC[LTANK].get_maxValue()) {
 #else
 		}
 		if(MC.sInput[TANK_FULL].get_Input()) {
@@ -1065,53 +1059,24 @@ xWaterBooster_OFF:
 		}
 
 		// Regenerating
-		if(MC.sInput[REG_ACTIVE].get_Input() || MC.sInput[BACKWASH_ACTIVE].get_Input()) { // Regen remove iron filter
-			MC.dRelay[RSTARTREG].set_OFF();
-			if((MC.RTC_store.Work & RTC_Work_NeedRegen_Mask) != RTC_Work_NeedRegen_Iron) {
-				MC.RTC_store.Work = (MC.RTC_store.Work & ~RTC_Work_NeedRegen_Mask) | RTC_Work_NeedRegen_Iron;
+		if(MC.sInput[REG_ACTIVE].get_Input() || MC.sInput[REG_BACKWASH_ACTIVE].get_Input()) { // Regen Iron removing filter
+			if(MC.dRelay[RSTARTREG].get_Relay()) MC.dRelay[RSTARTREG].set_OFF();
+			if(!(MC.RTC_store.Work & RTC_Work_Regen_F1)) {
+				MC.RTC_store.Work |= RTC_Work_Regen_F1;
 				MC.RTC_store.UsedRegen = 0;
 				NeedSaveRTC |= (1<<bRTC_UsedRegen) | (1<<bRTC_Work) | 0x80;
-				journal.printf("Regen Fe start...\n");
 			}
-		} else if(MC.sInput[REG_SOFTENING_ACTIVE].get_Input()) {
-			if((MC.RTC_store.Work & RTC_Work_NeedRegen_Mask) != RTC_Work_NeedRegen_Softener) {
-				MC.RTC_store.Work = (MC.RTC_store.Work & ~RTC_Work_NeedRegen_Mask) | RTC_Work_NeedRegen_Softener;
+		} else if(MC.sInput[REG2_ACTIVE].get_Input()) {	// Regen Softening filter
+			if(MC.dRelay[RSTARTREG2].get_Relay()) MC.dRelay[RSTARTREG2].set_OFF();
+			if(!(MC.RTC_store.Work & RTC_Work_Regen_F2)) {
+				MC.RTC_store.Work |= RTC_Work_Regen_F2;
 				MC.RTC_store.UsedRegen = 0;
 				NeedSaveRTC |= (1<<bRTC_UsedRegen) | (1<<bRTC_Work) | 0x80;
-				journal.printf("Regen Softener start...\n");
-			}
-		} else {
-			switch (MC.RTC_store.Work & RTC_Work_NeedRegen_Mask) {
-			case RTC_Work_NeedRegen_Iron:
-				if(MC.WorkStats.UsedLastRegen < MC.Option.MinRegenLiters) {
-					vPumpsNewError = ERR_FEW_LITERS_REG;
-				}
-				MC.WorkStats.UsedLastRegen = MC.RTC_store.UsedRegen;
-				MC.WorkStats.DaysFromLastRegen = 0;
-				MC.WorkStats.RegCnt++;
-				MC.WorkStats.UsedSinceLastRegen = 0;
-				MC.RTC_store.Work &= ~RTC_Work_NeedRegen_Iron;
-				taskENTER_CRITICAL();
-				NeedSaveRTC |= (1<<bRTC_Work) | 0x80;
-				taskEXIT_CRITICAL();
-				NeedSaveWorkStats = 1;
-				journal.printf("Regen Fe finished.\n");
-				break;
-			case RTC_Work_NeedRegen_Softener:
-				MC.WorkStats.DaysFromLastRegenSoftening = 0;
-				MC.WorkStats.RegCntSoftening++;
-				MC.WorkStats.UsedSinceLastRegenSoftening = 0;
-				MC.RTC_store.Work &= ~RTC_Work_NeedRegen_Softener;
-				taskENTER_CRITICAL();
-				NeedSaveRTC |= (1<<bRTC_Work) | 0x80;
-				taskEXIT_CRITICAL();
-				NeedSaveWorkStats = 1;
-				journal.printf("Regen Softener finished.\n");
-				break;
 			}
 		}
+
 		// Drain OFF
-		if(TimerDrainingWater && GetTickCount() - TimerDrainingWater >= MC.Option.DrainTime * 1000) {
+		if(TimerDrainingWater && GetTickCount() - TimerDrainingWater >= (uint32_t) MC.Option.DrainTime * 1000) {
 			MC.dRelay[RDRAIN].set_OFF();
 			if(MC.RTC_store.UsedToday < MC.Option.MinDrainLiters) {
 				if(vPumpsNewError == OK) {
@@ -1177,9 +1142,9 @@ void vKeysLCD( void * )
 
 			lcd.setCursor(0, 1); vTaskDelay(1);
 			strcpy(buf = buffer, "P: "); buf += 3;
-			buf = dptoa(buf, MC.sADC[PWATER].get_Press(), 2);
+			buf = dptoa(buf, MC.sADC[PWATER].get_Value(), 2);
 			strcpy(buf, " Tank: "); buf += 7;
-			buf = dptoa(buf, MC.sADC[LTANK].get_Press() / 100, 0);
+			buf = dptoa(buf, MC.sADC[LTANK].get_Value() / 100, 0);
 			buffer_space_padding(buf, LCD_COLS - (buf - buffer));
 			lcd.print(buffer);
 
@@ -1270,17 +1235,29 @@ void vService(void *)
 						MC.dRelay[RDRAIN].set_ON();
 					}
 				}
-				if(!WaterBoosterError && !FloodingError && !TankEmpty
-						&& ((MC.RTC_store.Work & RTC_Work_NeedRegen_WaitIron) || (MC.Option.DaysBeforeRegen && MC.WorkStats.DaysFromLastRegen >= MC.Option.DaysBeforeRegen))
-						&& rtcSAM3X8.get_hours() == MC.Option.RegenHour) {
+
+				if(!WaterBoosterError && !FloodingError && !TankEmpty && !(MC.RTC_store.Work & RTC_Work_Regen_MASK) && rtcSAM3X8.get_hours() == MC.Option.RegenHour) {
+					uint32_t need_regen = 0;
+					if((MC.Option.DaysBeforeRegen && MC.WorkStats.DaysFromLastRegen >= MC.Option.DaysBeforeRegen) || (MC.Option.UsedBeforeRegen && MC.WorkStats.UsedSinceLastRegen + MC.RTC_store.UsedToday >= MC.Option.UsedBeforeRegen))
+						need_regen |= RTC_Work_Regen_F1;
+					else if(MC.Option.UsedBeforeRegenSofener && MC.WorkStats.UsedSinceLastRegenSoftening + MC.RTC_store.UsedToday >= MC.Option.UsedBeforeRegenSofener)
+						need_regen |= RTC_Work_Regen_F2;
+					if(need_regen) {
 #ifdef TANK_ANALOG_LEVEL
-					if(MC.sADC[LTANK].get_Press() >= MC.sADC[LTANK].get_maxPress()) {
+						if(MC.sADC[LTANK].get_Value() >= MC.sADC[LTANK].get_maxValue()) {
 #else
-					if(MC.sInput[TANK_FULL].get_Input()) {
+							if(MC.sInput[TANK_FULL].get_Input()) {
 #endif
-						MC.dRelay[RSTARTREG].set_ON();
-					} else {
-						MC.dRelay[RFILL].set_ON();	// Start filing tank
+							if((need_regen & RTC_Work_Regen_F1) && !MC.dRelay[RSTARTREG].get_Relay()) {
+								journal.jprintf(pP_DATE, "Regen F1 start\n");
+								MC.dRelay[RSTARTREG].set_ON();
+							} else if((need_regen & RTC_Work_Regen_F2) && !MC.dRelay[RSTARTREG2].get_Relay()) {
+								journal.jprintf(pP_DATE, "Regen F2 start\n");
+								MC.dRelay[RSTARTREG2].set_ON();
+							}
+						} else {
+							MC.dRelay[RFILL].set_ON();	// Start filing tank
+						}
 					}
 				}
 			} else {
@@ -1290,6 +1267,39 @@ void vService(void *)
 					task_every_min = m;
 					update_RTC_store_memory(NeedSaveRTC);
 
+				} else {
+					switch (MC.RTC_store.Work & RTC_Work_Regen_MASK) {	// Regen Iron removing filter
+					case RTC_Work_Regen_F1:
+						if(!MC.sInput[REG_ACTIVE].get_Input() && !MC.sInput[REG_BACKWASH_ACTIVE].get_Input()) {
+							MC.WorkStats.UsedLastRegen = MC.RTC_store.UsedRegen;
+							MC.WorkStats.DaysFromLastRegen = 0;
+							MC.WorkStats.RegCnt++;
+							MC.WorkStats.UsedSinceLastRegen = 0;
+							MC.RTC_store.Work &= ~RTC_Work_Regen_F1;
+							taskENTER_CRITICAL();
+							NeedSaveRTC |= (1<<bRTC_Work) | 0x80;
+							taskEXIT_CRITICAL();
+							NeedSaveWorkStats = 1;
+							journal.jprintf(pP_DATE, "Regen F1 finished.\n");
+							if(MC.WorkStats.UsedLastRegen < MC.Option.MinRegenLiters) {
+								set_Error(ERR_FEW_LITERS_REG, (char*)"vService");
+							}
+						}
+						break;
+					case RTC_Work_Regen_F2:
+						if(!MC.sInput[REG2_ACTIVE].get_Input()) {		// Regen Softening filter
+							MC.WorkStats.DaysFromLastRegenSoftening = 0;
+							MC.WorkStats.RegCntSoftening++;
+							MC.WorkStats.UsedSinceLastRegenSoftening = 0;
+							MC.RTC_store.Work &= ~RTC_Work_Regen_F2;
+							taskENTER_CRITICAL();
+							NeedSaveRTC |= (1<<bRTC_Work) | 0x80;
+							taskEXIT_CRITICAL();
+							NeedSaveWorkStats = 1;
+							journal.jprintf(pP_DATE, "Regen F2 finished.\n");
+						}
+						break;
+					}
 				}
 			}
 			Stats.CheckCreateNewFile();

@@ -163,7 +163,7 @@ function loadParam(paramid, noretry, resultdiv) {
 											loadParam("get_Message(SMS_NAMEP1),get_Message(SMS_NAMEP2),get_Message(SMS_IP)");
 										} else if(idsel == "get_message-sms_service") {
 											loadParam("get_Message(SMS_NAMEP1),get_Message(SMS_NAMEP2),get_Message(SMS_IP)");
-										} else if(idsel == "get_listpress") {
+										} else if(idsel == "get_listadc") {
 											content = "";
 											content2 = "";
 											upsens = "";
@@ -171,21 +171,21 @@ function loadParam(paramid, noretry, resultdiv) {
 											var count = values[1].split(';');
 											for(var j = 0; j < count.length - 1; j++) {
 												var P = count[j];
-												loadsens += "get_zeroPress(" +P+ "),get_transPress(" +P+ "),get_maxPress(" +P+ "),get_minPress(" +P+ "),get_minrPress(" +P+ "),get_pinPress(" +P+ "),get_nPress(" +P+ "),get_testPress(" +P+ "),";
-												upsens += "get_Press(" +P+ "),get_adcPress(" +P+ "),get_ePress(" +P+ "),";
+												loadsens += "get_zeroADC(" +P+ "),get_transADC(" +P+ "),get_maxADC(" +P+ "),get_minADC(" +P+ "),get_minrADC(" +P+ "),get_pinADC(" +P+ "),get_nADC(" +P+ "),get_testADC(" +P+ "),";
+												upsens += "get_ADC(" +P+ "),get_adcADC(" +P+ "),get_eADC(" +P+ "),";
 												P = P.toLowerCase();
-												content += '<tr id="get_ispress-' +P+ '">';
+												content += '<tr id="get_isadc-' +P+ '">';
 												content += '<td>' +count[j]+ '</td>';
-												content += '<td id="get_npress-' +P+ '"></td>';
-												content += '<td id="get_press-' +P+ '" nowrap>-</td>';
-												content += '<td nowrap><input id="get_minpress-' +P+ '" type="number" step="0.01"><input type="submit" value=">" onclick="setParam(\'get_minPress(' +count[j]+ ')\');"></td>';
-												content += '<td nowrap><input id="get_maxpress-' +P+ '" type="number" step="0.01"><input type="submit" value=">" onclick="setParam(\'get_maxPress(' +count[j]+ ')\');"></td>';
-												content += '<td nowrap><input id="get_zeropress-' +P+ '" type="number" step="1"><input type="submit" value=">" onclick="setParam(\'get_zeroPress(' +count[j]+ ')\');"></td>';
-												content += '<td nowrap><input id="get_transpress-' +P+ '" type="number" step="0.001"><input type="submit" value=">" onclick="setParam(\'get_transPress(' +count[j]+ ')\');"></td>';
-												content += '<td nowrap><input id="get_testpress-' +P+ '" type="number" step="0.01"><input type="submit" value=">" onclick="setParam(\'get_testPress(' +count[j]+ ')\');"></td>';
-												content += '<td id="get_pinpress-' +P+ '">-</td>';
-												content += '<td id="get_adcpress-' +P+ '">-</td>';
-												content += '<td id="get_epress-' +P+ '">-</td>';
+												content += '<td id="get_nadc-' +P+ '"></td>';
+												content += '<td id="get_adc-' +P+ '" nowrap>-</td>';
+												content += '<td nowrap><input id="get_minadc-' +P+ '" type="number" step="0.01"><input type="submit" value=">" onclick="setParam(\'get_minADC(' +count[j]+ ')\');"></td>';
+												content += '<td nowrap><input id="get_maxadc-' +P+ '" type="number" step="0.01"><input type="submit" value=">" onclick="setParam(\'get_maxADC(' +count[j]+ ')\');"></td>';
+												content += '<td nowrap><input id="get_zeroadc-' +P+ '" type="number" step="1"><input type="submit" value=">" onclick="setParam(\'get_zeroADC(' +count[j]+ ')\');"></td>';
+												content += '<td nowrap><input id="get_transadc-' +P+ '" type="number" step="0.001"><input type="submit" value=">" onclick="setParam(\'get_transADC(' +count[j]+ ')\');"></td>';
+												content += '<td nowrap><input id="get_testadc-' +P+ '" type="number" step="0.01"><input type="submit" value=">" onclick="setParam(\'get_testADC(' +count[j]+ ')\');"></td>';
+												content += '<td id="get_pinadc-' +P+ '">-</td>';
+												content += '<td id="get_adcadc-' +P+ '">-</td>';
+												content += '<td id="get_eadc-' +P+ '">-</td>';
 												content += '</tr>';
 											}
 											document.getElementById(idsel + "2").innerHTML = content;
@@ -457,7 +457,7 @@ function loadParam(paramid, noretry, resultdiv) {
 										else alert("Настройки сохранены, записано " + values[1] + " байт");
 									} else alert("Ошибка, код: " + values[1]);
 								} else if(values[0].substr(0, 6) == "RESET_" || values[0] == "set_updateNet") {
-									alert(values[1]);
+									if(values[1] != "") alert(values[1]);
 								} else {
 									if((element = document.getElementById(valueid))) {
 										element.value = values[1];
@@ -595,20 +595,20 @@ function calcacp() {
 function setKanalog() {
 	var k1 = document.getElementById("k1").innerHTML;
 	var k2 = document.getElementById("k2").innerHTML;
-	var sens = document.getElementById("get_listpress").selectedOptions[0].text;
+	var sens = document.getElementById("get_listadc").selectedOptions[0].text;
 	if(sens == "--") return;
-	var elem = document.getElementById("get_transpress-" + sens.toLowerCase());
+	var elem = document.getElementById("get_transadc-" + sens.toLowerCase());
 	if(elem) {
 		elem.value = k2;
 		elem.innerHTML = k2;
 	}
-	elem = document.getElementById("get_zeropress-" + sens.toLowerCase());
+	elem = document.getElementById("get_zeroadc-" + sens.toLowerCase());
 	if(elem) {
 		elem.value = k1;
 		elem.innerHTML = k1;
 	}
-	setParam('get_zeroPress(' + sens + ')');
-	setParam('get_transPress(' + sens + ')');
+	setParam('get_zeroADC(' + sens + ')');
+	setParam('get_transADC(' + sens + ')');
 }
 
 function updateParam(paramids) {

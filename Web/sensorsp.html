@@ -18,7 +18,7 @@ urltimeout = 2000;
 window.onload = function() {
 	loadParam("get_tblFlow");
 	loadParam("get_tblInput");
-	loadParam("get_listPress");
+	loadParam("get_listADC");
 	loadParam("get_PWM(NAME),get_PWM(NOTE),get_Wgt(P),get_Wgt(0)");
 	updateParam("get_PWM(V),get_PWM(P),get_PWM(ERR),get_Wgt(LvL),get_Wgt(W),get_Wgt(T),get_Wgt(N),get_Wgt(K),get_Wgt(A)");
 	updateParam("get_PWM(K)");
@@ -89,7 +89,7 @@ function loadParam_after(paramid) {
 		<th>АЦП</th>
 		<th>Код ошибки</th>
 	</tr></thead>
-	<tbody id="get_listpress2"></tbody>
+	<tbody id="get_listadc2"></tbody>
 	</table> 
 <h3 style="">Калькулятор коэффициентов аналоговых датчиков <input style="float:right" type="submit" value="Расчёт коэффициентов"  onclick="toggletable('pcalc');"></h3>
 	<table id="pcalc" style="display:none;">
@@ -108,7 +108,7 @@ function loadParam_after(paramid) {
 		<td><input id="p1" type="number" min="0" max="100" step="0.01" value="0"></td>
 		<td rowspan="2"><input type="submit" value="Рассчитать коэффициенты"  onclick="calcacp();"></td>
 		<td>"0" датчика: <span id="k1"></span></td>
-		<td rowspan="2"><select id="get_listpress" onChange="setKanalog();"><option value="-" class="">--</option></select></td>
+		<td rowspan="2"><select id="get_listadc" onChange="setKanalog();"><option value="-" class="">--</option></select></td>
 	</tr>
 	<tr>
 		<td>Точка 2</td>

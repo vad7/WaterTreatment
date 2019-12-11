@@ -63,7 +63,7 @@ void get_txtState(uint8_t thread, boolean header)
             strcat(Socket[thread].outBuf,MC.sADC[i].get_note());  strcat(Socket[thread].outBuf,": ");
             if (MC.sADC[i].get_present())
                 { 
-                  _ftoa(Socket[thread].outBuf,(float)MC.sADC[i].get_Press()/100.0f,2); if (MC.sADC[i].get_lastErr()!=OK ) { strcat(Socket[thread].outBuf," error:"); _itoa(MC.sADC[i].get_lastErr(),Socket[thread].outBuf); }
+                  _ftoa(Socket[thread].outBuf,(float)MC.sADC[i].get_Value()/100.0f,2); if (MC.sADC[i].get_lastErr()!=OK ) { strcat(Socket[thread].outBuf," error:"); _itoa(MC.sADC[i].get_lastErr(),Socket[thread].outBuf); }
                   STR_END; 
       
                 } 
@@ -254,12 +254,12 @@ void get_txtSettings(uint8_t thread)
             strcat(Socket[thread].outBuf,MC.sADC[i].get_note());  strcat(Socket[thread].outBuf,": ");
             if (MC.sADC[i].get_present())
                 { 
-                  strcat(Socket[thread].outBuf," P=");    _ftoa(Socket[thread].outBuf,(float)MC.sADC[i].get_Press()/100.0f,2);
-                  strcat(Socket[thread].outBuf," Pmin="); _ftoa(Socket[thread].outBuf,(float)MC.sADC[i].get_minPress()/100.0f,2);
-                  strcat(Socket[thread].outBuf," Pmax="); _ftoa(Socket[thread].outBuf,(float)MC.sADC[i].get_maxPress()/100.0f,2);
-                  strcat(Socket[thread].outBuf," Ptest=");_ftoa(Socket[thread].outBuf,(float)MC.sADC[i].get_testPress()/100.0f,2);
-                  strcat(Socket[thread].outBuf," Zero="); _itoa(MC.sADC[i].get_zeroPress(),Socket[thread].outBuf);
-                  strcat(Socket[thread].outBuf," Kof=");  _ftoa(Socket[thread].outBuf,(float)MC.sADC[i].get_transADC(),3);
+                  strcat(Socket[thread].outBuf," P=");    _dtoa(Socket[thread].outBuf, MC.sADC[i].get_Value(), 2);
+                  strcat(Socket[thread].outBuf," Pmin="); _dtoa(Socket[thread].outBuf, MC.sADC[i].get_minValue(), 2);
+                  strcat(Socket[thread].outBuf," Pmax="); _dtoa(Socket[thread].outBuf, MC.sADC[i].get_maxValue(), 2);
+                  strcat(Socket[thread].outBuf," Ptest=");_dtoa(Socket[thread].outBuf, MC.sADC[i].get_testValue(), 2);
+                  strcat(Socket[thread].outBuf," Zero="); _itoa(MC.sADC[i].get_zeroValue(),Socket[thread].outBuf);
+                  strcat(Socket[thread].outBuf," Kof=");  _dtoa(Socket[thread].outBuf, MC.sADC[i].get_transADC(),3);
                   strcat(Socket[thread].outBuf," Pin=AD");_itoa(MC.sADC[i].get_pinA(),Socket[thread].outBuf);
                   if (MC.sADC[i].get_lastErr()!=OK ) { strcat(Socket[thread].outBuf," error:"); _itoa(MC.sADC[i].get_lastErr(),Socket[thread].outBuf); }  STR_END;
                 } 
@@ -451,7 +451,7 @@ int16_t x;
       strcat(tempBuf,cStrEnd);  client.write(tempBuf,strlen(tempBuf));
       for(i=0;i<TNUMBER;i++)   // Информация по  датчикам температуры
          {
-            if (MC.sTemp[i].get_present())  // только присутсвующие датчики
+            if (MC.sTemp[i].get_present())  // только присутствующие датчики
             {
               strcpy(tempBuf,MC.sTemp[i].get_name()); if((x=8-strlen(MC.sTemp[i].get_name()))>0) { for(j=0;j<x;j++)  strcat(tempBuf," "); }
               strcat(tempBuf,"["); strcat(tempBuf,addressToHex(MC.sTemp[i].get_address())); strcat(tempBuf,"] ");
@@ -465,11 +465,11 @@ int16_t x;
       strcat(tempBuf,cStrEnd);  client.write(tempBuf,strlen(tempBuf));
       for(i=0;i<ANUMBER;i++)   // Информация по  аналоговым датчикам
          {   
-           if (MC.sADC[i].get_present()) // только присутсвующие датчики
+           if (MC.sADC[i].get_present()) // только присутствующие датчики
             {          
             strcpy(tempBuf,MC.sADC[i].get_name()); if((x=8-strlen(MC.sADC[i].get_name()))>0) { for(j=0;j<x;j++)  strcat(tempBuf," "); }
             strcat(tempBuf,MC.sADC[i].get_note());  strcat(tempBuf,": ");
-            _ftoa(tempBuf,(float)MC.sADC[i].get_Press()/100.0f,2);
+            _dtoa(tempBuf, MC.sADC[i].get_Value(), 2);
             if (MC.sADC[i].get_lastErr()!=OK ) { strcat(tempBuf," error:"); _itoa(MC.sADC[i].get_lastErr(),tempBuf); }
             strcat(tempBuf,cStrEnd);  client.write(tempBuf,strlen(tempBuf));
             }
@@ -479,7 +479,7 @@ int16_t x;
        strcat(tempBuf,cStrEnd);  client.write(tempBuf,strlen(tempBuf));
        for(i=0;i<INUMBER;i++)  
            {
-           if (MC.sInput[i].get_present()) // только присутсвующие датчики
+           if (MC.sInput[i].get_present()) // только присутствующие датчики
               { 
               strcpy(tempBuf,MC.sInput[i].get_name()); if((x=8-strlen(MC.sInput[i].get_name()))>0) { for(j=0;j<x;j++)  strcat(tempBuf," "); }
               strcat(tempBuf,MC.sInput[i].get_note());  strcat(tempBuf,": ");
@@ -493,7 +493,7 @@ int16_t x;
        strcat(tempBuf,cStrEnd);  client.write(tempBuf,strlen(tempBuf)); 
        for(i=0;i<RNUMBER;i++)  
            {
-            if (MC.dRelay[i].get_present()) // только присутсвующие датчики
+            if (MC.dRelay[i].get_present()) // только присутствующие датчики
               {
               strcpy(tempBuf,MC.dRelay[i].get_name()); if((x=8-strlen(MC.dRelay[i].get_name()))>0) { for(j=0;j<x;j++)  strcat(tempBuf," "); }
               strcat(tempBuf,MC.dRelay[i].get_note());  strcat(tempBuf,": ");

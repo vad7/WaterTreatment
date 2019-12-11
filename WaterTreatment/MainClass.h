@@ -44,10 +44,9 @@ struct type_WorkStats {
 
 
 #define RTC_Work_WeekDay_Mask		0x07	// Active weekday (1-7)
-#define RTC_Work_NeedRegen_Mask		0x70	// 0 - not, 1 - wait a regen iron hour, 2 - regen iron in process, 3 - regen softener in process
-#define RTC_Work_NeedRegen_WaitIron	0x10
-#define RTC_Work_NeedRegen_Iron		0x20
-#define RTC_Work_NeedRegen_Softener	0x40
+#define RTC_Work_Regen_MASK			0x30	// 0 - not, bit - wait a regen hour
+#define RTC_Work_Regen_F1			0x10	// Iron remover
+#define RTC_Work_Regen_F2			0x20	// Softener
 
 struct type_RTC_memory { // DS3231/DS3232 used alarm memory, starts from 0x07, max size 7 bytes
 	volatile uint16_t UsedToday;	// 0. used daily until switch to new day, liters
@@ -55,7 +54,7 @@ struct type_RTC_memory { // DS3231/DS3232 used alarm memory, starts from 0x07, m
 	volatile uint8_t  Work;			// 2. NeedRegen + WeekDay
 } __attribute__((packed));
 
-
+bool	 ADC_has_been_read = false;
 int		 WaterBoosterStatus = 0; // 0 - выключено, 1 - вкл твердотельное, 2 - вкл обычное, 3 - выкл твердотельное, -1 - выкл твердотельное, -2 - выкл обычное, -3 - нужно выключить (вкл твердотельное)
 bool	 WaterBoosterError = false;
 uint32_t WaterBoosterTimeout = 0;

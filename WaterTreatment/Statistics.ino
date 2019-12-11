@@ -357,7 +357,7 @@ void Statistics::Update()
 			newval = MC.sTemp[STATS_ID_Temp].get_Temp();
 			break;
 		case STATS_OBJ_Press:
-			newval = MC.sADC[STATS_ID_Press].get_Press();
+			newval = MC.sADC[STATS_ID_Press].get_Value();
 			break;
 		case STATS_OBJ_Flow:
 			newval = MC.sFrequency[STATS_ID_Flow].get_Value();
@@ -432,7 +432,7 @@ void Statistics::History()
 			int_to_dec_str(MC.sTemp[HistorySetup[i].number].get_Temp(), 10, &buf, 0); // T
 			break;
 		case STATS_OBJ_Press:		// bar
-			int_to_dec_str(MC.sADC[HistorySetup[i].number].get_Press(), 10, &buf, 0); // P
+			int_to_dec_str(MC.sADC[HistorySetup[i].number].get_Value(), 10, &buf, 0); // P
 			break;
 		case STATS_OBJ_Flow:		// m3h
 			int_to_dec_str(MC.sFrequency[HistorySetup[i].number].get_Value(), 100, &buf, 0); // F
@@ -469,7 +469,7 @@ void Statistics::History()
 				break;
 			}
 		case STATS_OBJ_Level: {
-				int_to_dec_str(MC.sADC[HistorySetup[i].number].get_Press(), 100, &buf, 0); // %
+				int_to_dec_str(MC.sADC[HistorySetup[i].number].get_Value(), 100, &buf, 0); // %
 				break;
 			}
 		}

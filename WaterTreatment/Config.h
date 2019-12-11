@@ -207,14 +207,14 @@ struct History_setup {
 	#define INUMBER             5   	// Число контактных датчиков цифровые входы
 #endif
     // Имена индексов
-	#define REG_ACTIVE          0        // Активна регенерация (INP2)
-	#define BACKWASH_ACTIVE     1        // Активна обратная промывка (INP3)
-	#define REG_SOFTENING_ACTIVE 2       // Активная регенерация умягчителя (INP4)
+	#define REG_ACTIVE			0        // Активна регенерация (INP2)
+	#define REG_BACKWASH_ACTIVE 1        // Активна обратная промывка (INP3)
+	#define REG2_ACTIVE			2        // Активна регенерация умягчителя (INP4)
 	#define FLOODING			3        // Протечка (INP5)
-	#define TANK_EMPTY          4        // Емкость пуста (INP6)
+	#define TANK_EMPTY			4        // Емкость пуста (INP6)
 #ifndef TANK_ANALOG_LEVEL
-    #define TANK_LOW            5        // Нужен долив бака 500л (DAC0 [D66])
-	#define TANK_FULL           6        // Емкость полна (REL8 [D5])
+    #define TANK_LOW			5        // Нужен долив бака 500л (DAC0 [D66])
+	#define TANK_FULL			6        // Емкость полна (REL8 [D5])
 #endif
 
 	// Массив ног
@@ -237,8 +237,8 @@ struct History_setup {
                                      };
       // Имена датчиков
     const char *nameInput[INUMBER] = {	"REG",
-										"BWASH",
-										"REGT2",
+										"REGBW",
+										"REG2",
 										"FLOODING",
 										"EMPTY"
 #ifndef TANK_ANALOG_LEVEL
@@ -251,12 +251,12 @@ struct History_setup {
     const bool TESTINPUT[INUMBER]        = { 0, 0, 0, 0, 0, 0, 0 };    // Значения датчиков при тестировании  опция TEST
     const bool LEVELINPUT[INUMBER]       = { 0, 0, 0, 1, 0, 0, 0 };    // Значение датчика, когда сработал
     const bool PULLUPINPUT[INUMBER]      = { 0, 0, 0, 0, 0, 1, 1 };    // если 1 - то на порту выставляется подтяжка к VCC.
-    const int8_t SENSOR_ERROR[INUMBER]   = { 0, 0, 0, ERR_TANK_EMPTY, 0, 0, 0 };  // При срабатывании генерить ошибку с заданным кодом, если не 0
+    const int8_t SENSOR_ERROR[INUMBER]   = { 0, 0, 0, 0, ERR_TANK_EMPTY, 0, 0 };  // При срабатывании генерить ошибку с заданным кодом, если не 0
 #else
       const bool TESTINPUT[INUMBER]        = { 0, 0, 0, 0, 0 };    // Значения датчиков при тестировании  опция TEST
-      const bool LEVELINPUT[INUMBER]       = { 0, 0, 0, 1, 0  };    // Значение датчика, когда сработал
+      const bool LEVELINPUT[INUMBER]       = { 0, 0, 0, 1, 0 };    // Значение датчика, когда сработал
       const bool PULLUPINPUT[INUMBER]      = { 0, 0, 0, 0, 0 };    // если 1 - то на порту выставляется подтяжка к VCC.
-      const int8_t SENSOR_ERROR[INUMBER]   = { 0, 0, 0, ERR_TANK_EMPTY, 0 };  // При срабатывании генерить ошибку с заданным кодом, если не 0
+      const int8_t SENSOR_ERROR[INUMBER]   = { 0, 0, 0, 0, ERR_TANK_EMPTY };  // При срабатывании генерить ошибку с заданным кодом, если не 0
 #endif
     // ---------------------------------------------------------------------------------------------------------------------------------------
     // Частотные датчики ------------------------------------------------------------------
@@ -277,7 +277,7 @@ struct History_setup {
     const uint16_t TESTFLOW[FNUMBER] = { 0 };		// Значения датчиков при тестировании  опция TEST
 
    // Исполнительные устройства (реле и сухие контакты) ------------------------------------------------------------------
-    #define RNUMBER                    7        // Число исполнительных устройств (всех)
+    #define RNUMBER                    8        // Число исполнительных устройств (всех)
 	#define RELAY_INVERT			   // Реле выходов: включение высоким уровнем (High Level trigger)
 
     // Имена индексов
@@ -288,8 +288,9 @@ struct History_setup {
 	#define RWATEROFF				3	// Реле перекрывающего крана после фильтра
 	#define RDRAIN					4	// Реле слива
 	#define RFILL					5	// Реле заполнения бака
-    // устройства DC 24V
-	#define RSTARTREG				6	// Реле старта регенерации фильтра
+    // устройства DC 5..24V
+	#define RSTARTREG				6	// Реле старта регенерации обезжелезивателя
+	#define RSTARTREG2				7	// Реле старта регенерации умягчителя
 
 	//#define RELAY_WAIT_SWITCH		10	// Заморозить выполнение задач на это время после переключения реле, ms
 
@@ -305,7 +306,8 @@ struct History_setup {
 											45,	// REL3
 											44,	// REL4
 											92, // REL5 // PC20 (Arduino DUE Core only!)
-											9	// REL6
+											9,	// REL6, DC_OUT7(L)
+											8	// REL7, DC_OUT8(L)
                                        };
 	// Описание реле
 	const char *noteRelay[RNUMBER] = {	"Реле насосной станции",
@@ -314,7 +316,8 @@ struct History_setup {
 										"Реле отключения воды",
 										"Реле слива",
 										"Реле заполнения бака",
-										"Реле старта регенерации"
+										"Реле старта рег. железа",
+										"Реле старта рег. умягчителя",
                                    };
 	//  Имя реле
 	const char *nameRelay[RNUMBER] = {	"RBST1",
@@ -323,7 +326,8 @@ struct History_setup {
 										"RWOFF",
 										"RDRAIN",
 										"RFILL",
-										"RSTREG"
+										"RSTREG",
+										"RSTREG2",
                                      };
 
 	// ДАТЧИКИ ТЕМПЕРАТУРЫ. СОТЫЕ ГРАДУСА ------------------------------------------------------------------------
@@ -404,7 +408,7 @@ struct History_setup {
 	#define P_NUMSAMLES			1		// Число значений для усреднения показаний давления
 	#define ADC_FREQ			10	// период опроса аналоговых датчиков в секунду
 	#define FILTER_SIZE			3		// Длина фильтра для датчиков давления
-	//#define FILTER_SIZE_OTHER	4			// Длина фильтра для остальных датчиков
+	//#define FILTER_SIZE_OTHER	4		// Длина фильтра для остальных датчиков
 	#define FILLING_TANK_STEP	300		// сотые %, На сколько должен заполняться бак за время Option.FillingTankTimeout
 
 	#define DELAY_AFTER_SWITCH_RELAY    250            // Задержка после переключения реле, для сглаживания потребления и уменьшения помех(мс)
