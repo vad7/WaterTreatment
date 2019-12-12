@@ -12,8 +12,8 @@
 <script>
 	urltimeout = 2000;
 	window.onload = function() {
-		loadParam("get_WSUY,get_WSA,get_WSDD,get_WSD,get_WSRC,get_WSRD,get_WSRL,get_WSRSC,get_WSRSD,get_WSRSL");
-		updateParam("get_MODED,get_PWR,get_Relay(RWOFF),get_Relay(RDRAIN),get_Relay(RBST2),get_Relay(RFILL),get_Relay(RFEEDP),get_ADCLvL(LTANK),get_Wgt(LvL),get_Input(REG),get_Input(REGBW),get_Temp(AIR),get_Flow(FLOW),get_ADC(PWATER),get_WSRS,get_WSRSS,get_WSUD,get_WST,get_Err(B)");
+		loadParam("get_WSUY,get_WSA,get_WSDD,get_WSD,get_WSRC,get_WSRD,get_WSRSC,get_WSRSD");
+		updateParam("get_Relay(RWOFF),get_WDIS,get_Relay(RDRAIN),get_Relay(RBST2),get_Relay(RFILL),get_Relay(RFEEDP),get_ADCLvL(LTANK),get_Wgt(LvL),get_Input(REG),get_Input(REGBW),get_Input(REG2),get_Err(B),get_Flow(FLOW),get_ADC(PWATER),get_MODED,get_PWR,get_Temp(AIR),get_WSRS,get_WSRSS,get_WSUD,get_WST,get_WSRL,get_WSRSL");
 		updateParam("get_tblErr");
 	};
 </script>	
@@ -24,7 +24,7 @@
 <h1>Водоподготовка</h1>
 <div class="visualization">
 	<div id="get_relay-rwoff" style="display:none"></div>
-	<div id="get_relay-rwoff3" style="display:none"></div>
+	<div id="get_wdis" style="display:none"></div>
 	<div id="get_relay-rdrain" style="display:none"></div>
 	<div id="get_relay-rbst2" style="display:none"></div>
 	<div id="get_relay-rfill" style="display:none"></div>
@@ -44,9 +44,9 @@
 	<tr><td style="font-weight:normal;" nowrap>Сегодня, л:</td><td id="get_wsud"></td><td style="font-weight: normal;">Вчера, л:</td><td id="get_wsuy"></td><td style="font-weight: normal;">Среднее за день, л:</td><td id="get_wsa"></td></tr>
 	<tr><td style="font-weight:normal;" nowrap>Слито <span id="get_wsdd"></span>, л:</td><td id="get_wsd"></td><td style="font-weight: normal;">Итого, м³:</td><td id="get_wst"></td><td style="font-weight: normal;"></td><td></td></tr>
 	<tr><td style="font-weight:bold;" nowrap>Обезжелезивание, рег:</td><td id="get_wsrc"></td><td></td><td></td><td></td><td></td></tr>
-	<tr><td style="font-weight:normal;" nowrap>C регенерации, дней:</td><td id="get_wsrd"></td><td style="font-weight: normal;">C регенерации, л:</td><td id="get_wsrs"></td><td style="font-weight: normal;">За регенерацию, л:</td><td id="get_wsrl"></td></tr>
+	<tr><td style="font-weight:normal;" nowrap>C регенерации, дней:</td><td id="get_wsrd"></td><td style="font-weight: normal;">C регенерации, л:</td><td id="get_wsrs"></td><td style="font-weight: normal;" nowrap>За регенерацию, л:</td><td id="get_wsrl"></td></tr>
 	<tr><td style="font-weight:bold;" nowrap>Умягчитель, рег:</td><td id="get_wsrsc"></td><td></td><td></td><td></td><td></td></tr>
-	<tr><td style="font-weight:normal;" nowrap>C регенерации, дней:</td><td id="get_wsrsd"></td><td style="font-weight: normal;">C регенерации, л:</td><td id="get_wsrss"></td><td style="font-weight: normal;">За регенерацию, л:</td><td id="get_wsrsl"></td></tr>
+	<tr><td style="font-weight:normal;" nowrap>C регенерации, дней:</td><td id="get_wsrsd"></td><td style="font-weight: normal;">C регенерации, л:</td><td id="get_wsrss"></td><td style="font-weight: normal;" nowrap>За регенерацию, л:</td><td id="get_wsrsl"></td></tr>
 	<tr><td style="font-weight:normal;"></td><td></td><td style="font-weight: normal;"></td><td></td><td style="font-weight: normal;"></td><td></td></tr>
 </table>
 </div>

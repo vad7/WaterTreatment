@@ -413,9 +413,13 @@ void setup() {
 			journal.jprintf(" RTC low battery!\n");
 			set_Error(ERR_RTC_LOW_BATTERY, (char*)"");
 			rtcI2C.writeRTC(RTC_STATUS, 0);  //clear the Oscillator Stop Flag
-			update_RTC_store_memory(NeedSaveRTC = RTC_SaveAll);
+			NeedSaveRTC = RTC_SaveAll;
+			update_RTC_store_memory();
 		} else {
-			if(rtcI2C.readRTC(RTC_STORE_ADDR, (uint8_t*)&MC.RTC_store, sizeof(MC.RTC_store))) journal.jprintf(" Error read RTC store!\n");
+			if(rtcI2C.readRTC(RTC_STORE_ADDR, (uint8_t*)&MC.RTC_store, sizeof(MC.RTC_store))) {
+				memset(&MC.RTC_store, 0, sizeof(MC.RTC_store));
+				journal.jprintf(" Error read RTC store!\n");
+			} else journal.printf(" RTC MEM: %02X, D: %d, R: %d\n", MC.RTC_store.Work, MC.RTC_store.UsedToday, MC.RTC_store.UsedRegen);
 		}
 	} else journal.jprintf(" Error read RTC!\n");
 	set_time();
@@ -456,8 +460,8 @@ void setup() {
 	//MC.mRTOS=MC.mRTOS+4*configTIMER_TASK_STACK_DEPTH;  // программные таймера (их теперь нет)
 
 	// ПРИОРИТЕТ 4 Высший приоритет
-	if(xTaskCreate(vPumps, "Pumps", 160, NULL, 4, &MC.xHandlePumps) == errCOULD_NOT_ALLOCATE_REQUIRED_MEMORY) set_Error(ERR_MEM_FREERTOS,(char*)nameFREERTOS);
-	MC.mRTOS=MC.mRTOS+64+4* 160;
+	if(xTaskCreate(vPumps, "Pumps", 100, NULL, 4, &MC.xHandlePumps) == errCOULD_NOT_ALLOCATE_REQUIRED_MEMORY) set_Error(ERR_MEM_FREERTOS,(char*)nameFREERTOS);
+	MC.mRTOS=MC.mRTOS+64+4* 100;
 	//vTaskSuspend(MC.xHandleFeedPump);      // Остановить задачу
 
 	// ПРИОРИТЕТ 3 Очень высокий приоритет
@@ -467,8 +471,8 @@ void setup() {
 	// ПРИОРИТЕТ 2 средний
 	if(xTaskCreate(vKeysLCD, "KeysLCD", 70, NULL, 4, &MC.xHandleKeysLCD) == errCOULD_NOT_ALLOCATE_REQUIRED_MEMORY) set_Error(ERR_MEM_FREERTOS,(char*)nameFREERTOS);
 	MC.mRTOS=MC.mRTOS+64+4* 70;
-	if(xTaskCreate(vService, "Service", 150, NULL, 2, &MC.xHandleService) == errCOULD_NOT_ALLOCATE_REQUIRED_MEMORY) set_Error(ERR_MEM_FREERTOS,(char*)nameFREERTOS);
-	MC.mRTOS=MC.mRTOS+64+4* 150;
+	if(xTaskCreate(vService, "Service", 170, NULL, 2, &MC.xHandleService) == errCOULD_NOT_ALLOCATE_REQUIRED_MEMORY) set_Error(ERR_MEM_FREERTOS,(char*)nameFREERTOS);
+	MC.mRTOS=MC.mRTOS+64+4* 170;
 
 	// ПРИОРИТЕТ 1 низкий - обслуживание вебморды в несколько потоков
 	// ВНИМАНИЕ первый поток должен иметь больший стек для обработки фоновых сетевых задач
@@ -714,6 +718,95 @@ void vWeb2(void *)
 }
 
 //////////////////////////////////////////////////////////////////////////
+// Задача Пользовательский интерфейс (MC.xHandleKeysLCD) "KeysLCD"
+void vKeysLCD( void * )
+{
+
+	lcd.begin(LCD_COLS, LCD_ROWS); // Setup: cols, rows
+	LCD_print((char*)"WaterTreatment v");
+	LCD_print((char*)VERSION);
+	lcd.setCursor(0, 1);
+	_delay(1);
+	LCD_print((char*)"Vadim Kulakov(c)2019");
+	lcd.setCursor(0, 2);
+	_delay(1);
+	LCD_print((char*)"vad7@yahoo.com");
+	pinMode(PIN_KEY_UP, INPUT_PULLUP);
+	pinMode(PIN_KEY_DOWN, INPUT_PULLUP);
+	pinMode(PIN_KEY_OK, INPUT_PULLUP);
+	static uint32_t DisplayTick = xTaskGetTickCount();
+	static char buffer[LCD_COLS + 1];
+	//static uint32_t displayed_area = 0; // b1 - Yd,Days Fe,Soft
+	for(;;)
+	{
+		if(!digitalReadDirect(PIN_KEY_OK)) {
+			journal.printf("[OK]\n");
+		} else if(!digitalReadDirect(PIN_KEY_UP)) {
+			journal.printf("[UP]\n");
+		} else if(!digitalReadDirect(PIN_KEY_DOWN)) {
+			journal.printf("[DWN]\n");
+		}
+		if(xTaskGetTickCount() - DisplayTick > DISPLAY_UPDATE) { // Update display
+			// Display:
+			// 12345678901234567890
+			// F: 0.000 m3h > 0.000
+			// P: 0.00 Tank: 100 %
+			// Days Fe:123 Soft:123
+			// Day: 0.000 Yd: 0.000
+			char *buf = buffer;
+			lcd.setCursor(0, 0); vTaskDelay(1);
+			int32_t tmp = MC.sFrequency[FLOW].get_Value();
+			strcpy(buf, "F:"); buf += 2;
+			if(tmp < 10000) *buf++ = ' ';
+			buf = dptoa(buf, tmp, 3);
+			strcpy(buf, " m3h \x7E"); buf += 6;
+			tmp = MC.WorkStats.UsedSinceLastRegen + MC.RTC_store.UsedToday;
+			if(tmp < 10000) *buf++ = ' ';
+			buf = dptoa(buf, tmp, 3);
+			buffer_space_padding(buf, LCD_COLS - (buf - buffer));
+			LCD_print(buffer);
+
+			lcd.setCursor(0, 1); vTaskDelay(1);
+			strcpy(buf = buffer, "P: "); buf += 3;
+			buf = dptoa(buf, MC.sADC[PWATER].get_Value(), 2);
+			strcpy(buf, " Tank: "); buf += 7;
+			buf = dptoa(buf, MC.sADC[LTANK].get_Value() / 100, 0);
+			buffer_space_padding(buf, LCD_COLS - (buf - buffer));
+			lcd.print(buffer);
+
+			lcd.setCursor(0, 2); vTaskDelay(1);
+			strcpy(buf = buffer, "Days,Fe:"); buf += 8;
+			tmp = MC.WorkStats.DaysFromLastRegen;
+			if(tmp < 100) *buf++ = ' ';
+			buf = dptoa(buf, tmp, 0);
+			strcpy(buf = buffer, " Soft:"); buf += 6;
+			tmp = MC.WorkStats.DaysFromLastRegenSoftening;
+			if(tmp < 100) *buf++ = ' ';
+			buf = dptoa(buf, tmp, 0);
+			buffer_space_padding(buf, LCD_COLS - (buf - buffer));
+			LCD_print(buffer);
+
+			lcd.setCursor(0, 3); vTaskDelay(1);
+			strcpy(buf = buffer, "Day:"); buf += 4;
+			tmp = MC.RTC_store.UsedToday;
+			if(tmp < 10000) *buf++ = ' ';
+			buf = dptoa(buf, tmp, 3);
+			strcpy(buf = buffer, " Yd:"); buf += 4;
+			tmp = MC.WorkStats.UsedYesterday;
+			if(tmp < 10000) *buf++ = ' ';
+			buf = dptoa(buf, tmp, 3);
+			buffer_space_padding(buf, LCD_COLS - (buf - buffer));
+			lcd.print(buffer);
+
+			DisplayTick = xTaskGetTickCount();
+		}
+		vTaskDelay(10);
+	}
+
+	vTaskDelete( NULL );
+}
+
+//////////////////////////////////////////////////////////////////////////
 // Задача чтения датчиков
 void vReadSensor(void *)
 { //const char *pcTaskName = "ReadSensor\r\n";
@@ -753,11 +846,11 @@ void vReadSensor(void *)
 		for(i = 0; i < FNUMBER; i++) MC.sFrequency[i].Read();			// Получить значения датчиков потока
 
 		// Flow
-		TimeFeedPump +=	(uint32_t)MC.sFrequency[FLOW].get_Value() * TIME_READ_SENSOR / MC.Option.FeedPumpMaxFlow;
-		TaskSuspendAll(); // Запрет других задач
+		if(!MC.sInput[REG_BACKWASH_ACTIVE].get_Input()) {
+			TimeFeedPump +=	(uint32_t)MC.sFrequency[FLOW].get_Value() * TIME_READ_SENSOR / MC.Option.FeedPumpMaxFlow;
+		}
 		uint32_t passed = MC.sFrequency[FLOW].Passed;
 		MC.sFrequency[FLOW].Passed = 0;
-		xTaskResumeAll(); // Разрешение других задач
 		if(MC.sInput[REG_ACTIVE].get_Input() || MC.sInput[REG_BACKWASH_ACTIVE].get_Input() || MC.sInput[REG2_ACTIVE].get_Input()) {
 			MC.RTC_store.UsedRegen += passed;
 			Stats_WaterRegen_work += passed;
@@ -1063,15 +1156,18 @@ xWaterBooster_OFF:
 			if(MC.dRelay[RSTARTREG].get_Relay()) MC.dRelay[RSTARTREG].set_OFF();
 			if(!(MC.RTC_store.Work & RTC_Work_Regen_F1)) {
 				MC.RTC_store.Work |= RTC_Work_Regen_F1;
+				MC.dRelay[RWATEROFF].set_ON();
+				NewRegenStatus = true;
 				MC.RTC_store.UsedRegen = 0;
-				NeedSaveRTC |= (1<<bRTC_UsedRegen) | (1<<bRTC_Work) | 0x80;
+				NeedSaveRTC = RTC_SaveAll;
 			}
 		} else if(MC.sInput[REG2_ACTIVE].get_Input()) {	// Regen Softening filter
 			if(MC.dRelay[RSTARTREG2].get_Relay()) MC.dRelay[RSTARTREG2].set_OFF();
 			if(!(MC.RTC_store.Work & RTC_Work_Regen_F2)) {
 				MC.RTC_store.Work |= RTC_Work_Regen_F2;
+				NewRegenStatus = true;
 				MC.RTC_store.UsedRegen = 0;
-				NeedSaveRTC |= (1<<bRTC_UsedRegen) | (1<<bRTC_Work) | 0x80;
+				NeedSaveRTC = RTC_SaveAll;
 			}
 		}
 
@@ -1088,95 +1184,6 @@ xWaterBooster_OFF:
 
 		vTaskDelay(TIME_SLICE_PUMPS); // ms
 	}
-	vTaskDelete( NULL );
-}
-
-//////////////////////////////////////////////////////////////////////////
-// Задача Пользовательский интерфейс (MC.xHandleKeysLCD) "KeysLCD"
-void vKeysLCD( void * )
-{
-
-	lcd.begin(LCD_COLS, LCD_ROWS); // Setup: cols, rows
-	LCD_print((char*)"WaterTreatment v");
-	LCD_print((char*)VERSION);
-	lcd.setCursor(0, 1);
-	_delay(1);
-	LCD_print((char*)"Vadim Kulakov(c)2019");
-	lcd.setCursor(0, 2);
-	_delay(1);
-	LCD_print((char*)"vad7@yahoo.com");
-	pinMode(PIN_KEY_UP, INPUT_PULLUP);
-	pinMode(PIN_KEY_DOWN, INPUT_PULLUP);
-	pinMode(PIN_KEY_OK, INPUT_PULLUP);
-	static uint32_t DisplayTick = xTaskGetTickCount();
-	static char buffer[LCD_COLS + 1];
-	//static uint32_t displayed_area = 0; // b1 - Yd,Days Fe,Soft
-	for(;;)
-	{
-		if(!digitalReadDirect(PIN_KEY_OK)) {
-			journal.printf("[OK]\n");
-		} else if(!digitalReadDirect(PIN_KEY_UP)) {
-			journal.printf("[UP]\n");
-		} else if(!digitalReadDirect(PIN_KEY_DOWN)) {
-			journal.printf("[DWN]\n");
-		}
-		if(xTaskGetTickCount() - DisplayTick > DISPLAY_UPDATE) { // Update display
-			// Display:
-			// 12345678901234567890
-			// F: 0.000 m3h > 0.000
-			// P: 0.00 Tank: 100 %
-			// Days Fe:123 Soft:123
-			// Day: 0.000 Yd: 0.000
-			char *buf = buffer;
-			lcd.setCursor(0, 0); vTaskDelay(1);
-			int32_t tmp = MC.sFrequency[FLOW].get_Value();
-			strcpy(buf, "F:"); buf += 2;
-			if(tmp < 10000) *buf++ = ' ';
-			buf = dptoa(buf, tmp, 3);
-			strcpy(buf, " m3h \x7E"); buf += 6;
-			tmp = MC.WorkStats.UsedSinceLastRegen + MC.RTC_store.UsedToday;
-			if(tmp < 10000) *buf++ = ' ';
-			buf = dptoa(buf, tmp, 3);
-			buffer_space_padding(buf, LCD_COLS - (buf - buffer));
-			LCD_print(buffer);
-
-			lcd.setCursor(0, 1); vTaskDelay(1);
-			strcpy(buf = buffer, "P: "); buf += 3;
-			buf = dptoa(buf, MC.sADC[PWATER].get_Value(), 2);
-			strcpy(buf, " Tank: "); buf += 7;
-			buf = dptoa(buf, MC.sADC[LTANK].get_Value() / 100, 0);
-			buffer_space_padding(buf, LCD_COLS - (buf - buffer));
-			lcd.print(buffer);
-
-			lcd.setCursor(0, 2); vTaskDelay(1);
-			strcpy(buf = buffer, "Days,Fe:"); buf += 8;
-			tmp = MC.WorkStats.DaysFromLastRegen;
-			if(tmp < 100) *buf++ = ' ';
-			buf = dptoa(buf, tmp, 0);
-			strcpy(buf = buffer, " Soft:"); buf += 6;
-			tmp = MC.WorkStats.DaysFromLastRegenSoftening;
-			if(tmp < 100) *buf++ = ' ';
-			buf = dptoa(buf, tmp, 0);
-			buffer_space_padding(buf, LCD_COLS - (buf - buffer));
-			LCD_print(buffer);
-
-			lcd.setCursor(0, 3); vTaskDelay(1);
-			strcpy(buf = buffer, "Day:"); buf += 4;
-			tmp = MC.RTC_store.UsedToday;
-			if(tmp < 10000) *buf++ = ' ';
-			buf = dptoa(buf, tmp, 3);
-			strcpy(buf = buffer, " Yd:"); buf += 4;
-			tmp = MC.WorkStats.UsedYesterday;
-			if(tmp < 10000) *buf++ = ' ';
-			buf = dptoa(buf, tmp, 3);
-			buffer_space_padding(buf, LCD_COLS - (buf - buffer));
-			lcd.print(buffer);
-
-			DisplayTick = xTaskGetTickCount();
-		}
-		vTaskDelay(10);
-	}
-
 	vTaskDelete( NULL );
 }
 
@@ -1208,11 +1215,11 @@ void vService(void *)
 				if(task_updstat_countm == 59) MC.save_WorkStats();		// сохранить раз в час
 				Stats.History();                                        // запись истории в файл
 
-				if((MC.RTC_store.Work & RTC_Work_WeekDay_Mask) != rtcSAM3X8.get_day_of_week()) { // Next day
+				if((MC.RTC_store.Work & RTC_Work_WeekDay_MASK) != rtcSAM3X8.get_day_of_week()) { // Next day
 					uint32_t ut;
 					{
 						vTaskSuspendAll(); // запрет других задач
-						MC.RTC_store.Work = (MC.RTC_store.Work & ~RTC_Work_WeekDay_Mask) | rtcSAM3X8.get_day_of_week();
+						MC.RTC_store.Work = (MC.RTC_store.Work & ~RTC_Work_WeekDay_MASK) | rtcSAM3X8.get_day_of_week();
 						ut = MC.RTC_store.UsedToday;
 						MC.RTC_store.UsedToday = 0;
 						MC.WorkStats.DaysFromLastRegen++;
@@ -1228,7 +1235,7 @@ void vService(void *)
 						NeedSaveWorkStats = 1;
 						NeedSaveRTC = RTC_SaveAll;
 						xTaskResumeAll(); // Разрешение других задач
-						update_RTC_store_memory(NeedSaveRTC);
+						update_RTC_store_memory();
 					}
 					if(MC.Option.DrainTime && MC.WorkStats.UsedYesterday < 10 && MC.get_errcode() == OK) { // Used less than 10 liters
 						TimerDrainingWater = GetTickCount() | 1;
@@ -1246,10 +1253,11 @@ void vService(void *)
 #ifdef TANK_ANALOG_LEVEL
 						if(MC.sADC[LTANK].get_Value() >= MC.sADC[LTANK].get_maxValue()) {
 #else
-							if(MC.sInput[TANK_FULL].get_Input()) {
+						if(MC.sInput[TANK_FULL].get_Input()) {
 #endif
 							if((need_regen & RTC_Work_Regen_F1) && !MC.dRelay[RSTARTREG].get_Relay()) {
 								journal.jprintf(pP_DATE, "Regen F1 start\n");
+								MC.dRelay[RWATEROFF].set_ON();
 								MC.dRelay[RSTARTREG].set_ON();
 							} else if((need_regen & RTC_Work_Regen_F2) && !MC.dRelay[RSTARTREG2].get_Relay()) {
 								journal.jprintf(pP_DATE, "Regen F2 start\n");
@@ -1265,40 +1273,50 @@ void vService(void *)
 					if(MC.save_WorkStats() == OK) NeedSaveWorkStats = 0;
 				} else if((NeedSaveRTC & (1<<bRTC_Urgently)) || (NeedSaveRTC && m != task_every_min)) {
 					task_every_min = m;
-					update_RTC_store_memory(NeedSaveRTC);
-
+					uint8_t err = update_RTC_store_memory();
+					if(err) {
+						journal.printf("Error %d save RTC!\n", err);
+						set_Error(ERR_RTC_WRITE, (char*)__FUNCTION__);
+					}
 				} else {
-					switch (MC.RTC_store.Work & RTC_Work_Regen_MASK) {	// Regen Iron removing filter
-					case RTC_Work_Regen_F1:
+					if(MC.RTC_store.Work & RTC_Work_Regen_F1) {	// Regen Iron removing filter
 						if(!MC.sInput[REG_ACTIVE].get_Input() && !MC.sInput[REG_BACKWASH_ACTIVE].get_Input()) {
 							MC.WorkStats.UsedLastRegen = MC.RTC_store.UsedRegen;
+							MC.RTC_store.UsedRegen = 0;
 							MC.WorkStats.DaysFromLastRegen = 0;
 							MC.WorkStats.RegCnt++;
 							MC.WorkStats.UsedSinceLastRegen = 0;
 							MC.RTC_store.Work &= ~RTC_Work_Regen_F1;
 							taskENTER_CRITICAL();
-							NeedSaveRTC |= (1<<bRTC_Work) | 0x80;
+							NeedSaveRTC |= (1<<bRTC_Work) | (1<<bRTC_UsedRegen) | (1<<bRTC_Urgently);
 							taskEXIT_CRITICAL();
 							NeedSaveWorkStats = 1;
+							MC.dRelay[RWATEROFF].set_OFF();
 							journal.jprintf(pP_DATE, "Regen F1 finished.\n");
 							if(MC.WorkStats.UsedLastRegen < MC.Option.MinRegenLiters) {
 								set_Error(ERR_FEW_LITERS_REG, (char*)"vService");
 							}
+						} else if(NewRegenStatus) {
+							journal.jprintf(pP_DATE, "Regen F1 begin\n");
+							NewRegenStatus = false;
 						}
-						break;
-					case RTC_Work_Regen_F2:
-						if(!MC.sInput[REG2_ACTIVE].get_Input()) {		// Regen Softening filter
+					} else if(MC.RTC_store.Work & RTC_Work_Regen_F2) { // Regen Softening filter
+						if(!MC.sInput[REG2_ACTIVE].get_Input()) {
+							MC.WorkStats.UsedLastRegenSoftening = MC.RTC_store.UsedRegen;
+							MC.RTC_store.UsedRegen = 0;
 							MC.WorkStats.DaysFromLastRegenSoftening = 0;
 							MC.WorkStats.RegCntSoftening++;
 							MC.WorkStats.UsedSinceLastRegenSoftening = 0;
 							MC.RTC_store.Work &= ~RTC_Work_Regen_F2;
 							taskENTER_CRITICAL();
-							NeedSaveRTC |= (1<<bRTC_Work) | 0x80;
+							NeedSaveRTC |= (1<<bRTC_Work) | (1<<bRTC_UsedRegen) | (1<<bRTC_Urgently);
 							taskEXIT_CRITICAL();
 							NeedSaveWorkStats = 1;
 							journal.jprintf(pP_DATE, "Regen F2 finished.\n");
+						} else if(NewRegenStatus) {
+							journal.jprintf(pP_DATE, "Regen F2 begin\n");
+							NewRegenStatus = false;
 						}
-						break;
 					}
 				}
 			}

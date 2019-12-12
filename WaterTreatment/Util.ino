@@ -891,7 +891,7 @@ __attribute__((always_inline)) inline void setDate_RtcI2C(uint8_t date, uint8_t 
 
 // Using bRTC_* flags
 // Return 0 - when success
-uint8_t update_RTC_store_memory(uint8_t &what_to_save)
+uint8_t update_RTC_store_memory(void)
 {
 	if(SemaphoreTake(xI2CSemaphore, I2C_TIME_WAIT / portTICK_PERIOD_MS) == pdFALSE) {  // Если шедулер запущен то захватываем семафор
 		journal.printf((char*) cErrorMutex, __FUNCTION__, MutexI2CBuzy);
@@ -903,6 +903,7 @@ uint8_t update_RTC_store_memory(uint8_t &what_to_save)
 	xTaskResumeAll(); // Разрешение других задач
 	uint32_t addr = 255;
 	uint32_t len = 0;
+	uint8_t what_to_save = NeedSaveRTC;
 	if(what_to_save & (1<<bRTC_UsedToday)) {
 		addr = 0;
 		len = sizeof(store.UsedToday);
@@ -915,8 +916,11 @@ uint8_t update_RTC_store_memory(uint8_t &what_to_save)
 		if(addr == 255) addr = sizeof(store.UsedToday) + sizeof(store.UsedRegen);
 		len += sizeof(store.Work);
 	}
-	if(len) if(!(len = rtcI2C.writeRTC(RTC_STORE_ADDR + addr, (uint8_t*)&store + addr, len))) what_to_save = 0;
-
+	//journal.printf("RTC(%d,%d)=> %02X, %d, %d\n", RTC_STORE_ADDR + addr, len, store.Work, store.UsedToday, store.UsedRegen);
+	if(len) if(!(len = rtcI2C.writeRTC(RTC_STORE_ADDR + addr, (uint8_t*)&store + addr, len))) NeedSaveRTC = 0;
+//	memset(&store, 0, sizeof(store));
+//	uint8_t er = rtcI2C.readRTC(RTC_STORE_ADDR, (uint8_t*)&store, sizeof(store));
+//	journal.printf("RTC(%d)<= %02X, %d, %d\n", sizeof(store), store.Work, store.UsedToday, store.UsedRegen);
 	SemaphoreGive(xI2CSemaphore);
 	return len;
 }

@@ -510,8 +510,9 @@ const char *webWS_UsedLastRegenSoftening  		= { "RSL" };
 #define ERR_FLOODING		-57			// Затопление
 //#define ERR_TANK_EMPTY	-58			// Пустой бак! (defined in config.h)
 #define ERR_TANK_NO_FILLING	-59			// Бак не заполняется
+#define ERR_RTC_WRITE		-60			// Ошибка записи в RTC память
 
-#define ERR_ERRMAX			-59 	   // Последняя ошибка
+#define ERR_ERRMAX			-60 	   // Последняя ошибка
 
 // Предупреждения
 #define WARNING_VALUE        1         // Попытка установить значение за границами диапазона запрос типа SET
@@ -577,6 +578,7 @@ const char *noteError[] = {"Ok",                                                
 						   "Затопление",																		//-57
 						   "Пустой бак",																		//-58
 						   "Бак не заполняется",																//-59
+						   "Ошибка записи в RTC",																//-60
 
                            "NULL"
                            };

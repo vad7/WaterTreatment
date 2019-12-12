@@ -688,21 +688,8 @@ xSaveStats:		if((i = MC.save_WorkStats()) == OK)
 		{
 			_dtoa(strReturn, MC.dPWM.get_Power(), 3); ADD_WEBDELIM(strReturn); continue;
 		}
-		if(strncmp(str, "get_WL", 6) == 0) { // get water level
-			str += 6;
-			if(strcmp(str, "1") == 0) {
-
-				strcat(strReturn, "1");
-
-			} else if(strcmp(str, "2") == 0) {
-
-				strcat(strReturn, "0");
-
-			} else if(strcmp(str, "3") == 0) {
-
-				strcat(strReturn, "0");
-
-			}
+		if(strcmp(str, "get_WDIS") == 0) { // Выход воды отключен
+			strcat(strReturn, MC.dRelay[RWATEROFF].get_Relay() || MC.sInput[REG2_ACTIVE].get_Input() ? "1" : "0");
 			ADD_WEBDELIM(strReturn); continue;
 		}
 		if(strncmp(str + 1, "et_WS", 5) == 0) { // get WorkStats
@@ -731,10 +718,16 @@ xSaveStats:		if((i = MC.save_WorkStats()) == OK)
 				_itoa(MC.WorkStats.RegCntSoftening, strReturn);
 			} else if(strcmp(str, webWS_DaysFromLastRegen) == 0) _itoa(MC.WorkStats.DaysFromLastRegen, strReturn); // get_WSRD
 			else if(strcmp(str, webWS_UsedSinceLastRegen) == 0) _itoa(MC.WorkStats.UsedSinceLastRegen + MC.RTC_store.UsedToday, strReturn); // get_WSRS
-			else if(strcmp(str, webWS_UsedLastRegen) == 0) _itoa(MC.WorkStats.UsedLastRegen, strReturn); // get_WSRL
-			else if(strcmp(str, webWS_DaysFromLastRegenSoftening) == 0) _itoa(MC.WorkStats.DaysFromLastRegenSoftening, strReturn); // get_WSRSD
+			else if(strcmp(str, webWS_UsedLastRegen) == 0) { // get_WSRL
+				if(MC.sInput[REG_ACTIVE].get_Input() || MC.sInput[REG_BACKWASH_ACTIVE].get_Input()) {
+					strReturn += m_snprintf(strReturn += m_strlen(strReturn), 64, "%d (%d)", MC.RTC_store.UsedRegen, MC.WorkStats.UsedLastRegen);
+				} else _itoa(MC.WorkStats.UsedLastRegen, strReturn);
+			} else if(strcmp(str, webWS_UsedLastRegenSoftening) == 0) { // get_WSRSL
+				if(MC.sInput[REG2_ACTIVE].get_Input()) {
+					strReturn += m_snprintf(strReturn += m_strlen(strReturn), 64, "%d (%d)", MC.RTC_store.UsedRegen, MC.WorkStats.UsedLastRegenSoftening);
+				} else _itoa(MC.WorkStats.UsedLastRegenSoftening, strReturn);
+			} else if(strcmp(str, webWS_DaysFromLastRegenSoftening) == 0) _itoa(MC.WorkStats.DaysFromLastRegenSoftening, strReturn); // get_WSRSD
 			else if(strcmp(str, webWS_UsedSinceLastRegenSoftening) == 0) _itoa(MC.WorkStats.UsedSinceLastRegenSoftening + MC.RTC_store.UsedToday, strReturn); // get_WSRSS
-			else if(strcmp(str, webWS_UsedLastRegenSoftening) == 0) _itoa(MC.WorkStats.UsedLastRegenSoftening + MC.RTC_store.UsedToday, strReturn); // get_WSRSL
 			ADD_WEBDELIM(strReturn); continue;
 		}
 
@@ -812,29 +805,29 @@ xSaveStats:		if((i = MC.save_WorkStats()) == OK)
 			} else if (strcmp(str,"DUE")==0)   // RESET_DUE, Команда сброса контроллера
 			{
 				//strcat(strReturn,"Сброс контроллера, подождите 10 секунд . . .");
-				journal.jprintf("$SOFTWARE RESET control . . .\n\n");
+				journal.jprintf("CPU RESETING...\n\n");
 				MC.save_WorkStats();
 				Stats.SaveStats(0);
 				Stats.SaveHistory(0);
-				update_RTC_store_memory(NeedSaveRTC);
+				NeedSaveRTC = RTC_SaveAll;
+				update_RTC_store_memory();
 				ResetDUE_countdown = 3;
 			} else if (strcmp(str,"CNT")==0) // Команда RESET_CNT
 			{
-				journal.jprintf("$RESET All Counters . . .\n");
+				journal.jprintf("Clear All Counters!\n");
 				strcat(strReturn,"Сброс счетчиков");
 				memset(&MC.RTC_store, 0, sizeof(MC.RTC_store));
-				MC.RTC_store.Work = (MC.RTC_store.Work & ~RTC_Work_WeekDay_Mask) | rtcSAM3X8.get_day_of_week();
+				MC.RTC_store.Work = (MC.RTC_store.Work & ~RTC_Work_WeekDay_MASK) | rtcSAM3X8.get_day_of_week();
 				NeedSaveRTC = RTC_SaveAll;
-				update_RTC_store_memory(NeedSaveRTC);
+				update_RTC_store_memory();
 				MC.resetCount();  // Полный сброс
 				strcat(strReturn, "OK");
 			} else if (strcmp(str,"SETTINGS")==0) // RESET_SETTINGS, Команда сброса настроек
 			{
-				journal.jprintf("$RESET All settings . . .\n");
+				journal.jprintf("Clear ALL settings!\n");
 				uint16_t d = 0;
 				writeEEPROM_I2C(I2C_SETTING_EEPROM, (byte*)&d, sizeof(d));
-				//MC.sendCommand(pRESET);        // Послать команду на сброс
-				strcat(strReturn, "OK");
+				strcat(strReturn, "Настройки сброшены - перезагрузите контроллер.");
 			} else if (strcmp(str,"ERR")==0) // RESET_ERR
 			{
 				memset(Errors, 0, sizeof(Errors));
@@ -958,16 +951,17 @@ xSaveStats:		if((i = MC.save_WorkStats()) == OK)
 				}
 
 				strcat(strReturn,"Входное напряжение питания контроллера (В): |");
-				m_snprintf(strReturn+strlen(strReturn), 256, "если ниже %.1dV - сброс;", ((SUPC->SUPC_SMMR & SUPC_SMMR_SMTH_Msk) >> SUPC_SMMR_SMTH_Pos) + 19);
-				m_snprintf(strReturn += strlen(strReturn), 256, "Режим safeNetwork (%sадрес:%d.%d.%d.%d шлюз:%d.%d.%d.%d, не спрашивать пароль)|%s;", defaultDHCP ?"DHCP, ":"",defaultIP[0],defaultIP[1],defaultIP[2],defaultIP[3],defaultGateway[0],defaultGateway[1],defaultGateway[2],defaultGateway[3],MC.safeNetwork ?cYes:cNo);
+				m_snprintf(strReturn + strlen(strReturn), 256, "если ниже %.1dV - сброс;", ((SUPC->SUPC_SMMR & SUPC_SMMR_SMTH_Msk) >> SUPC_SMMR_SMTH_Pos) + 19);
+				strReturn += m_snprintf(strReturn += strlen(strReturn), 256, "Режим safeNetwork (%sадрес:%d.%d.%d.%d шлюз:%d.%d.%d.%d)|%s;", defaultDHCP ?"DHCP, ":"",defaultIP[0],defaultIP[1],defaultIP[2],defaultIP[3],defaultGateway[0],defaultGateway[1],defaultGateway[2],defaultGateway[3],MC.safeNetwork ?cYes:cNo);
 				//strcat(strReturn,"Уникальный ID чипа SAM3X8E|");
 				//getIDchip(strReturn); strcat(strReturn,";");
 				//strcat(strReturn,"Значение регистра VERSIONR сетевого чипа WizNet (51-w5100, 3-w5200, 4-w5500)|");_itoa(W5200VERSIONR(),strReturn);strcat(strReturn,";");
 
-				m_snprintf(strReturn+strlen(strReturn), 256, "Состояние FreeRTOS при старте (task+err_code) <sup>2</sup>|0x%04X;", lastErrorFreeRtosCode);
+				strReturn += m_snprintf(strReturn += strlen(strReturn), 256, "Состояние системы (Week: %d)|B:%d/%d R1:%d R2:%d F:%d E:%d Day:%d Reg:%d;", MC.RTC_store.Work & RTC_Work_WeekDay_MASK, WaterBoosterStatus, WaterBoosterError, !!(MC.RTC_store.Work & RTC_Work_Regen_F1), !!(MC.RTC_store.Work & RTC_Work_Regen_F2), FloodingError, TankEmpty, MC.RTC_store.UsedToday, MC.RTC_store.UsedRegen);
+				strReturn += m_snprintf(strReturn += strlen(strReturn), 256, "Состояние FreeRTOS при старте (task+err_code) <sup>2</sup>|0x%04X;", lastErrorFreeRtosCode);
 
 				startSupcStatusReg |= SUPC->SUPC_SR;                                  // Копим изменения
-				m_snprintf(strReturn += strlen(strReturn), 256, "Регистры контроллера питания (SUPC) SAM3X8E [SUPC_SMMR SUPC_MR SUPC_SR]|0x%08X %08X %08X", SUPC->SUPC_SMMR, SUPC->SUPC_MR, startSupcStatusReg);  // Регистры состояния контроллера питания
+				m_snprintf(strReturn += strlen(strReturn), 256, "Регистры контроллера питания (SUPC) SAM3X8E [SMMR MR SR]|0x%08X %08X %08X", SUPC->SUPC_SMMR, SUPC->SUPC_MR, startSupcStatusReg);  // Регистры состояния контроллера питания
 				if((startSupcStatusReg|SUPC_SR_SMS)==SUPC_SR_SMS_PRESENT) strcat(strReturn," bad VDDIN!");
 				strcat(strReturn,";");
 

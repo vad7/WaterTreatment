@@ -16,7 +16,7 @@
 // --------------------------------------------------------------------------------
 #ifndef MainClass_h
 #define MainClass_h
-#include "Constant.h"                       // Вся конфигурация и константы проекта Должен быть первым !!!!
+#include "Constant.h"                       // Вся конфигурация и константы проекта
 #include "Hardware.h"
 #include "Message.h"
 #include "Information.h"
@@ -43,7 +43,7 @@ struct type_WorkStats {
 } __attribute__((packed));
 
 
-#define RTC_Work_WeekDay_Mask		0x07	// Active weekday (1-7)
+#define RTC_Work_WeekDay_MASK		0x07	// Active weekday (1-7)
 #define RTC_Work_Regen_MASK			0x30	// 0 - not, bit - wait a regen hour
 #define RTC_Work_Regen_F1			0x10	// Iron remover
 #define RTC_Work_Regen_F2			0x20	// Softener
@@ -54,11 +54,11 @@ struct type_RTC_memory { // DS3231/DS3232 used alarm memory, starts from 0x07, m
 	volatile uint8_t  Work;			// 2. NeedRegen + WeekDay
 } __attribute__((packed));
 
-bool	 ADC_has_been_read = false;
+volatile bool ADC_has_been_read = false;
 int		 WaterBoosterStatus = 0; // 0 - выключено, 1 - вкл твердотельное, 2 - вкл обычное, 3 - выкл твердотельное, -1 - выкл твердотельное, -2 - выкл обычное, -3 - нужно выключить (вкл твердотельное)
-bool	 WaterBoosterError = false;
+volatile bool WaterBoosterError = false;
 uint32_t WaterBoosterTimeout = 0;
-bool	 FloodingError = false;
+volatile bool FloodingError = false;
 uint32_t FloodingTime = 0;	// unixtime
 uint32_t FillingTankTimer = 0;
 int16_t  FillingTankLastLevel = 0;
@@ -67,6 +67,7 @@ uint32_t TimeFeedPump = 0;
 int8_t   vPumpsNewError = 0;
 uint8_t  NeedSaveWorkStats = 0;
 uint32_t TimerDrainingWater = 0;
+volatile bool NewRegenStatus = false;
 int8_t   Errors[15] = { 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0 };// Active Errors array
 uint32_t ErrorsTime[15];
 uint32_t ResetDUE_countdown = 0;
@@ -87,7 +88,7 @@ void Weight_Clear_Averaging(void);
 #define  bRTC_Work			2
 #define  bRTC_Urgently		7
 #define  RTC_SaveAll		((1<<bRTC_UsedToday) | (1<<bRTC_UsedRegen) | (1<<bRTC_Work) | (1<<bRTC_Urgently))
-uint8_t  NeedSaveRTC = 0;
+volatile uint8_t NeedSaveRTC = 0;
 
 uint16_t task_updstat_chars = 0;
 
@@ -130,7 +131,7 @@ struct type_option {
 	int16_t  PWATER_RegMin;			// сотые бара, Нижний предел давления PWATER при регенерации
 	int16_t  LTANK_Empty;			// сотые %, Низкий уровень воды в баке - нужно включить заполнение бака до максимального
 	uint16_t DrainTime;				// Время слива воды, сек
-	uint16_t FillingTankTimeout;	// сек, Время заполнения бака на 1% при отсутствии потребления
+	uint16_t FillingTankTimeout;	// сек, Время заполнения бака на 3% при отсутствии потребления
 } __attribute__((packed));
 
 //  Работа с отдельными флагами type_DateTime

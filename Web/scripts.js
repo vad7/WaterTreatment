@@ -460,10 +460,14 @@ function loadParam(paramid, noretry, resultdiv) {
 									if(values[1] != "") alert(values[1]);
 								} else {
 									if((element = document.getElementById(valueid))) {
-										element.value = values[1];
-										element.innerHTML = values[1];
-									    if(values[0] == "get_MODE") element.style = values[1] == "В работе" ? "color:green" : "color:red";
-									    if(values[0] == "get_MODED") element.style = values[1] == "Ok" ? "color:black" : "color:red";
+										if(element.nodeName == "DIV") {
+											if(values[1] == '0') element.style = "display:none"; else element.style = "display:default";
+										} else {
+											element.value = values[1];
+											element.innerHTML = values[1];
+										    if(values[0] == "get_MODE") element.style = values[1] == "В работе" ? "color:green" : "color:red";
+										    if(values[0] == "get_MODED") element.style = values[1] == "Ok" ? "color:black" : "color:red";
+										}
 									}
 									if((element = document.getElementById(valueid + "2"))) {
 										element.value = values[1];

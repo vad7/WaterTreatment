@@ -977,13 +977,13 @@ void MainClass::calculatePower()
 void MainClass::save_DumpJournal(void)
 {
 	uint8_t i;
-	journal.printf(" State:");
+	journal.jprintf(" State:");
 	for(i = 0; i < RNUMBER; i++) journal.jprintf(" %s:%d", MC.dRelay[i].get_name(), MC.dRelay[i].get_Relay());
-	journal.printf(" Power:%.3f\n", (float)dPWM.get_Power() / 1000.0);
+	journal.jprintf(" Power:%.3d\n", dPWM.get_Power());
 	// Доп инфо
-	for(i = 0; i < TNUMBER; i++) if(sTemp[i].get_present() && sTemp[i].Chart.get_present()) journal.printf(" %s:%.2f", sTemp[i].get_name(), (float) sTemp[i].get_Temp() / 100);
-	for(i = 0; i < ANUMBER; i++) if(sADC[i].get_present()) journal.jprintf(" %s:%.2f", sADC[i].get_name(), (float) sADC[i].get_Value() / 100);
-	journal.printf(cStrEnd);
+	for(i = 0; i < TNUMBER; i++) if(sTemp[i].get_present() && sTemp[i].Chart.get_present()) journal.printf(" %s:%.2d", sTemp[i].get_name(), sTemp[i].get_Temp());
+	for(i = 0; i < ANUMBER; i++) if(sADC[i].get_present()) journal.jprintf(" %s:%.2d", sADC[i].get_name(), sADC[i].get_Value());
+	journal.jprintf(cStrEnd);
 }
 
 // Возвращает 0 - Нет ошибок или ни одного активного датчика, 1 - ошибка, 2 - превышен предел ошибок
