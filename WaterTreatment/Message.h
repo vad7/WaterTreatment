@@ -63,9 +63,7 @@ struct type_message
  char sms_p1[40];                            // первый параметр для отправки смс
  char sms_p2[40];                            // второй параметр для отправки смс
 // настройки самих сообщений
- int16_t mTIN;                               // Критическая температура в доме (если меньше то генерится уведомление)
- int16_t mTBOILER;                           // Критическая температура бойлера (если меньше то генерится уведомление)
- int16_t mTCOMP;                             // Критическая температура компрессора (если больше то генерится уведомление)
+ int16_t mTAIR;                               // Критическая температура в доме (если меньше то генерится уведомление)
  int16_t P1,P2;
 };
 // Само уведомление (данные)
@@ -94,10 +92,6 @@ class Message
      boolean get_fMessageTemp(){return GETBIT(messageSetting.flags,fMessageTemp);}// чтение флага уведомлений Достижение граничной температуры
      boolean get_fMessageLife(){return GETBIT(messageSetting.flags,fMessageLife);}// чтение флага уведомлений Сигнал жизния
      
-     int16_t get_mTIN(){return messageSetting.mTIN;}                        // чтение Критическая температура в доме
-     int16_t get_mTBOILER(){return messageSetting.mTBOILER;}                // чтение Критическая температура бойлера
-     int16_t get_mTCOMP(){return messageSetting.mTCOMP;}                    // чтение Критическая температура компрессора
-
      uint8_t *get_save_addr(void) { return (uint8_t *)&messageSetting; } // Адрес структуры сохранения
      uint16_t get_save_size(void) { return sizeof(messageSetting); } // Размер структуры сохранения
      int32_t save(int32_t adr);                                             // Записать настройки в eeprom i2c на входе адрес с какого, на выходе конечный адрес, число меньше 0 это код ошибки

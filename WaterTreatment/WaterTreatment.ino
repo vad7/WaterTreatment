@@ -864,6 +864,9 @@ void vReadSensor(void *)
 		//
 		Weight_NeedRead = true;
 		vReadSensor_delay8ms((cDELAY_DS1820 - (millis() - ttime)) / 8); 	// Ожидать время преобразования
+		if(Weight_Percent <= MC.Option.Weight_Empty) {
+			set_Error(ERR_WEIGHT_LOW, (char*)__FUNCTION__);
+		}
 
 		if(OW_scan_flags == 0) {
 			uint8_t flags = 0;
@@ -1243,11 +1246,18 @@ void vService(void *)
 					}
 				}
 
-				if(!WaterBoosterError && !FloodingError && !TankEmpty && !(MC.RTC_store.Work & RTC_Work_Regen_MASK) && rtcSAM3X8.get_hours() == MC.Option.RegenHour) {
+				if(MC.dRelay[RSTARTREG].get_Relay() && !(MC.RTC_store.Work & RTC_Work_Regen_F1)) { // 1 minute passed but regeneration did not start
+					set_Error(ERR_START_REG, (char*)__FUNCTION__);
+				}
+				if(MC.dRelay[RSTARTREG2].get_Relay() && !(MC.RTC_store.Work & RTC_Work_Regen_F2)) { // 1 minute passed but regeneration did not start
+					set_Error(ERR_START_REG2, (char*)__FUNCTION__);
+				}
+				if(!WaterBoosterError && !FloodingError && !TankEmpty && MC.get_errcode() != ERR_START_REG && MC.get_errcode() != ERR_START_REG2
+						&& !(MC.RTC_store.Work & RTC_Work_Regen_MASK) && rtcSAM3X8.get_hours() == MC.Option.RegenHour) {
 					uint32_t need_regen = 0;
 					if((MC.Option.DaysBeforeRegen && MC.WorkStats.DaysFromLastRegen >= MC.Option.DaysBeforeRegen) || (MC.Option.UsedBeforeRegen && MC.WorkStats.UsedSinceLastRegen + MC.RTC_store.UsedToday >= MC.Option.UsedBeforeRegen))
 						need_regen |= RTC_Work_Regen_F1;
-					else if(MC.Option.UsedBeforeRegenSofener && MC.WorkStats.UsedSinceLastRegenSoftening + MC.RTC_store.UsedToday >= MC.Option.UsedBeforeRegenSofener)
+					else if(MC.Option.UsedBeforeRegenSoftener && MC.WorkStats.UsedSinceLastRegenSoftening + MC.RTC_store.UsedToday >= MC.Option.UsedBeforeRegenSoftener)
 						need_regen |= RTC_Work_Regen_F2;
 					if(need_regen) {
 #ifdef TANK_ANALOG_LEVEL
@@ -1294,7 +1304,7 @@ void vService(void *)
 							MC.dRelay[RWATEROFF].set_OFF();
 							journal.jprintf(pP_DATE, "Regen F1 finished.\n");
 							if(MC.WorkStats.UsedLastRegen < MC.Option.MinRegenLiters) {
-								set_Error(ERR_FEW_LITERS_REG, (char*)"vService");
+								set_Error(ERR_FEW_LITERS_REG, (char*)__FUNCTION__);
 							}
 						} else if(NewRegenStatus) {
 							journal.jprintf(pP_DATE, "Regen F1 begin\n");

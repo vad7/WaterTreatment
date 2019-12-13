@@ -412,7 +412,9 @@ const char *option_LogWirelessSensors	= {"LOGWS"};              // Логиро�
 const char *option_fDontRegenOnWeekend	= {"NRW"};
 const char *option_FeedPumpMaxFlow		= {"FPMF"};
 const char *option_RegenHour			= {"RH"};
+const char *option_DaysBeforeRegen		= {"DBR"};
 const char *option_UsedBeforeRegen		= {"UBR"};
+const char *option_UsedBeforeRegenSoftener = {"UBRS"};
 const char *option_MinPumpOnTime		= {"MPOT"};
 const char *option_MinWaterBoostOnTime	= {"MWBT"};
 const char *option_MinWaterBoostOffTime	= {"MWBTF"};
@@ -425,7 +427,8 @@ const char *option_PWM_StartingTime		= {"PST"};
 const char *option_FloodingDebounceTime	= {"FDT"};
 const char *option_FloodingTimeout		= {"FT"};
 const char *option_PWATER_RegMin		= {"WRM"};
-const char *option_LTANK_Low			= {"TL"};
+const char *option_LTANK_Empty			= {"TE"};
+const char *option_Weight_Empty			= {"WE"};
 const char *option_DebugToSerialOn		= {"DBG"};
 const char *option_FillingTankTimeout	= {"FTT"};
 
@@ -511,8 +514,11 @@ const char *webWS_UsedLastRegenSoftening  		= { "RSL" };
 //#define ERR_TANK_EMPTY	-58			// Пустой бак! (defined in config.h)
 #define ERR_TANK_NO_FILLING	-59			// Бак не заполняется
 #define ERR_RTC_WRITE		-60			// Ошибка записи в RTC память
+#define ERR_START_REG		-61			// Не запускается регенерация обезжелезивателя
+#define ERR_START_REG2		-62			// Не запускается регенерация умягчителя
+#define ERR_WEIGHT_LOW		-63			// Маленький вес реагента
 
-#define ERR_ERRMAX			-60 	   // Последняя ошибка
+#define ERR_ERRMAX			-63 	   // Последняя ошибка
 
 // Предупреждения
 #define WARNING_VALUE        1         // Попытка установить значение за границами диапазона запрос типа SET
@@ -579,6 +585,9 @@ const char *noteError[] = {"Ok",                                                
 						   "Пустой бак",																		//-58
 						   "Бак не заполняется",																//-59
 						   "Ошибка записи в RTC",																//-60
+						   "Не запускается регенерация обезжелезивателя",										//-61
+						   "Не запускается регенерация умягчителя",												//-62
+						   "Низкий уровень реагента",															//-63
 
                            "NULL"
                            };
@@ -641,6 +650,8 @@ enum SMS_SERVICE
   pSMSC_UA,                      // Сервис smsc.ua
   pSMSCLUB_UA,                   // Сервис smsclub.mobi
 };
+
+const char SMS_SERVICE_WEB_SELECT[] = "sms.ru:0;smsc.ru:0;smsc.ua:0;smsclub.mobi:0;";
 
 //  Перечисляемый тип - Время сброса сокетов
 enum TIME_RES_SOCKET       

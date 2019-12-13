@@ -519,7 +519,7 @@ void MainClass::resetSetting()
 	Option.RegenHour = 3;
 	Option.DaysBeforeRegen = 20;
 	Option.UsedBeforeRegen = 6000;
-	Option.UsedBeforeRegenSofener = 3500;
+	Option.UsedBeforeRegenSoftener = 3500;
 }
 
 // --------------------------------------------------------------------
@@ -746,7 +746,9 @@ boolean MainClass::set_option(char *var, float xx)
    if(strcmp(var,option_DebugToSerialOn)==0) { DebugToSerialOn = x; return true; } else
    if(strcmp(var,option_FeedPumpMaxFlow)==0) { Option.FeedPumpMaxFlow = x; return true; } else
    if(strcmp(var,option_RegenHour)==0)       { Option.RegenHour = x; return true; } else
+   if(strcmp(var,option_DaysBeforeRegen)==0) { Option.DaysBeforeRegen = x; return true; } else
    if(strcmp(var,option_UsedBeforeRegen)==0) { Option.UsedBeforeRegen = x; return true; } else
+   if(strcmp(var,option_UsedBeforeRegenSoftener)==0) { Option.UsedBeforeRegenSoftener = x; return true; } else
    if(strcmp(var,option_MinPumpOnTime)==0)   { Option.MinPumpOnTime = x; return true; } else
    if(strcmp(var,option_MinWaterBoostOnTime)==0){ Option.MinWaterBoostOnTime = x; return true; } else
    if(strcmp(var,option_MinWaterBoostOffTime)==0){ Option.MinWaterBoostOffTime = x; return true; } else
@@ -758,7 +760,8 @@ boolean MainClass::set_option(char *var, float xx)
    if(strcmp(var,option_PWM_Max)==0)         { Option.PWM_Max = x; return true; } else
    if(strcmp(var,option_PWM_StartingTime)==0){ Option.PWM_StartingTime = x; return true; } else
    if(strcmp(var,option_PWATER_RegMin)==0)   { Option.PWATER_RegMin = rd(xx, 100); return true; } else
-   if(strcmp(var,option_LTANK_Low)==0)       { Option.LTANK_Empty = rd(xx, 100); return true; } else
+   if(strcmp(var,option_LTANK_Empty)==0)     { Option.LTANK_Empty = rd(xx, 100); return true; } else
+   if(strcmp(var,option_Weight_Empty)==0)    { Option.Weight_Empty = rd(xx, 100); return true; } else
    if(strcmp(var,option_FloodingDebounceTime)==0){ Option.FloodingDebounceTime = x; return true; } else
    if(strcmp(var,option_FloodingTimeout)==0) { Option.FloodingTimeout = x; return true; } else
    if(strcmp(var,option_FillingTankTimeout)==0){ Option.FillingTankTimeout = x; return true; } else
@@ -784,7 +787,9 @@ char* MainClass::get_option(char *var, char *ret)
    if(strcmp(var,option_DebugToSerialOn)==0){ return strcat(ret, (char*)(DebugToSerialOn ? cOne : cZero)); } else
    if(strcmp(var,option_FeedPumpMaxFlow)==0){ return _itoa(Option.FeedPumpMaxFlow, ret); } else
    if(strcmp(var,option_RegenHour)==0){ return _itoa(Option.RegenHour, ret); } else
+   if(strcmp(var,option_DaysBeforeRegen)==0){ return _itoa(Option.DaysBeforeRegen, ret); } else
    if(strcmp(var,option_UsedBeforeRegen)==0){ return _itoa(Option.UsedBeforeRegen, ret); } else
+   if(strcmp(var,option_UsedBeforeRegenSoftener)==0){ return _itoa(Option.UsedBeforeRegenSoftener, ret); } else
    if(strcmp(var,option_MinPumpOnTime)==0){ return _itoa((uint32_t)Option.MinPumpOnTime, ret); } else
    if(strcmp(var,option_MinWaterBoostOnTime)==0){ return _itoa((uint32_t)Option.MinWaterBoostOnTime, ret); } else
    if(strcmp(var,option_MinWaterBoostOffTime)==0){ return _itoa((uint32_t)Option.MinWaterBoostOffTime, ret); } else
@@ -796,7 +801,8 @@ char* MainClass::get_option(char *var, char *ret)
    if(strcmp(var,option_PWM_Max)==0){ return _itoa(Option.PWM_Max, ret); } else
    if(strcmp(var,option_PWM_StartingTime)==0){ return _itoa(Option.PWM_StartingTime, ret); } else
    if(strcmp(var,option_PWATER_RegMin)==0){ _dtoa(ret, Option.PWATER_RegMin, 2); return ret; } else
-   if(strcmp(var,option_LTANK_Low)==0){ _dtoa(ret, Option.LTANK_Empty, 2); return ret; } else
+   if(strcmp(var,option_LTANK_Empty)==0){ _dtoa(ret, Option.LTANK_Empty, 2); return ret; } else
+   if(strcmp(var,option_Weight_Empty)==0){ _dtoa(ret, Option.Weight_Empty, 2); return ret; } else
    if(strcmp(var,option_FloodingDebounceTime)==0){ return _itoa(Option.FloodingDebounceTime, ret); } else
    if(strcmp(var,option_FloodingTimeout)==0){ return _itoa(Option.FloodingTimeout, ret); } else
    if(strcmp(var,option_FillingTankTimeout)==0){ return _itoa(Option.FillingTankTimeout, ret); } else

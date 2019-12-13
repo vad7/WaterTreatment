@@ -8,7 +8,7 @@
 <script type="text/javascript">
 window.onload = function() {
 	loadParam("get_Opt(FPMF),get_Opt(UBR),get_Opt(RH),get_Opt(NRW),get_Opt(DT),get_Opt(MR),get_Opt(MD),get_Opt(HIST),get_Opt(BEEP),get_Opt(WSPIF),get_Opt(LOGWS),get_Opt(TIME_CHART),get_Opt(PWMLOG),get_Opt(SGL1W_1),get_Opt(SGL1W_2),get_Opt(SGL1W_3),get_Opt(SGL1W_4)");
-	loadParam("get_Opt(MWBT),get_Opt(MWBTF),get_Opt(MPOT),get_Opt(DR),get_Opt(PM),get_Opt(PST),get_WSRC,get_WSRSC,get_WST,get_Opt(WRM),get_Opt(TL),get_Opt(FDT),get_Opt(FT),get_Opt(FTT)");
+	loadParam("get_Opt(MWBT),get_Opt(MWBTF),get_Opt(MPOT),get_Opt(DR),get_Opt(PM),get_Opt(PST),get_WSRC,get_WSRSC,get_WST,get_Opt(WRM),get_Opt(TE),get_Opt(FDT),get_Opt(FT),get_Opt(FTT),get_Opt(UBRS),get_Opt(DBR),get_Opt(WE)");
 }; 
 function show_all() {
 	var elements = document.getElementsByTagName('input');
@@ -37,12 +37,15 @@ function show_all() {
 			<td nowrap><input id="get_opt-mwbtf" type="number"> <input type="submit" value=">" onclick="setParam('get_Opt(MWBTF)');"></td>
 		</tr>
 		<tr>
-			<td>Минимальное время работы дозатора, мсек</td>
+			<td>Минимальное время работы дозирующего насоса, мсек</td>
 			<td nowrap><input id="get_opt-mpot" type="number"> <input type="submit" value=">" onclick="setParam('get_Opt(MPOT)');"></td>
 		</tr>
 		<tr>
-			<td>Количество литров до регенерации</td>
-			<td nowrap><input id="get_opt-ubr" type="number"> <input type="submit" value=">" onclick="setParam('get_Opt(UBR)');"></td>
+			<td>Сколько сбрасывать воду, если не было расхода за день, сек</td>
+			<td nowrap><input id="get_opt-dt" type="number"> <input type="submit" value=">" onclick="setParam('get_Opt(DT)');"></td>
+		</tr>
+		<tr>
+			<td><b>Регенерация</b></td><td></td>
 		</tr>
 		<tr>
 			<td>Час регенерации (0..23)</td>
@@ -53,8 +56,16 @@ function show_all() {
 			<td><input type="checkbox" id="get_opt-nrw" onChange="setParam('get_Opt(NRW)');"></td>
 		</tr>
 		<tr>
-			<td>Сколько сбрасывать воду, если не было расхода за день, сек</td>
-			<td nowrap><input id="get_opt-dt" type="number"> <input type="submit" value=">" onclick="setParam('get_Opt(DT)');"></td>
+			<td>Дней до регенерации обезжелезивателя</td>
+			<td nowrap><input id="get_opt-dbr" type="number"> <input type="submit" value=">" onclick="setParam('get_Opt(DBR)');"></td>
+		</tr>
+		<tr>
+			<td>Количество литров до регенерации обезжелезивателя</td>
+			<td nowrap><input id="get_opt-ubr" type="number"> <input type="submit" value=">" onclick="setParam('get_Opt(UBR)');"></td>
+		</tr>
+		<tr>
+			<td>Количество литров до регенерации умягчителя</td>
+			<td nowrap><input id="get_opt-ubrs" type="number"> <input type="submit" value=">" onclick="setParam('get_Opt(UBRS)');"></td>
 		</tr>
 		<tr>
 			<td><b>Аналоговые датчики</b></td><td></td>
@@ -65,7 +76,11 @@ function show_all() {
 		</tr>
 		<tr>
 			<td>Уровень пустого бака - авария, %</td>
-			<td nowrap><input id="get_opt-tl" type="number" step="0.01"> <input type="submit" value=">" onclick="setParam('get_Opt(TL)');"></td>
+			<td nowrap><input id="get_opt-te" type="number" step="0.01"> <input type="submit" value=">" onclick="setParam('get_Opt(TE)');"></td>
+		</tr>
+		<tr>
+			<td>Низкий уровень реагента - авария, %</td>
+			<td nowrap><input id="get_opt-we" type="number" step="0.01"> <input type="submit" value=">" onclick="setParam('get_Opt(WE)');"></td>
 		</tr>
 		<tr>
 			<td><b>Защиты</b></td><td></td>
