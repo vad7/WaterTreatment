@@ -1795,7 +1795,7 @@ xWgt_get:
 							//_itoa(Weight_adc_filter[Weight_adc_idx ? Weight_adc_idx - 1 : sizeof(Weight_adc_filter) / sizeof(Weight_adc_filter[0]) - 1], strReturn); // one reading
 							_itoa(Weight_adc_sum / (sizeof(Weight_adc_filter) / sizeof(Weight_adc_filter[0])), strReturn); // averaged
 						} else if(*x == '0') {      	// get_Wgt(0) - Zero (ADC)
-							_itoa((float)MC.Option.WeightZero, strReturn);
+							_itoa(MC.Option.WeightZero, strReturn);
 						} else if(*x == 'K') {      	// get_Wgt(K) - Coefficient
 							_dtoa(strReturn, MC.Option.WeightScale, 4);
 						} else if(*x == 'P') {      	// get_Wgt(P) - Pins

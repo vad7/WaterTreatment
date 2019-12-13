@@ -90,7 +90,7 @@ boolean linkStatusWiznet(boolean show)
 		if(st & W5500_DUPLEX) journal.printf(" Duplex Status: full duplex\n"); else journal.printf(" Duplex Status: half duplex\n");
 		journal.printf(" Register PHYCFGR: 0x%02x\n", st);
 #else
-		journal.printf(" %s%c ", st & W5500_SPEED ? "100" : "10", st & W5500_DUPLEX ? 'F' : 'H');
+		journal.jprintf(" %s%c[%02X] ", st & W5500_SPEED ? "100" : "10", st & W5500_DUPLEX ? 'F' : 'H', st);
 #endif
 	}
 	if(st & W5500_LINK) return true;
@@ -562,7 +562,7 @@ boolean pingServer()
 {
 	IPAddress ip;
 	if(SemaphoreTake(xWebThreadSemaphore,(W5200_TIME_WAIT/portTICK_PERIOD_MS))==pdFALSE)  {return false;}  // Захват семафора потока или ОЖИДАНИЕ W5200_TIME_WAIT, если семафор не получен то выходим
-	if(!check_address(MC.get_pingAdr(), ip)) {journal.printf("Wrong address ping server\n"); SemaphoreGive(xWebThreadSemaphore); return false;}  // адрес не верен, или DNS не работает - ничего не делаем
+	if(!check_address(MC.get_pingAdr(), ip)) {journal.printf("Wrong ping server\n"); SemaphoreGive(xWebThreadSemaphore); return false;}  // адрес не верен, или DNS не работает - ничего не делаем
  	// Адрес правильный
 	ping.setTimeout(W5200_TIME_PING);                   // время между попытками пинга мсек
 	WDT_Restart(WDT);                                   // Сбросить вачдог

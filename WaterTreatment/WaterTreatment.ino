@@ -649,7 +649,7 @@ void vWeb0(void *)
 				if(!MC.NO_Power) {
 					boolean lst = linkStatusWiznet(false);
 					if(!lst || !network_last_link) {
-						if(!lst) journal.printf("%s no link, resetting . . .\n", nameWiznet);
+						if(!lst) journal.jprintf(pP_TIME, "%s no link[%02X], resetting...\n", nameWiznet, W5100.readPHYCFGR());
 						MC.fNetworkReset = true;                          // Послать команду сброса и применения сетевых настроек
 						MC.num_resW5200++;              // Добавить счетчик инициализаций
 						active = false;

@@ -1,6 +1,4 @@
 /*
- * Copyright (c) 2019 by Vadim Kulakov vad7@yahoo.com, vad711
-  *
  * This file is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
  * License as published by the Free Software Foundation; either
@@ -20,22 +18,23 @@
 #include "Constant.h"                       // Вся конфигурация и константы проекта Должен быть первым !!!!
 
 // Константы 
-#define ADR_SMS_RU       "sms.ru"
-#define ADR_SMSC_RU      "smsc.ru"
-#define ADR_SMSC_UA      "smsc.ua"
-#define ADR_SMSCLUB_UA   "gate.smsclub.mobi"
-#define LEN_TEMPBUF      250                // Длина рабочего буфера используемого для работы уведомлений
-#define LEN_RETMAIL      100                // Длина ответа почты
+const char ADR_SMS_RU[]     = "sms.ru";
+const char ADR_SMSC_RU[]    = "smsc.ru";
+const char ADR_SMSC_UA[]    = "smsc.ua";
+const char ADR_SMSCLUB_UA[] = "gate.smsclub.mobi";
+#define LEN_TEMPBUF      256                // Длина рабочего буфера используемого для работы уведомлений
+#define LEN_RETMAIL      128                // Длина ответа почты
 #define LEN_RETSMS       64                 // Длина ответа sms
+#define LEN_RETTEST      220                // Длина ответа от посылки тестового УВЕДОМЛЕНИЯ для экономии места он единый для писем и смс
 #define REPEAT_TIME      (3*60*60)          // Время посылки дублирующего сообщения (повтор одинаковых сообщений) сек
 
 
 // Структуры
 // Структура для хранения параметров уведомлений.
-// Работа с отдельными флагами type_message
+// Работа с отдельными флагами type_messageHP
 #define fMail            0                  // флаг уведомления скидывать на почту 
 #define fMailAUTH        1                  // флаг необходимости авторизации на почтовом сервере
-#define fMailInfo        2                  // флаг необходимости добавления в письмо информации о состянии 
+#define fMailInfo        2                  // флаг необходимости добавления в письмо информации о состянии ТН
 #define fSMS             3                  // флаг уведомления скидывать на СМС
 #define fMessageReset    4                  // флаг уведомления Сброс
 #define fMessageError    5                  // флаг уведомления Ошибка
@@ -45,7 +44,7 @@
 #define fMessageWarning  9                  // флаг уведомления "Прочие уведомления"
 
 // Настройки уведомлений
-struct type_message
+struct type_messageHP
 {
  uint16_t flags;                             // Флаги уведомлений до 16 флагов
 // настройки соединения с SMTP
@@ -63,7 +62,9 @@ struct type_message
  char sms_p1[40];                            // первый параметр для отправки смс
  char sms_p2[40];                            // второй параметр для отправки смс
 // настройки самих сообщений
- int16_t mTAIR;                               // Критическая температура в доме (если меньше то генерится уведомление)
+ int16_t mTIN;                               // Критическая температура в доме (если меньше то генерится уведомление)
+ int16_t mTBOILER;                           // Критическая температура бойлера (если меньше то генерится уведомление)
+ int16_t mTCOMP;                             // Критическая температура компрессора (если больше то генерится уведомление)
  int16_t P1,P2;
 };
 // Само уведомление (данные)
@@ -79,7 +80,7 @@ struct type_messageData
 class Message
   {
    public:
-     void initMessage();                                                    // Инициализация переменных
+     void initMessage(uint8_t web_task);                                    // Инициализация переменных параметр - номер потока сервера в котором запускается отправка уведомлений
      boolean setMessage(MESSAGE ms, char *c, int p1);                       // Установить уведомление (сформировать для отправки но НЕ ОТПРАВЛЯТЬ)
      boolean setTestMail();                                                 // Установить (сформировать) тестовое письмо, отправка sendMessage();  
      boolean setTestSMS();                                                  // Установить (сформировать) тестовое СМС, отправка sendMessage();  
@@ -98,18 +99,14 @@ class Message
      int32_t load(int32_t adr);                                             // Считать настройки из eeprom i2c на входе адрес с какого, на выходе конечный адрес, число меньше 0 это код ошибки 
      int32_t loadFromBuf(int32_t adr, byte *buf);                           // Считать настройки из буфера на входе адрес с какого, на выходе конечный адрес, число меньше 0 это код ошибки 
      uint16_t get_crc16(uint16_t crc);                                      // Рассчитать контрольную сумму для данных на входе входная сумма на выходе новая
-     char    retTest[220];                                                  // ПОСЛЕДНИЙ ответ от посылки тестового УВЕДОМЛЕНИЯ для экономии места он единый для писем и смс
             
    private:
     uint32_t sendTime;                                                       // время отправки последнего уведомления
-    char tempBuf[LEN_TEMPBUF+1];                                             // буфер для работы уведомлений, используется и на прием и на отправку
     EthernetClient clientMessage;                                            // Клиент для отправки уведомлений
     boolean dnsUpadateSMS;                                                   // Флаг необходимости обновления через dns IP адреса для смс
     boolean dnsUpadateSMTP;                                                  // Флаг необходимости обновления через dns IP адреса для smtp
-    char retMail[LEN_RETMAIL+1];                                             // ответ сервера при отправке почты
-    char retSMS[LEN_RETSMS];                                                 // ответ сервера при отправке sms  
     // Уведомления
-    type_message     messageSetting;                                       // Структура для хранения НАСТРОЕК уведомлений
+    type_messageHP     messageSetting;                                       // Структура для хранения НАСТРОЕК уведомлений
     type_messageData   messageData;                                          // Структура для хранения уведомления (ДАННЫЕ)
     MESSAGE lastmessageSetting;                                              // последнее отправленное уведомление 
     boolean waitSend;                                                        // true - есть не отправленные сообщения
@@ -118,6 +115,18 @@ class Message
     boolean sendSMSC();                                                      // Отправить SMS через smsc.ru
     boolean sendSMSCLUB();                                                   // Отправить SMS через smsclub.mobi (Ukraine)
     boolean SendCommandSMTP(char *c,boolean w);                              // Послать команду SMTP серверу  и разобрать ответ  
+    void clearBuf(){tempBuf[0]=0x00;retMail[0]=0x00;retSMS[0]=0x00;/*retTest[0]=0x00;*/};// очистка рабочих буферов перед отправкой уведомления
+    // Рабочие буфера для отправки увеломлений
+    // Для экономии места используется выходной буфер MAIN_WEB_TASK потока веб сервера Socket[MAIN_WEB_TASK].outBuf[3*W5200_MAX_LEN] (в этом потоке ДОЛЖЕН проводится запуск уведомлений и буфер гарантированно не используется другими задачами)
+    // Размер выходного буфера char outBuf[3*W5200_MAX_LEN] - 6 кБ - хватит на все. Распределение памяти в выходном буфере:
+    //  смещение 0                                  -  tempBuf[LEN_TEMPBUF] - буфер для работы уведомлений, используется и на прием и на отправку, длина до LEN_TEMPBUF
+    //  смещение LEN_TEMPBUF                        -  retMail[LEN_RETMAIL] - ответ сервера при отправке почты, длина до  LEN_RETMAIL
+    //  смещение LEN_TEMPBUF+LEN_RETMAIL            -  retSMS[LEN_RETSMS]   - ответ сервера при отправке sms, длина до  LEN_RETSMS
+    //  смещение LEN_TEMPBUF+LEN_RETMAIL+LEN_RETSMS -  retTest[LEN_RETTEST] - ПОСЛЕДНИЙ ответ от посылки тестового УВЕДОМЛЕНИЯ для экономии места он единый для писем и смс, длина до  LEN_RETTEST
+    char *tempBuf;                       // буфер для работы уведомлений, используется и на прием и на отправку
+    char *retMail;                       // ответ сервера при отправке почты
+    char *retSMS;                        // ответ сервера при отправке sms
+    char retTest[LEN_RETTEST];           // ПОСЛЕДНИЙ ответ от посылки тестового УВЕДОМЛЕНИЯ для экономии места он единый для писем и смс. К сожалению ответ возвращается в запросе от любого потока и поэтому должен храниться отдельно.
   };
 
 #endif  

@@ -73,17 +73,17 @@ void MainClass::init()
 
 	// Инициалаизация модбаса  перед частотником и счетчиком
 	journal.jprintf("Init Modbus RTU via RS485:");
-	if(Modbus.initModbus() == OK) journal.jprintf(" OK\r\n");                //  выводим сообщение об установлении связи
+	if(Modbus.initModbus() == OK) journal.jprintf(" OK\n");      //  выводим сообщение об установлении связи
 	else {
-		journal.jprintf(" not present config\r\n");
+		journal.jprintf(" Failed\n");
 	}         //  нет в конфигурации
 
 	dPWM.initPWM();                                           // инициалаизация счетчика
-	message.initMessage();                                  // Инициализация Уведомлений
+	message.initMessage(MAIN_WEB_TASK);                       // Инициализация Уведомлений, параметр - номер потока сервера в котором идет отправка
 #ifdef MQTT
-	clMQTT.initMQTT();                                      // Инициализация MQTT
+	clMQTT.initMQTT(MAIN_WEB_TASK);                           // Инициализация MQTT, параметр - номер потока сервера в котором идет отправка
 #endif
-	resetSetting();                                          // все переменные
+	resetSetting();                                           // все переменные
 }
 // Стереть последнюю ошибку
 void MainClass::eraseError()
