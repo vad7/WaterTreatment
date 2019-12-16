@@ -24,10 +24,8 @@
  */
 #include "SdSpiCard.h"
 // debug trace macro
-#define SD_TRACE(m, b)
-// #define SD_TRACE(m, b) Serial.print(m);Serial.println(b);
-#define SD_CS_DBG(m)
-// #define SD_CS_DBG(m) Serial.println(F(m));
+#define SD_TRACE(m, b)	//Serial.print(m);Serial.println(b);
+#define SD_CS_DBG(m)	//Serial.println(F(m));
 //==============================================================================
 uint8_t command_crc = 0;				// vad7
 #if USE_SD_CRC || USE_SD_CRC_FOR_WRITE	// vad7

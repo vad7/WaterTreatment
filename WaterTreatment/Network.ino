@@ -583,7 +583,7 @@ boolean pingServer()
 		return true;
 	} else {
 #ifdef DONT_LOG_SUCCESS_PING
-		journal.printf(pP_TIME,"Ping[%d] %d.%d.%d.%d: FAILED - ", echoReply.data.seq, ip[0], ip[1], ip[2], ip[3]);
+		journal.printf(/*pP_TIME,*/"Ping[%d] %d.%d.%d.%d: FAILED - ", echoReply.data.seq, ip[0], ip[1], ip[2], ip[3]);
 #else
 		journal.printf("%d.%d.%d.%d: FAILED - ", ip[0], ip[1], ip[2], ip[3]);
 #endif

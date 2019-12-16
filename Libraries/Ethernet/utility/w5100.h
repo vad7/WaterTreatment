@@ -18,9 +18,9 @@
 //#include "utility/spi_dma.h"
 // ----------- Настройки либы ---------------
 extern uint8_t SPI_RATE; // делитель для SPI шины, 2=42MHz, 3=28MHz, 4=21MHz
-#define SPI_CS 10        // Ножка CS SPI для сети
+//#define SPI_CS 10        // Ножка CS SPI для сети
 
-#define W5500_EXEC_CMD_TIMEOUT 30000  // ms
+#define W5500_EXEC_CMD_TIMEOUT 15000  // ms
 //#define USE_ARDUINO_SPI_LIBRARY 0   // Стандартный  SPI
 #define  USE_NATIVE_SAM3X_SPI 1       // SPI DMA sam3x
 

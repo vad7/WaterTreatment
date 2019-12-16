@@ -18,10 +18,6 @@
 #include "Constant.h"                       // Вся конфигурация и константы проекта Должен быть первым !!!!
 
 // Константы 
-const char ADR_SMS_RU[]     = "sms.ru";
-const char ADR_SMSC_RU[]    = "smsc.ru";
-const char ADR_SMSC_UA[]    = "smsc.ua";
-const char ADR_SMSCLUB_UA[] = "gate.smsclub.mobi";
 #define LEN_TEMPBUF      256                // Длина рабочего буфера используемого для работы уведомлений
 #define LEN_RETMAIL      128                // Длина ответа почты
 #define LEN_RETSMS       64                 // Длина ответа sms
@@ -42,6 +38,9 @@ const char ADR_SMSCLUB_UA[] = "gate.smsclub.mobi";
 #define fMessageTemp     7                  // флаг уведомления Достижение граничной температуры
 #define fMessageSD       8                  // флаг уведомления "Проблемы с sd картой"
 #define fMessageWarning  9                  // флаг уведомления "Прочие уведомления"
+// Рабочие флаги
+#define fWF_MessageSendError 	0			// ошибка отправки email
+#define fWF_SMSSendError 		1			// ошибка отправки SMS
 
 // Настройки уведомлений
 struct type_messageHP
@@ -93,6 +92,10 @@ class Message
      boolean get_fMessageTemp(){return GETBIT(messageSetting.flags,fMessageTemp);}// чтение флага уведомлений Достижение граничной температуры
      boolean get_fMessageLife(){return GETBIT(messageSetting.flags,fMessageLife);}// чтение флага уведомлений Сигнал жизния
      
+     int16_t get_mTIN(){return messageSetting.mTIN;}                        // чтение Критическая температура в доме
+     int16_t get_mTBOILER(){return messageSetting.mTBOILER;}                // чтение Критическая температура бойлера
+     int16_t get_mTCOMP(){return messageSetting.mTCOMP;}                    // чтение Критическая температура компрессора
+
      uint8_t *get_save_addr(void) { return (uint8_t *)&messageSetting; } // Адрес структуры сохранения
      uint16_t get_save_size(void) { return sizeof(messageSetting); } // Размер структуры сохранения
      int32_t save(int32_t adr);                                             // Записать настройки в eeprom i2c на входе адрес с какого, на выходе конечный адрес, число меньше 0 это код ошибки
@@ -127,6 +130,7 @@ class Message
     char *retMail;                       // ответ сервера при отправке почты
     char *retSMS;                        // ответ сервера при отправке sms
     char retTest[LEN_RETTEST];           // ПОСЛЕДНИЙ ответ от посылки тестового УВЕДОМЛЕНИЯ для экономии места он единый для писем и смс. К сожалению ответ возвращается в запросе от любого потока и поэтому должен храниться отдельно.
+    uint16_t WorkFlags;
   };
 
 #endif  

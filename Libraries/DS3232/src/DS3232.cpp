@@ -158,9 +158,9 @@ byte DS3232::setDate(uint8_t date, uint8_t month, uint16_t year_NNNN)
  *----------------------------------------------------------------------*/
 byte DS3232::writeRTC(byte addr, byte *values, byte nBytes)
 {
-    Wire.beginTransmission(RTC_ADDR);
+    Wire.beginTransmission(RTC_ADDR, values, nBytes);
     Wire.write(addr);
-    while(nBytes--) Wire.write(*values++);
+    //while(nBytes--) Wire.write(*values++);
     return Wire.endTransmission(0);
 }
 

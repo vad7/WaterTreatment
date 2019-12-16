@@ -67,7 +67,7 @@ struct History_setup {
 // -----------------------------------------------------------------------------------------------------------------------------------
 //  Arduino DUE Core
 #ifdef CONFIG_1    // Имя и описание конфигурации и ОСОБЕННОСТИ конфигурации -------------------------------
-	#define TEST_BOARD 				// Тестовая плата!
+//	#define TEST_BOARD 				// Тестовая плата!
 
     #define CONFIG_NAME   "vad7"
     #define CONFIG_NOTE   "Обезжелезивание Quantum DMI-65, дозирование хлора, водоснабжение"
@@ -150,7 +150,7 @@ struct History_setup {
 		uint8_t SPI_RATE 			  = 2;	// делитель для SPI шины, 2=42MHz, 3=28MHz, 4=21MHz, 6=14MHz
 		#define SD_CLOCK				28	// частота SPI для SD карты в МГц
 		const boolean   defaultDHCP	=	false;
-		const IPAddress defaultIP		(192, 168, 0,   8);
+		const IPAddress defaultIP		(192, 168, 0,   199);
 		const IPAddress defaultSDNS		(  8,   8, 8,   8);
 		const IPAddress defaultGateway	(192, 168, 0,   1);
 	#else
