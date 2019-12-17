@@ -29,7 +29,7 @@ uint8_t update_RTC_store_memory(void);
 char* _itoa( int value, char *string);
 uint8_t _ftoa(char *outstr, float val, unsigned char precision);
 void _dtoa(char *outstr, int val, int precision);
-void LCD_print(char *buf);
+//void LCD_print(char *buf);
 void buffer_space_padding(char * buf, int add);
 
 #endif

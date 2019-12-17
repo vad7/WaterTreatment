@@ -1012,18 +1012,18 @@ int32_t round_div_int32(int32_t value, int16_t div)
 	return value;
 }
 
-// Send string to LCD with waiting delay 1ms between chars
-void LCD_print(char *buf)
-{
-	char ch;
-	while((ch = *buf++)) {
-		lcd.write(ch);
-		vTaskDelay(1);
-	}
-}
-
 inline void buffer_space_padding(char * buf, int add)
 {
 	while(add--) *buf++ = ' ';
 	*buf = '\0';
 }
+
+// Send string to LCD with waiting delay 1ms between chars
+//void LCD_print(char *buf)
+//{
+//	char ch;
+//	while((ch = *buf++)) {
+//		lcd.write(ch);
+//		vTaskDelay(1);
+//	}
+//}

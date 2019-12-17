@@ -30,9 +30,6 @@
 // Инициализация
 void Journal::Init()
 {
-	bufferTail = 0;
-	bufferHead = 0;
-	full = false;                   // Буфер не полный
 	err = OK;
 #ifdef DEBUG
 #ifndef DEBUG_NATIVE_USB
@@ -41,8 +38,11 @@ void Journal::Init()
 #endif
 
 #ifdef I2C_JOURNAL_IN_RAM     // журнал в памяти
+	bufferTail = 0;
+	bufferHead = 0;
+	full = 0;                   // Буфер не полный
 	memset(_data, 0, JOURNAL_LEN);
-	printf("\nSTART ----------------------\n");
+	printf("\nSTART ----\n");
 	printf("Init RAM journal, size %d . . .\n", JOURNAL_LEN);
 	return;
 #else                      // журнал во флеше
@@ -65,9 +65,12 @@ void Journal::Init()
 #ifdef DEBUG
 		SerialDbg.print("I2C journal not found! ");
 #endif
-		Format(bufI2C);
+		Format();
+		return;
 	}
 
+	bufferTail = bufferHead = -1;
+	full = 0;
 	for(i = 0; i < JOURNAL_LEN / W5200_MAX_LEN; i++)   // поиск журнала начала и конца, для ускорения читаем по W5200_MAX_LEN байт
 	{
 		WDT_Restart(WDT);
@@ -87,11 +90,11 @@ void Journal::Init()
 		if((ptr = (char*) memchr(bufI2C, I2C_JOURNAL_TAIL ,W5200_MAX_LEN)) != NULL) {
 			bufferTail=i*W5200_MAX_LEN+(ptr-bufI2C);
 		}
-		if((bufferTail != 0) && (bufferHead != 0)) break;
+		if((bufferTail >= 0) && (bufferHead >= 0)) break;
 	}
-	if(bufferTail < bufferHead) full = true;                   // Буфер полный
-	printf("\nSTART ----------------------\n");
-	printf("Found I2C journal: size %d bytes, head=0x%x, tail=0x%x\n", JOURNAL_LEN, bufferHead, bufferTail);
+	if(bufferTail < bufferHead) full = 1;                   // Буфер полный
+	printf("\nSTART ---\n");
+	printf("Found I2C journal: size %d bytes, head=%d, tail=%d\n", JOURNAL_LEN, bufferHead, bufferTail);
 #endif //  #ifndef I2C_EEPROM_64KB     // журнал в памяти
 }
 
@@ -122,33 +125,39 @@ boolean Journal::checkREADY()
 }
 
 // Форматирование журнала (инициализация I2C памяти уже проведена), sizeof(buf)=W5200_MAX_LEN
-void Journal::Format(char *buf)
+void Journal::Format(void)
 {
-	uint16_t i;
 	err = OK;
-	memset(buf, I2C_JOURNAL_FORMAT, W5200_MAX_LEN);
 	#ifdef DEBUG
 	SerialDbg.print("Formating I2C journal ");
 	#endif
-	for(i = 0; i < JOURNAL_LEN / W5200_MAX_LEN; i++) {
+//	memset(buf, I2C_JOURNAL_FORMAT, W5200_MAX_LEN);
+//	for(uint32_t i = 0; i < JOURNAL_LEN / W5200_MAX_LEN; i++) {
+//		#ifdef DEBUG
+//		SerialDbg.print("*");
+//		#endif
+//		if(i == 0) {
+//			buf[0] = I2C_JOURNAL_HEAD;
+//			buf[1] = I2C_JOURNAL_TAIL;
+//		} else {
+//			buf[0] = I2C_JOURNAL_FORMAT;
+//			buf[1] = I2C_JOURNAL_FORMAT;
+//		}
+//		if(writeEEPROM_I2C(I2C_JOURNAL_START + i * W5200_MAX_LEN, (byte*)&buf, W5200_MAX_LEN)) {
+//			err = ERR_WRITE_I2C_JOURNAL;
+//			#ifdef DEBUG
+//			SerialDbg.println(errorWriteI2C);
+//			#endif
+//			break;
+//		};
+//		WDT_Restart(WDT);
+//	}
+	uint8_t buf[] = { I2C_JOURNAL_HEAD, I2C_JOURNAL_TAIL };
+	if(writeEEPROM_I2C(I2C_JOURNAL_START, (uint8_t*)buf, sizeof(buf))) {
+		err = ERR_WRITE_I2C_JOURNAL;
 		#ifdef DEBUG
-		SerialDbg.print("*");
+		SerialDbg.println(errorWriteI2C);
 		#endif
-		if(i == 0) {
-			buf[0] = I2C_JOURNAL_HEAD;
-			buf[1] = I2C_JOURNAL_TAIL;
-		} else {
-			buf[0] = I2C_JOURNAL_FORMAT;
-			buf[1] = I2C_JOURNAL_FORMAT;
-		}
-		if(writeEEPROM_I2C(I2C_JOURNAL_START + i * W5200_MAX_LEN, (byte*)&buf, W5200_MAX_LEN)) {
-			err = ERR_WRITE_I2C_JOURNAL;
-			#ifdef DEBUG
-			SerialDbg.println(errorWriteI2C);
-			#endif
-			break;
-		};
-		WDT_Restart(WDT);
 	}
 	full = 0;                   // Буфер не полный
 	bufferHead = 0;
@@ -346,7 +355,7 @@ void Journal::_write(char *dataPtr)
 		memcpy(_data, dataPtr+len, numBytes-len);// Пишем в конец буфера с начала
 		bufferTail = numBytes-len;// Хвост начинает рости с начала буфера
 		bufferHead=bufferTail +1;// Буфер полный по этому начало стоит сразу за концом (затирание данных)
-		full=true;// буфер полный
+		full = 1;// буфер полный
 	} else   // Запись в один прием Буфер
 	{
 		memcpy(_data+bufferTail, dataPtr, numBytes);     // Пишем с конца очереди

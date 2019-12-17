@@ -721,21 +721,19 @@ void vWeb2(void *)
 // Задача Пользовательский интерфейс (MC.xHandleKeysLCD) "KeysLCD"
 void vKeysLCD( void * )
 {
-
-	lcd.begin(LCD_COLS, LCD_ROWS); // Setup: cols, rows
-	LCD_print((char*)"WaterTreatment v");
-	LCD_print((char*)VERSION);
-	lcd.setCursor(0, 1);
-	_delay(1);
-	LCD_print((char*)"Vadim Kulakov(c)2019");
-	lcd.setCursor(0, 2);
-	_delay(1);
-	LCD_print((char*)"vad7@yahoo.com");
 	pinMode(PIN_KEY_UP, INPUT_PULLUP);
 	pinMode(PIN_KEY_DOWN, INPUT_PULLUP);
 	pinMode(PIN_KEY_OK, INPUT_PULLUP);
+	lcd.begin(LCD_COLS, LCD_ROWS); // Setup: cols, rows
+	lcd.print((char*)"WaterTreatment v");
+	lcd.print((char*)VERSION);
+	lcd.setCursor(0, 2);
+	lcd.print((char*)"Vadim Kulakov(c)2019");
+	lcd.setCursor(0, 3);
+	lcd.print((char*)"vad7@yahoo.com");
+	vTaskDelay(3000);
 	static uint32_t DisplayTick = xTaskGetTickCount();
-	static char buffer[LCD_COLS + 1];
+	static char buffer[ALIGN(LCD_COLS + 1)];
 	//static uint32_t displayed_area = 0; // b1 - Yd,Days Fe,Soft
 	for(;;)
 	{
@@ -754,7 +752,7 @@ void vKeysLCD( void * )
 			// Days Fe:123 Soft:123
 			// Day: 0.000 Yd: 0.000
 			char *buf = buffer;
-			lcd.setCursor(0, 0); vTaskDelay(1);
+			lcd.setCursor(0, 0);
 			int32_t tmp = MC.sFrequency[FLOW].get_Value();
 			strcpy(buf, "F:"); buf += 2;
 			if(tmp < 10000) *buf++ = ' ';
@@ -764,43 +762,59 @@ void vKeysLCD( void * )
 			if(tmp < 10000) *buf++ = ' ';
 			buf = dptoa(buf, tmp, 3);
 			buffer_space_padding(buf, LCD_COLS - (buf - buffer));
-			LCD_print(buffer);
+			lcd.print(buffer);
 
-			lcd.setCursor(0, 1); vTaskDelay(1);
+			lcd.setCursor(0, 1);
 			strcpy(buf = buffer, "P: "); buf += 3;
 			buf = dptoa(buf, MC.sADC[PWATER].get_Value(), 2);
 			strcpy(buf, " Tank: "); buf += 7;
 			buf = dptoa(buf, MC.sADC[LTANK].get_Value() / 100, 0);
+			*buf++ = '%';
 			buffer_space_padding(buf, LCD_COLS - (buf - buffer));
 			lcd.print(buffer);
 
-			lcd.setCursor(0, 2); vTaskDelay(1);
-			strcpy(buf = buffer, "Days,Fe:"); buf += 8;
-			tmp = MC.WorkStats.DaysFromLastRegen;
-			if(tmp < 100) *buf++ = ' ';
-			buf = dptoa(buf, tmp, 0);
-			strcpy(buf = buffer, " Soft:"); buf += 6;
-			tmp = MC.WorkStats.DaysFromLastRegenSoftening;
-			if(tmp < 100) *buf++ = ' ';
-			buf = dptoa(buf, tmp, 0);
-			buffer_space_padding(buf, LCD_COLS - (buf - buffer));
-			LCD_print(buffer);
-
-			lcd.setCursor(0, 3); vTaskDelay(1);
+			lcd.setCursor(0, 2);
 			strcpy(buf = buffer, "Day:"); buf += 4;
 			tmp = MC.RTC_store.UsedToday;
 			if(tmp < 10000) *buf++ = ' ';
 			buf = dptoa(buf, tmp, 3);
-			strcpy(buf = buffer, " Yd:"); buf += 4;
+			strcpy(buf, " Yd:"); buf += 4;
 			tmp = MC.WorkStats.UsedYesterday;
 			if(tmp < 10000) *buf++ = ' ';
 			buf = dptoa(buf, tmp, 3);
 			buffer_space_padding(buf, LCD_COLS - (buf - buffer));
 			lcd.print(buffer);
 
+			lcd.setCursor(0, 3);
+			buf = buffer; *buf = '\0';
+			// 12345678901234567890
+			// FLOOD! EMPTY! ERR-21
+			if(FloodingError) {
+				strcpy(buf, "FLOOD! "); buf += 7;
+			}
+			if(TankEmpty) {
+				strcpy(buf, "EMPTY! "); buf += 7;
+			}
+			if(MC.get_errcode()) {
+				strcpy(buf, "ERR"); buf += 3;
+				buf = dptoa(buf, MC.get_errcode(), 0);
+			}
+			if(buf == buffer) {
+				strcpy(buf = buffer, "Days,Fe:"); buf += 8;
+				tmp = MC.WorkStats.DaysFromLastRegen;
+				if(tmp < 100) *buf++ = ' ';
+				buf = dptoa(buf, tmp, 0);
+				strcpy(buf, " Soft:"); buf += 6;
+				tmp = MC.WorkStats.DaysFromLastRegenSoftening;
+				if(tmp < 100) *buf++ = ' ';
+				buf = dptoa(buf, tmp, 0);
+			}
+			buffer_space_padding(buf, LCD_COLS - (buf - buffer));
+			lcd.print(buffer);
+
 			DisplayTick = xTaskGetTickCount();
 		}
-		vTaskDelay(10);
+		vTaskDelay(KEY_CHECK_PERIOD);
 	}
 
 	vTaskDelete( NULL );
@@ -1058,7 +1072,6 @@ void vPumps( void * )
 				}
 			} else FloodingTime = 0;
 		}
-		if((!FloodingError && MC.get_errcode() == ERR_FLOODING) || (!TankEmpty && MC.get_errcode() == ERR_TANK_EMPTY)) MC.eraseError();
 
 		// Water Booster
 		if(!WaterBoosterStatus && !WaterBoosterError && !FloodingError && press != ERROR_PRESS && !TankEmpty
@@ -1206,11 +1219,6 @@ void vService(void *)
 		register uint32_t t = GetTickCount();
 		if(t - timer_sec >= 1000) { // 1 sec
 			timer_sec = t;
-
-			if(++task_updstat_chars >= MC.get_tChart()) { // пришло время
-				task_updstat_chars = 0;
-				MC.updateChart();                                       // Обновить графики
-			}
 			uint8_t m = rtcSAM3X8.get_minutes();
 			if(m != task_updstat_countm) { 								// Через 1 минуту
 				task_updstat_countm = m;
@@ -1252,33 +1260,37 @@ void vService(void *)
 				if(MC.dRelay[RSTARTREG2].get_Relay() && !(MC.RTC_store.Work & RTC_Work_Regen_F2)) { // 1 minute passed but regeneration did not start
 					set_Error(ERR_START_REG2, (char*)__FUNCTION__);
 				}
-				if(!WaterBoosterError && !FloodingError && !TankEmpty && MC.get_errcode() != ERR_START_REG && MC.get_errcode() != ERR_START_REG2
-						&& !(MC.RTC_store.Work & RTC_Work_Regen_MASK) && rtcSAM3X8.get_hours() == MC.Option.RegenHour) {
-					uint32_t need_regen = 0;
-					if((MC.Option.DaysBeforeRegen && MC.WorkStats.DaysFromLastRegen >= MC.Option.DaysBeforeRegen) || (MC.Option.UsedBeforeRegen && MC.WorkStats.UsedSinceLastRegen + MC.RTC_store.UsedToday >= MC.Option.UsedBeforeRegen))
-						need_regen |= RTC_Work_Regen_F1;
-					else if(MC.Option.UsedBeforeRegenSoftener && MC.WorkStats.UsedSinceLastRegenSoftening + MC.RTC_store.UsedToday >= MC.Option.UsedBeforeRegenSoftener)
-						need_regen |= RTC_Work_Regen_F2;
-					if(need_regen) {
+				if(!FloodingError && !TankEmpty && !WaterBoosterError) {
+					int err = MC.get_errcode();
+					if(err == ERR_FLOODING || err == ERR_TANK_EMPTY) MC.eraseError();
+					if(err != ERR_START_REG && err != ERR_START_REG2
+							&& !(MC.RTC_store.Work & RTC_Work_Regen_MASK) && rtcSAM3X8.get_hours() == MC.Option.RegenHour) {
+						uint32_t need_regen = 0;
+						if((MC.Option.DaysBeforeRegen && MC.WorkStats.DaysFromLastRegen >= MC.Option.DaysBeforeRegen) || (MC.Option.UsedBeforeRegen && MC.WorkStats.UsedSinceLastRegen + MC.RTC_store.UsedToday >= MC.Option.UsedBeforeRegen))
+							need_regen |= RTC_Work_Regen_F1;
+						else if(MC.Option.UsedBeforeRegenSoftener && MC.WorkStats.UsedSinceLastRegenSoftening + MC.RTC_store.UsedToday >= MC.Option.UsedBeforeRegenSoftener)
+							need_regen |= RTC_Work_Regen_F2;
+						if(need_regen) {
 #ifdef TANK_ANALOG_LEVEL
-						if(MC.sADC[LTANK].get_Value() >= MC.sADC[LTANK].get_maxValue()) {
+							if(MC.sADC[LTANK].get_Value() >= MC.sADC[LTANK].get_maxValue()) {
 #else
-						if(MC.sInput[TANK_FULL].get_Input()) {
+							if(MC.sInput[TANK_FULL].get_Input()) {
 #endif
-							if((need_regen & RTC_Work_Regen_F1) && !MC.dRelay[RSTARTREG].get_Relay()) {
-								journal.jprintf(pP_DATE, "Regen F1 start\n");
-								MC.dRelay[RWATEROFF].set_ON();
-								MC.dRelay[RSTARTREG].set_ON();
-							} else if((need_regen & RTC_Work_Regen_F2) && !MC.dRelay[RSTARTREG2].get_Relay()) {
-								journal.jprintf(pP_DATE, "Regen F2 start\n");
-								MC.dRelay[RSTARTREG2].set_ON();
+								if((need_regen & RTC_Work_Regen_F1) && !MC.dRelay[RSTARTREG].get_Relay()) {
+									journal.jprintf(pP_DATE, "Regen F1 start\n");
+									MC.dRelay[RWATEROFF].set_ON();
+									MC.dRelay[RSTARTREG].set_ON();
+								} else if((need_regen & RTC_Work_Regen_F2) && !MC.dRelay[RSTARTREG2].get_Relay()) {
+									journal.jprintf(pP_DATE, "Regen F2 start\n");
+									MC.dRelay[RSTARTREG2].set_ON();
+								}
+							} else {
+								MC.dRelay[RFILL].set_ON();	// Start filing tank
 							}
-						} else {
-							MC.dRelay[RFILL].set_ON();	// Start filing tank
 						}
 					}
 				}
-			} else {
+			} else { // Every 1 sec except updstat sec
 				if(NeedSaveWorkStats) {
 					if(MC.save_WorkStats() == OK) NeedSaveWorkStats = 0;
 				} else if((NeedSaveRTC & (1<<bRTC_Urgently)) || (NeedSaveRTC && m != task_every_min)) {
@@ -1329,6 +1341,10 @@ void vService(void *)
 						}
 					}
 				}
+			}
+			if(++task_updstat_chars >= MC.get_tChart()) { // пришло время
+				task_updstat_chars = 0;
+				MC.updateChart();                                       // Обновить графики
 			}
 			Stats.CheckCreateNewFile();
 			if(ResetDUE_countdown && --ResetDUE_countdown == 0) Software_Reset();      // Сброс

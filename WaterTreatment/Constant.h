@@ -56,7 +56,7 @@ const uint16_t  defaultPort=80;
 #define GETBIT(b,f)   ((b&(1<<(f)))?true:false)              // получить состяние бита
 #define SETBIT1(b,f)  (b|=(1<<(f)))                          // установка бита в 1
 #define SETBIT0(b,f)  (b&=~(1<<(f)))                         // установка бита в 0
-
+#define ALIGN(a) ((a + 3) & ~3)
 // ------------------- SPI ----------------------------------
 // Карта памяти
 #define SD_REPEAT         3                 // Число попыток чтения карты, открытия файлов, при неудаче переход на работу без карты
@@ -105,9 +105,53 @@ const uint16_t  defaultPort=80;
 #define PWM_NUM_READ        2              // Число попыток чтения счетчика (подряд) до ошибки
 #define PWM_DELAY_REPEAT    50             // мсек Время между ПОВТОРНЫМИ попытками чтения
 
-#define DISPLAY_UPDATE		2500             // Время обновления информации на дисплее (мсек)
+#define DISPLAY_UPDATE		2500           // Время обновления информации на дисплее (мсек)
+#define KEY_CHECK_PERIOD	10				// ms
 
 #define TIMER_TO_SHOW_STATUS 2500			// мсек, Время показа активного состояния (дозирующего насоса, ...)
+
+// ------------------- ОБЩИЕ НАСТРОЙКИ ----------------------------------
+#define LCD_COLS			20			// Колонок на LCD экране
+#define LCD_ROWS			4			// Строк на LCD экране
+// ------------------- SENSOR TEMP----------------------------------
+#define MAX_TEMP_ERR      700            // Максимальная систематическая ошибка датчика температуры (сотые градуса)
+#define NUM_READ_TEMP_ERR 10             // Число ошибок подряд чтения датчика температуры после которого считается что датчик не исправен
+#define RES_ONEWIRE_ERR   3              // Число попыток сброса датчиков температуры перед генерацией ошибки шины
+
+#define FREQ_BASE_TIME_READ 1            // Частотные датчики - время (сек) на котором измеряется число импульсов, в конце идет пересчет в частоту
+
+// ------------------- MQTT ----------------------------------
+#define MQTT_REPEAT                      // Делать попытку повторного соединения с сервером
+#define MQTT_NUM_ERR_OFF   8             // Число ошибок отправки подряд при котором отключается сервис отправки MQTT (флаг сбрасывается)
+
+#define DEFAULT_PORT_MQTT 1883           // Адрес порта сервера MQTT
+#define DEFAULT_TIME_MQTT (3*60)         // период отправки на сервер в сек. 10...60000
+#define DEFAULT_ADR_MQTT "mqtt.thingspeak.com"   // Адрес MQTT сервера по умолчанию
+#define DEFAULT_ADR_NARMON "narodmon.ru" // Адрес сервера народного мониторинга
+#define TIME_NARMON       (5*60)         // (сек) Период отправки на народный монитоинг (константа) меньше 5 минут не ставить
+
+// ------------------- HEAP ----------------------------------
+#define PASS_LEN          10             // Максимальная длина пароля для входа на контроллер
+#define NAME_USER         "user"         // имя пользователя
+#define NAME_ADMIN        "admin"        // имя администратора
+//#define FILE_STATISTIC    "statistic.csv"// имя файла статистики за ТЕКУШИЙ период
+
+#define HOUR_SIGNAL_LIFE  12             // Час когда генерится сигнал жизни
+
+#define ATOF_ERROR       -9876543.0f     // Код ошибки преобразования строки во флоат
+
+//----------------------- WEB ----------------------------
+const char WEB_HEADER_OK_CT[] 			= "HTTP/1.1 200 OK\r\nAccess-Control-Allow-Origin: *\r\nContent-Type: ";
+const char WEB_HEADER_TEXT_ATTACH[] 	= "text/plain\r\nContent-Disposition: attachment; filename=\"";
+const char WEB_HEADER_BIN_ATTACH[] 		= "application/x-binary\r\nContent-Disposition: attachment; filename=\"";
+const char WEB_HEADER_TXT_KEEP[] 		= "text/html\r\nConnection: keep-alive";
+const char WEB_HEADER_END[]				= "\r\n\r\n";
+const char* HEADER_FILE_NOT_FOUND = {"HTTP/1.1 404 Not Found\r\n\r\n<html>\r\n<head><title>404 NOT FOUND</title><meta charset=\"utf-8\" /></head>\r\n<body><h1>404 NOT FOUND</h1></body>\r\n</html>\r\n\r\n"};
+//const char* HEADER_FILE_WEB       = {"HTTP/1.1 200 OK\r\nContent-Type: text/html\r\nConnection: keep-alive\r\n\r\n"}; // КЕШ НЕ ИСПОЛЬЗУЕМ
+const char* HEADER_FILE_WEB       = {"HTTP/1.1 200 OK\r\nContent-Type: text/html\r\nConnection: keep-alive\r\nCache-Control: max-age=3600, must-revalidate\r\n\r\n"}; // КЕШ ИСПОЛЬЗУЕМ
+const char* HEADER_FILE_CSS       = {"HTTP/1.1 200 OK\r\nContent-Type: text/css\r\nConnection: keep-alive\r\nCache-Control: max-age=3600, must-revalidate\r\n\r\n"}; // КЕШ ИСПОЛЬЗУЕМ
+const char* HEADER_ANSWER         = {"HTTP/1.1 200 OK\r\nContent-Type: text/ajax\r\nAccess-Control-Allow-Origin: *\r\n\r\n"};  // начало ответа на запрос
+static uint8_t  fWebUploadingFilesTo = 0;                // Куда грузим файлы: 1 - SPI flash, 2 - SD card
 
 // ------------------- I2C ----------------------------------
 // Устройства I2C Размер и тип памяти, определен в config.h т.к. он часто меняется
@@ -168,48 +212,6 @@ const uint16_t  defaultPort=80;
 #define SAVE_TYPE_LIMIT			-100
 
 #define RTC_STORE_ADDR RTC_ALM1_SECONDS		// Starting address of RTC store memory
-// ------------------- ОБЩИЕ НАСТРОЙКИ ----------------------------------
-#define LCD_COLS			20			// Колонок на LCD экране
-#define LCD_ROWS			4			// Строк на LCD экране
-// ------------------- SENSOR TEMP----------------------------------
-#define MAX_TEMP_ERR      700            // Максимальная систематическая ошибка датчика температуры (сотые градуса)
-#define NUM_READ_TEMP_ERR 10             // Число ошибок подряд чтения датчика температуры после которого считается что датчик не исправен
-#define RES_ONEWIRE_ERR   3              // Число попыток сброса датчиков температуры перед генерацией ошибки шины
-
-#define FREQ_BASE_TIME_READ 1            // Частотные датчики - время (сек) на котором измеряется число импульсов, в конце идет пересчет в частоту
-
-// ------------------- MQTT ----------------------------------
-#define MQTT_REPEAT                      // Делать попытку повторного соединения с сервером
-#define MQTT_NUM_ERR_OFF   8             // Число ошибок отправки подряд при котором отключается сервис отправки MQTT (флаг сбрасывается)
-
-#define DEFAULT_PORT_MQTT 1883           // Адрес порта сервера MQTT
-#define DEFAULT_TIME_MQTT (3*60)         // период отправки на сервер в сек. 10...60000
-#define DEFAULT_ADR_MQTT "mqtt.thingspeak.com"   // Адрес MQTT сервера по умолчанию
-#define DEFAULT_ADR_NARMON "narodmon.ru" // Адрес сервера народного мониторинга
-#define TIME_NARMON       (5*60)         // (сек) Период отправки на народный монитоинг (константа) меньше 5 минут не ставить
-
-// ------------------- HEAP ----------------------------------
-#define PASS_LEN          10             // Максимальная длина пароля для входа на контроллер
-#define NAME_USER         "user"         // имя пользователя
-#define NAME_ADMIN        "admin"        // имя администратора
-//#define FILE_STATISTIC    "statistic.csv"// имя файла статистики за ТЕКУШИЙ период
-
-#define HOUR_SIGNAL_LIFE  12             // Час когда генерится сигнал жизни
-
-#define ATOF_ERROR       -9876543.0f     // Код ошибки преобразования строки во флоат
-
-//----------------------- WEB ----------------------------
-const char WEB_HEADER_OK_CT[] 			= "HTTP/1.1 200 OK\r\nAccess-Control-Allow-Origin: *\r\nContent-Type: ";
-const char WEB_HEADER_TEXT_ATTACH[] 	= "text/plain\r\nContent-Disposition: attachment; filename=\"";
-const char WEB_HEADER_BIN_ATTACH[] 		= "application/x-binary\r\nContent-Disposition: attachment; filename=\"";
-const char WEB_HEADER_TXT_KEEP[] 		= "text/html\r\nConnection: keep-alive";
-const char WEB_HEADER_END[]				= "\r\n\r\n";
-const char* HEADER_FILE_NOT_FOUND = {"HTTP/1.1 404 Not Found\r\n\r\n<html>\r\n<head><title>404 NOT FOUND</title><meta charset=\"utf-8\" /></head>\r\n<body><h1>404 NOT FOUND</h1></body>\r\n</html>\r\n\r\n"};
-//const char* HEADER_FILE_WEB       = {"HTTP/1.1 200 OK\r\nContent-Type: text/html\r\nConnection: keep-alive\r\n\r\n"}; // КЕШ НЕ ИСПОЛЬЗУЕМ
-const char* HEADER_FILE_WEB       = {"HTTP/1.1 200 OK\r\nContent-Type: text/html\r\nConnection: keep-alive\r\nCache-Control: max-age=3600, must-revalidate\r\n\r\n"}; // КЕШ ИСПОЛЬЗУЕМ
-const char* HEADER_FILE_CSS       = {"HTTP/1.1 200 OK\r\nContent-Type: text/css\r\nConnection: keep-alive\r\nCache-Control: max-age=3600, must-revalidate\r\n\r\n"}; // КЕШ ИСПОЛЬЗУЕМ
-const char* HEADER_ANSWER         = {"HTTP/1.1 200 OK\r\nContent-Type: text/ajax\r\nAccess-Control-Allow-Origin: *\r\n\r\n"};  // начало ответа на запрос
-static uint8_t  fWebUploadingFilesTo = 0;                // Куда грузим файлы: 1 - SPI flash, 2 - SD card
 
 // Константы регистров контроллера питания SOPC SAM3x ---------------------------------------
 // Регистр SMMR
@@ -287,8 +289,6 @@ const uint8_t save_end_marker[1] = { 0 };
 const char SendMessageTitle[]	= "Водоподготовка";
 const char SendSMSTitle[] 		= "Water";
 
-
-// Многозадачность, деление аппартных ресурсов
 const char *nameFREERTOS =     {"FreeRTOS"};           // Имя источника ошибки (нужно для передачи в функцию) - операционная система
 const char *nameMainClass =    {"WaterTreatment"};     // Имя (для лога ошибок)
 const char *MutexI2CBuzy =     {"I2C"}; 

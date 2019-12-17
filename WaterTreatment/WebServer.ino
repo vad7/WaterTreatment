@@ -793,14 +793,12 @@ xSaveStats:		if((i = MC.save_WorkStats()) == OK)
 			} else if (strcmp(str,"JOURNAL")==0)   // RESET_JOURNAL,  Команда очистки журнала (в зависимости от типа)
 			{
 #ifdef I2C_JOURNAL_IN_RAM     // журнал в памяти
-				strcat(strReturn,"Сброс системного журнала в RAM . . .");
+				strcat(strReturn,"Сброс журнала в RAM");
 				journal.Clear();       // Послать команду на очистку журнала в памяти
-				journal.jprintf("Reset system RAM journal . . .\n");
+				journal.jprintf("Reset RAM journal.\n");
 #else                      // Журнал в ЕЕПРОМ
-				journal.Format(strReturn);
-				//MC.sendCommand(pJFORMAT);        // Послать команду форматирование журнала
-				strcpy(strReturn, HEADER_ANSWER);   // Начало ответа
-				strcat(strReturn,"OK");
+				journal.Format();
+				strcat(strReturn, "OK");
 #endif
 			} else if (strcmp(str,"DUE")==0)   // RESET_DUE, Команда сброса контроллера
 			{

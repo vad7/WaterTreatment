@@ -72,11 +72,6 @@
 			<location>G:/Electric/Arduino/libraries/HX711_Arduino_Library</location>
 		</link>
 		<link>
-			<name>libraries/LiquidCrystal</name>
-			<type>2</type>
-			<location>G:/Electric/Arduino/libraries/LiquidCrystal</location>
-		</link>
-		<link>
 			<name>libraries/ModbusMaster</name>
 			<type>2</type>
 			<location>G:/Electric/Arduino/libraries/ModbusMaster</location>
