@@ -789,10 +789,10 @@ void vKeysLCD( void * )
 			buf = buffer; *buf = '\0';
 			// 12345678901234567890
 			// FLOOD! EMPTY! ERR-21
-			if(FloodingError) {
+			if(CriticalErrors & ERRC_Flooding) {
 				strcpy(buf, "FLOOD! "); buf += 7;
 			}
-			if(TankEmpty) {
+			if(CriticalErrors & (ERRC_TankEmpty | ERRC_WeightLow)) {
 				strcpy(buf, "EMPTY! "); buf += 7;
 			}
 			if(MC.get_errcode()) {
@@ -1028,13 +1028,13 @@ void vPumps( void * )
 
 		// Read sensors
 		for(uint8_t i = 0; i < INUMBER; i++) MC.sInput[i].Read(true);		// Прочитать данные сухой контакт
-		TankEmpty = MC.sInput[TANK_EMPTY].get_Input();
+		if(MC.sInput[TANK_EMPTY].get_Input()) CriticalErrors |= ERRC_TankEmpty; else CriticalErrors &= ~ERRC_TankEmpty;
 		if(ADC_has_been_read) {		// Не чаще, чем ADC
 			ADC_has_been_read = false;
 			for(uint8_t i = 0; i < ANUMBER; i++) MC.sADC[i].Read();			// Прочитать данные с датчиков давления
-			if(MC.sADC[LTANK].get_Value() < MC.Option.LTANK_Empty) TankEmpty = true;
+			if(MC.sADC[LTANK].get_Value() < MC.Option.LTANK_Empty) CriticalErrors |= ERRC_TankEmpty;
 		}
-		if(TankEmpty) vPumpsNewError = ERR_TANK_EMPTY;
+		if(CriticalErrors & ERRC_TankEmpty) vPumpsNewError = ERR_TANK_EMPTY;
 
 		// Check Errors
 		int16_t press = MC.sADC[PWATER].get_Value();
@@ -1060,21 +1060,21 @@ void vPumps( void * )
 				if(MC.dRelay[RDRAIN].get_Relay()) MC.dRelay[RDRAIN].set_OFF();
 				MC.dRelay[RFEEDPUMP].set_OFF();
 				MC.dRelay[RWATEROFF].set_ON();
-				FloodingError = true;
+				CriticalErrors |= ERRC_Flooding;
 				if(WaterBoosterStatus > 0) goto xWaterBooster_OFF;
 			}
 		} else {
-			if(FloodingError) {
+			if(CriticalErrors & ERRC_Flooding) {
 				if(FloodingTime - rtcSAM3X8.unixtime() > MC.Option.FloodingTimeout) {
 					MC.dRelay[RWATEROFF].set_OFF();
-					FloodingError = false;
+					CriticalErrors &= ~ERRC_Flooding;
 					FloodingTime = 0;
 				}
 			} else FloodingTime = 0;
 		}
 
 		// Water Booster
-		if(!WaterBoosterStatus && !WaterBoosterError && !FloodingError && press != ERROR_PRESS && !TankEmpty
+		if(!CriticalErrors && press != ERROR_PRESS
 				&& WaterBoosterTimeout >= MC.Option.MinWaterBoostOffTime
 				&& press <= (MC.sInput[REG_ACTIVE].get_Input() || MC.sInput[REG_BACKWASH_ACTIVE].get_Input() || MC.sInput[REG2_ACTIVE].get_Input() ? MC.Option.PWATER_RegMin : MC.sADC[PWATER].get_minValue())) { // Starting
 			MC.dRelay[RBOOSTER1].set_ON();
@@ -1083,16 +1083,16 @@ void vPumps( void * )
 		} else if(WaterBoosterStatus > 0) {
 			if(WaterBoosterTimeout > MC.Option.PWM_StartingTime) {
 				if(MC.Option.PWM_DryRun && MC.dPWM.get_Power() < MC.Option.PWM_DryRun) { // Сухой ход
-					WaterBoosterError = true;
+					CriticalErrors |= ERRC_WaterBooster;
 					vPumpsNewError = ERR_PWM_DRY_RUN;
 					goto xWaterBooster_OFF;
 				} else if(MC.Option.PWM_Max && MC.dPWM.get_Power() > MC.Option.PWM_Max) { // Перегрузка
-					WaterBoosterError = true;
+					CriticalErrors |= ERRC_WaterBooster;
 					vPumpsNewError = ERR_PWM_MAX;
 					goto xWaterBooster_OFF;
 				}
 			}
-			if(WaterBoosterTimeout >= MC.Option.MinWaterBoostOnTime && (press >= MC.sADC[PWATER].get_maxValue() || TankEmpty)) { // Stopping
+			if(CriticalErrors || (WaterBoosterTimeout >= MC.Option.MinWaterBoostOnTime && press >= MC.sADC[PWATER].get_maxValue())) { // Stopping
 xWaterBooster_OFF:
 				if(WaterBoosterStatus == 1) {
 					MC.dRelay[RBOOSTER1].set_OFF();
@@ -1153,7 +1153,7 @@ xWaterBooster_OFF:
 				taskENTER_CRITICAL();
 				Charts_FillTank_work += TIME_SLICE_PUMPS * 100 / 1000; // in percent
 				taskEXIT_CRITICAL();
-			} else if(!FloodingError) {
+			} else if(!(CriticalErrors & ~ERRC_TankEmpty)) {
 				MC.dRelay[RFILL].set_ON();	// Start filling tank
 				FillingTankLastLevel = MC.sADC[LTANK].get_Value();
 				FillingTankTimer = millis();
@@ -1260,7 +1260,7 @@ void vService(void *)
 				if(MC.dRelay[RSTARTREG2].get_Relay() && !(MC.RTC_store.Work & RTC_Work_Regen_F2)) { // 1 minute passed but regeneration did not start
 					set_Error(ERR_START_REG2, (char*)__FUNCTION__);
 				}
-				if(!FloodingError && !TankEmpty && !WaterBoosterError) {
+				if(!CriticalErrors) {
 					int err = MC.get_errcode();
 					if(err == ERR_FLOODING || err == ERR_TANK_EMPTY) MC.eraseError();
 					if(err != ERR_START_REG && err != ERR_START_REG2

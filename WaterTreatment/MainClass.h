@@ -42,7 +42,6 @@ struct type_WorkStats {
 	uint16_t RegCntSoftening;
 } __attribute__((packed));
 
-
 #define RTC_Work_WeekDay_MASK		0x07	// Active weekday (1-7)
 #define RTC_Work_Regen_MASK			0x30	// 0 - not, bit - wait a regen hour
 #define RTC_Work_Regen_F1			0x10	// Iron remover
@@ -54,22 +53,29 @@ struct type_RTC_memory { // DS3231/DS3232 used alarm memory, starts from 0x07, m
 	volatile uint8_t  Work;			// 2. NeedRegen + WeekDay
 } __attribute__((packed));
 
+// Critical errors
+#define	ERRC_WaterBooster	0x01
+#define	ERRC_Flooding		0x02
+#define	ERRC_TankEmpty		0x04
+#define	ERRC_WeightLow		0x08
+volatile uint32_t CriticalErrors = 0;	// Stop any work when these errors have occurred
+int8_t   vPumpsNewError = 0;
+int8_t   Errors[16] = { 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0 };// Active Errors array
+uint32_t ErrorsTime[16];
+
 volatile bool ADC_has_been_read = false;
 int		 WaterBoosterStatus = 0; // 0 - выключено, 1 - вкл твердотельное, 2 - вкл обычное, 3 - выкл твердотельное, -1 - выкл твердотельное, -2 - выкл обычное, -3 - нужно выключить (вкл твердотельное)
-volatile bool WaterBoosterError = false;
+//bool 	WaterBoosterError = false;
+//volatile bool FloodingError = false;
+//bool	 TankEmpty = false;
 uint32_t WaterBoosterTimeout = 0;
-volatile bool FloodingError = false;
 uint32_t FloodingTime = 0;	// unixtime
 uint32_t FillingTankTimer = 0;
 int16_t  FillingTankLastLevel = 0;
-bool	 TankEmpty = false;
 uint32_t TimeFeedPump = 0;
-int8_t   vPumpsNewError = 0;
 uint8_t  NeedSaveWorkStats = 0;
 uint32_t TimerDrainingWater = 0;
 volatile bool NewRegenStatus = false;
-int8_t   Errors[15] = { 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0 };// Active Errors array
-uint32_t ErrorsTime[15];
 uint32_t ResetDUE_countdown = 0;
 bool	 DebugToSerialOn = false;
 

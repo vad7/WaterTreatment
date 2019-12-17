@@ -607,8 +607,12 @@ void parserGET(uint8_t thread, int8_t )
 		if(strncmp(str, "get_MODE", 8)==0) { // Функция get_MODE в каком состояниии
 			str += 8;
 			if(*str == 'D') {	// get_MODED
-				if(FloodingError) {
+				if(CriticalErrors & ERRC_Flooding) {
 					strcat(strReturn, "Затопление!");
+				} else if(CriticalErrors & ERRC_WaterBooster) {
+					strcat(strReturn, "Насосная ст.!");
+				} else if(CriticalErrors & ERRC_WeightLow) {
+					strcat(strReturn, "Реагент!");
 				} else if(MC.sInput[REG_ACTIVE].get_Input() || MC.sInput[REG_BACKWASH_ACTIVE].get_Input() || MC.sInput[REG2_ACTIVE].get_Input()) {
 					strcat(strReturn, "Регенерация");
 				} else if(MC.get_errcode()) {
@@ -829,8 +833,8 @@ xSaveStats:		if((i = MC.save_WorkStats()) == OK)
 			} else if (strcmp(str,"ERR")==0) // RESET_ERR
 			{
 				memset(Errors, 0, sizeof(Errors));
-				WaterBoosterError = false;
-				FloodingError = false;
+				memset(ErrorsTime, 0, sizeof(ErrorsTime));
+				CriticalErrors = 0;
 				MC.eraseError();
 			}
 			ADD_WEBDELIM(strReturn); continue;
@@ -955,7 +959,7 @@ xSaveStats:		if((i = MC.save_WorkStats()) == OK)
 				//getIDchip(strReturn); strcat(strReturn,";");
 				//strcat(strReturn,"Значение регистра VERSIONR сетевого чипа WizNet (51-w5100, 3-w5200, 4-w5500)|");_itoa(W5200VERSIONR(),strReturn);strcat(strReturn,";");
 
-				strReturn += m_snprintf(strReturn += strlen(strReturn), 256, "Состояние системы (Week: %d)|B:%d/%d R1:%d R2:%d F:%d E:%d Day:%d Reg:%d;", MC.RTC_store.Work & RTC_Work_WeekDay_MASK, WaterBoosterStatus, WaterBoosterError, !!(MC.RTC_store.Work & RTC_Work_Regen_F1), !!(MC.RTC_store.Work & RTC_Work_Regen_F2), FloodingError, TankEmpty, MC.RTC_store.UsedToday, MC.RTC_store.UsedRegen);
+				strReturn += m_snprintf(strReturn += strlen(strReturn), 256, "Состояние системы (Week: %d)|Err:%X B:%d R1:%d R2:%d Day:%d Reg:%d;", MC.RTC_store.Work & RTC_Work_WeekDay_MASK, CriticalErrors, WaterBoosterStatus, !!(MC.RTC_store.Work & RTC_Work_Regen_F1), !!(MC.RTC_store.Work & RTC_Work_Regen_F2), MC.RTC_store.UsedToday, MC.RTC_store.UsedRegen);
 				strReturn += m_snprintf(strReturn += strlen(strReturn), 256, "Состояние FreeRTOS при старте (task+err_code) <sup>2</sup>|0x%04X;", lastErrorFreeRtosCode);
 
 				startSupcStatusReg |= SUPC->SUPC_SR;                                  // Копим изменения
@@ -1100,9 +1104,9 @@ xSaveStats:		if((i = MC.save_WorkStats()) == OK)
 			if(strncmp(str, "get_Err", 7) == 0)  // Функция get_Err(X)
 			{
 				if(*x == 'B') { // get_Err(B) - WaterBoosterError
-					strcat(strReturn, WaterBoosterError ? "1" : "0");
+					strcat(strReturn, CriticalErrors & ERRC_WaterBooster ? "1" : "0");
 				} else if(*x == 'F') {  // get_ErrF - FloodingError
-					strcat(strReturn, FloodingError ? "1" : "0");
+					strcat(strReturn, CriticalErrors & ERRC_Flooding ? "1" : "0");
 				}
 				ADD_WEBDELIM(strReturn);
 				continue;
