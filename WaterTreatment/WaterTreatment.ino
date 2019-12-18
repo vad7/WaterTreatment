@@ -879,8 +879,9 @@ void vReadSensor(void *)
 		Weight_NeedRead = true;
 		vReadSensor_delay8ms((cDELAY_DS1820 - (millis() - ttime)) / 8); 	// Ожидать время преобразования
 		if(Weight_Percent <= MC.Option.Weight_Empty) {
-			set_Error(ERR_WEIGHT_LOW, (char*)__FUNCTION__);
-		}
+			if(!(CriticalErrors & ERRC_WeightLow)) set_Error(ERR_WEIGHT_LOW, (char*)__FUNCTION__);
+			CriticalErrors |= ERRC_WeightLow;
+		} else if(CriticalErrors & ERRC_WeightLow) CriticalErrors &= ~ERRC_WeightLow;
 
 		if(OW_scan_flags == 0) {
 			uint8_t flags = 0;
@@ -969,21 +970,26 @@ void vReadSensor_delay8ms(int16_t ms8)
 	do {
 		if(ms8) vTaskDelay(8);
 
-		if(Weight_NeedRead && Weight.is_ready()) {
-			Weight_NeedRead = false;
-			// Read HX711
-			int32_t adc_val = Weight.read();
-			// Усреднение значений
-			Weight_adc_sum = Weight_adc_sum + adc_val - Weight_adc_filter[Weight_adc_idx];
-			Weight_adc_filter[Weight_adc_idx] = adc_val;
-			if(Weight_adc_idx < sizeof(Weight_adc_filter) / sizeof(Weight_adc_filter[0]) - 1) Weight_adc_idx++;
-			else {
-				Weight_adc_idx = 0;
-				Weight_adc_flagFull = true;
+		if(Weight_NeedRead) {
+			if(MC.get_testMode() != NORMAL) {
+				Weight_NeedRead = false;
+				Weight_Percent = Weight_Percent_Test;
+			} else if(Weight.is_ready()) {
+				Weight_NeedRead = false;
+				// Read HX711
+				int32_t adc_val = Weight.read();
+				// Усреднение значений
+				Weight_adc_sum = Weight_adc_sum + adc_val - Weight_adc_filter[Weight_adc_idx];
+				Weight_adc_filter[Weight_adc_idx] = adc_val;
+				if(Weight_adc_idx < sizeof(Weight_adc_filter) / sizeof(Weight_adc_filter[0]) - 1) Weight_adc_idx++;
+				else {
+					Weight_adc_idx = 0;
+					Weight_adc_flagFull = true;
+				}
+				if(Weight_adc_flagFull) adc_val = Weight_adc_sum / (sizeof(Weight_adc_filter) / sizeof(Weight_adc_filter[0])); else adc_val = Weight_adc_sum / Weight_adc_idx;
+				Weight_Percent = (Weight_value = (adc_val - MC.Option.WeightZero) * 10000 / MC.Option.WeightScale - MC.Option.WeightTare) * 10000 / MC.Option.WeightFull;
+				if(Weight_Percent < 0) Weight_Percent = 0; else if(Weight_Percent > 10000) Weight_Percent = 10000;
 			}
-			if(Weight_adc_flagFull) adc_val = Weight_adc_sum / (sizeof(Weight_adc_filter) / sizeof(Weight_adc_filter[0])); else adc_val = Weight_adc_sum / Weight_adc_idx;
-			Weight_Percent = (Weight_value = (adc_val - MC.Option.WeightZero) * 10000 / MC.Option.WeightScale - MC.Option.WeightTare) * 10000 / MC.Option.WeightFull;
-			if(Weight_Percent < 0) Weight_Percent = 0; else if(Weight_Percent > 10000) Weight_Percent = 10000;
 		}
 
 #ifdef USE_UPS

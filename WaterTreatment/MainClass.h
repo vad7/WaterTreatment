@@ -87,6 +87,7 @@ uint16_t Weight_adc_idx;  			                // текущий индекс
 boolean  Weight_adc_flagFull;          			    // буфер полный
 int32_t	 Weight_value = 0;							// десятые грамма
 int16_t  Weight_Percent = 0;						// %, сотые
+int16_t  Weight_Percent_Test = 7000;				// %, сотые, Тест
 void Weight_Clear_Averaging(void);
 
 #define  bRTC_UsedToday		0
@@ -264,6 +265,8 @@ public:
 	char *  get_pingAdr() {return Network.pingAdr;}         //  получить адрес сервера для пингования
 	boolean get_NoPing() { return GETBIT(Network.flags,fNoPing);} //  Получить флаг блокировки пинга
 	char *  get_netMAC() {return MAC2String(Network.mac);}  //  получить мас адрес контроллера
+	inline  char* get_passUser() { return Network.passUser; }
+	inline  char* get_passAdmin() { return Network.passAdmin; }
 
 	boolean get_DHCP() { return GETBIT(Network.flags,fDHCP);}    //  Получить использование DHCP
 	byte *get_mac() { return Network.mac;}                 //  Получить mac адрес

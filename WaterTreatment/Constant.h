@@ -132,8 +132,8 @@ const uint16_t  defaultPort=80;
 
 // ------------------- HEAP ----------------------------------
 #define PASS_LEN          10             // Максимальная длина пароля для входа на контроллер
-#define NAME_USER         "user"         // имя пользователя
-#define NAME_ADMIN        "admin"        // имя администратора
+const char NAME_USER[]  = "user";        // имя пользователя
+const char NAME_ADMIN[] = "admin";       // имя администратора
 //#define FILE_STATISTIC    "statistic.csv"// имя файла статистики за ТЕКУШИЙ период
 
 #define HOUR_SIGNAL_LIFE  12             // Час когда генерится сигнал жизни

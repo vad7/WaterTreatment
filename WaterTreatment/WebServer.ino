@@ -49,6 +49,8 @@ static const char *noteRemarkTest[] = {"Тестирование отключе�
                                
 const char* file_types[] = {"text/html", "image/x-icon", "text/css", "application/javascript", "image/jpeg", "image/png", "image/gif", "text/plain", "text/ajax"};
 
+const char header_Authorization_[]  = "Authorization: Basic ";
+const char header_Authorization_2[] = "Access-Control-Request-Headers:";
 const char* pageUnauthorized      = {"HTTP/1.0 401 Unauthorized\r\nWWW-Authenticate: Basic real_m=Admin Zone\r\nContent-Type: text/html\r\nAccess-Control-Allow-Origin: *\r\n\r\n"};
 const char* NO_SUPPORT            = {"not supported"};
 const char* NO_STAT               = {"Statistics are not supported in the firmware"};
@@ -62,6 +64,16 @@ const char *postRet[]            = {"Настройки из выбранног�
 									"Флеш диск не найден, загружать файлы некуда\r\n\r\n",
 									"Файл настроек для разбора не влезает во внутренний буфер (max 6144 bytes)\r\n\r\n"
 									};
+
+#define emptyStr			WEB_HEADER_END  	   // пустая строка после которой начинаются данные
+#define MAX_FILE_LEN		64  	              // максимальная длина имени файла
+const char Title[]          = "Title: ";          // где лежит имя файла
+const char Length[]         = "Content-Length: "; // где лежит длина файла
+const char SETTINGS[]       = "*SETTINGS*";       // Идентификатор передачи настроек (лежит в Title:)
+const char LOAD_FLASH_START[]= "*SPI_FLASH*";     // Идентификатор начала загрузки веб морды в SPI Flash (лежит в Title:)
+const char LOAD_FLASH_END[]  = "*SPI_FLASH_END*"; // Идентификатор колнца загрузки веб морды в SPI Flash (лежит в Title:)
+const char LOAD_SD_START[]   = "*SD_CARD*";       // Идентификатор начала загрузки веб морды в SD (лежит в Title:)
+const char LOAD_SD_END[]     = "*SD_CARD_END*";   // Идентификатор колнца загрузки веб морды в SD (лежит в Title:)
 
 static SdFile wFile;
 static fname_t wfname;
@@ -108,14 +120,14 @@ void web_server(uint8_t thread)
 				if(Socket[thread].client.available()) {
 					len = Socket[thread].client.get_ReceivedSizeRX();                  // получить длину входного пакета
 					if(len > W5200_MAX_LEN) {
-						journal.jprintf("WEB:Big packet: %d - truncated!\n", len);
+						journal.printf("WEB:Big packet: %d - truncated!\n", len);
 #ifdef DEBUG
-						journal.jprintf("%s\n\n", Socket[thread].inBuf);
+						journal.printf("%s\n\n", Socket[thread].inBuf);
 #endif
 						len = W5200_MAX_LEN; // Ограничить размером в максимальный размер пакета w5200
 					}
 					if(Socket[thread].client.read(Socket[thread].inBuf, len) != len) {
-						journal.jprintf("WEB:Read error\n");
+						journal.printf("WEB:Read error\n");
 						break;
 					}
 					// Ищем в запросе полезную информацию (имя файла или запрос ajax)
@@ -125,8 +137,8 @@ void web_server(uint8_t thread)
 						Socket[thread].inBuf[len + 1] = 0;              // обрезать строку
 					}
 #ifdef LOG
-					journal.jprintf("$QUERY: %s\n",Socket[thread].inPtr);
-					journal.jprintf("$INPUT: %s\n",(char*)Socket[thread].inBuf);
+					journal.printf("$QUERY: %s\n",Socket[thread].inPtr);
+					journal.printf("$INPUT: %s\n",(char*)Socket[thread].inBuf);
 #endif
 					switch(Socket[thread].http_req_type)  // По типу запроса
 					{
@@ -134,10 +146,10 @@ void web_server(uint8_t thread)
 #ifdef DEBUG
 						uint8_t ip[4];
 						W5100.readSnDIPR(sock, ip);
-						journal.jprintf("WEB:Wrong request %d.%d.%d.%d (%d): ", ip[0], ip[1], ip[2], ip[3], len);
-						//for(int16_t i = 0; i < len; i++) journal.jprintf("%c(%d) ", (char)Socket[thread].inBuf[i], Socket[thread].inBuf[i]);
-						for(len = 0; len < 4; len++) journal.jprintf("%d ", Socket[thread].inBuf[len]);
-						journal.jprintf("...\n");
+						journal.printf("WEB:Wrong request %d.%d.%d.%d (%d): ", ip[0], ip[1], ip[2], ip[3], len);
+						//for(int16_t i = 0; i < len; i++) journal.printf("%c(%d) ", (char)Socket[thread].inBuf[i], Socket[thread].inBuf[i]);
+						for(len = 0; len < 4; len++) journal.printf("%d ", Socket[thread].inBuf[len]);
+						journal.printf("...\n");
 #endif
 						//sendConstRTOS(thread, "HTTP/1.1 Error GET request\r\n\r\n");
 						break;
@@ -162,12 +174,12 @@ void web_server(uint8_t thread)
 						strcpy(Socket[thread].outBuf, HEADER_ANSWER);   // Начало ответа
 						parserGET(thread, sock);    // выполнение запроса
 #ifdef LOG
-						journal.jprintf("$RETURN: %s\n",Socket[thread].outBuf);
+						journal.printf("$RETURN: %s\n",Socket[thread].outBuf);
 #endif
 						if(sendBufferRTOS(thread, (byte*) (Socket[thread].outBuf), strlen(Socket[thread].outBuf)) == 0) {
 							uint8_t ip[4];
 							W5100.readSnDIPR(sock, ip);
-							journal.jprintf("$Error send AJAX(%d.%d.%d.%d): %s\n", ip[0], ip[1], ip[2], ip[3], (char*) Socket[thread].inBuf);
+							journal.printf("$Error send AJAX(%d.%d.%d.%d): %s\n", ip[0], ip[1], ip[2], ip[3], (char*) Socket[thread].inBuf);
 						}
 						break;
 					}
@@ -179,7 +191,7 @@ void web_server(uint8_t thread)
                			if(sendBufferRTOS(thread, (byte*) (Socket[thread].outBuf), strlen(Socket[thread].outBuf)) == 0) {
 							uint8_t ip[4];
 							W5100.readSnDIPR(sock, ip);
-							journal.jprintf("$Error send POST(%d.%d.%d.%d): %s\n", ip[0], ip[1], ip[2], ip[3], (char*) Socket[thread].inBuf);
+							journal.printf("$Error send POST(%d.%d.%d.%d): %s\n", ip[0], ip[1], ip[2], ip[3], (char*) Socket[thread].inBuf);
                			}
 						break;
 					}
@@ -190,18 +202,18 @@ void web_server(uint8_t thread)
 						break;
 					}
 					case UNAUTHORIZED: {
-xUNAUTHORIZED:			journal.jprintf("$UNAUTHORIZED\n");
+xUNAUTHORIZED:			journal.printf("$UNAUTHORIZED\n");
 						sendConstRTOS(thread, pageUnauthorized);
 						break;
 					}
 					case BAD_LOGIN_PASS: {
-						journal.jprintf("$Wrong login or password\n");
+						journal.printf("$Wrong login or password\n");
 						sendConstRTOS(thread, pageUnauthorized);
 						break;
 					}
 
 					default:
-						journal.jprintf("$Unknow  %s\n", (char*) Socket[thread].inBuf);
+						journal.printf("$Unknow  %s\n", (char*) Socket[thread].inBuf);
 					}
 
 					SPI_switchW5200();
@@ -226,7 +238,7 @@ void readFileSD(char *filename, uint8_t thread)
 {
 	int n;
 	SdFile webFile;
-	//  journal.jprintf("$Thread: %d socket: %d read file: %s\n",thread,Socket[thread].sock,filename);
+	//  journal.printf("$Thread: %d socket: %d read file: %s\n",thread,Socket[thread].sock,filename);
 	char *str;
 	STORE_DEBUG_INFO(11);
 
@@ -293,7 +305,7 @@ void readFileSD(char *filename, uint8_t thread)
 			get_indexNoSD(thread); // минимальная морда
 		} else if(strncmp(filename, "SD:", 3) == 0) {  // TEST.SD:<filename> - Тестирует скорость чтения файла с SD карты
 			filename += 3;
-			journal.jprintf("SD card test: %s - ", filename);
+			journal.printf("SD card test: %s - ", filename);
 			sendConstRTOS(thread, HEADER_FILE_WEB);
 			SPI_switchSD();
 			if(webFile.open(filename, O_READ)) {
@@ -301,26 +313,26 @@ void readFileSD(char *filename, uint8_t thread)
 				uint32_t size = 0;
 				for(;;) {
 					int n = webFile.read(Socket[thread].outBuf, sizeof(Socket[thread].outBuf));
-					if(n < 0) journal.jprintf("Read SD error (%d,%d)!\n", card.cardErrorCode(), card.cardErrorData());
+					if(n < 0) journal.printf("Read SD error (%d,%d)!\n", card.cardErrorCode(), card.cardErrorData());
 					if(n <= 0) break;
 					size += n;
 					if(millis() - startTick > (3*W5200_TIME_WAIT/portTICK_PERIOD_MS) - 1000) break; // на секунду меньше, чем блок семафора
 					WDT_Restart(WDT);
 				}
 				startTick = millis() - startTick;
-				journal.jprintf("read %d bytes, %d b/sec\n", size, size * 1000 / startTick);
+				journal.printf("read %d bytes, %d b/sec\n", size, size * 1000 / startTick);
 				webFile.close();
 				/*/ check write!
-				if(!webFile.open(filename, O_RDWR)) journal.jprintf("Error open for writing!\n");
+				if(!webFile.open(filename, O_RDWR)) journal.printf("Error open for writing!\n");
 				else {
 					n = webFile.write("Test write!");
-					journal.jprintf("Wrote %d byte\n", n);
-					if(!webFile.sync()) journal.jprintf("Sync failed (%d,%d)\n", card.cardErrorCode(), card.cardErrorData());
+					journal.printf("Wrote %d byte\n", n);
+					if(!webFile.sync()) journal.printf("Sync failed (%d,%d)\n", card.cardErrorCode(), card.cardErrorData());
 					webFile.close();
 				}
 				//*/
 			} else {
-				journal.jprintf("not found (%d,%d)!\n", card.cardErrorCode(), card.cardErrorData());
+				journal.printf("not found (%d,%d)!\n", card.cardErrorCode(), card.cardErrorData());
 			}
 		}
 		return;
@@ -343,20 +355,20 @@ void readFileSD(char *filename, uint8_t thread)
 					if(card.begin(PIN_SPI_CS_SD, SD_SCK_MHZ(SD_CLOCK))) {
 						if(webFile.open(filename, O_READ)) goto xFileFound;
 					} else {
-						journal.jprintf("Reinit SD card failed!\n");
+						journal.printf("Reinit SD card failed!\n");
 						//MC.set_fSD(false);
 					}
 				}
 				sendConstRTOS(thread, HEADER_FILE_NOT_FOUND);
 				uint8_t ip[4];
 				W5100.readSnDIPR(Socket[thread].sock, ip);
-				journal.jprintf((char*) "WEB: %d.%d.%d.%d - File not found: %s\n", ip[0], ip[1], ip[2], ip[3], filename);
+				journal.printf((char*) "WEB: %d.%d.%d.%d - File not found: %s\n", ip[0], ip[1], ip[2], ip[3], filename);
 				return;
 			} // файл не найден
 xFileFound:
 			// Файл открыт читаем данные и кидаем в сеть
 	#ifdef LOG
-			journal.jprintf("$Thread: %d socket: %d read file: %s\n",thread,Socket[thread].sock,filename);
+			journal.printf("$Thread: %d socket: %d read file: %s\n",thread,Socket[thread].sock,filename);
 	#endif
 			if(strstr(filename, ".css") != NULL) sendConstRTOS(thread, HEADER_FILE_CSS); // разные заголовки
 			else sendConstRTOS(thread, HEADER_FILE_WEB);
@@ -365,7 +377,7 @@ xFileFound:
 				if(sendBufferRTOS(thread, (byte*) (Socket[thread].outBuf), n) == 0) break;
 				SPI_switchSD();
 			} // while
-			if(n < 0) journal.jprintf("Read SD error (%d,%d)!\n", card.cardErrorCode(), card.cardErrorData());
+			if(n < 0) journal.printf("Read SD error (%d,%d)!\n", card.cardErrorCode(), card.cardErrorData());
 			SPI_switchSD();
 			webFile.close();
 		}
@@ -376,7 +388,7 @@ xFileFound:
 			SerialFlashFile ff = SerialFlash.open(filename);
 			if(ff) {
 	#ifdef LOG
-				journal.jprintf("$Thread: %d socket: %d read file: %s\n",thread,Socket[thread].sock,filename);
+				journal.printf("$Thread: %d socket: %d read file: %s\n",thread,Socket[thread].sock,filename);
 	#endif
 				if(strstr(filename, ".css") != NULL) sendConstRTOS(thread, HEADER_FILE_CSS); // разные заголовки
 				else sendConstRTOS(thread, HEADER_FILE_WEB);
@@ -386,14 +398,14 @@ xFileFound:
 					if(sendBufferRTOS(thread, (byte*) (Socket[thread].outBuf), n) == 0) break;
 					//	SPI_switchSD();
 				} // while
-				//if(n < 0) journal.jprintf("Read SD error (%d,%d)!\n", card.cardErrorCode(), card.cardErrorData());
+				//if(n < 0) journal.printf("Read SD error (%d,%d)!\n", card.cardErrorCode(), card.cardErrorData());
 				//SPI_switchSD();
 				//webFile.close();
 			} else {
 				sendConstRTOS(thread, HEADER_FILE_NOT_FOUND);
 				uint8_t ip[4];
 				W5100.readSnDIPR(Socket[thread].sock, ip);
-				journal.jprintf((char*) "WEB GET(%d.%d.%d.%d) - Not found: %s\n", ip[0], ip[1], ip[2], ip[3], filename);
+				journal.printf((char*) "WEB GET(%d.%d.%d.%d) - Not found: %s\n", ip[0], ip[1], ip[2], ip[3], filename);
 				return;
 			}
 		}
@@ -443,8 +455,8 @@ void parserGET(uint8_t thread, int8_t )
 		}
 		if(strReturn > Socket[thread].outBuf + sizeof(Socket[thread].outBuf) - 250)  // Контроль длины выходной строки - если слишком длинная обрезаем и выдаем ошибку
 		{
-			journal.jprintf("$ERROR - Response buffer overflowed!\n");
-			journal.jprintf("%s\n",strReturn);
+			journal.printf("$ERROR - Response buffer overflowed!\n");
+			journal.printf("%s\n",strReturn);
 			strcat(strReturn,"E07");
 			ADD_WEBDELIM(strReturn);
 			break;   // выход из обработки запроса
@@ -1802,6 +1814,8 @@ xWgt_get:
 							_dtoa(strReturn, MC.Option.WeightScale, 4);
 						} else if(*x == 'P') {      	// get_Wgt(P) - Pins
 							m_snprintf(strReturn + m_strlen(strReturn), 32, "D%d D%d", HX711_DOUT_PIN, HX711_SCK_PIN);
+						} else if(*x == 'X') {       		// get_Wgt(X) - Level in test modes
+							_dtoa(strReturn, Weight_Percent_Test, 2);
 						} else if(strcmp(x, "LvL")==0) {       		// get_Wgt(LvL) - Level
 							_dtoa(strReturn, Weight_Percent, 2);
 						}
@@ -1816,6 +1830,8 @@ xWgt_get:
 							MC.Option.WeightScale = pm * 10000 + 0.00005f;
 						} else if(*x == '0') {      	// set_Wgt(0=) - Zero
 							MC.Option.WeightZero = pm;
+						} else if(*x == 'X') {      	// set_Wgt(X=) - Level in test modes
+							Weight_Percent_Test = rd(pm, 100);
 						}
 						goto xWgt_get;
 					}
@@ -1842,46 +1858,42 @@ x_FunctionNotFound:
 }
 
 // ===============================================================================================================
-const char *header_Authorization_="Authorization: Basic ";
-const char *header_POST_="Access-Control-Request-Method: POST";
 // Выделение имени файла (или содержания запроса) и типа файла и типа запроса клиента
 // thread - номер потока, возсращает тип запроса
 uint16_t GetRequestedHttpResource(uint8_t thread)
 {
-	char *str_token, *pass;
-	boolean user, admin;
-	uint8_t i;
-	uint16_t len;
 	STORE_DEBUG_INFO(50);
 	if((MC.get_fPass()) && (!MC.safeNetwork))  // идентификация если установлен флаг и перемычка не в нуле
 	{
-		if(!(pass = strstr((char*) Socket[thread].inBuf, header_Authorization_))) return UNAUTHORIZED; // строка авторизации не найдена
-		else  // Строка авторизации найдена смотрим логин пароль
-		{
-			pass = pass + strlen(header_Authorization_);
-			user = true;
-			for(i = 0; i < MC.Security.hashUserLen; i++)
-				if(pass[i] != MC.Security.hashUser[i]) {
-					user = false;
-					break;
-				}
-			if(user != true) // это не пользователь
-			{
-				admin = true;
-				for(i = 0; i < MC.Security.hashAdminLen; i++)
-					if(pass[i] != MC.Security.hashAdmin[i]) {
-						admin = false;
-						break;
-					}
-				if(admin != true) return BAD_LOGIN_PASS; // Не верный логин или пароль
-			} //  if (user!=true)
-			else SETBIT1(Socket[thread].flags, fUser); // зашел простой пользователь
-		} // else
+		char *str = strstr((char*)Socket[thread].inBuf, header_Authorization_);
+		if(str == NULL) {
+
+			Serial.print("\n"); Serial.print((char*)Socket[thread].inBuf); Serial.print("\n");
+
+			if((str = strstr(Socket[thread].inPtr, header_Authorization_2))) {
+				str += sizeof(header_Authorization_2);
+				char *strend = strchr(str, '\r');
+				if(strend) {
+					*strend = '\0';
+					char *str2;
+					if((str2 = strstr(str, NAME_USER))) {
+						if(strncmp(str2 + sizeof(NAME_USER), MC.get_passUser(), PASS_LEN) == 0) SETBIT1(Socket[thread].flags, fUser); else return BAD_LOGIN_PASS;
+					} else if((str2 = strstr(str, NAME_ADMIN))) {
+						if(strncmp(str2 + sizeof(NAME_ADMIN), MC.get_passAdmin(), PASS_LEN) != 0) return BAD_LOGIN_PASS;
+					} else return UNAUTHORIZED;
+					*strend = '\r';
+				} else return UNAUTHORIZED;
+			} else return UNAUTHORIZED; // строка авторизации не найдена
+		} else { // Строка авторизации найдена смотрим логин пароль
+			str += sizeof(header_Authorization_) - 1;
+			if(strncmp(str, MC.Security.hashUser, MC.Security.hashUserLen) == 0) SETBIT1(Socket[thread].flags, fUser);
+			else if(strncmp(str, MC.Security.hashAdmin, MC.Security.hashAdminLen) != 0) return BAD_LOGIN_PASS;
+		}
 	}
 
 	// Идентификация пройдена
 	//if(strstr((char*)Socket[thread].inBuf,"Access-Control-Request-Method: POST")) {request_type = HTTP_POST_; return request_type; }  //обработка предваритаельного запроса перед получением файла
-	char *tmpptr;
+	char *str_token, *tmpptr;
 	str_token = strtok_r((char*) Socket[thread].inBuf, " ", &tmpptr);    // Обрезаем по пробелам
 	if(strcmp(str_token, "GET") == 0)   // Ищем GET
 	{
@@ -1890,7 +1902,7 @@ uint16_t GetRequestedHttpResource(uint8_t thread)
 		{
 			Socket[thread].inPtr = (char*) INDEX_FILE;      // Указатель на имя файла по умолчанию
 			return HTTP_GET;
-		} else if((len = strlen(str_token)) <= W5200_MAX_LEN - 100)   // Проверка на длину запроса или имени файла
+		} else if(strlen(str_token) <= W5200_MAX_LEN - 100)   // Проверка на длину запроса или имени файла
 		{
 			Socket[thread].inPtr = (char*) (str_token + 1);       // Указатель на имя файла
 			if(Socket[thread].inPtr[0] == '&') return HTTP_REQEST;       // Проверка на аякс запрос
@@ -1904,16 +1916,6 @@ uint16_t GetRequestedHttpResource(uint8_t thread)
 }
 
 // ========================== P A R S E R  P O S T =================================
-#define emptyStr			WEB_HEADER_END  	   // пустая строка после которой начинаются данные
-#define MAX_FILE_LEN		64  	              // максимальная длина имени файла
-const char Title[]          = "Title: ";          // где лежит имя файла
-const char Length[]         = "Content-Length: "; // где лежит длина файла
-const char SETTINGS[]       = "*SETTINGS*";       // Идентификатор передачи настроек (лежит в Title:)
-const char LOAD_FLASH_START[]= "*SPI_FLASH*";     // Идентификатор начала загрузки веб морды в SPI Flash (лежит в Title:)
-const char LOAD_FLASH_END[]  = "*SPI_FLASH_END*"; // Идентификатор колнца загрузки веб морды в SPI Flash (лежит в Title:)
-const char LOAD_SD_START[]   = "*SD_CARD*";       // Идентификатор начала загрузки веб морды в SD (лежит в Title:)
-const char LOAD_SD_END[]     = "*SD_CARD_END*";   // Идентификатор колнца загрузки веб морды в SD (лежит в Title:)
-
 uint16_t numFilesWeb = 0;                   // Число загруженных файлов
 
 // Разбор и обработка POST запроса inPtr входная строка использует outBuf для хранения файла настроек!

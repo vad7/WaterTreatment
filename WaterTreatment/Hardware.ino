@@ -538,6 +538,11 @@ int8_t devPWM::initPWM()
 int8_t devPWM::get_readState(uint8_t group)
 {
 	err=OK;
+	if(MC.get_testMode() != NORMAL) {
+		Power = TestPower;
+		Voltage = 2200;
+		return err;
+	}
 	for(int8_t i=0; i < PWM_NUM_READ; i++)   // делаем PWM_NUM_READ попыток чтения
 	{
 		if(group == 0) {
@@ -587,32 +592,32 @@ char* devPWM::get_param(char *var, char *ret)
 	} else if(strcmp(var, pwm_ERRORS) == 0) {      // Ошибок modbus
 		return _itoa(numErr, ret);
 	} else if(strcmp(var, pwm_VOLTAGE) == 0) {      // Напряжение
-		_ftoa(ret, (float) Voltage / 10, 1);
+		_dtoa(ret, Voltage, 1);
 		return ret;
 	} else if(strcmp(var, pwm_POWER) == 0) {      // мощность
-		_ftoa(ret, (float) Power / 10, 1);
+		_dtoa(ret, Power, 1);
 		return ret;
 	} else if(strcmp(var, pwm_TestPower) == 0) {
-		_ftoa(ret, (float) TestPower / 10, 1);
+		_dtoa(ret, TestPower, 1);
 		return ret;
 	} else if(strcmp(var, pwm_CURRENT) == 0) {       // Ток
 		if(Modbus.readInputRegisters32(PWM_MODBUS_ADR, PWM_CURRENT, &tmp) == OK) {
-			_ftoa(ret, (float) tmp / 1000, 3);
+			_dtoa(ret, tmp, 3);
 			return ret;
 		}
 	} else if(strcmp(var, pwm_PFACTOR) == 0) {       // Коэффициент мощности
 		if(Modbus.readInputRegisters32(PWM_MODBUS_ADR, PWM_PFACTOR, &tmp) == OK) {
-			_ftoa(ret, (float) tmp / 100, 2);
+			_dtoa(ret, tmp, 2);
 			return ret;
 		}
 	} else if(strcmp(var, pwm_FREQ) == 0) {         // Частота
 		if(Modbus.readInputRegisters32(PWM_MODBUS_ADR, PWM_FREQ, &tmp) == OK) {
-			_ftoa(ret, (float) tmp / 10, 1);
+			_dtoa(ret, tmp, 1);
 			return ret;
 		}
 	} else if(strcmp(var, pwm_ACENERGY) == 0) {
 		if(Modbus.readInputRegisters32(PWM_MODBUS_ADR, PWM_ENERGY, &tmp) == OK) {
-			_ftoa(ret, (float) tmp, 0);
+			_dtoa(ret, tmp, 0);
 			return ret;
 		}
 	}

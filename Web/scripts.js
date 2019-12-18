@@ -6,6 +6,8 @@ var urlcontrol = 'http://192.168.0.199';
 //var urlcontrol = 'http://192.168.0.8';
 var urltimeout = 1800; // таймаут ожидание ответа от контроллера. Чем хуже интертнет, тем выше значения. Но не более времени обновления параметров
 var urlupdate = 4010; // время обновления параметров в миллисекундах
+var NeedLogin = 0;
+var LString,PString;
 
 function setParam(paramid, resultid) {
 	// Замена set_Par(Var1) на set_par-var1 для получения значения 
@@ -65,6 +67,13 @@ function loadParam(paramid, noretry, resultdiv) {
 		var request = new XMLHttpRequest();
 		var reqstr = oneparamid.replace(/,/g, '&');
 		request.open("GET", urlcontrol + "/&" + reqstr + "&&", true);
+		if(urlcontrol != "" && NeedLogin != 0) {
+			if(NeedLogin != 2) {
+				LString = prompt("Login:"); PString = prompt("Password:");
+				NeedLogin = 2;
+			}
+			request.setRequestHeader(LString +"-"+ PString,"");
+		} 
 		request.timeout = urltimeout;
 		request.send(null);
 		request.onreadystatechange = function() {
@@ -479,6 +488,11 @@ function loadParam(paramid, noretry, resultdiv) {
 						if(typeof window["loadParam_after"] == 'function') window["loadParam_after"](paramid);
 					} // end: if (request.responseText != null)
 				} // end: if (request.responseText != null)
+			} else if(request.status == 0) {
+				return;
+			} else if(request.status == 401) {
+			    NeedLogin = 1;
+				return;
 			} else if(noretry != true) {
 				console.log("request.status: " + request.status + " retry load...");
 				check_ready = 1;
