@@ -266,7 +266,6 @@ public:
 	boolean get_NoPing() { return GETBIT(Network.flags,fNoPing);} //  Получить флаг блокировки пинга
 	char *  get_netMAC() {return MAC2String(Network.mac);}  //  получить мас адрес контроллера
 	inline  char* get_passUser() { return Network.passUser; }
-	inline  char* get_passAdmin() { return Network.passAdmin; }
 
 	boolean get_DHCP() { return GETBIT(Network.flags,fDHCP);}    //  Получить использование DHCP
 	byte *get_mac() { return Network.mac;}                 //  Получить mac адрес

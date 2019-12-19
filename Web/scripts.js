@@ -6,8 +6,8 @@ var urlcontrol = 'http://192.168.0.199';
 //var urlcontrol = 'http://192.168.0.8';
 var urltimeout = 1800; // таймаут ожидание ответа от контроллера. Чем хуже интертнет, тем выше значения. Но не более времени обновления параметров
 var urlupdate = 4010; // время обновления параметров в миллисекундах
-var NeedLogin = 0;
-var LString,PString;
+var NeedLogin = sessionStorage.getItem("NeedLogin");
+var LPString = sessionStorage.getItem("LPString");
 
 function setParam(paramid, resultid) {
 	// Замена set_Par(Var1) на set_par-var1 для получения значения 
@@ -65,15 +65,17 @@ function loadParam(paramid, noretry, resultdiv) {
 		var oneparamid = req_stek.shift();
 		check_ready = 0;
 		var request = new XMLHttpRequest();
-		var reqstr = oneparamid.replace(/,/g, '&');
-		request.open("GET", urlcontrol + "/&" + reqstr + "&&", true);
-		if(urlcontrol != "" && NeedLogin != 0) {
+		var reqstr = urlcontrol + "/&" + oneparamid.replace(/,/g, '&') + "&&";
+		if(NeedLogin) {
 			if(NeedLogin != 2) {
-				LString = prompt("Login:"); PString = prompt("Password:");
+				LPString = window.btoa(prompt("Login:") + ":" + prompt("Password:"));
 				NeedLogin = 2;
+				sessionStorage.setItem("NeedLogin", NeedLogin);
+				sessionStorage.setItem("LPString", LPString);
 			}
-			request.setRequestHeader(LString +"-"+ PString,"");
+			reqstr += "!Z" + LPString;
 		} 
+		request.open("GET", reqstr, true);
 		request.timeout = urltimeout;
 		request.send(null);
 		request.onreadystatechange = function() {
@@ -490,10 +492,8 @@ function loadParam(paramid, noretry, resultdiv) {
 				} // end: if (request.responseText != null)
 			} else if(request.status == 0) {
 				return;
-			} else if(request.status == 401) {
-			    NeedLogin = 1;
-				return;
 			} else if(noretry != true) {
+				if(request.status == 401 && location.protocol == "file:") NeedLogin = 1;
 				console.log("request.status: " + request.status + " retry load...");
 				check_ready = 1;
 				setTimeout(function() {
@@ -566,7 +566,7 @@ function upload(file) {
 //	xhr.onload = xhr.onerror = function() {
 //		if(this.status == 200) { console.log("success"); } else { console.log("error " + this.status); }
 //	};
-	xhr.open("POST", urlcontrol, false);
+	xhr.open("POST", urlcontrol + (NeedLogin == 2 ? "/&&" + "!Z" + LPString : ""), false);
 	xhr.setRequestHeader('Title', file.settings ? "*SETTINGS*" : encodeURIComponent(file.name));
 	xhr.onreadystatechange = function() {
 		if(this.readyState != 4) return;

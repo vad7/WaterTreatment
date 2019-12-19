@@ -3,9 +3,18 @@ document.write('\
 <div class="menu-profiles">\
 	<b><span id="get_mode"></span></b><br>\
 </div>');
-document.write('<ul>\
+document.write('<ul class="cd-accordion-menu">\
 <li class="plan"><a href="plan.html"><i></i>Схема</a></li>\
+<li class="stats history has-children">\
+	<input type="checkbox" name="group-2" id="group-2">\
+	<label for="group-2"><i></i>Статистика</label>\
+	<ul>\
+		<li class="stats"><a href="stats.html">По дням</a></li>\
+		<li class="history"><a href="history.html">Детально</a></li>\
+	</ul>\
+</li>\
 <li class="about"><a href="about.html"><i></i>О контроллере</a></li>\
+<li class="login"><a href="lan.html" onclick="NeedLogin=1"><i></i>Логин</a></li>\
 </ul>');
 document.write('\
 <div class="dateinfo">\

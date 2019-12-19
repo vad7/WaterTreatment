@@ -49,8 +49,8 @@ static const char *noteRemarkTest[] = {"Тестирование отключе�
                                
 const char* file_types[] = {"text/html", "image/x-icon", "text/css", "application/javascript", "image/jpeg", "image/png", "image/gif", "text/plain", "text/ajax"};
 
-const char header_Authorization_[]  = "Authorization: Basic ";
-const char header_Authorization_2[] = "Access-Control-Request-Headers:";
+const char header_Authorization_1[] = "Authorization: Basic ";
+const char header_Authorization_2[] = "&&!Z";
 const char* pageUnauthorized      = {"HTTP/1.0 401 Unauthorized\r\nWWW-Authenticate: Basic real_m=Admin Zone\r\nContent-Type: text/html\r\nAccess-Control-Allow-Origin: *\r\n\r\n"};
 const char* NO_SUPPORT            = {"not supported"};
 const char* NO_STAT               = {"Statistics are not supported in the firmware"};
@@ -1865,32 +1865,16 @@ uint16_t GetRequestedHttpResource(uint8_t thread)
 	STORE_DEBUG_INFO(50);
 	if((MC.get_fPass()) && (!MC.safeNetwork))  // идентификация если установлен флаг и перемычка не в нуле
 	{
-		char *str = strstr((char*)Socket[thread].inBuf, header_Authorization_);
-		if(str == NULL) {
-
-			Serial.print("\n"); Serial.print((char*)Socket[thread].inBuf); Serial.print("\n");
-
-			if((str = strstr(Socket[thread].inPtr, header_Authorization_2))) {
-				str += sizeof(header_Authorization_2);
-				char *strend = strchr(str, '\r');
-				if(strend) {
-					*strend = '\0';
-					char *str2;
-					if((str2 = strstr(str, NAME_USER))) {
-						if(strncmp(str2 + sizeof(NAME_USER), MC.get_passUser(), PASS_LEN) == 0) SETBIT1(Socket[thread].flags, fUser); else return BAD_LOGIN_PASS;
-					} else if((str2 = strstr(str, NAME_ADMIN))) {
-						if(strncmp(str2 + sizeof(NAME_ADMIN), MC.get_passAdmin(), PASS_LEN) != 0) return BAD_LOGIN_PASS;
-					} else return UNAUTHORIZED;
-					*strend = '\r';
-				} else return UNAUTHORIZED;
-			} else return UNAUTHORIZED; // строка авторизации не найдена
-		} else { // Строка авторизации найдена смотрим логин пароль
-			str += sizeof(header_Authorization_) - 1;
-			if(strncmp(str, MC.Security.hashUser, MC.Security.hashUserLen) == 0) SETBIT1(Socket[thread].flags, fUser);
-			else if(strncmp(str, MC.Security.hashAdmin, MC.Security.hashAdminLen) != 0) return BAD_LOGIN_PASS;
-		}
+		//Serial.print("\n"); Serial.print((char*)Socket[thread].inBuf); Serial.print("\n");
+		char *str = strstr((char*)Socket[thread].inBuf, header_Authorization_1);
+		if(str) str += sizeof(header_Authorization_1) - 1;
+		else if((str = strstr((char*)Socket[thread].inBuf, header_Authorization_2))) str += sizeof(header_Authorization_2) - 1;
+		if(str) {
+			if(strncmp(str, MC.Security.hashAdmin, MC.Security.hashAdminLen) == 0) goto x_ok;
+			else if(strncmp(str, MC.Security.hashUser, MC.Security.hashUserLen) == 0 || !*MC.get_passUser()) SETBIT1(Socket[thread].flags, fUser); else return BAD_LOGIN_PASS;
+		} else if(!*MC.get_passUser()) SETBIT1(Socket[thread].flags, fUser); else return UNAUTHORIZED;
 	}
-
+x_ok:
 	// Идентификация пройдена
 	//if(strstr((char*)Socket[thread].inBuf,"Access-Control-Request-Method: POST")) {request_type = HTTP_POST_; return request_type; }  //обработка предваритаельного запроса перед получением файла
 	char *str_token, *tmpptr;
