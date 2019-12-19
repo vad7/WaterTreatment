@@ -144,12 +144,18 @@ void web_server(uint8_t thread)
 					{
 					case HTTP_invalid: {
 #ifdef DEBUG
-						uint8_t ip[4];
-						W5100.readSnDIPR(sock, ip);
-						journal.printf("WEB:Wrong request %d.%d.%d.%d (%d): ", ip[0], ip[1], ip[2], ip[3], len);
-						//for(int16_t i = 0; i < len; i++) journal.printf("%c(%d) ", (char)Socket[thread].inBuf[i], Socket[thread].inBuf[i]);
-						for(len = 0; len < 4; len++) journal.printf("%d ", Socket[thread].inBuf[len]);
-						journal.printf("...\n");
+						if(MC.get_NetworkFlags() & ((1<<fWebLogError) | (1<<fWebFullLog))) {
+							uint8_t ip[4];
+							W5100.readSnDIPR(sock, ip);
+							journal.jprintf("WEB:Wrong request %d.%d.%d.%d (%d): ", ip[0], ip[1], ip[2], ip[3], len);
+							if(MC.get_NetworkFlags() & (1<<fWebFullLog)) {
+								for(int8_t i = 0; i < len; i++) journal.jprintf("%c(%d) ", (char)Socket[thread].inBuf[i], Socket[thread].inBuf[i]);
+								journal.jprintf("\n");
+							} else {
+								for(len = 0; len < 4; len++) journal.jprintf("%d ", Socket[thread].inBuf[len]);
+								journal.jprintf("...\n");
+							}
+						}
 #endif
 						//sendConstRTOS(thread, "HTTP/1.1 Error GET request\r\n\r\n");
 						break;
@@ -177,9 +183,11 @@ void web_server(uint8_t thread)
 						journal.printf("$RETURN: %s\n",Socket[thread].outBuf);
 #endif
 						if(sendBufferRTOS(thread, (byte*) (Socket[thread].outBuf), strlen(Socket[thread].outBuf)) == 0) {
-							uint8_t ip[4];
-							W5100.readSnDIPR(sock, ip);
-							journal.printf("$Error send AJAX(%d.%d.%d.%d): %s\n", ip[0], ip[1], ip[2], ip[3], (char*) Socket[thread].inBuf);
+							if(MC.get_NetworkFlags() & (1<<fWebLogError)) {
+								uint8_t ip[4];
+								W5100.readSnDIPR(sock, ip);
+								journal.printf("$Error send AJAX(%d.%d.%d.%d): %s\n", ip[0], ip[1], ip[2], ip[3], (char*) Socket[thread].inBuf);
+							}
 						}
 						break;
 					}
@@ -189,9 +197,11 @@ void web_server(uint8_t thread)
                         strcpy(Socket[thread].outBuf, HEADER_ANSWER);
 						strcat(Socket[thread].outBuf, postRet[ret]);   // вернуть текстовый ответ, который надо вывести
                			if(sendBufferRTOS(thread, (byte*) (Socket[thread].outBuf), strlen(Socket[thread].outBuf)) == 0) {
-							uint8_t ip[4];
-							W5100.readSnDIPR(sock, ip);
-							journal.printf("$Error send POST(%d.%d.%d.%d): %s\n", ip[0], ip[1], ip[2], ip[3], (char*) Socket[thread].inBuf);
+    						if(MC.get_NetworkFlags() & (1<<fWebLogError)) {
+    							uint8_t ip[4];
+    							W5100.readSnDIPR(sock, ip);
+    							journal.printf("$Error send POST(%d.%d.%d.%d): %s\n", ip[0], ip[1], ip[2], ip[3], (char*) Socket[thread].inBuf);
+    						}
                			}
 						break;
 					}
@@ -202,12 +212,20 @@ void web_server(uint8_t thread)
 						break;
 					}
 					case UNAUTHORIZED: {
-xUNAUTHORIZED:			journal.printf("$UNAUTHORIZED\n");
+xUNAUTHORIZED:
+						if(MC.get_NetworkFlags() & (1<<fWebLogError)) {
+							uint8_t ip[4];
+							W5100.readSnDIPR(sock, ip);
+							journal.jprintf("$UNAUTHORIZED (%d.%d.%d.%d)\n", ip[0], ip[1], ip[2], ip[3]);
+						}
 						sendConstRTOS(thread, pageUnauthorized);
 						break;
 					}
 					case BAD_LOGIN_PASS: {
-						journal.printf("$Wrong login or password\n");
+						if(MC.get_NetworkFlags() & (1<<fWebLogError)) {
+							uint8_t ip[4];
+							W5100.readSnDIPR(sock, ip);
+						}
 						sendConstRTOS(thread, pageUnauthorized);
 						break;
 					}

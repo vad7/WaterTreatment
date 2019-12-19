@@ -859,11 +859,11 @@ void vReadSensor(void *)
 		//for(i = 0; i < INUMBER; i++) MC.sInput[i].Read();                // Прочитать данные сухой контакт
 		for(i = 0; i < FNUMBER; i++) MC.sFrequency[i].Read();			// Получить значения датчиков потока
 
-		// Flow
-		if(!MC.sInput[REG_BACKWASH_ACTIVE].get_Input()) {
-			TimeFeedPump +=	(uint32_t)MC.sFrequency[FLOW].get_Value() * TIME_READ_SENSOR / MC.Option.FeedPumpMaxFlow;
-		}
+		// Flow water
 		uint32_t passed = MC.sFrequency[FLOW].Passed;
+		if(!MC.sInput[REG_BACKWASH_ACTIVE].get_Input()) {
+			TimeFeedPump +=	passed * 3600 * 1000 / MC.Option.FeedPumpMaxFlow;
+		}
 		MC.sFrequency[FLOW].Passed = 0;
 		if(MC.sInput[REG_ACTIVE].get_Input() || MC.sInput[REG_BACKWASH_ACTIVE].get_Input() || MC.sInput[REG2_ACTIVE].get_Input()) {
 			MC.RTC_store.UsedRegen += passed;
@@ -876,6 +876,14 @@ void vReadSensor(void *)
 			NeedSaveRTC |= (1<<bRTC_UsedToday);
 		}
 		//
+#ifdef USE_UPS
+		if(!MC.NO_Power)
+#endif
+			if(millis() - readPWM > PWM_READ_PERIOD) {
+				readPWM=millis();
+				MC.dPWM.get_readState(1);     // Последняя группа регистров
+			}
+
 		Weight_NeedRead = true;
 		vReadSensor_delay8ms((cDELAY_DS1820 - (millis() - ttime)) / 8); 	// Ожидать время преобразования
 		if(Weight_Percent <= MC.Option.Weight_Empty) {
@@ -914,14 +922,6 @@ void vReadSensor(void *)
 		    */ // do not need averaging...
 		}
 
-	#ifdef USE_UPS
-		if(!MC.NO_Power)
-	#endif
-			if(millis() - readPWM > PWM_READ_PERIOD) {
-				readPWM=millis();
-				MC.dPWM.get_readState(1);     // Последняя группа регистров
-			}
-
 		MC.calculatePower();  // Расчет мощностей
 		Stats.Update();
 
@@ -951,7 +951,7 @@ void vReadSensor(void *)
 		{
 			uint8_t hour = rtcSAM3X8.get_hours();
 			if(hour == HOUR_SIGNAL_LIFE && hour != last_life_h) {
-				MC.message.setMessage(pMESSAGE_LIFE, (char*) "Контроллер работает . . .", 0);
+				MC.message.setMessage(pMESSAGE_LIFE, (char*) "Контроллер работает...", 0);
 			}
 			last_life_h = hour;
 		}
