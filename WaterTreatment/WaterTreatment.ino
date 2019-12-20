@@ -862,7 +862,7 @@ void vReadSensor(void *)
 		// Flow water
 		uint32_t passed = MC.sFrequency[FLOW].Passed;
 		if(!MC.sInput[REG_BACKWASH_ACTIVE].get_Input()) {
-			TimeFeedPump +=	passed * 3600 * 1000 / MC.Option.FeedPumpMaxFlow;
+			TimeFeedPump +=	(uint32_t)MC.sFrequency[FLOW].get_Value() * TIME_READ_SENSOR / MC.Option.FeedPumpMaxFlow;
 		}
 		MC.sFrequency[FLOW].Passed = 0;
 		if(MC.sInput[REG_ACTIVE].get_Input() || MC.sInput[REG_BACKWASH_ACTIVE].get_Input() || MC.sInput[REG2_ACTIVE].get_Input()) {
