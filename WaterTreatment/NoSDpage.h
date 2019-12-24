@@ -20,6 +20,12 @@
 
 // Конвертор http://www.buildmystring.com/default.php
 // индексная страница без карты
-const char index_noSD[] = "";
+#define NO_SD_SHOW_SETTINGS
+const char index_noSD[] =
+		"<html><head><title>Водоподготовка</title><meta charset='utf-8'/><meta name='viewport' content='width=device-width, initial-scale=1.0'>"
+		"<script type='text/javascript'>"
+		"window.onload = function() { document.getElementsByTagName('body')[0].innerHTML = document.getElementsByTagName('body')[0].innerHTML.replace(/\\r/g, '<br>'); };"
+		"</script></head><body><h1>Водоподготовка</h1><br><br>";
 
+const char index_noSD_end[] = "</body></html>";
 #endif

@@ -25,7 +25,11 @@
 // Возвращает ошибку останова 
 int8_t set_Error(int8_t _err, char *nam)
 {
-	MC.error = _err;
+	if(MC.error != _err) {
+		MC.error = _err;
+		strcpy(MC.source_error, nam);
+		m_snprintf(MC.note_error, sizeof(MC.note_error), "%s %s: %s", NowTimeToStr(), nam, noteError[abs(_err)]);
+	}
 	uint32_t i = 0;
 	for(; i < sizeof(Errors) / sizeof(Errors[0]); i++) {
 		if(Errors[i] == OK) break;
@@ -37,12 +41,6 @@ int8_t set_Error(int8_t _err, char *nam)
 	if(i != sizeof(Errors) / sizeof(Errors[0])) {
 		Errors[i] = _err;
 		ErrorsTime[i] = rtcSAM3X8.unixtime();
-		strcpy(MC.source_error, nam);
-		strcpy(MC.note_error, NowTimeToStr());       // Cтереть всю строку и поставить время
-		strcat(MC.note_error, " ");
-		strcat(MC.note_error, nam);                  // Имя кто сгенерировал ошибку
-		strcat(MC.note_error, ": ");
-		strcat(MC.note_error, noteError[abs(_err)]); // Описание ошибки
 		journal.jprintf(pP_DATE, "$ERROR source: %s, code: %d\n", nam, _err); //journal.jprintf(", code: %d\n",_err);
 		if(xTaskGetSchedulerState() == taskSCHEDULER_RUNNING) MC.save_DumpJournal(); // вывод отладочной информации для начала  если запущена freeRTOS
 		MC.message.setMessage(pMESSAGE_ERROR, MC.note_error, 0);    // сформировать уведомление об ошибке
@@ -765,6 +763,7 @@ boolean MainClass::set_option(char *var, float xx)
    if(strcmp(var,option_FloodingDebounceTime)==0){ Option.FloodingDebounceTime = x; return true; } else
    if(strcmp(var,option_FloodingTimeout)==0) { Option.FloodingTimeout = x; return true; } else
    if(strcmp(var,option_FillingTankTimeout)==0){ Option.FillingTankTimeout = x; return true; } else
+   if(strcmp(var,option_CriticalErrorsTimeout)==0){ Option.CriticalErrorsTimeout = x; return true; } else
    if(strncmp(var,option_SGL1W, sizeof(option_SGL1W)-1)==0) {
 	   uint8_t bit = var[sizeof(option_SGL1W)-1] - '0' - 1;
 	   if(bit <= 3) {
@@ -806,6 +805,7 @@ char* MainClass::get_option(char *var, char *ret)
    if(strcmp(var,option_FloodingDebounceTime)==0){ return _itoa(Option.FloodingDebounceTime, ret); } else
    if(strcmp(var,option_FloodingTimeout)==0){ return _itoa(Option.FloodingTimeout, ret); } else
    if(strcmp(var,option_FillingTankTimeout)==0){ return _itoa(Option.FillingTankTimeout, ret); } else
+   if(strcmp(var,option_CriticalErrorsTimeout)==0){ return _itoa(Option.CriticalErrorsTimeout, ret); } else
    if(strncmp(var,option_SGL1W, sizeof(option_SGL1W)-1)==0) {
 	   uint8_t bit = var[sizeof(option_SGL1W)-1] - '0' - 1;
 	   if(bit <= 2) {
@@ -985,10 +985,11 @@ void MainClass::save_DumpJournal(void)
 	uint8_t i;
 	journal.jprintf(" State:");
 	for(i = 0; i < RNUMBER; i++) journal.jprintf(" %s:%d", MC.dRelay[i].get_name(), MC.dRelay[i].get_Relay());
+	for(i = 0; i < TNUMBER; i++) if(sTemp[i].get_present() && sTemp[i].Chart.get_present()) journal.printf(" %s:%.2d", sTemp[i].get_name(), sTemp[i].get_Temp());
 	journal.jprintf(" Power:%.3d\n", dPWM.get_Power());
 	// Доп инфо
-	for(i = 0; i < TNUMBER; i++) if(sTemp[i].get_present() && sTemp[i].Chart.get_present()) journal.printf(" %s:%.2d", sTemp[i].get_name(), sTemp[i].get_Temp());
 	for(i = 0; i < ANUMBER; i++) if(sADC[i].get_present()) journal.jprintf(" %s:%.2d", sADC[i].get_name(), sADC[i].get_Value());
+	for(i = 0; i < INUMBER; i++) if(sInput[i].get_present()) journal.jprintf(" %s:%d", sInput[i].get_name(), sInput[i].get_Input());
 	journal.jprintf(cStrEnd);
 }
 

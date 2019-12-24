@@ -10,7 +10,7 @@
 	urlupdate = 2000;
 	loadParam("get_tblRelay");
 	loadParam("get_testMode,get_Opt(DBG)");
-	updateParam("get_remarkTest,get_error"); 
+	updateParam("get_remarkTest,get_err"); 
 };
 function loadParam_after(paramid) {
 	if(paramid.indexOf("get_tblRelay")!=-1) {
@@ -30,7 +30,7 @@ function show_all() {
 	<h1>Режим тест</h1>
 	<h2 >Режим работы: <select id="get_testmode" onchange="setParam('get_testMode','get_testmode');"></select></h2>
 	<h3>Описание: <span id="get_remarktest"></span></h3>
-	<h3>Ошибка: <span id="get_error"></span></h3>
+	<h3>Ошибка: <span id="get_err"></span></h3>
 	<h1>Ручное управление</h1>
 	<h3>Внимание! Необдуманные действия при ручном управлении могут повредить оборудование.</h3>
 	<h3>Снятие блокировки <input type="checkbox" id="manual_override" onchange="if(this.checked) show_all(this);"> Отладка в Serial <input type="checkbox" id="get_opt-dbg" onchange="setParam('get_Opt(DBG)')"></h3>

@@ -1021,10 +1021,13 @@ void vReadSensor_delay8ms(int16_t ms8)
 // Задача Управления насосами (MC.xHandlePumps) "Pumps"
 void vPumps( void * )
 {
+	uint32_t CriticalErrors_timeout = 0;
 	while(!ADC_has_been_read) vTaskDelay(1000 / ADC_FREQ + TIME_SLICE_PUMPS); // ms
 	for(;;)
 	{
 		WDT_Restart(WDT); // Reset Watchdog here, most important task.
+		if(CriticalErrors) CriticalErrors_timeout = MC.Option.CriticalErrorsTimeout * 1000;
+		else if(CriticalErrors_timeout >= TIME_SLICE_PUMPS) CriticalErrors_timeout -= TIME_SLICE_PUMPS; else CriticalErrors_timeout = 0;
 		if(WaterBoosterStatus != 0) {
 			Stats_WaterBooster_work += TIME_SLICE_PUMPS;
 			History_WaterBooster_work += TIME_SLICE_PUMPS;
@@ -1034,13 +1037,17 @@ void vPumps( void * )
 
 		// Read sensors
 		for(uint8_t i = 0; i < INUMBER; i++) MC.sInput[i].Read(true);		// Прочитать данные сухой контакт
-		if(MC.sInput[TANK_EMPTY].get_Input()) CriticalErrors |= ERRC_TankEmpty; else CriticalErrors &= ~ERRC_TankEmpty;
+		bool tank_empty = MC.sInput[TANK_EMPTY].get_Input();
 		if(ADC_has_been_read) {		// Не чаще, чем ADC
 			ADC_has_been_read = false;
 			for(uint8_t i = 0; i < ANUMBER; i++) MC.sADC[i].Read();			// Прочитать данные с датчиков давления
-			if(MC.sADC[LTANK].get_Value() < MC.Option.LTANK_Empty) CriticalErrors |= ERRC_TankEmpty;
+			tank_empty = tank_empty || (MC.sADC[LTANK].get_Value() < MC.Option.LTANK_Empty);
+			if(!tank_empty && !CriticalErrors_timeout) CriticalErrors &= ~ERRC_TankEmpty;
 		}
-		if(CriticalErrors & ERRC_TankEmpty) vPumpsNewError = ERR_TANK_EMPTY;
+		if(tank_empty) {
+			if(!(CriticalErrors & ERRC_TankEmpty)) vPumpsNewError = ERR_TANK_EMPTY;
+			CriticalErrors |= ERRC_TankEmpty;
+		}
 
 		// Check Errors
 		int16_t press = MC.sADC[PWATER].get_Value();
@@ -1080,7 +1087,7 @@ void vPumps( void * )
 		}
 
 		// Water Booster
-		if(!CriticalErrors && press != ERROR_PRESS
+		if(WaterBoosterStatus == 0 && !CriticalErrors && press != ERROR_PRESS
 				&& WaterBoosterTimeout >= MC.Option.MinWaterBoostOffTime
 				&& press <= (MC.sInput[REG_ACTIVE].get_Input() || MC.sInput[REG_BACKWASH_ACTIVE].get_Input() || MC.sInput[REG2_ACTIVE].get_Input() ? MC.Option.PWATER_RegMin : MC.sADC[PWATER].get_minValue())) { // Starting
 			MC.dRelay[RBOOSTER1].set_ON();

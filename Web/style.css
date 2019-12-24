@@ -82,7 +82,7 @@ input:out-of-range { background: red; content: 'Неверное число'; co
 :-moz-placeholder           {color:white;background:red;}
 :-ms-input-placeholder      {color:white;background:red;}
 dl dd span#get_boilermode {font-size: 0.75em;}
-dl dd span#get_error{width: 100%; display: inline-block; line-height: 1em; font-size: 14px; text-align: left; font-weight: lighter;}
+dl dd span#get_err{width: 100%; display: inline-block; line-height: 1em; font-size: 14px; text-align: left; font-weight: lighter;}
 h2 button{float:right;}
 body.const td, body.const th {padding: 5px 10px;}
 #const tr:nth-child(2n),  #const1 tr:nth-child(2n) { background: #e0e0e0; }

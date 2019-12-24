@@ -34,7 +34,7 @@ extern void  get_fileSettings(uint8_t thread);
 extern void  get_txtJournal(uint8_t thread);
 extern uint16_t get_csvStatistic(uint8_t thread);
 extern void  get_datTest(uint8_t thread);
-extern int16_t  get_indexNoSD(uint8_t thread);
+extern void  get_indexNoSD(uint8_t thread);
 extern void  noCsvStatistic(uint8_t thread);
 
 
@@ -264,8 +264,11 @@ void readFileSD(char *filename, uint8_t thread)
 	if(strcmp(filename, "state.txt") == 0) { get_txtState(thread, true); return; }
 	if(strncmp(filename, "settings", 8) == 0) {
 		filename += 8;
-		if(strcmp(filename, ".txt") == 0) {	get_txtSettings(thread); return; }
-		else if(strcmp(filename, ".bin") == 0) { get_binSettings(thread); return; }
+		if(strcmp(filename, ".txt") == 0) {
+		    get_Header(thread,(char*)"settings.txt");
+			get_txtSettings(thread);
+			return;
+		} else if(strcmp(filename, ".bin") == 0) { get_binSettings(thread); return; }
 		filename -= 8;
 	}
 	if(strcmp(filename, "journal.txt") == 0) { get_txtJournal(thread); return; }
@@ -989,7 +992,7 @@ xSaveStats:		if((i = MC.save_WorkStats()) == OK)
 				//getIDchip(strReturn); strcat(strReturn,";");
 				//strcat(strReturn,"Значение регистра VERSIONR сетевого чипа WizNet (51-w5100, 3-w5200, 4-w5500)|");_itoa(W5200VERSIONR(),strReturn);strcat(strReturn,";");
 
-				strReturn += m_snprintf(strReturn += strlen(strReturn), 256, "Состояние системы (Week: %d)|Err:%X B:%d R1:%d R2:%d Day:%d Reg:%d;", MC.RTC_store.Work & RTC_Work_WeekDay_MASK, CriticalErrors, WaterBoosterStatus, !!(MC.RTC_store.Work & RTC_Work_Regen_F1), !!(MC.RTC_store.Work & RTC_Work_Regen_F2), MC.RTC_store.UsedToday, MC.RTC_store.UsedRegen);
+				strReturn += m_snprintf(strReturn += strlen(strReturn), 256, "Состояние системы (день недели: %d)|Err:%d(%X) B:%d %s%s Day:%d Reg:%d;", MC.RTC_store.Work & RTC_Work_WeekDay_MASK, MC.get_errcode(), CriticalErrors, WaterBoosterStatus, MC.RTC_store.Work & RTC_Work_Regen_F1 ? "R1 " : "", MC.RTC_store.Work & RTC_Work_Regen_F2 ? "R2 " : "", MC.RTC_store.UsedToday, MC.RTC_store.UsedRegen);
 				strReturn += m_snprintf(strReturn += strlen(strReturn), 256, "Состояние FreeRTOS при старте (task+err_code) <sup>2</sup>|0x%04X;", lastErrorFreeRtosCode);
 
 				startSupcStatusReg |= SUPC->SUPC_SR;                                  // Копим изменения

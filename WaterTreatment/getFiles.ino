@@ -124,7 +124,6 @@ void get_txtSettings(uint8_t thread)
      uint8_t i,j;
      int16_t x; 
      
-     get_Header(thread,(char*)"settings.txt");
      sendPrintfRTOS(thread, "Последняя ошибка: %d - %s\r\n", MC.get_errcode(),MC.get_lastErr());
      strcpy(Socket[thread].outBuf,"\n  1. Общие настройки\r\n");
      
@@ -149,9 +148,11 @@ void get_txtSettings(uint8_t thread)
      strcat(Socket[thread].outBuf,"MAC адрес контроллера: "); MC.get_network((char*)net_MAC,Socket[thread].outBuf);STR_END;
 
      strcat(Socket[thread].outBuf,"Запрет пинга контроллера: "); MC.get_network((char*)net_NO_PING,Socket[thread].outBuf);STR_END;
-     strcat(Socket[thread].outBuf,"Использование паролей: ");   MC.get_network((char*)net_PASS,Socket[thread].outBuf);STR_END;
-     strcat(Socket[thread].outBuf,"Пароль пользователя (user): "); MC.get_network((char*)net_PASSUSER,Socket[thread].outBuf);STR_END;
-     strcat(Socket[thread].outBuf,"Пароль администратора (admin): "); MC.get_network((char*)net_PASSADMIN,Socket[thread].outBuf); STR_END;
+     if(!GETBIT(Socket[thread].flags, fUser)) {
+    	 strcat(Socket[thread].outBuf,"Использование паролей: ");   MC.get_network((char*)net_PASS,Socket[thread].outBuf);STR_END;
+    	 strcat(Socket[thread].outBuf,"Пароль пользователя (user): "); MC.get_network((char*)net_PASSUSER,Socket[thread].outBuf);STR_END;
+    	 strcat(Socket[thread].outBuf,"Пароль администратора (admin): "); MC.get_network((char*)net_PASSADMIN,Socket[thread].outBuf); STR_END;
+     }
 
      strcat(Socket[thread].outBuf,"Проверка ping до сервера: "); MC.get_network((char*)net_PING_TIME,Socket[thread].outBuf);STR_END;
      strcat(Socket[thread].outBuf,"Адрес пингуемого сервера: "); MC.get_network((char*)net_PING_ADR,Socket[thread].outBuf); STR_END;
@@ -357,32 +358,34 @@ void noCsvStatistic(uint8_t thread)
    
 // Получить индексный файл при отсутвии SD карты
 // выдача массива index_noSD в index_noSD
-int16_t get_indexNoSD(uint8_t thread)
+void get_indexNoSD(uint8_t thread)
 {
-    uint16_t n,i=0;
-     #ifdef LOG 
-       journal.jprintf("$Read: indexNoSD from memory\n");  
-     #endif
-   	strcpy(Socket[thread].outBuf, WEB_HEADER_OK_CT);
-   	strcat(Socket[thread].outBuf, WEB_HEADER_TXT_KEEP);
-   	strcat(Socket[thread].outBuf, WEB_HEADER_END);
-   	sendPacketRTOS(thread, (byte*)Socket[thread].outBuf, strlen(Socket[thread].outBuf), 0);
-    n=sizeof(index_noSD);              // сколько надо передать байт
-    while (n>0)                        // Пока есть не отправленные данные
-      {
-       if(n>=W5200_MAX_LEN)
-           {
-            memcpy(Socket[thread].outBuf,index_noSD+i,W5200_MAX_LEN);
-            if(sendPacketRTOS(thread,(byte*)Socket[thread].outBuf,W5200_MAX_LEN,0)==0) return 0 ;                      // не последний пакет
-            i=i+W5200_MAX_LEN;n=n-W5200_MAX_LEN;
-           }
-       else 
-           {
-            memcpy(Socket[thread].outBuf,(index_noSD+i),n);
-            if(sendPacketRTOS(thread,(byte*)Socket[thread].outBuf,n,0)==0) return 0; else return sizeof(index_noSD);  // последний пакет
-           }
-     } // while (n>0)
-  return n;
+#ifdef LOG
+	journal.jprintf("$Read: indexNoSD from memory\n");
+#endif
+	strcpy(Socket[thread].outBuf, WEB_HEADER_OK_CT);
+	strcat(Socket[thread].outBuf, WEB_HEADER_TXT_KEEP);
+	strcat(Socket[thread].outBuf, WEB_HEADER_END);
+	sendPacketRTOS(thread, (byte*) Socket[thread].outBuf, strlen(Socket[thread].outBuf), 0);
+	uint32_t n, i = 0;
+	n = sizeof(index_noSD) - 1;          // сколько надо передать байт
+	while(n > 0) {                       // Пока есть не отправленные данные
+		if(n >= W5200_MAX_LEN) {
+			memcpy(Socket[thread].outBuf, index_noSD + i, W5200_MAX_LEN);
+			if(sendPacketRTOS(thread, (byte*) Socket[thread].outBuf, W5200_MAX_LEN, 0) == 0) break;                      // не последний пакет
+			i = i + W5200_MAX_LEN;
+			n = n - W5200_MAX_LEN;
+		} else {
+			memcpy(Socket[thread].outBuf, (index_noSD + i), n);
+			sendPacketRTOS(thread, (byte*) Socket[thread].outBuf, n, 0);
+			break;  // последний пакет
+		}
+	} // while (n>0)
+#ifdef NO_SD_SHOW_SETTINGS
+	get_txtSettings(thread);
+	memcpy(Socket[thread].outBuf, index_noSD_end, sizeof(index_noSD_end)-1);
+	sendPacketRTOS(thread, (byte*) Socket[thread].outBuf, sizeof(index_noSD_end)-1, 0);
+#endif
 }   
 
 // Выдать файл журнала в виде файла

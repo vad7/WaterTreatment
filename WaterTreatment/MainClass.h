@@ -140,6 +140,7 @@ struct type_option {
 	uint16_t DrainTime;				// Время слива воды, сек
 	uint16_t FillingTankTimeout;	// сек, Время заполнения бака на 3% при отсутствии потребления
 	int16_t  Weight_Empty;			// сотые %, Низкий уровень реагента, для тревоги
+	uint16_t CriticalErrorsTimeout;	// сек, время восстановления после критических ошибок, кроме протечки
 } __attribute__((packed));
 
 //  Работа с отдельными флагами type_DateTime

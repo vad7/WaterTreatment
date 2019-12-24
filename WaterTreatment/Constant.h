@@ -375,6 +375,7 @@ const char *option_LTANK_Empty			= {"TE"};
 const char *option_Weight_Empty			= {"WE"};
 const char *option_DebugToSerialOn		= {"DBG"};
 const char *option_FillingTankTimeout	= {"FTT"};
+const char *option_CriticalErrorsTimeout= {"CET"};
 
 // WorkStats, get_WS..., set_WS...(x)
 const char *webWS_UsedToday 					= { "UD" };
