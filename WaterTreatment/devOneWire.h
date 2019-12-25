@@ -24,7 +24,9 @@
 #define tDS18S20 0x10
 #define tDS18B20 0x28
 #define tDS1822  0x22
-#define tRadio   0x03
+#define tRadio   0xA0
+#define tADC     0xA1
+#define tADS1115 0xA2
 // разрешение датчика температур
 #define DS18B20_p12BIT 0x7F
 #define DS18B20_p11BIT 0x5F

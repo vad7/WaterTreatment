@@ -101,7 +101,7 @@ const uint16_t  defaultPort=80;
 #define cDELAY_START_MESSAGE 60            // Задержка (сек) после старта на отправку сообщений
 #define NO_POWER_ON_DELAY_CNT 10		   // Задержка включения после появления питани, *TIME_READ_SENSOR
 
-#define PWM_READ_PERIOD     (2*1000)       // Время опроса счетчика в мск
+#define PWM_READ_PERIOD     (3*1000)       // Время опроса не критичных параметров счетчика, ms
 #define PWM_NUM_READ        2              // Число попыток чтения счетчика (подряд) до ошибки
 #define PWM_DELAY_REPEAT    50             // мсек Время между ПОВТОРНЫМИ попытками чтения
 

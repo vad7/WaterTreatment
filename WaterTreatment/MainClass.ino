@@ -504,7 +504,6 @@ void MainClass::resetSetting()
 	Option.FillingTankTimeout = 60;
 	Option.FloodingDebounceTime = 10;
 	Option.FloodingTimeout = 600;
-	Option.LTANK_Empty = 100;
 	Option.MinDrainLiters = 10;
 	Option.MinPumpOnTime = 1000;
 	Option.MinRegenLiters = 500;
@@ -518,6 +517,13 @@ void MainClass::resetSetting()
 	Option.DaysBeforeRegen = 20;
 	Option.UsedBeforeRegen = 6000;
 	Option.UsedBeforeRegenSoftener = 3500;
+	Option.LTANK_Empty = 500;
+	Option.Weight_Empty = 500;
+	Option.DrainAfterHours = 12;
+	Option.DrainMinConsume = 10;
+	Option.DrainTime = 11;
+	Option.FillingTankTimeout = 30;
+	Option.CriticalErrorsTimeout = 300;
 }
 
 // --------------------------------------------------------------------

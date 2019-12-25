@@ -48,6 +48,32 @@ void sensorTemp::initTemp(int sensor)
      #endif
  }
 
+#ifdef TNTC
+int16_t sensorTemp::Read_NTC(uint16_t val)
+{
+	uint8_t r = sizeof(NTC_table) / sizeof(NTC_table[0]) - 1;
+	uint8_t l = 0;
+	while((r - l) > 1) {
+		uint8_t m = (l + r) >> 1;
+		if(val > NTC_table[m]) r = m; else l = m;
+	}
+	uint16_t vl = NTC_table[l];
+	int16_t Temp;
+	if(val > vl) Temp = l * TEMP_TABLE_STEP + TEMP_TABLE_START - TEMP_TABLE_STEP;
+	else {
+		uint16_t vr = NTC_table[r];
+		if(val < vr) Temp = r * TEMP_TABLE_STEP + TEMP_TABLE_START + TEMP_TABLE_STEP;
+		else {
+			uint16_t vd = vl - vr;
+			int16_t res = TEMP_TABLE_START + r * TEMP_TABLE_STEP;
+			if(vd) res -= ((TEMP_TABLE_STEP * (int32_t) (val - vr) + (vd >> 1)) / vd);
+			Temp = res;
+		}
+	}
+	return Temp;
+}
+#endif
+
 // Чтение датчиков температуры, возвращает код ошибки, делает все преобразования
 int8_t sensorTemp::Read() 
 {  
@@ -62,16 +88,27 @@ int8_t sensorTemp::Read()
 			}// else if(number == TIN) return OK; // Этот может получать значения от других датчиков
 			else lastTemp = testTemp; // Если датчик не привязан, то присвоить значение теста
 		} else {
-			if(GETBIT(flags, fRadio)) {
 #ifdef RADIO_SENSORS
+			if(*address == tRadio) {
 				err = OK;
 				int8_t i = get_radio_received_idx();
 				if(i >= 0) {
 					lastTemp = radio_received[i].Temp;
 					if(radio_timecnt - radio_received[i].timecnt > RADIO_LOST_TIMEOUT/TIME_READ_SENSOR) radio_received[i].RSSI = 255;
 				} else return err;
+			} else
 #endif
-			} else {
+#ifdef TNTC
+			if(*address == tADC) {
+				lastTemp = Read_NTC(TNTC_Value[address[1] - '0']);
+			} else
+#endif
+#ifdef TNTC_EXT
+			if(*address == tADS1115) {
+				//...
+			} else
+#endif
+			{
 				int16_t ttemp;
 				err = busOneWire->Read(address, ttemp);
 				if(err != OK) {

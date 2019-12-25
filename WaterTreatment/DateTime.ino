@@ -178,7 +178,7 @@ boolean set_time_NTP(void)
 	boolean flag = false;
 	IPAddress ip(0, 0, 0, 0);
 
-	journal.jprintf(pP_TIME, "Update time from NTP server: %s\n", MC.get_serverNTP());
+	journal.printf(/*pP_TIME,*/ "Update time from NTP server: %s\n", MC.get_serverNTP());
 	//1. Установить адрес  не забываем работаетм через один сокет, опреации строго последовательные,иначе настройки сбиваются
 	WDT_Restart(WDT);                                        // Сбросить вачдог  при ошибке долго ждем
 
@@ -195,14 +195,14 @@ boolean set_time_NTP(void)
 
 	// 2. Посылка пакета
 	if(!Udp.begin(NTP_LOCAL_PORT, W5200_SOCK_SYS)) {
-		journal.jprintf(" UDP fail\n");
+		journal.printf(" UDP fail\n");
 		SemaphoreGive(xWebThreadSemaphore);
 		return false;
 	}
 	for(uint8_t i = 0; i < NTP_REPEAT; i++)                                       // Делам 5 попыток получить время
 	{
 		WDT_Restart(WDT);                                            // Сбросить вачдог
-		journal.jprintf(" Send packet NTP, wait . . .\n");
+		journal.printf(" Send packet NTP, wait . . .\n");
 		flag = sendNTPpacket(ip);
 		_delay(NTP_REPEAT_TIME);                                             // Ждем, чтобы увидеть, доступен ли ответ:
 		if(flag) {
@@ -229,8 +229,8 @@ boolean set_time_NTP(void)
 		// обновились, можно и часы i2c обновить
 		setTime_RtcI2C(rtcSAM3X8.get_hours(), rtcSAM3X8.get_minutes(), rtcSAM3X8.get_seconds());
 		setDate_RtcI2C(rtcSAM3X8.get_days(), rtcSAM3X8.get_months(), rtcSAM3X8.get_years());
-		journal.jprintf(" Set time from NTP server: %s ", NowDateToStr());
-		journal.jprintf("%s\n", NowTimeToStr());  // Одним оператором есть косяк
+		journal.printf(" Set time from NTP server: %s ", NowDateToStr());
+		journal.printf("%s\n", NowTimeToStr());  // Одним оператором есть косяк
 	} else {
 		journal.jprintf(" ERROR update time from NTP server! %s ", NowDateToStr());
 		journal.jprintf("%s\n", NowTimeToStr());  // Одним оператором есть косяк

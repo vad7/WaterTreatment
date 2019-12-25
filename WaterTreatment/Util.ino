@@ -399,12 +399,12 @@ char* ResetCause(void)
 #define CHIPiD_EXID_OFFSET 0x4
 #define CHIPiD_CIDR   (*((volatile unsigned long *) (CHIPiD_BASE_REG_ADDR + CHIPiD_CIDR_OFFSET)))
 #define CHIPiD_EXID   (*((volatile unsigned long *) (CHIPiD_BASE_REG_ADDR + CHIPiD_EXID_OFFSET)))
-void showID() 
+void showID()
 {
-uint32_t test = 0x0;
-test = CHIPiD_CIDR;
-//test = CHIPiD_EXID;
-journal.jprintf("Chip ID EXID: %d\n",test); 
+	uint32_t test = 0x0;
+	test = CHIPiD_CIDR;
+	//test = CHIPiD_EXID;
+	journal.printf("Chip ID EXID: %d\n", test);
 }
 
 
@@ -494,18 +494,18 @@ char * get_Schedule(uint32_t *sh)
 uint8_t initSD(void)
 {
 	boolean success = false;   // флаг успешности инициализации
-	journal.printf("Initializing SD card... ");
+	journal.jprintf("Init SD card: ");
 #ifdef NO_SD_CONTROL                // Если реализован механизм проверки наличия карты в слоте (выключатель в слоте карты)
 	pinMode(PIN_NO_SD_CARD, INPUT);     // ++ CD Программирование проверки наличия карты
-	if (digitalReadDirect(PIN_NO_SD_CARD)) {journal.jprintf("No SD card!\n"); return false;}
+	if (digitalReadDirect(PIN_NO_SD_CARD)) {journal.jprintf("slot empty!\n"); return false;}
 #endif
 	// 1. Инициалазация карты
 	if(!card.begin(PIN_SPI_CS_SD, SD_SCK_MHZ(SD_CLOCK))) {
-		journal.jprintf("Init error %d,%d!\n", card.cardErrorCode(), card.cardErrorData());
+		journal.jprintf("Error %d,%d!\n", card.cardErrorCode(), card.cardErrorData());
 	} else success = true;  // Карта инициализирована с первого раза
 
 	if(success)  // Запоминаем результаты
-		journal.printf("OK\n");
+		journal.jprintf("OK\n");
 	else {
 		//set_Error(ERR_SD_INIT,"SD card");   // Уведомить об ошибке
 		MC.message.setMessage(pMESSAGE_SD, (char*) "Ошибка инициализации SD карты", 0);    // сформировать уведомление

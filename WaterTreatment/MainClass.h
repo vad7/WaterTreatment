@@ -26,8 +26,8 @@ extern char *MAC2String(byte* mac);
 struct type_WorkStats {
 	uint8_t  Header;
 	uint32_t ResetTime;
-	uint32_t UsedSinceLastRegen;	// Liters
-	uint32_t UsedSinceLastRegenSoftening;	// Liters
+	int32_t  UsedSinceLastRegen;	// Liters
+	int32_t  UsedSinceLastRegenSoftening;	// Liters
 	uint32_t UsedTotal;				// Liters
 	uint32_t UsedAverageDay;		// Liters, sum of UsedAverageDayNum
 	uint16_t UsedAverageDayNum;
@@ -137,6 +137,8 @@ struct type_option {
 	uint16_t FloodingTimeout;		// сек, Время ожидания перед началом работы после срабатывания датчика протечки
 	int16_t  PWATER_RegMin;			// сотые бара, Нижний предел давления PWATER при регенерации
 	int16_t  LTANK_Empty;			// сотые %, Низкий уровень воды в баке - нужно включить заполнение бака до максимального
+	uint16_t DrainAfterHours;		// Через сколько часов сливать воду при отсутствии потребления, 0,1,2,3,4,6,8,12,24
+	uint16_t DrainMinConsume;		// Минимальное потребление, л
 	uint16_t DrainTime;				// Время слива воды, сек
 	uint16_t FillingTankTimeout;	// сек, Время заполнения бака на 3% при отсутствии потребления
 	int16_t  Weight_Empty;			// сотые %, Низкий уровень реагента, для тревоги

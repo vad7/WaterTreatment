@@ -90,7 +90,7 @@ boolean linkStatusWiznet(boolean show)
 		if(st & W5500_DUPLEX) journal.printf(" Duplex Status: full duplex\n"); else journal.printf(" Duplex Status: half duplex\n");
 		journal.printf(" Register PHYCFGR: 0x%02x\n", st);
 #else
-		journal.jprintf(" %s%c[%02X] ", st & W5500_SPEED ? "100" : "10", st & W5500_DUPLEX ? 'F' : 'H', st);
+		journal.printf(" %s%c[%02X] ", st & W5500_SPEED ? "100" : "10", st & W5500_DUPLEX ? 'F' : 'H', st);
 #endif
 	}
 	if(st & W5500_LINK) return true;
