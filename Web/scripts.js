@@ -241,7 +241,7 @@ function loadParam(paramid, noretry, resultdiv) {
 									var element = document.getElementById(valueid);
 									if(element && values[0] != null && values[0] != 0 && values[1] != null && values[1] != 0) {
 										if(values[0] == 'get_status') {
-											element.innerHTML = "<div>" + values[1].replace(/>/g, "'>").replace(/\|/g, "</div><div id='") + "</div>";
+											element.innerHTML = "<div>" + values[1].replace(/>/g, "'><nobr>").replace(/\|/g, "</nobr></div><div id='") + "</div>";
 										} else {
 											if(values[0] == "CONST") values[1] = "VER_WEB|Версия веб-страниц|" + VER_WEB + ';' + values[1];
 											element.innerHTML = "<tr><td>" + values[1].replace(/\|/g, "</td><td>").replace(/(\;)/g, "</td></tr><tr><td>") + "</td></tr>";

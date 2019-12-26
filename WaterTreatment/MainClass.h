@@ -363,6 +363,7 @@ public:
 	boolean  fNetworkReset;							// Нужно сбросить сеть
     TEST_MODE testMode;                             // Значение режима тестирования
 	type_WorkStats WorkStats;               		// Структура для хранения счетчиков периодическая запись
+	type_WorkStats WorkStats_saved;
 	type_RTC_memory RTC_store;
 
 private:

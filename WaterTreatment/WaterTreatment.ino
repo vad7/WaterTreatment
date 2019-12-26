@@ -1260,8 +1260,9 @@ void vService(void *)
 						update_RTC_store_memory();
 					}
 				} else {
-					if(MC.Option.DrainAfterNoConsume && rtcSAM3X8.unixtime() - MC.WorkStats.UsedLastTime >= MC.Option.DrainAfterNoConsume && !CriticalErrors) { // Used water less than min
+					if(MC.Option.DrainAfterNoConsume && rtcSAM3X8.unixtime() - MC.WorkStats.UsedLastTime >= MC.Option.DrainAfterNoConsume && !CriticalErrors) { // Water did not consumed a long time ago.
 						TimerDrainingWater = MC.Option.DrainTime;
+						MC.WorkStats.UsedDrain = 0;
 						MC.dRelay[RDRAIN].set_ON();
 					}
 				}

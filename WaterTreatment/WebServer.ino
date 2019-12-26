@@ -499,7 +499,7 @@ void parserGET(uint8_t thread, int8_t )
 			else strcat(strReturn,"-");
 			strcat(strReturn,"|SI>");
 			_itoa(100-MC.CPU_IDLE,strReturn);
-			strcat(strReturn,"%|SF>");
+			strcat(strReturn,"%");//|SF>");
 			//_itoa(freeRam()+MC.startRAM,strReturn);                          strcat(strReturn,"b|");
 			ADD_WEBDELIM(strReturn);
 			continue;
@@ -742,7 +742,7 @@ xSaveStats:		if((i = MC.save_WorkStats()) == OK)
 			if(strcmp(str, webWS_UsedToday) == 0) _itoa(MC.RTC_store.UsedToday, strReturn); // get_WSUD
 			else if(strcmp(str, webWS_UsedYesterday) == 0) _itoa(MC.WorkStats.UsedYesterday, strReturn); // get_WSUY
 			else if(strcmp(str, webWS_UsedAverageDay) == 0) _itoa(MC.WorkStats.UsedAverageDay / MC.WorkStats.UsedAverageDayNum, strReturn); // get_WSA
-			else if(strcmp(str, webWS_LastDrain) == 0) DecodeTimeDate(MC.WorkStats.LastDrain, strReturn, 1); // get_WSDD
+			else if(strcmp(str, webWS_LastDrain) == 0) if(MC.WorkStats.LastDrain) TimeIntervalToStr(rtcSAM3X8.unixtime() - MC.WorkStats.LastDrain, strReturn, 0); else strcat(strReturn, "-"); // get_WSDD
 			else if(strcmp(str, webWS_UsedDrain) == 0) _itoa(MC.WorkStats.UsedDrain, strReturn); // get_WSD
 			else if(strcmp(str, webWS_UsedTotal) == 0) {  // get_WST
 				if(i) MC.WorkStats.UsedTotal = loc_i; // set_WST=x

@@ -18,7 +18,7 @@
 
 /*
   char checker(int);
-  char checkSizeOfInt1[sizeof(HistorySetup[0])]={checker(&checkSizeOfInt1)};
+  char checkSizeOfInt1[sizeof(MC.WorkStats)]={checker(&checkSizeOfInt1)};
 //*/
 
 // Установка критической ошибки для класса  вызывает останов 
@@ -362,16 +362,36 @@ int8_t MainClass::check_crc16_eeprom(int32_t addr, uint16_t size)
 }
 
 // СЧЕТЧИКИ -----------------------------------
- // запись счетчиков в I2C память
+// Write only changed bytes, between changed blocks more than 4 bytes.
 int8_t MainClass::save_WorkStats()
 {
-	uint8_t errcode;
 	WorkStats.Header = I2C_COUNT_EEPROM_HEADER;
-	if((errcode = writeEEPROM_I2C(I2C_COUNT_EEPROM, (byte*) &WorkStats, sizeof(WorkStats)))) {
-		journal.jprintf(" ERROR %d save counters!\n", errcode);
-		set_Error(ERR_SAVE2_EEPROM, (char*) __FUNCTION__);
-		return ERR_SAVE2_EEPROM;
-	}
+	uint32_t ptr = 0;
+	do {
+		while(ptr < sizeof(WorkStats)) if(((uint8_t*)&WorkStats)[ptr] == ((uint8_t*)&WorkStats_saved)[ptr]) ptr++; else break;
+		if(ptr == sizeof(WorkStats)) break;
+		uint32_t ptre = ptr + 1;
+xNotEqual:
+		while(ptre < sizeof(WorkStats)) if(((uint8_t*)&WorkStats)[ptre] != ((uint8_t*)&WorkStats_saved)[ptre]) ptre++; else break;
+		if(ptre < sizeof(WorkStats)) {
+			uint32_t ptrz = ptre + 1;
+			while(ptrz < sizeof(WorkStats)) if(((uint8_t*)&WorkStats)[ptrz] == ((uint8_t*)&WorkStats_saved)[ptrz]) ptrz++; else break;
+			if(ptrz < sizeof(WorkStats)) {
+				if(ptrz - ptre <= 4) {
+					ptre = ptrz + 1;
+					goto xNotEqual;
+				}
+			}
+		}
+		uint8_t errcode;
+		if((errcode = writeEEPROM_I2C(I2C_COUNT_EEPROM + ptr, (byte*)&WorkStats + ptr, ptre - ptr))) {
+			journal.jprintf(" ERROR %d save counters!\n", errcode);
+			set_Error(ERR_SAVE2_EEPROM, (char*) __FUNCTION__);
+			return ERR_SAVE2_EEPROM;
+		}
+		ptr = ptre;
+	} while(ptr < sizeof(WorkStats));
+	memcpy(&WorkStats_saved, &WorkStats, sizeof(WorkStats_saved));
 	return OK;
 }
 
@@ -390,6 +410,7 @@ int8_t MainClass::load_WorkStats()
 		set_Error(ERR_LOAD2_EEPROM, (char*) __FUNCTION__);
 		return ERR_LOAD2_EEPROM;
 	}
+	memcpy(&WorkStats_saved, &WorkStats, sizeof(WorkStats_saved));
 	journal.printf(" Load counters OK, read: %d bytes\n", sizeof(WorkStats));
 	return OK;
 
