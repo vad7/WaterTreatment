@@ -493,10 +493,10 @@ void parserGET(uint8_t thread, int8_t )
 #endif
 			strcat(strReturn,"|ST>");
 			TimeIntervalToStr(MC.get_uptime(),strReturn);
-//			strcat(strReturn,"|SC>");
-//			uint32_t t = MC.get_command_completed();
-//			if(t) TimeIntervalToStr(rtcSAM3X8.unixtime() - t, strReturn, 1);
-//			else strcat(strReturn,"-");
+			strcat(strReturn,"|SC>");
+			uint32_t t = MC.WorkStats.UsedLastTime;
+			if(t) TimeIntervalToStr(rtcSAM3X8.unixtime() - t, strReturn, 1);
+			else strcat(strReturn,"-");
 			strcat(strReturn,"|SI>");
 			_itoa(100-MC.CPU_IDLE,strReturn);
 			strcat(strReturn,"%|SF>");

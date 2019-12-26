@@ -733,7 +733,7 @@ void vKeysLCD( void * )
 	lcd.print((char*)"vad7@yahoo.com");
 	vTaskDelay(3000);
 	static uint32_t DisplayTick = xTaskGetTickCount();
-	static char buffer[ALIGN(LCD_COLS + 1)];
+	static char buffer[ALIGN(LCD_COLS * 2)];
 	//static uint32_t displayed_area = 0; // b1 - Yd,Days Fe,Soft
 	for(;;)
 	{
@@ -886,6 +886,7 @@ void vReadSensor(void *)
 			History_WaterUsed_work += passed;
 			NeedSaveRTC |= (1<<bRTC_UsedToday);
 		}
+		if(passed) MC.WorkStats.UsedLastTime = rtcSAM3X8.unixtime();
 		//
 #ifdef USE_UPS
 		if(!MC.NO_Power)
@@ -1224,6 +1225,7 @@ void vService(void *)
 			// Drain OFF
 			if(TimerDrainingWater && --TimerDrainingWater == 0) {
 				MC.dRelay[RDRAIN].set_OFF();
+				MC.WorkStats.LastDrain = rtcSAM3X8.unixtime();
 				if(MC.WorkStats.UsedDrain < MC.Option.MinDrainLiters) {
 					set_Error(ERR_FEW_LITERS_DRAIN, (char*)__FUNCTION__);
 				}
@@ -1257,12 +1259,8 @@ void vService(void *)
 						xTaskResumeAll(); // Разрешение других задач
 						update_RTC_store_memory();
 					}
-					if(MC.Option.DrainAfterHours && MC.WorkStats.UsedYesterday < MC.Option.DrainMinConsume && !CriticalErrors) { // Used water less than min
-						TimerDrainingWater = MC.Option.DrainTime;
-						MC.dRelay[RDRAIN].set_ON();
-					}
 				} else {
-					if(MC.Option.DrainAfterHours && MC.RTC_store.UsedToday < MC.Option.DrainMinConsume && !CriticalErrors) { // Used water less than min
+					if(MC.Option.DrainAfterNoConsume && rtcSAM3X8.unixtime() - MC.WorkStats.UsedLastTime >= MC.Option.DrainAfterNoConsume && !CriticalErrors) { // Used water less than min
 						TimerDrainingWater = MC.Option.DrainTime;
 						MC.dRelay[RDRAIN].set_ON();
 					}

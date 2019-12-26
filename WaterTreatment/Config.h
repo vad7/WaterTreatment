@@ -185,7 +185,11 @@ struct History_setup {
 
     // Сервис
     #define PIN_ETH_RES			55          // ETH-RES Сброс сетевого чипа w5500 активный low нормально high
+#ifdef TEST_BOARD
+	#define PIN_LED_OK			13          // Зеленый светодиод Выход на светодиод мигает 0.5 герца - ОК  с частотой 2 герца ошибка
+#else
 	#define PIN_LED_OK			42          // Зеленый светодиод Выход на светодиод мигает 0.5 герца - ОК  с частотой 2 герца ошибка
+#endif
     #define PIN_LED_ERROR		13		    // Для библиотеки FreeRTOS
     #define PIN_KEY_SAFE		26          // Нажатие при включении - режим safeNetwork (настрока сети по умолчанию, не спрашивает пароль на вход в веб морду)
     #define PIN_BEEP			11          // SOUND Выход на пищалку  88- нога не использующиеся
