@@ -1835,8 +1835,8 @@ xWgt_get:
 							_dtoa(strReturn, MC.Option.WeightScale, 4);
 						} else if(*x == 'P') {      	// get_Wgt(P) - Pins
 							m_snprintf(strReturn + m_strlen(strReturn), 32, "D%d D%d", HX711_DOUT_PIN, HX711_SCK_PIN);
-						} else if(*x == 'X') {       		// get_Wgt(X) - Level in test modes
-							_dtoa(strReturn, Weight_Percent_Test, 2);
+						} else if(*x == 'X') {       		// get_Wgt(X) - Test value
+							_dtoa(strReturn, Weight_Test, 1);
 						} else if(strcmp(x, "LvL")==0) {       		// get_Wgt(LvL) - Level
 							_dtoa(strReturn, Weight_Percent, 2);
 						}
@@ -1851,8 +1851,8 @@ xWgt_get:
 							MC.Option.WeightScale = pm * 10000 + 0.00005f;
 						} else if(*x == '0') {      	// set_Wgt(0=) - Zero
 							MC.Option.WeightZero = pm;
-						} else if(*x == 'X') {      	// set_Wgt(X=) - Level in test modes
-							Weight_Percent_Test = rd(pm, 100);
+						} else if(*x == 'X') {      	// set_Wgt(X=) - Test value
+							Weight_Test = pm * 10;
 						}
 						goto xWgt_get;
 					}

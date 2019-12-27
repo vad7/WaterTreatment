@@ -88,7 +88,7 @@ uint16_t Weight_adc_idx;  			                // текущий индекс
 boolean  Weight_adc_flagFull;          			    // буфер полный
 int32_t	 Weight_value = 0;							// десятые грамма
 int16_t  Weight_Percent = 0;						// %, сотые
-int16_t  Weight_Percent_Test = 7000;				// %, сотые, Тест
+int32_t  Weight_Test = 100000;						// десятые грамма, Тест
 void Weight_Clear_Averaging(void);
 
 #define  bRTC_UsedToday		0

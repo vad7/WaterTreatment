@@ -309,6 +309,9 @@ void Statistics::CheckCreateNewFile()
 // Сбросить накопленные промежуточные значения
 void Statistics::Reset()
 {
+#ifndef TEST_BOARD
+	if(MC.get_testMode() != NORMAL) return;
+#endif
 	for(uint8_t i = 0; i < sizeof(Stats_data) / sizeof(Stats_data[0]); i++) {
 		switch(Stats_data[i].type){
 		case STATS_TYPE_MIN:
@@ -330,11 +333,10 @@ void Statistics::Reset()
 // Обновить статистику, вызывается часто, раз в TIME_READ_SENSOR
 void Statistics::Update()
 {
-	if(NewYearFlag
+	if(NewYearFlag) return; // waiting to switch a next year
 #ifndef TEST_BOARD
-			|| MC.get_testMode() != NORMAL
+	if(MC.get_testMode() != NORMAL) continue;
 #endif
-		) return; // waiting to switch a next year
 	uint32_t tm = millis() - previous;
 	previous = millis();
 	if(rtcSAM3X8.get_days() != day) {
@@ -427,15 +429,15 @@ void Statistics::History()
 	//journal.printf("History:(%s)\n", mbuf);
 	for(uint8_t i = 0; i < sizeof(HistorySetup) / sizeof(HistorySetup[0]); i++) {
 		*buf++ = ';';
-		switch(HistorySetup[i].object) {
+		switch(HistorySetup[i].object) { // web will divide by 1000 with some exceptions
 		case STATS_OBJ_Temp:		// C
-			int_to_dec_str(MC.sTemp[HistorySetup[i].number].get_Temp(), 10, &buf, 0); // T
+			int_to_dec_str(MC.sTemp[HistorySetup[i].number].get_Temp(), 10, &buf, 0); // T (/10)
 			break;
 		case STATS_OBJ_Press:		// bar
-			int_to_dec_str(MC.sADC[HistorySetup[i].number].get_Value(), 10, &buf, 0); // P
+			int_to_dec_str(MC.sADC[HistorySetup[i].number].get_Value(), 10, &buf, 0); // P (/10)
 			break;
 		case STATS_OBJ_Flow:		// m3h
-			int_to_dec_str(MC.sFrequency[HistorySetup[i].number].get_Value(), 100, &buf, 0); // F
+			int_to_dec_str(MC.sFrequency[HistorySetup[i].number].get_Value(), 1, &buf, 0); // F
 			break;
 		case STATS_OBJ_Power:
 			int_to_dec_str((int32_t)MC.dPWM.get_Power(), 1, &buf, 0);  // W
@@ -443,33 +445,33 @@ void Statistics::History()
 		case STATS_OBJ_WaterUsed: {
 				int32_t tmp = History_WaterUsed_work;
 				History_WaterUsed_work = 0;
-				int_to_dec_str(tmp, 1000, &buf, 3);  // m3
+				int_to_dec_str(tmp, 1, &buf, 0);  // m3
 				break;
 			}
 		case STATS_OBJ_WaterRegen: {
 				int32_t tmp = History_WaterRegen_work;
 				History_WaterRegen_work = 0;
-				int_to_dec_str(tmp, 1000, &buf, 3);  // m3
+				int_to_dec_str(tmp, 1, &buf, 0);  // m3
 				break;
 			}
 		case STATS_OBJ_WaterBooster: {
 				int32_t tmp = History_WaterBooster_work;
 				History_WaterBooster_work = 0;
-				int_to_dec_str(tmp, 1000, &buf, 0);  // sec
+				int_to_dec_str(tmp, 100, &buf, 0);  // sec, S (/1)
 				break;
 			}
 		case STATS_OBJ_FeedPump: {
 				int32_t tmp = History_FeedPump_work;
 				History_FeedPump_work = 0;
-				int_to_dec_str(tmp, 1000, &buf, 0);  // sec
+				int_to_dec_str(tmp, 100, &buf, 0);  // sec, S (/1)
 				break;
 			}
 		case STATS_OBJ_BrineWeight: {
-				int_to_dec_str(Weight_value, 10000, &buf, 3); // kg
+				int_to_dec_str(Weight_value, 10, &buf, 0); // kg, M
 				break;
 			}
 		case STATS_OBJ_Level: {
-				int_to_dec_str(MC.sADC[HistorySetup[i].number].get_Value(), 100, &buf, 0); // %
+				int_to_dec_str(MC.sADC[HistorySetup[i].number].get_Value(), 100, &buf, 0); // %, R (/1)
 				break;
 			}
 		}
@@ -502,16 +504,16 @@ void Statistics::HistoryFileHeader(char *ret, uint8_t flag)
 		if(flag) {
 			switch(HistorySetup[i].object) {
 			case STATS_OBJ_Temp:
-				strcat(ret, "T"); 		// ось температур
+				strcat(ret, "T"); 	// ось температур
 				break;
 			case STATS_OBJ_Press:
-				strcat(ret, "P"); 		// ось давлений
+				strcat(ret, "P"); 	// ось давлений
 				break;
 			case STATS_OBJ_Voltage:
-				strcat(ret, "V");		// ось напряжение
+				strcat(ret, "V");	// ось напряжение
 				break;
 			case STATS_OBJ_Power:
-				strcat(ret, "W");		// ось мощность
+				strcat(ret, "W");	// ось мощность
 				break;
 			case STATS_OBJ_Flow:
 				strcat(ret, "F");	// ось м3ч
@@ -553,7 +555,7 @@ void Statistics::StatsFieldHeader(char *ret, uint8_t i, uint8_t flag)
 		break;
 	case STATS_OBJ_Flow:
 		if(flag) strcat(ret, "F"); // ось проток
-		strcat(ret, MC.sADC[STATS_ID_Flow].get_note());
+		strcat(ret, MC.sFrequency[STATS_ID_Flow].get_note());
 		break;
 	case STATS_OBJ_WaterBooster:
 		if(flag) strcat(ret, "S"); // ось время
@@ -569,7 +571,8 @@ void Statistics::StatsFieldHeader(char *ret, uint8_t i, uint8_t flag)
 		break;
 	case STATS_OBJ_Power:
 		if(flag) strcat(ret, "W"); // ось мощность
-		strcat(ret, "Потребление, кВтч"); // хранится в Вт
+		strcat(ret, "Потребление, кВт"); // хранится в Вт
+		if(Stats_data[i].type == STATS_TYPE_SUM) strcat(ret, "ч");
 		break;
 	case STATS_OBJ_WaterUsed:
 		if(flag) strcat(ret, "L");	// ось литры
@@ -628,16 +631,17 @@ xSkipEmpty:
 		int_to_dec_str(val, 100, ret, 1);
 		break;
 	case STATS_OBJ_Voltage:					// V
-		int_to_dec_str(val, 1, ret, 0);
+		int_to_dec_str(val, 10, ret, 0);
 		break;
 	case STATS_OBJ_WaterUsed:				// m3
 	case STATS_OBJ_WaterRegen:				// m3
 	case STATS_OBJ_BrineWeight:				// kg
+	case STATS_OBJ_Flow:					// m3h
 		int_to_dec_str(val, 1000, ret, 3);
 		break;
 	case STATS_OBJ_WaterBooster:			// s
 	case STATS_OBJ_FeedPump:				// s
-		int_to_dec_str(val, 1000, ret, 0);
+		int_to_dec_str(val, 100, ret, 0);
 		break;
 	case STATS_OBJ_Power:					// кВт*ч
 		switch(Stats_data[i].type) {

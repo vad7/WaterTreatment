@@ -199,13 +199,6 @@ function createChart() {
 			id: 'M'
 		}, {
 			title: {
-				text: 'COP', align: 'high', offset: 15
-			},
-			opposite: true,
-			showEmpty: false,
-			id: 'C'
-		}, {
-			title: {
 				text: '%', align: 'high', offset: 15
 			},
 			opposite: true,
@@ -252,7 +245,7 @@ function createChart() {
 			data: fieldList[fieldIndex].data,
 			index: fieldList[fieldIndex].series,
 			yAxis: ax,
-			tooltip: {valueDecimals: ax == 'W' ? 3 : ax == 'C' ? 2 : 1},
+			tooltip: {valueDecimals: (ax == 'T' || ax == 'P') ? 1 : (ax != 'S' && ax != 'M') ? 3 : 0},
 			//visible:false,
 			name: fieldList[fieldIndex].name
 		});
@@ -332,7 +325,7 @@ function loadChartsGroup(period) {
 				var nf = Number(arr[fi]);
 				if(!isNaN(nf)) {
 					var ax = fieldList[fi - 1].axis;
-					if(ax == 'W') nf = nf / 1000; else if(ax == 'C') nf = nf / 100; else nf = nf / 10;
+					if(ax == 'T' || ax == 'P') nf = nf / 10; else if(ax != 'S' && ax != 'M') nf = nf / 1000;
 					fieldList[fi - 1].data.push([dt, nf]);
 				}
 			}

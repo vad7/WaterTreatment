@@ -505,7 +505,7 @@ int8_t devRelay::set_Relay(int8_t r)
 	r = (flags & fR_StatusMask) != 0;
 	if(Relay == r) return OK;   // Ничего менять не надо выходим
     Relay = r;                  // Все удачно, сохранить
-    if(Relay) TimerOn = TIMER_TO_SHOW_STATUS;
+    if(TimerOn || Relay) TimerOn = TIMER_TO_SHOW_STATUS;
 	if(testMode == NORMAL || testMode == HARD_TEST) {
 #ifndef RELAY_INVERT            // Нет инвертирования реле -  Влючение реле (Relay=true) соответсвует НИЗКИЙ уровень на выходе МК
 		r = !r;
@@ -520,7 +520,7 @@ int8_t devRelay::set_Relay(int8_t r)
 	delay(RELAY_WAIT_SWITCH);
 	if(tasks_suspended) xTaskResumeAll();
 #endif
-	journal.printf("Relay %s: %s\n", name, Relay ? "ON" : "OFF");
+	if(number != RFEEDPUMP) journal.printf("Relay %s: %s\n", name, Relay ? "ON" : "OFF");
 	return OK;
 }
 
@@ -556,8 +556,13 @@ int8_t devPWM::get_readState(uint8_t group)
 	for(int8_t i=0; i < PWM_NUM_READ; i++)   // делаем PWM_NUM_READ попыток чтения
 	{
 		if(group == 0) {
-			err = Modbus.readInputRegisters32(PWM_MODBUS_ADR, PWM_POWER, &Power);
-			if(err == OK) /* group = 1 */; else goto xErr;
+			uint32_t tmp;
+			err = Modbus.readInputRegisters32(PWM_MODBUS_ADR, PWM_POWER, &tmp);
+			if(err == OK) {
+				tmp = tmp / 10 + (tmp % 10 >= 5 ? 1 : 0);
+				Power = tmp;
+				/* group = 1 */
+			} else goto xErr;
 		}
 		if(group == 1) {
 			err = Modbus.readInputRegisters16(PWM_MODBUS_ADR, PWM_VOLTAGE, &Voltage);
@@ -608,7 +613,7 @@ char* devPWM::get_param(char *var, char *ret)
 		_dtoa(ret, Power, 1);
 		return ret;
 	} else if(strcmp(var, pwm_TestPower) == 0) {
-		_dtoa(ret, TestPower, 1);
+		_dtoa(ret, TestPower, 0);
 		return ret;
 	} else if(strcmp(var, pwm_CURRENT) == 0) {       // Ток
 		if(Modbus.readInputRegisters32(PWM_MODBUS_ADR, PWM_CURRENT, &tmp) == OK) {
@@ -644,7 +649,7 @@ boolean devPWM::set_param(char *var, float f)
 	   if(st) journal.jprintf("PWM energy reset error %d!\n", st); else journal.jprintf("PWM energy reseted!\n");
 	   return true;
    } else if(strcmp(var, pwm_TestPower) == 0) {
-	   TestPower = rd(f, 10);
+	   TestPower = f;
 	   return true;
    }
    return false;

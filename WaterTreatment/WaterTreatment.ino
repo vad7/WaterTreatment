@@ -985,7 +985,8 @@ void vReadSensor_delay8ms(int16_t ms8)
 		if(Weight_NeedRead) {
 			if(MC.get_testMode() != NORMAL) {
 				Weight_NeedRead = false;
-				Weight_Percent = Weight_Percent_Test;
+				Weight_value = Weight_Test;
+				Weight_Percent = Weight_value * 10000 / MC.Option.WeightFull;
 			} else if(Weight.is_ready()) {
 				Weight_NeedRead = false;
 				// Read HX711
@@ -999,7 +1000,8 @@ void vReadSensor_delay8ms(int16_t ms8)
 					Weight_adc_flagFull = true;
 				}
 				if(Weight_adc_flagFull) adc_val = Weight_adc_sum / (sizeof(Weight_adc_filter) / sizeof(Weight_adc_filter[0])); else adc_val = Weight_adc_sum / Weight_adc_idx;
-				Weight_Percent = (Weight_value = (adc_val - MC.Option.WeightZero) * 10000 / MC.Option.WeightScale - MC.Option.WeightTare) * 10000 / MC.Option.WeightFull;
+				Weight_value = (adc_val - MC.Option.WeightZero) * 10000 / MC.Option.WeightScale - MC.Option.WeightTare;
+				Weight_Percent = Weight_value * 10000 / MC.Option.WeightFull;
 				if(Weight_Percent < 0) Weight_Percent = 0; else if(Weight_Percent > 10000) Weight_Percent = 10000;
 			}
 		}
@@ -1043,6 +1045,7 @@ void vPumps( void * )
 		if(WaterBoosterStatus != 0) {
 			Stats_WaterBooster_work += TIME_SLICE_PUMPS;
 			History_WaterBooster_work += TIME_SLICE_PUMPS;
+			Charts_WaterBooster_work += TIME_SLICE_PUMPS;
 		}
 		if((WaterBoosterTimeout += TIME_SLICE_PUMPS) < TIME_SLICE_PUMPS) WaterBoosterTimeout = 0xFFFFFFFF;
 		for(uint8_t i = 0; i < RNUMBER; i++) MC.dRelay[i].NextTimerOn();
@@ -1141,6 +1144,7 @@ xWaterBooster_OFF:
 				TimeFeedPump -= TIME_SLICE_PUMPS;
 				Stats_FeedPump_work += TIME_SLICE_PUMPS;
 				History_FeedPump_work += TIME_SLICE_PUMPS;
+				Charts_FeedPump_work += TIME_SLICE_PUMPS;
 			}
 			taskEXIT_CRITICAL();
 			if(TimeFeedPump < TIME_SLICE_PUMPS) MC.dRelay[RFEEDPUMP].set_OFF();

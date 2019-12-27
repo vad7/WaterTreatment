@@ -948,7 +948,7 @@ void MainClass::get_Chart(char *var, char* str)
 	if(strcmp(var, chart_NONE) == 0) {
 		strcat(str, "");
 	} else if(strcmp(var, chart_VOLTAGE) == 0) {
-		dPWM.ChartVoltage.get_PointsStr(100, str);
+		dPWM.ChartVoltage.get_PointsStr(10, str);
 	} else if(strcmp(var, chart_fullPOWER) == 0) {
 		dPWM.ChartPower.get_PointsStr(1, str);
 	} else if(strcmp(var, chart_WaterBoost) == 0) {
