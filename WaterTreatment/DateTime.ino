@@ -302,7 +302,7 @@ char* TimeIntervalToStr(uint32_t idt, char *ret, uint8_t fSec = 0)
 
 	if(idt) {
 		_itoa(idt, ret);
-		strcat(ret, " ");
+		strcat(ret, "д ");
 		goto xHour;
 	}
 	if(Hour) {
@@ -312,7 +312,7 @@ xHour:	_itoa(Hour, ret);
 	}
 	if(Min) {
 xMin:	_itoa(Min, ret);
-		if(!fSec) strcat(ret, "m");
+		if(!fSec) strcat(ret, "м");
 		else {
 			strcat(ret, ":");
 			goto xSec;
@@ -320,7 +320,7 @@ xMin:	_itoa(Min, ret);
 	}
 	if(fSec) {
 xSec:	_itoa(Sec, ret);
-		strcat(ret, "s");
+		strcat(ret, "c");
 	}
 	return ret;
 }
