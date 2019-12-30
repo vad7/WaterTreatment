@@ -42,10 +42,6 @@ void sensorTemp::initTemp(int sensor)
       note=(char*)noteTemp[sensor];            // присвоить наименование датчика
       name=(char*)nameTemp[sensor];            // присвоить имя датчика
 
-     // Удаленные устройства  #ifdef SENSOR_IP
-     #ifdef SENSOR_IP
-      devIP=NULL;                             // Ссылка на привязаный датчик (класс) если NULL привявязки нет
-     #endif
  }
 
 #ifdef TNTC
@@ -170,23 +166,10 @@ int8_t sensorTemp::set_errTemp(int16_t t)
   if (abs(t)<MAX_TEMP_ERR) { errTemp=t; return OK;} else return WARNING_VALUE;
 }
 
-// Получить значение температуры датчика (n.nn) с учетом удаленных датчиков!!! - это то что используется в работе
+// Получить значение температуры датчика (n.nn)
 int16_t sensorTemp::get_Temp()            
 {
- #ifdef SENSOR_IP                                       // использутся удаленные датчики
- int16_t t;
- if (!(GETBIT(flags,fPresent))) return 0;               // проводной датчик запрещен в конфигурации ничего не делаем
- if( (devIP->get_fUse())&&(devIP->get_link()>-1))       // Удаленный датчик привязан к данному проводному датчику надо использовать
-   {
-    if (devIP->get_update()>UPDATE_IP)  return Temp;    // Время просрочено, удаленный датчик не используем
-    t=devIP->get_Temp();                                // Получить значение температуры удаленного датчика
-    if ((devIP->get_fRule())) return (t+Temp)/2;          // Усреднение датчиков
-    else return t;                                      // Использование только удаленного датчика
-   }
-  else return Temp;                                     // датчик не привязан
- #else                                                  // При отсутствии удаленныхдатчиков сразу выводим проводной датчик
    return Temp;
- #endif
 }
 
 // Получить значение температуры ПРОВОДНОГО датчика
@@ -266,59 +249,6 @@ int8_t sensorTemp::get_radio_received_idx()
 #endif
 	return -1;
 }
-
-
-// Удаленные датчики температуры ---------------------------------------------------------------------------------------
-#ifdef SENSOR_IP
-// Инициализация датчика
-void sensorIP::initIP(uint8_t sensor)
-{
-    number = sensor;
-	Temp=-12345;                 // Последние показания датчика
-    num=-1;                      // Номер датчика, по нему осуществляется идентификация датачика о 0 до MAX_SENSOR_IP-1
-    RSSI=-321;                   // Уровень сигнала датчика (-дБ)
-    VCC=0;                       // Уровень напряжениея питания датчика (мВ)
-    count=0;                     // Кольцевой счетчик пакетов с момента включения контрола
-    stime=0;                     // Время получения последнего пакета
-    flags=0;                     // флаги
-    link=-1;                     // датчик не привязан
-}
-
-// Запомнить данные (обновление данных)
-boolean sensorIP::set_DataIP(int16_t a,int16_t b,int16_t c,int16_t d,uint32_t e, IPAddress f)
-{
-num=a;                         // Номер датчика -1  датчик отсутсвует
-Temp=b;                        // Последние показания датчика
-RSSI=c;                        // Уровень сигнала датчика (-дБ)
-VCC=d;                         // Уровень напряжениея питания датчика (мВ)
-count=e;                       // Кольцевой счетчик пакетов с момента включения контрола
-stime=rtcSAM3X8.unixtime();    // Время получения последнего пакета
-ip=f;   
-return true;      
-}
-
-// Получить параметр в виде строки
-char* sensorIP::get_sensorIP(char *var, char *ret)
-{
-if(strcmp(var,ip_SENSOR_TEMP)==0)     {_ftoa(ret,(float)Temp/100.0,2); return ret;     } else
-if(strcmp(var,ip_SENSOR_NUMBER)==0)   {return _itoa(num,ret);                      } else  
-if(strcmp(var,ip_RSSI)==0)            {_ftoa(ret,(float)RSSI/10.0,1); return ret;      } else
-if(strcmp(var,ip_VCC)==0)             {_ftoa(ret,(float)VCC/1000.0,2); return ret;     } else
-if(strcmp(var,ip_SENSOR_USE)==0)      {if (GETBIT(flags,fUse)) return strcat(ret,(char*)cOne); else return strcat(ret,(char*)cZero);} else  
-if(strcmp(var,ip_SENSOR_RULE)==0)     {if (GETBIT(flags,fRule)) return strcat(ret,(char*)cOne); else return  strcat(ret,(char*)cZero);} else     
-if(strcmp(var,ip_SENSOR_IP)==0)       {return strcat(ret,IPAddress2String(ip));    } else  
-if(strcmp(var,ip_SENSOR_COUNT)==0)    {return _itoa(count,ret);                    } else     
-if(strcmp(var,ip_STIME)==0)           {if(stime==0) return strcat(ret,(char*)"none"); else return _itoa(rtcSAM3X8.unixtime()-stime,ret);} else  
-if(strcmp(var,ip_SENSOR)==0)          {return strcat(ret,(char*)"----");           } else   
-return strcat(ret,(char*)"E26");    
-}
-
-void sensorIP::after_load()
-{
-	if((link<-1)||(link >= TNUMBER)) { link=-1; num=-1; }    // если бредовое значение привязки отвязываем датчик
-}
-
-#endif  
 
 #ifdef RADIO_SENSORS
 

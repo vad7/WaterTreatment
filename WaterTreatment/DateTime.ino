@@ -300,8 +300,6 @@ char* TimeIntervalToStr(uint32_t idt, char *ret, uint8_t fSec = 0)
 	Hour = idt % 24;
 	idt /= 24;
 
-#ifndef  SENSOR_IP  // Разный формат вывода в зависимости от наличия удаленных датчиков
-	//   С этим кодом не работает удаленный датчик - ЕГО парсер не разбирает строку uptime
 	if(idt) {
 		_itoa(idt, ret);
 		strcat(ret, " ");
@@ -324,11 +322,6 @@ xMin:	_itoa(Min, ret);
 xSec:	_itoa(Sec, ret);
 		strcat(ret, "s");
 	}
-#else  // Специально для удаленного датчика
-	if(idt>0) {_itoa(idt,ret); strcat(ret,"d ");}  // если есть уже дни
-	if(Hour>0) {if (Hour<10) strcat(ret,cZero); _itoa(Hour,ret);strcat(ret,"h ");}
-	if(Min>0) {if (Min<10) strcat(ret,cZero); _itoa(Min,ret); strcat(ret,"m ");} else strcat(ret,"00m ");
-#endif
 	return ret;
 }
 

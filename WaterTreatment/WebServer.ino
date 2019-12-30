@@ -178,7 +178,7 @@ void web_server(uint8_t thread)
 					case HTTP_REQEST:  // Запрос AJAX
 					{
 						strcpy(Socket[thread].outBuf, HEADER_ANSWER);   // Начало ответа
-						parserGET(thread, sock);    // выполнение запроса
+						parserGET(thread);    // выполнение запроса
 #ifdef LOG
 						journal.printf("$RETURN: %s\n",Socket[thread].outBuf);
 #endif
@@ -441,21 +441,12 @@ xFileFound:
 // Разбор и обработка строк запросов buf (начало &) входная строка, strReturn = Socket[0].outBuf выходная
 // ТОЛЬКО запросы!
 // возвращает число обработанных одиночных запросов
-#ifdef SENSOR_IP
-void parserGET(uint8_t thread, int8_t sock)
+void parserGET(uint8_t thread)
 {
-#else
-void parserGET(uint8_t thread, int8_t )
-{
-#endif
 	char *str,*x,*y,*z;
 	float pm=0;
 	int16_t i;
 	// переменные для удаленных датчиков
-#ifdef SENSOR_IP                           // Получение данных удаленного датчика
-	char *ptr;
-	int16_t a,b,c,d;
-#endif
 	int32_t loc_i;
 
 	char *buf = Socket[thread].inPtr;

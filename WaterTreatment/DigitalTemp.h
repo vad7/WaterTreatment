@@ -27,51 +27,6 @@ enum TEMP_SETUP_FLAGS { // bit #
 };
 #define fDS2482_bus_mask 3
 
-// Удаленные датчики температуры -------------------------------------------------------------
-#ifdef SENSOR_IP
-//  Работа с отдельными флагами sensorIP
-#define fUse        0               // флаг разрешить использование датчика
-#define fRule       1               // флаг Правило использования датчика 0 - использование удаленного датчика 1- усреднение с основным
-class sensorIP
-{
-  public:
-    void initIP(uint8_t sensor);                             // Инициализация датчика
-    boolean set_DataIP(int16_t a,int16_t b,int16_t c,int16_t d,uint32_t e,IPAddress f);  // Запомнить данные (обновление данных)
-    char* get_sensorIP(char *var, char *ret);                    // Получить параметр в виде строки
-    __attribute__((always_inline)) inline int16_t get_Temp(){return Temp;}                           // Получение последний температуры датчика  если данные не достоверны или датчик не рабоает возврат -10000 (-100 градусов)
-    __attribute__((always_inline)) inline uint32_t get_update(){return rtcSAM3X8.unixtime()-stime;}  // Получение времени прошедшего с последнего пакета
-    __attribute__((always_inline)) inline boolean get_fUse(){return GETBIT(flags,fUse);}             // Получить  флаг разрешить использование датчика
-    __attribute__((always_inline)) inline boolean get_fRule(){return GETBIT(flags,fRule);}           // Получить  флаг Правило использования датчика 0 - использование удаленного датчика 1- усреднение с основным
-    __attribute__((always_inline)) inline int8_t get_link(){return link;}                            // Получение номера датчика (из массива датиков температуры),c которым связан удаленный датчик
-    uint8_t get_num(){return num;}                             // Получение номера датчика, по нему осуществляется идентификация датачика о 0 до MAX_SENSOR_IP-1
-    int8_t get_RSSI(){return RSSI;}                            // Получение Уровень сигнала датчика (-дБ)
-    uint16_t get_VCC(){return VCC;}                            // Получение Уровень напряжениея питания датчика (мВ)
-    uint32_t get_count(){return count;}                        // Получение Кольцевой счетчик пакетов с момента включения контрола
-    uint32_t get_stime(){return stime;}                        // Получение Время получения последнего пакета
-    IPAddress get_ip(){return ip;}                             // Адрес датчика
-    void set_fUse(boolean b)  {if (b) SETBIT1(flags,fUse); else SETBIT0(flags,fUse); };   // Установить флаг использования
-    void set_fRule(boolean b) {if (b) SETBIT1(flags,fRule); else SETBIT0(flags,fRule);}   // Установить флаг учреднения
-    void set_link(int8_t b) {link=b;}                          // Установить флаг усреднения
-    uint8_t *get_save_addr(void) { return (uint8_t *)&number; } // Адрес структуры сохранения
-    uint16_t get_save_size(void) { return (byte*)&link - (byte*)&number + sizeof(link); } // Размер структуры сохранения
-    void  	 after_load();                         				// Инициализация после загрузки
-
-  private:
-    int16_t Temp;                                              // Последние показания датчика
-    int8_t num;                                                // Номер датчика (-1 датчик отсутсвует), по нему осуществляется идентификация датачика о 0 до MAX_SENSOR_IP-1
-    int16_t RSSI;                                              // Уровень сигнала датчика (-дБ)
-    uint16_t VCC;                                              // Уровень напряжениея питания датчика (мВ)
-    uint32_t count;                                            // Кольцевой счетчик пакетов с момента включения контрола
-    uint32_t stime;                                            // Время получения последнего пакета
-    struct { // Save GROUP, firth number
-    uint8_t number;												// номер
-    uint8_t flags;                                             // флаги
-    int8_t  link;                                               // привязка датчика (номер в массиве температурных датчиков, -1 не привязан)
-    } __attribute__((packed));// Save Group end, last link
-    IPAddress ip;                                              // Адрес датчика
-};
-#endif
-
 #ifdef RADIO_SENSORS
 #define DEBUG_RADIO
 enum {
@@ -139,10 +94,6 @@ class sensorTemp
     void  	 after_load();                         		// Инициализация после загрузки
     int8_t   inc_error(void);				   		    // Увеличить счетчик ошибок
     statChart Chart;                                    // Статистика по датчику
-    
-    #ifdef SENSOR_IP                                    // Удаленные устройства  #ifdef SENSOR_IP
-     sensorIP *devIP;                                   // Ссылка на привязаный датчик (класс) если NULL привявязки нет
-    #endif
     
   private:
    int16_t minTemp;                                     // минимальная разрешенная температура

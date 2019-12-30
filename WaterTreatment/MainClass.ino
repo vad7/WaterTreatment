@@ -340,9 +340,6 @@ x_Error:
 xSkip:		load_struct(NULL, &buffer, 0); // skip unknown type
 		}
 	}
-#ifdef SENSOR_IP
-	updateLinkIP();
-#endif
 	journal.printf("OK\n");
 	return size + sizeof(crc);
 }
