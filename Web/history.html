@@ -206,7 +206,7 @@ function createChart() {
 			id: 'R'
 		}, {
 			title: {
-				text: 'м³', align: 'high', offset: 15
+				text: 'л', align: 'high', offset: 15
 			},
 			opposite: true,
 			showEmpty: false,
@@ -245,7 +245,7 @@ function createChart() {
 			data: fieldList[fieldIndex].data,
 			index: fieldList[fieldIndex].series,
 			yAxis: ax,
-			tooltip: {valueDecimals: (ax == 'T' || ax == 'P') ? 1 : (ax != 'S' && ax != 'M') ? 3 : 0},
+			tooltip: {valueDecimals: (ax == 'T' || ax == 'P') ? 1 : (ax == 'F' || ax == 'M' || ax == 'W') ? 3 : 0},
 			//visible:false,
 			name: fieldList[fieldIndex].name
 		});
@@ -325,7 +325,7 @@ function loadChartsGroup(period) {
 				var nf = Number(arr[fi]);
 				if(!isNaN(nf)) {
 					var ax = fieldList[fi - 1].axis;
-					if(ax == 'T' || ax == 'P') nf = nf / 10; else if(ax != 'S' && ax != 'M') nf = nf / 1000;
+					if(ax == 'T' || ax == 'P') nf = nf / 10; else if(ax == 'F' || ax == 'M' || ax == 'W') nf = nf / 1000;
 					fieldList[fi - 1].data.push([dt, nf]);
 				}
 			}

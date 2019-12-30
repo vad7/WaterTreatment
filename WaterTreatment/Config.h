@@ -452,8 +452,8 @@ struct History_setup {
 
 	// История (графики)
 	const History_setup HistorySetup[] = {
-			{ STATS_OBJ_WaterUsed, 0, "Использовано, м³" },
-			{ STATS_OBJ_WaterRegen, 0, "Регенерация, м³" },
+			{ STATS_OBJ_WaterUsed, 0, "Использовано, л" },
+			{ STATS_OBJ_WaterRegen, 0, "Регенерация, л" },
 			{ STATS_OBJ_WaterBooster, 0, "Насосная станция, сек" },
 			{ STATS_OBJ_FeedPump, 0, "Дозирующий насос, сек" },
 			{ STATS_OBJ_BrineWeight, 0, "Вес раствора, кг" },

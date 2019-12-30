@@ -220,23 +220,27 @@ void Statistics::Init(uint8_t newyear)
 									switch(Stats_data[i].object) {
 									case STATS_OBJ_Temp:
 									case STATS_OBJ_Press:
-										Stats_data[i].value = val * 100;
+										Stats_data[i].value = val * 100.0f + 0.005f;
 										break;
 									case STATS_OBJ_Voltage:
 										Stats_data[i].value = val;
+										break;
+									case STATS_OBJ_BrineWeight:
+									case STATS_OBJ_Flow:
+										Stats_data[i].value = val * 1000.0f + 0.0005f;
 										break;
 									case STATS_OBJ_Power:
 										switch(Stats_data[i].type) {
 										case STATS_TYPE_SUM:
 										case STATS_TYPE_AVG:
-											Stats_data[i].value = val * 1000000;
+											Stats_data[i].value = val * 1000000.0f;
 											break;
 										default:
-											Stats_data[i].value = val * 1000;
+											Stats_data[i].value = val * 1000.0f + 0.0005f;
 										}
 										break;
 									default:
-										if(Stats_data[i].type == STATS_TYPE_TIME) Stats_data[i].value = val * 60000;
+										if(Stats_data[i].type == STATS_TYPE_TIME) Stats_data[i].value = val * 60000.0f; else Stats_data[i].value = val;
 										break;
 									}
 									if(*p == '\0') {
@@ -429,7 +433,7 @@ void Statistics::History()
 	//journal.printf("History:(%s)\n", mbuf);
 	for(uint8_t i = 0; i < sizeof(HistorySetup) / sizeof(HistorySetup[0]); i++) {
 		*buf++ = ';';
-		switch(HistorySetup[i].object) { // web will divide by 1000 with some exceptions
+		switch(HistorySetup[i].object) { // web will divide by 1/10/1000
 		case STATS_OBJ_Temp:		// C
 			int_to_dec_str(MC.sTemp[HistorySetup[i].number].get_Temp(), 10, &buf, 0); // T (/10)
 			break;
@@ -437,41 +441,41 @@ void Statistics::History()
 			int_to_dec_str(MC.sADC[HistorySetup[i].number].get_Value(), 10, &buf, 0); // P (/10)
 			break;
 		case STATS_OBJ_Flow:		// m3h
-			int_to_dec_str(MC.sFrequency[HistorySetup[i].number].get_Value(), 1, &buf, 0); // F
+			int_to_dec_str(MC.sFrequency[HistorySetup[i].number].get_Value(), 1, &buf, 0); // F (/1000)
 			break;
 		case STATS_OBJ_Power:
-			int_to_dec_str((int32_t)MC.dPWM.get_Power(), 1, &buf, 0);  // W
+			int_to_dec_str((int32_t)MC.dPWM.get_Power(), 1, &buf, 0);  // W (/1000)
 			break;
 		case STATS_OBJ_WaterUsed: {
 				int32_t tmp = History_WaterUsed_work;
 				History_WaterUsed_work = 0;
-				int_to_dec_str(tmp, 1, &buf, 0);  // m3
+				int_to_dec_str(tmp, 1, &buf, 0);  // L
 				break;
 			}
 		case STATS_OBJ_WaterRegen: {
 				int32_t tmp = History_WaterRegen_work;
 				History_WaterRegen_work = 0;
-				int_to_dec_str(tmp, 1, &buf, 0);  // m3
+				int_to_dec_str(tmp, 1, &buf, 0);  // L
 				break;
 			}
 		case STATS_OBJ_WaterBooster: {
 				int32_t tmp = History_WaterBooster_work;
 				History_WaterBooster_work = 0;
-				int_to_dec_str(tmp, 100, &buf, 0);  // sec, S (/1)
+				int_to_dec_str(tmp, 1000, &buf, 0);  // sec, S
 				break;
 			}
 		case STATS_OBJ_FeedPump: {
 				int32_t tmp = History_FeedPump_work;
 				History_FeedPump_work = 0;
-				int_to_dec_str(tmp, 100, &buf, 0);  // sec, S (/1)
+				int_to_dec_str(tmp, 1000, &buf, 0);  // sec, S
 				break;
 			}
 		case STATS_OBJ_BrineWeight: {
-				int_to_dec_str(Weight_value, 10, &buf, 0); // kg, M
+				int_to_dec_str(Weight_value, 10, &buf, 0); // kg, M (/1000)
 				break;
 			}
 		case STATS_OBJ_Level: {
-				int_to_dec_str(MC.sADC[HistorySetup[i].number].get_Value(), 100, &buf, 0); // %, R (/1)
+				int_to_dec_str(MC.sADC[HistorySetup[i].number].get_Value(), 100, &buf, 0); // %, R
 				break;
 			}
 		}
@@ -520,7 +524,7 @@ void Statistics::HistoryFileHeader(char *ret, uint8_t flag)
 				break;
 			case STATS_OBJ_WaterUsed:
 			case STATS_OBJ_WaterRegen:
-				strcat(ret, "L");	// ось m3
+				strcat(ret, "L");	// ось л
 				break;
 			case STATS_OBJ_WaterBooster:
 			case STATS_OBJ_FeedPump:
@@ -576,11 +580,11 @@ void Statistics::StatsFieldHeader(char *ret, uint8_t i, uint8_t flag)
 		break;
 	case STATS_OBJ_WaterUsed:
 		if(flag) strcat(ret, "L");	// ось литры
-		strcat(ret, "Потреблено, м³");
+		strcat(ret, "Потреблено, л");
 		return;
 	case STATS_OBJ_WaterRegen:
 		if(flag) strcat(ret, "L");	// ось литры
-		strcat(ret, "Регенерация, м³");
+		strcat(ret, "Регенерация, л");
 		break;
 	case STATS_OBJ_BrineWeight:
 		if(flag) strcat(ret, "M");	// ось вес
@@ -633,15 +637,17 @@ xSkipEmpty:
 	case STATS_OBJ_Voltage:					// V
 		int_to_dec_str(val, 10, ret, 0);
 		break;
-	case STATS_OBJ_WaterUsed:				// m3
-	case STATS_OBJ_WaterRegen:				// m3
+	case STATS_OBJ_WaterUsed:				// L
+	case STATS_OBJ_WaterRegen:				// L
+		int_to_dec_str(val, 1, ret, 0);
+		break;
 	case STATS_OBJ_BrineWeight:				// kg
 	case STATS_OBJ_Flow:					// m3h
 		int_to_dec_str(val, 1000, ret, 3);
 		break;
 	case STATS_OBJ_WaterBooster:			// s
 	case STATS_OBJ_FeedPump:				// s
-		int_to_dec_str(val, 100, ret, 0);
+		int_to_dec_str(val, 1000, ret, 0);
 		break;
 	case STATS_OBJ_Power:					// кВт*ч
 		switch(Stats_data[i].type) {
