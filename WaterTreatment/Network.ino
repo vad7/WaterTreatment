@@ -385,7 +385,7 @@ char* socketInfo(char *buf)
 // Учитывается многопоточность, не сбрасываются сокеты которые сейчас в работе Socket[xxxx].sock
 void checkSockStatus()
 {
-  unsigned long thisTime = xTaskGetTickCount();
+  unsigned long thisTime = GetTickCount();
   if(SemaphoreTake(xWebThreadSemaphore,(W5200_TIME_WAIT/portTICK_PERIOD_MS))==pdFALSE) {journal.printf((char*)cErrorMutex,__FUNCTION__,MutexWebThreadBuzy);return;} // Захват мютекса потока или ОЖИДАНИНЕ W5200_TIME_WAIT
   for (uint8_t i = 0; i < MAX_SOCK_NUM; i++) {        // По всем сокетам!!
         // Не сбрасывать сокеты которые используется в потоке ОБЯЗАТЕЛЬНО!!

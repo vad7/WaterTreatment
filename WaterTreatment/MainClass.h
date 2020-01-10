@@ -284,7 +284,7 @@ public:
 	char*   get_option(char *var, char *ret);              // Получить опции 
 
 	// Опции
-	uint8_t  get_Beep() {return GETBIT(Option.flags,fBeep);};           // подача звуковых сигналов
+	inline uint8_t  get_Beep() {return GETBIT(Option.flags,fBeep);};           // подача звуковых сигналов
 	uint8_t  get_WebStoreOnSPIFlash() {return GETBIT(Option.flags,fWebStoreOnSPIFlash);}// получить флаг хранения веб морды на флеш диске
 
 	uint16_t get_flags() { return Option.flags; }					  // Все флаги

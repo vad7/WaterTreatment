@@ -89,24 +89,27 @@ const uint16_t  defaultPort=80;
 
 // ------------------- TIME & DELAY ----------------------------------
 // Времена и задержки
-#define cDELAY_DS1820     750             // мсек. Задержка для чтения DS1820 (время преобразования)
+#define cDELAY_DS1820         750            // мсек. Задержка для чтения DS1820 (время преобразования)
 #ifndef TIME_READ_SENSOR 
-#define TIME_READ_SENSOR  4000		       // мсек. Период опроса датчиков
+#define TIME_READ_SENSOR      4000		     // мсек. Период опроса датчиков
 #endif
-#define TIME_WEB_SERVER   2                // мсек. Период опроса web servera было 5
-#define TIME_I2C_UPDATE   (60*60)*1000     // мсек. Время обновления внутренних часов по I2С часам (если конечно нужно)
-#define TIME_MESSAGE_TEMP 300			   // 1/10 секунды, Проверка граничных температур для уведомлений
-#define TIME_LED_OK       1500             // Период мигания светодиода при ОК (мсек)
-#define TIME_LED_ERR      200              // Период мигания светодиода при ошибке (мсек).
-#define cDELAY_START_MESSAGE 60            // Задержка (сек) после старта на отправку сообщений
-#define NO_POWER_ON_DELAY_CNT 10		   // Задержка включения после появления питани, *TIME_READ_SENSOR
+#define TIME_WEB_SERVER       2              // мсек. Период опроса web servera было 5
+#define TIME_I2C_UPDATE       (60*60)*1000   // мсек. Время обновления внутренних часов по I2С часам (если конечно нужно)
+#define TIME_MESSAGE_TEMP     300			 // 1/10 секунды, Проверка граничных температур для уведомлений
+#define TIME_LED_OK           1500           // Период мигания светодиода при ОК (мсек)
+#define TIME_LED_ERR          200            // Период мигания светодиода при ошибке (мсек).
+#define TIME_BEEP_ERR         2000           // Период звукового сигнала при ошибке, мсек
+#define cDELAY_START_MESSAGE  60             // Задержка (сек) после старта на отправку сообщений
+#define NO_POWER_ON_DELAY_CNT 10		     // Задержка включения после появления питани, *TIME_READ_SENSOR
 
-#define PWM_READ_PERIOD     (3*1000)       // Время опроса не критичных параметров счетчика, ms
-#define PWM_NUM_READ        2              // Число попыток чтения счетчика (подряд) до ошибки
-#define PWM_DELAY_REPEAT    50             // мсек Время между ПОВТОРНЫМИ попытками чтения
+#define PWM_READ_PERIOD      (3*1000)        // Время опроса не критичных параметров счетчика, ms
+#define PWM_NUM_READ          2              // Число попыток чтения счетчика (подряд) до ошибки
+#define PWM_DELAY_REPEAT      50             // мсек Время между ПОВТОРНЫМИ попытками чтения
 
-#define DISPLAY_UPDATE		2500           // Время обновления информации на дисплее (мсек)
-#define KEY_CHECK_PERIOD	10				// ms
+#define DISPLAY_UPDATE		  2500           // Время обновления информации на дисплее (мсек)
+#define KEY_CHECK_PERIOD	  10             // ms
+#define KEY_DEBOUNCE_TIME	  50             // ms
+#define DISPLAY_SETUP_TIMEOUT 300000         // ms
 
 #define TIMER_TO_SHOW_STATUS 2500			// мсек, Время показа активного состояния (дозирующего насоса, ...)
 

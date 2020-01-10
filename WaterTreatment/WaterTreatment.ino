@@ -529,40 +529,40 @@ void loop() {}
 //extern "C" 
 //{
 static unsigned long cpu_idle_max_count = 0; // 1566594 // максимальное значение счетчика, вычисляется при калибровке и соответствует 100% CPU idle
+static bool Error_Beep_confirmed = false;
 
 extern "C" void vApplicationIdleHook(void)  // FreeRTOS expects C linkage
 {
-	static boolean ledState = LOW;
 	static unsigned long countLastTick = 0;
 	static unsigned long countLED = 0;
-	static unsigned long ulIdleCycleCount = 0;                                    // наш трудяга счетчик
+	static unsigned long countBeep = 0;
+	static unsigned long ulIdleCycleCount = 0;
 
-	// в
-	//WDT_Restart(WDT);                                                            // Сбросить вачдог
+	WDT_Restart(WDT);                                                            // Сбросить вачдог
 	ulIdleCycleCount++;                                                          // приращение счетчика
-
-	if(xTaskGetTickCount() - countLastTick >= 3000)		// мсек
+	register unsigned long ticks = GetTickCount();
+	if(ticks - countLastTick >= 3000)		// мсек
 	{
-		countLastTick = xTaskGetTickCount();                            // расчет нагрузки
+		countLastTick = ticks;                            // расчет нагрузки
 		if(ulIdleCycleCount > cpu_idle_max_count) cpu_idle_max_count = ulIdleCycleCount; // это калибровка запоминаем максимальные значения
 		MC.CPU_IDLE = (100 * ulIdleCycleCount) / cpu_idle_max_count;              // вычисляем текущую загрузку
 		ulIdleCycleCount = 0;
 	}
-
 	// Светодиод мигание в зависимости от ошибки и подача звукового сигнала при ошибке
-	if(xTaskGetTickCount() - countLED > TIME_LED_ERR) {
-		if(MC.get_errcode() != OK) {          // Ошибка
-			digitalWriteDirect(PIN_BEEP, MC.get_Beep() ? ledState : LOW); // звукового сигнала
-			ledState = !ledState;
-			digitalWriteDirect(PIN_LED_OK, ledState);
-			countLED = xTaskGetTickCount();
-		} else if(xTaskGetTickCount() - countLED > TIME_LED_OK)   // Ошибок нет и время пришло
-		{
-			digitalWriteDirect(PIN_BEEP, LOW);
-			ledState = !ledState;       // ОК
-			digitalWriteDirect(PIN_LED_OK, ledState);
-			countLED = xTaskGetTickCount();
+	if(MC.get_errcode() != OK) {          // Ошибка
+		if(ticks - countLED > TIME_LED_ERR) {
+			digitalWriteDirect(PIN_LED_OK, !digitalReadDirect(PIN_LED_OK));
+			countLED = ticks;
 		}
+		if(MC.get_Beep() && !Error_Beep_confirmed && ticks - countBeep > TIME_BEEP_ERR) {
+			digitalWriteDirect(PIN_BEEP, !digitalReadDirect(PIN_BEEP)); // звуковой сигнал
+			countBeep = ticks;
+		}
+	} else if(ticks - countLED > TIME_LED_OK) {   // Ошибок нет и время пришло
+		Error_Beep_confirmed = false;
+		digitalWriteDirect(PIN_BEEP, LOW);
+		digitalWriteDirect(PIN_LED_OK, !digitalReadDirect(PIN_LED_OK));
+		countLED = ticks;
 	}
 }
 
@@ -718,6 +718,8 @@ void vWeb2(void *)
 }
 
 //////////////////////////////////////////////////////////////////////////
+#define LCD_SetupMenuItems 2
+const char *LCD_SetupMenu[LCD_SetupMenuItems] = { "1. Exit", "2. Relays" };
 // Задача Пользовательский интерфейс (MC.xHandleKeysLCD) "KeysLCD"
 void vKeysLCD( void * )
 {
@@ -734,15 +736,66 @@ void vKeysLCD( void * )
 	vTaskDelay(3000);
 	static uint32_t DisplayTick = xTaskGetTickCount();
 	static char buffer[ALIGN(LCD_COLS * 2)];
+	static uint32_t setup = 0; // 0..FF - menu, +FF00 - item selected
+	static uint32_t setup_timeout;
 	//static uint32_t displayed_area = 0; // b1 - Yd,Days Fe,Soft
 	for(;;)
 	{
+		if(setup) if(--setup_timeout == 0) goto xSetupExit;
 		if(!digitalReadDirect(PIN_KEY_OK)) {
-			journal.printf("[OK]\n");
+			if(setup) {
+				{
+					uint32_t t = 2000 / KEY_DEBOUNCE_TIME;
+					while(!digitalReadDirect(PIN_KEY_OK)) {
+						if(--t == 0) {
+							lcd.clear();
+							while(!digitalReadDirect(PIN_KEY_OK)) vTaskDelay(KEY_DEBOUNCE_TIME);
+							break;
+						}
+						vTaskDelay(KEY_DEBOUNCE_TIME);
+					}
+					if(t == 0) goto xSetupExit;
+				}
+				if((setup & 0xFF00) == 0x100) { // menu item selected
+					MC.dRelay[setup & 0xFF].set_Relay(MC.dRelay[setup & 0xFF].get_Relay() ? -fR_StatusManual : fR_StatusManual);
+				} else if(setup == 1) {
+xSetupExit:
+					lcd.command(LCD_DISPLAYCONTROL | LCD_DISPLAYON);
+					setup = 0;
+				} else setup <<= 8;
+				DisplayTick = ~DisplayTick;
+			} else if(MC.get_errcode() && !Error_Beep_confirmed) Error_Beep_confirmed = true;
+			else {
+				setup = 0x80000000;
+				lcd.command(LCD_DISPLAYCONTROL | LCD_DISPLAYON | LCD_CURSORON | LCD_BLINKON);
+				DisplayTick = ~DisplayTick;
+			}
+			vTaskDelay(KEY_CHECK_PERIOD);
+			setup_timeout = DISPLAY_SETUP_TIMEOUT / KEY_CHECK_PERIOD;
+			//journal.printf("[OK]\n");
 		} else if(!digitalReadDirect(PIN_KEY_UP)) {
-			journal.printf("[UP]\n");
+			while(!digitalReadDirect(PIN_KEY_UP)) {
+				if(!digitalReadDirect(PIN_KEY_DOWN)) goto xSetupExit;
+				vTaskDelay(KEY_DEBOUNCE_TIME);
+			}
+			if(setup) {
+				if((setup & 0xFF) < ((setup & 0xFF00) == 0x100 ? (RNUMBER > 8 ? 8 : RNUMBER) : LCD_SetupMenuItems-1)) {
+					setup++;
+					DisplayTick = ~DisplayTick;
+				}
+			} else if(MC.get_errcode()) Error_Beep_confirmed = true;
+			setup_timeout = DISPLAY_SETUP_TIMEOUT / KEY_CHECK_PERIOD;
+			//journal.printf("[UP]\n");
 		} else if(!digitalReadDirect(PIN_KEY_DOWN)) {
-			journal.printf("[DWN]\n");
+			while(!digitalReadDirect(PIN_KEY_DOWN)) vTaskDelay(KEY_DEBOUNCE_TIME);
+			if(setup) {
+				if((setup & 0xFF) > 0) {
+					setup--;
+					DisplayTick = ~DisplayTick;
+				}
+			} else if(MC.get_errcode()) Error_Beep_confirmed = true;
+			setup_timeout = DISPLAY_SETUP_TIMEOUT / KEY_CHECK_PERIOD;
+			//journal.printf("[DWN]\n");
 		}
 		if(xTaskGetTickCount() - DisplayTick > DISPLAY_UPDATE) { // Update display
 			// Display:
@@ -752,65 +805,77 @@ void vKeysLCD( void * )
 			// Days Fe:123 Soft:123
 			// Day: 0.000 Yd: 0.000
 			char *buf = buffer;
-			lcd.setCursor(0, 0);
-			int32_t tmp = MC.sFrequency[FLOW].get_Value();
-			strcpy(buf, "F:"); buf += 2;
-			if(tmp < 10000) *buf++ = ' ';
-			buf = dptoa(buf, tmp, 3);
-			strcpy(buf, " m3h \x7E"); buf += 6;
-			tmp = MC.WorkStats.UsedSinceLastRegen + MC.RTC_store.UsedToday;
-			if(tmp < 10000) *buf++ = ' ';
-			buf = dptoa(buf, tmp, 3);
-			buffer_space_padding(buf, LCD_COLS - (buf - buffer));
-			lcd.print(buffer);
+			if(setup) {
+				lcd.clear();
+				if((setup & 0xFF00) == 0x100) { // Relays
+					for(uint8_t i = 0; i < (RNUMBER > 8 ? 8 : RNUMBER) ; i++) {
+						lcd.setCursor(i / 2, 10 * (i % 2));
+						lcd.print(MC.dRelay[i].get_Relay() ? '*' : ' ');
+						lcd.print(MC.dRelay[i].get_name());
+					}
+					lcd.setCursor((setup & 0xFF) / 2, 10 * ((setup & 0xFF) % 2));
+				} else lcd.print(LCD_SetupMenu[setup & 0xFF]);
+			} else {
+				lcd.setCursor(0, 0);
+				int32_t tmp = MC.sFrequency[FLOW].get_Value();
+				strcpy(buf, "F:"); buf += 2;
+				if(tmp < 10000) *buf++ = ' ';
+				buf = dptoa(buf, tmp, 3);
+				strcpy(buf, " m3h \x7E"); buf += 6;
+				tmp = MC.WorkStats.UsedSinceLastRegen + MC.RTC_store.UsedToday;
+				if(tmp < 10000) *buf++ = ' ';
+				buf = dptoa(buf, tmp, 3);
+				buffer_space_padding(buf, LCD_COLS - (buf - buffer));
+				lcd.print(buffer);
 
-			lcd.setCursor(0, 1);
-			strcpy(buf = buffer, "P: "); buf += 3;
-			buf = dptoa(buf, MC.sADC[PWATER].get_Value(), 2);
-			strcpy(buf, " Tank: "); buf += 7;
-			buf = dptoa(buf, MC.sADC[LTANK].get_Value() / 100, 0);
-			*buf++ = '%';
-			buffer_space_padding(buf, LCD_COLS - (buf - buffer));
-			lcd.print(buffer);
+				lcd.setCursor(0, 1);
+				strcpy(buf = buffer, "P: "); buf += 3;
+				buf = dptoa(buf, MC.sADC[PWATER].get_Value(), 2);
+				strcpy(buf, " Tank: "); buf += 7;
+				buf = dptoa(buf, MC.sADC[LTANK].get_Value() / 100, 0);
+				*buf++ = '%';
+				buffer_space_padding(buf, LCD_COLS - (buf - buffer));
+				lcd.print(buffer);
 
-			lcd.setCursor(0, 2);
-			strcpy(buf = buffer, "Day:"); buf += 4;
-			tmp = MC.RTC_store.UsedToday;
-			if(tmp < 10000) *buf++ = ' ';
-			buf = dptoa(buf, tmp, 3);
-			strcpy(buf, " Yd:"); buf += 4;
-			tmp = MC.WorkStats.UsedYesterday;
-			if(tmp < 10000) *buf++ = ' ';
-			buf = dptoa(buf, tmp, 3);
-			buffer_space_padding(buf, LCD_COLS - (buf - buffer));
-			lcd.print(buffer);
+				lcd.setCursor(0, 2);
+				strcpy(buf = buffer, "Day:"); buf += 4;
+				tmp = MC.RTC_store.UsedToday;
+				if(tmp < 10000) *buf++ = ' ';
+				buf = dptoa(buf, tmp, 3);
+				strcpy(buf, " Yd:"); buf += 4;
+				tmp = MC.WorkStats.UsedYesterday;
+				if(tmp < 10000) *buf++ = ' ';
+				buf = dptoa(buf, tmp, 3);
+				buffer_space_padding(buf, LCD_COLS - (buf - buffer));
+				lcd.print(buffer);
 
-			lcd.setCursor(0, 3);
-			buf = buffer; *buf = '\0';
-			// 12345678901234567890
-			// FLOOD! EMPTY! ERR-21
-			if(CriticalErrors & ERRC_Flooding) {
-				strcpy(buf, "FLOOD! "); buf += 7;
+				lcd.setCursor(0, 3);
+				buf = buffer; *buf = '\0';
+				// 12345678901234567890
+				// FLOOD! EMPTY! ERR-21
+				if(CriticalErrors & ERRC_Flooding) {
+					strcpy(buf, "FLOOD! "); buf += 7;
+				}
+				if(CriticalErrors & (ERRC_TankEmpty | ERRC_WeightLow)) {
+					strcpy(buf, "EMPTY! "); buf += 7;
+				}
+				if(MC.get_errcode()) {
+					strcpy(buf, "ERR"); buf += 3;
+					buf = dptoa(buf, MC.get_errcode(), 0);
+				}
+				if(buf == buffer) {
+					strcpy(buf = buffer, "Days,Fe:"); buf += 8;
+					tmp = MC.WorkStats.DaysFromLastRegen;
+					if(tmp < 100) *buf++ = ' ';
+					buf = dptoa(buf, tmp, 0);
+					strcpy(buf, " Soft:"); buf += 6;
+					tmp = MC.WorkStats.DaysFromLastRegenSoftening;
+					if(tmp < 100) *buf++ = ' ';
+					buf = dptoa(buf, tmp, 0);
+				}
+				buffer_space_padding(buf, LCD_COLS - (buf - buffer));
+				lcd.print(buffer);
 			}
-			if(CriticalErrors & (ERRC_TankEmpty | ERRC_WeightLow)) {
-				strcpy(buf, "EMPTY! "); buf += 7;
-			}
-			if(MC.get_errcode()) {
-				strcpy(buf, "ERR"); buf += 3;
-				buf = dptoa(buf, MC.get_errcode(), 0);
-			}
-			if(buf == buffer) {
-				strcpy(buf = buffer, "Days,Fe:"); buf += 8;
-				tmp = MC.WorkStats.DaysFromLastRegen;
-				if(tmp < 100) *buf++ = ' ';
-				buf = dptoa(buf, tmp, 0);
-				strcpy(buf, " Soft:"); buf += 6;
-				tmp = MC.WorkStats.DaysFromLastRegenSoftening;
-				if(tmp < 100) *buf++ = ' ';
-				buf = dptoa(buf, tmp, 0);
-			}
-			buffer_space_padding(buf, LCD_COLS - (buf - buffer));
-			lcd.print(buffer);
 
 			DisplayTick = xTaskGetTickCount();
 		}
@@ -1039,7 +1104,7 @@ void vPumps( void * )
 	while(!ADC_has_been_read) vTaskDelay(1000 / ADC_FREQ + TIME_SLICE_PUMPS); // ms
 	for(;;)
 	{
-		WDT_Restart(WDT); // Reset Watchdog here, most important task.
+		//WDT_Restart(WDT); // Reset Watchdog here, most important task.
 		if(CriticalErrors) CriticalErrors_timeout = MC.Option.CriticalErrorsTimeout * 1000;
 		else if(CriticalErrors_timeout >= TIME_SLICE_PUMPS) CriticalErrors_timeout -= TIME_SLICE_PUMPS; else CriticalErrors_timeout = 0;
 		if(WaterBoosterStatus != 0) {
@@ -1279,7 +1344,7 @@ void vService(void *)
 				}
 				if(!CriticalErrors) {
 					int err = MC.get_errcode();
-					if(err == ERR_FLOODING || err == ERR_TANK_EMPTY) MC.eraseError();
+					if((err == ERR_FLOODING || err == ERR_TANK_EMPTY) && Errors[1] == 0) MC.eraseError();
 					if(err != ERR_START_REG && err != ERR_START_REG2
 							&& !(MC.RTC_store.Work & RTC_Work_Regen_MASK) && rtcSAM3X8.get_hours() == MC.Option.RegenHour) {
 						uint32_t need_regen = 0;
