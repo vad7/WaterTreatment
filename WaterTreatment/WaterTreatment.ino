@@ -41,9 +41,8 @@
 #include "LiquidCrystal.h"
 #include "HX711.h"
 
-// LCD ------------ rs, en, d4, d5, d6, d7
-//LiquidCrystal lcd(25, 34, 33, 36, 35, 38);
-LiquidCrystal   lcd(25, 34, 37, 36, 35, 38); // if PORT D33 broken
+// LCD ---------- rs, en, d4, d5, d6, d7
+LiquidCrystal lcd(25, 34, 33, 36, 35, 38);
 HX711 Weight;
 
 #if defined(W5500_ETHERNET_SHIELD)                  // Задание имени чипа для вывода сообщений
