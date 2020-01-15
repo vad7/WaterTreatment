@@ -339,7 +339,7 @@ void Statistics::Update()
 {
 	if(NewYearFlag) return; // waiting to switch a next year
 #ifndef TEST_BOARD
-	if(MC.get_testMode() != NORMAL) continue;
+	if(MC.get_testMode() != NORMAL) return;
 #endif
 	uint32_t tm = millis() - previous;
 	previous = millis();
