@@ -564,6 +564,16 @@ extern "C" void vApplicationIdleHook(void)  // FreeRTOS expects C linkage
 		digitalWriteDirect(PIN_LED_OK, !digitalReadDirect(PIN_LED_OK));
 		countLED = ticks;
 	}
+
+//	static uint32_t tst = 1000;
+//	uint32_t tm;
+//	if(--tst == 0) tm = micros();
+	pmc_enable_sleepmode(0);
+//	if(tst == 0) {
+//		Serial.print("$"); Serial.print(micros() - tm);	Serial.print("$\n");
+//		tst = 1000;
+//	}
+
 }
 
 // --------------------------- W E B ------------------------

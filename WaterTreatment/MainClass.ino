@@ -81,6 +81,11 @@ void MainClass::init()
 #ifdef MQTT
 	clMQTT.initMQTT(MAIN_WEB_TASK);                           // Инициализация MQTT, параметр - номер потока сервера в котором идет отправка
 #endif
+
+	ChartWaterBoost.init(true);
+	ChartFeedPump.init(true);
+	ChartFillTank.init(true);
+
 	resetSetting();                                           // все переменные
 }
 // Стереть последнюю ошибку
@@ -870,7 +875,7 @@ void  MainClass::updateChart()
 {
 	for(uint8_t i=0;i<TNUMBER;i++) if(sTemp[i].Chart.get_present())  sTemp[i].Chart.addPoint(sTemp[i].get_Temp());
 	for(uint8_t i=0;i<ANUMBER;i++) if(sADC[i].Chart.get_present()) sADC[i].Chart.addPoint(sADC[i].get_Value());
-	for(uint8_t i=0;i<FNUMBER;i++) if(sFrequency[i].Chart.get_present()) sFrequency[i].Chart.addPoint(sFrequency[i].get_Value()); // Частотные датчики
+	for(uint8_t i=0;i<FNUMBER;i++) if(sFrequency[i].Chart.get_present()) sFrequency[i].Chart.addPoint(sFrequency[i].get_Value() / 10); // Частотные датчики
 	int32_t tmp1, tmp2, tmp3;
 	taskENTER_CRITICAL();
 	tmp1 = Charts_WaterBooster_work;
@@ -880,11 +885,11 @@ void  MainClass::updateChart()
 	tmp3 = Charts_FillTank_work;
 	Charts_FillTank_work = 0;
 	taskEXIT_CRITICAL();
-	ChartWaterBoost.addPoint(tmp1);
-	ChartFeedPump.addPoint(tmp2);
-	ChartFillTank.addPoint(tmp3);
-	if(dPWM.ChartVoltage.get_present())   dPWM.ChartVoltage.addPoint(dPWM.get_Voltage());
-	if(dPWM.ChartPower.get_present())     dPWM.ChartPower.addPoint(dPWM.get_Power());
+	ChartWaterBoost.addPoint(tmp1 / 10);
+	ChartFeedPump.addPoint(tmp2 / 10);
+	ChartFillTank.addPoint(tmp3 / 10);
+	if(dPWM.ChartVoltage.get_present())   dPWM.ChartVoltage.addPoint(dPWM.get_Voltage() / 10);
+	if(dPWM.ChartPower.get_present())     dPWM.ChartPower.addPoint(dPWM.get_Power() / 10);
 }
 
 // сбросить графики в ОЗУ
@@ -926,34 +931,34 @@ void MainClass::get_Chart(char *var, char* str)
 	// В начале имена совпадающие с именами объектов
 	for(i = 0; i < TNUMBER; i++) {
 		if((strcmp(var, sTemp[i].get_name()) == 0) && (sTemp[i].Chart.get_present())) {
-			sTemp[i].Chart.get_PointsStr(100, str);
+			sTemp[i].Chart.get_PointsStrDiv100(str);
 			return;
 		}
 	}
 	for(i = 0; i < ANUMBER; i++) {
 		if((strcmp(var, sADC[i].get_name()) == 0) && (sADC[i].Chart.get_present())) {
-			sADC[i].Chart.get_PointsStr(100, str);
+			sADC[i].Chart.get_PointsStrDiv100(str);
 			return;
 		}
 	}
 	for(i = 0; i < FNUMBER; i++) {
 		if((strcmp(var, sFrequency[i].get_name()) == 0) && (sFrequency[i].Chart.get_present())) {
-			sFrequency[i].Chart.get_PointsStr(1000, str);
+			sFrequency[i].Chart.get_PointsStrDiv100(str);
 			return;
 		}
 	}
 	if(strcmp(var, chart_NONE) == 0) {
 		strcat(str, "");
 	} else if(strcmp(var, chart_VOLTAGE) == 0) {
-		dPWM.ChartVoltage.get_PointsStr(10, str);
+		dPWM.ChartVoltage.get_PointsStr(str);
 	} else if(strcmp(var, chart_fullPOWER) == 0) {
-		dPWM.ChartPower.get_PointsStr(1, str);
+		dPWM.ChartPower.get_PointsStrDiv100(str);
 	} else if(strcmp(var, chart_WaterBoost) == 0) {
-		ChartWaterBoost.get_PointsStr(1, str);
+		ChartWaterBoost.get_PointsStrDiv100(str);
 	} else if(strcmp(var, chart_FeedPump) == 0) {
-		ChartFeedPump.get_PointsStr(1, str);
+		ChartFeedPump.get_PointsStrDiv100(str);
 	} else if(strcmp(var, chart_FillTank) == 0) {
-		ChartFillTank.get_PointsStr(1, str);
+		ChartFillTank.get_PointsStrDiv100(str);
 	}
 }
 
