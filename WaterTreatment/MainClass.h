@@ -65,7 +65,7 @@ int8_t   Errors[16] = { 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0 };// Active Errors array
 uint32_t ErrorsTime[16];
 
 volatile bool ADC_has_been_read = false;
-int		 WaterBoosterStatus = 0; // 0 - выключено, 1 - вкл твердотельное, 2 - вкл обычное, 3 - выкл твердотельное, -1 - выкл твердотельное, -2 - выкл обычное, -3 - нужно выключить (вкл твердотельное)
+int		 WaterBoosterStatus = 0; // 0 - все выключены, 1 - вкл твердотельное, 2 - вкл оба, -1 - выкл обычное
 //bool 	WaterBoosterError = false;
 //volatile bool FloodingError = false;
 //bool	 TankEmpty = false;

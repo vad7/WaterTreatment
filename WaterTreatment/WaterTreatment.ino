@@ -1131,20 +1131,7 @@ void vPumps( void * )
 
 		// Check Errors
 		int16_t press = MC.sADC[PWATER].get_Value();
-		if(press == ERROR_PRESS) {
-			if(WaterBoosterStatus) {
-				vPumpsNewError = ERR_PRESS;
-				if(MC.dRelay[RBOOSTER2].get_Relay()) {
-					MC.dRelay[RBOOSTER1].set_ON();
-					_delay(10);
-					MC.dRelay[RBOOSTER2].set_OFF();
-					_delay(20);
-				}
-				MC.dRelay[RBOOSTER1].set_OFF();
-				WaterBoosterTimeout = 0;
-				WaterBoosterStatus = 0;
-			}
-		} else if(MC.sInput[FLOODING].get_Input()) {
+		if(MC.sInput[FLOODING].get_Input()) {
 			if(FloodingTime == 0) FloodingTime = millis();
 			else if(millis() - FloodingTime > (uint32_t) MC.Option.FloodingDebounceTime * 1000) {
 				FloodingTime = millis() | 1;
@@ -1179,23 +1166,14 @@ xWaterBooster_OFF:
 				if(WaterBoosterStatus == 1) {
 					MC.dRelay[RBOOSTER1].set_OFF();
 					WaterBoosterStatus = 0;
-				} else if(WaterBoosterStatus == 2) {
+				} else {// Off full cycle
 					MC.dRelay[RBOOSTER2].set_OFF();
 					WaterBoosterStatus = -1;
-				} else { // Off full cycle
-					MC.dRelay[RBOOSTER1].set_ON();
-					WaterBoosterStatus = -2;
 				}
 			} else if(WaterBoosterStatus == 1) {
 				MC.dRelay[RBOOSTER2].set_ON();
 				WaterBoosterStatus = 2;
-			} else if(WaterBoosterStatus == 2) {
-				MC.dRelay[RBOOSTER1].set_OFF();
-				WaterBoosterStatus = 3;
 			}
-		} else if(WaterBoosterStatus == -2) { // Start all off
-			MC.dRelay[RBOOSTER2].set_OFF();
-			WaterBoosterStatus = -1;
 		} else if(WaterBoosterStatus == -1) {
 			MC.dRelay[RBOOSTER1].set_OFF();
 			WaterBoosterTimeout = 0;

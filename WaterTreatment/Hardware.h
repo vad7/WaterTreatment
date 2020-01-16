@@ -67,8 +67,8 @@ class sensorADC
     inline uint8_t  get_pinA(){return pin;}               // Получить канал АЦП (нумерация SAM3X) куда прицеплен датчик
     int16_t get_testValue(){return cfg.testValue;}           // Получить значение датчика в режиме теста
     int8_t  set_testValue(int16_t p);                    // Установить значение датчика в режиме теста
-    int8_t  set_minValue(int16_t p) { cfg.minValue = p; return OK; }
-    int8_t  set_maxValue(int16_t p)  { cfg.maxValue = p; return OK; }
+    int8_t  set_minValue(int16_t p) { if(p < cfg.maxValue) { cfg.minValue = p; return OK; } else return -1; }
+    int8_t  set_maxValue(int16_t p)  { if(p > cfg.minValue) { cfg.maxValue = p; return OK; } else return -1; }
     void    set_testMode(TEST_MODE t){testMode=t;}       // Установить значение текущий режим работы
      
     char*   get_note(){return note;}                     // Получить наименование датчика

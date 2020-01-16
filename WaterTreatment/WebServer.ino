@@ -1532,17 +1532,13 @@ xget_testTemp:					_dtoa(strReturn, MC.sTemp[p].get_testTemp(), 2); ADD_WEBDELIM
 
 							if(strncmp(str, "min", 3)==0)           // Функция get_minADC
 							{
-								if (MC.sADC[p].get_present())          // Если датчик есть в конфигурации то выводим значение
 x_get_minValue: 				_dtoa(strReturn, MC.sADC[p].get_minValue(), 2);
-								else strcat(strReturn,"-");              // Датчика нет ставим прочерк
 								ADD_WEBDELIM(strReturn); continue;
 							}
 
 							if(strncmp(str, "max", 3)==0)           // Функция get_maxADC
 							{
-								if (MC.sADC[p].get_present())           // Если датчик есть в конфигурации то выводим значение
-x_get_maxValue: 				_dtoa(strReturn, MC.sADC[p].get_maxValue(), 2);
-								else strcat(strReturn,"-");               // Датчика нет ставим прочерк
+x_get_maxValue:					_dtoa(strReturn, MC.sADC[p].get_maxValue(), 2);
 								ADD_WEBDELIM(strReturn); continue;
 							}
 
