@@ -446,8 +446,7 @@ void parserGET(uint8_t thread)
 	char *str,*x,*y,*z;
 	float pm=0;
 	int16_t i;
-	// переменные для удаленных датчиков
-	int32_t loc_i;
+	int32_t l_i32;
 
 	char *buf = Socket[thread].inPtr;
 	char *strReturn = Socket[thread].outBuf;
@@ -578,9 +577,9 @@ void parserGET(uint8_t thread)
 				str = (char*)(i == 1 ? stats_file_start : history_file_start);
 				i = 1;
 				x = strReturn;
-				for(loc_i = rtcSAM3X8.get_years(); loc_i > 2000; loc_i--) {
+				for(l_i32 = rtcSAM3X8.get_years(); l_i32 > 2000; l_i32--) {
 					x += m_strlen(x);
-					m_snprintf(x, 8 + 4 + sizeof(stats_csv_file_ext), "%s%04d%s", str, loc_i, stats_file_ext);
+					m_snprintf(x, 8 + 4 + sizeof(stats_csv_file_ext), "%s%04d%s", str, l_i32, stats_file_ext);
 					if(!wFile.opens(x, O_READ, &wfname)) {
 						*x = '\0';
 						break;
@@ -683,8 +682,8 @@ xSaveStats:		if((i = MC.save_WorkStats()) == OK)
 					goto xSaveStats;
 				//}
 			} else {
-				loc_i = MC.save();   // записать настройки в еепром, а потом будем их писать и получить размер записываемых данных
-				_itoa(loc_i, strReturn); // сохранение настроек ВСЕХ!
+				l_i32 = MC.save();   // записать настройки в еепром, а потом будем их писать и получить размер записываемых данных
+				_itoa(l_i32, strReturn); // сохранение настроек ВСЕХ!
 				MC.save_WorkStats();
 			}
 			ADD_WEBDELIM(strReturn);
@@ -725,7 +724,7 @@ xSaveStats:		if((i = MC.save_WorkStats()) == OK)
 			if(*str == 's') { // set
 				if((x = strchr(str, '='))) {
 					*x++ = '\0';
-					loc_i = atoi(x);
+					l_i32 = atoi(x);
 					i = 1;
 				}
 			} else
@@ -736,13 +735,13 @@ xSaveStats:		if((i = MC.save_WorkStats()) == OK)
 			else if(strcmp(str, webWS_LastDrain) == 0) if(MC.WorkStats.LastDrain) TimeIntervalToStr(rtcSAM3X8.unixtime() - MC.WorkStats.LastDrain, strReturn, 0); else strcat(strReturn, "-"); // get_WSDD
 			else if(strcmp(str, webWS_UsedDrain) == 0) _itoa(MC.WorkStats.UsedDrain, strReturn); // get_WSD
 			else if(strcmp(str, webWS_UsedTotal) == 0) {  // get_WST
-				if(i) MC.WorkStats.UsedTotal = loc_i; // set_WST=x
+				if(i) MC.WorkStats.UsedTotal = l_i32; // set_WST=x
 				_dtoa(strReturn, MC.WorkStats.UsedTotal + MC.RTC_store.UsedToday, 3);
 			} else if(strcmp(str, webWS_RegCnt) == 0) {  // get_WSRC
-				if(i) MC.WorkStats.RegCnt = loc_i;  // set_WSRC=x
+				if(i) MC.WorkStats.RegCnt = l_i32;  // set_WSRC=x
 				_itoa(MC.WorkStats.RegCnt, strReturn);
 			} else if(strcmp(str, webWS_RegCntSoftening) == 0) {  // get_WSRSC
-				if(i) MC.WorkStats.RegCntSoftening = loc_i; // set_WSRSC=x
+				if(i) MC.WorkStats.RegCntSoftening = l_i32; // set_WSRSC=x
 				_itoa(MC.WorkStats.RegCntSoftening, strReturn);
 			} else if(strcmp(str, webWS_DaysFromLastRegen) == 0) _itoa(MC.WorkStats.DaysFromLastRegen, strReturn); // get_WSRD
 			else if(strcmp(str, webWS_UsedSinceLastRegen) == 0) _itoa(MC.WorkStats.UsedSinceLastRegen + MC.RTC_store.UsedToday, strReturn); // get_WSRS
@@ -838,16 +837,32 @@ xSaveStats:		if((i = MC.save_WorkStats()) == OK)
 				NeedSaveRTC = RTC_SaveAll;
 				update_RTC_store_memory();
 				ResetDUE_countdown = 3;
-			} else if (strcmp(str,"CNT")==0) // Команда RESET_CNT
-			{
-				journal.jprintf("Clear All Counters!\n");
-				strcat(strReturn,"Сброс счетчиков");
-				memset(&MC.RTC_store, 0, sizeof(MC.RTC_store));
-				MC.RTC_store.Work = (MC.RTC_store.Work & ~RTC_Work_WeekDay_MASK) | rtcSAM3X8.get_day_of_week();
-				NeedSaveRTC = RTC_SaveAll;
-				update_RTC_store_memory();
-				MC.resetCount();  // Полный сброс
-				strcat(strReturn, "OK");
+			} else if(strncmp(str, "CNT", 3) == 0) { // Команда RESET_CNT
+				str += 3;
+				if(strncmp(str, "_VAR_", 5) == 0) {	// RESET_CNT_VAR_xx=n
+					str += 5;
+					*(str + 2) = '\0';
+					if((l_i32 = strtol(str + 3, NULL, 0)) != LONG_MAX) {
+						if(strcmp(str, "D1") == 0) {
+							MC.WorkStats.ResetTime = l_i32;
+						} else if(strcmp(str, "D2") == 0) {
+							MC.WorkStats.UsedLastTime = l_i32;
+						} else if(strcmp(str, "A1") == 0) {
+							MC.WorkStats.UsedAverageDay = l_i32;
+						} else if(strcmp(str, "A2") == 0) {
+							MC.WorkStats.UsedAverageDayNum = l_i32;
+						}
+					}
+				} else {
+					journal.jprintf("Clear All Counters!\n");
+					strcat(strReturn,"Сброс счетчиков");
+					memset(&MC.RTC_store, 0, sizeof(MC.RTC_store));
+					MC.RTC_store.Work = (MC.RTC_store.Work & ~RTC_Work_WeekDay_MASK) | rtcSAM3X8.get_day_of_week();
+					NeedSaveRTC = RTC_SaveAll;
+					update_RTC_store_memory();
+					MC.resetCount();  // Полный сброс
+					strcat(strReturn, "OK");
+				}
 			} else if (strcmp(str,"SETTINGS")==0) // RESET_SETTINGS, Команда сброса настроек
 			{
 				journal.jprintf("Clear ALL settings!\n");
@@ -1006,8 +1021,8 @@ xSaveStats:		if((i = MC.save_WorkStats()) == OK)
 				strcat(strReturn,"Счетчик неудачных ping|");_itoa(MC.num_resPing,strReturn);strcat(strReturn,";");
 				strcat(strReturn,"Счетчик числа ошибок чтения датчиков температуры (DS18x20)|");_itoa(MC.get_errorReadDS18B20(),strReturn);strcat(strReturn,";");
 
-				strcat(strReturn,"<b> Глобальные счетчики (Всего за весь период)</b>|;");
-				//strcat(strReturn,"Потребленная энергия (кВт*ч)|");_dtoa(strReturn, MC.get_motoHourE1(), 2);strcat(strReturn,";");
+				strcat(strReturn,"<b> Глобальные счетчики</b>|;");
+				strcat(strReturn,"Время сброса|"); DecodeTimeDate(MC.WorkStats.ResetTime, strReturn, 3); strcat(strReturn,";");
 
 				STORE_DEBUG_INFO(48);
 				strcat(strReturn,"<b> Статистика за день</b>|;");
@@ -1269,7 +1284,7 @@ xSaveStats:		if((i = MC.save_WorkStats()) == OK)
 							if(*y == 'w') {
 								if((i = Modbus.readHoldingRegisters16(id, par, &par)) == OK) _itoa(par, strReturn);
 							} else if(*y == 'l') {
-								if((i = Modbus.readHoldingRegisters32(id, par, (uint32_t *)&loc_i)) == OK) _itoa(loc_i, strReturn);
+								if((i = Modbus.readHoldingRegisters32(id, par, (uint32_t *)&l_i32)) == OK) _itoa(l_i32, strReturn);
 							} else if(*y == 'i') {
 								if((i = Modbus.readInputRegistersFloat(id, par, &pm)) == OK) _ftoa(strReturn, pm, 2);
 							} else if(*y == 'f') {
