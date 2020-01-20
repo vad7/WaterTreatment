@@ -547,12 +547,19 @@ int8_t devPWM::initPWM()
 // Прочитать инфо с счетчика, group: 0 - основная (при каждом цикле); 2 - через PWM_READ_PERIOD
 int8_t devPWM::get_readState(uint8_t group)
 {
+#ifdef USE_UPS
+	if(MC.NO_Power) {
+		Power = 0;
+		Voltage = 0;
+	}
+#endif
 	err=OK;
 	if(MC.get_testMode() != NORMAL) {
 		Power = TestPower;
 		Voltage = 2200;
 		return err;
 	}
+
 	for(int8_t i=0; i < PWM_NUM_READ; i++)   // делаем PWM_NUM_READ попыток чтения
 	{
 		if(group == 0) {

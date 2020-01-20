@@ -257,7 +257,7 @@ void setup() {
 			goto x_I2C_init_std_message;
 		} else journal.printf("I2C bus low speed, init on %d kHz - OK\n",twiClock100kHz/1000);
 	} else {
-		x_I2C_init_std_message:
+x_I2C_init_std_message:
 		journal.printf("I2C init on %d kHz - OK\n",I2C_SPEED/1000);
 	}
 
@@ -354,6 +354,20 @@ void setup() {
 	digitalWriteDirect(PIN_BEEP,LOW);       // Выключить пищалку
 	digitalWriteDirect(PIN_LED_OK,HIGH);    // Выключить светодиод
 
+	// 6. Чтение ЕЕПРОМ
+	journal.printf("* Load data from I2C memory.\n");
+	if(MC.load_WorkStats() == ERR_HEADER2_EEPROM)           // Загрузить счетчики
+	{
+		journal.printf("I2C memory is empty!\n");
+		MC.save_WorkStats();
+	} else {
+		MC.load((uint8_t *)Socket[0].outBuf, 0);      // Загрузить настройки
+	}
+
+	// обновить хеш для пользователей
+	MC.set_hashUser();
+	MC.set_hashAdmin();
+
 	// 7. Инициализация СД карты и запоминание результата 3 попытки
 	journal.printf("* Init SD card.\n");
 	WDT_Restart(WDT);
@@ -370,19 +384,6 @@ void setup() {
 	journal.printf("* No SPI flash in config.\n");
 #endif
 
-	// 9. Чтение ЕЕПРОМ
-	journal.printf("* Load data from I2C memory.\n");
-	if(MC.load_WorkStats() == ERR_HEADER2_EEPROM)           // Загрузить счетчики
-	{
-		journal.printf("I2C memory is empty!\n");
-		MC.save_WorkStats();
-	} else {
-		MC.load((uint8_t *)Socket[0].outBuf, 0);      // Загрузить настройки
-	}
-
-	// обновить хеш для пользователей
-	MC.set_hashUser();
-	MC.set_hashAdmin();
 	journal.printf(" Web interface source: ");
 	switch (MC.get_SourceWeb())
 	{
@@ -518,7 +519,7 @@ void setup() {
 	eepromI2C.use_RTOS_delay = 1;       //vad711
 	//
 	vTaskStartScheduler();              // СТАРТ !!
-	journal.printf("FreeRTOS NOT STARTED!!!\n");
+	journal.printf("FreeRTOS FAILURE!\n");
 }
 
 
@@ -528,26 +529,25 @@ void loop() {}
 // Это и есть поток с минимальным приоритетом измеряем простой процессора
 //extern "C" 
 //{
-static unsigned long cpu_idle_max_count = 0; // 1566594 // максимальное значение счетчика, вычисляется при калибровке и соответствует 100% CPU idle
 static bool Error_Beep_confirmed = false;
 
 extern "C" void vApplicationIdleHook(void)  // FreeRTOS expects C linkage
 {
-	static unsigned long countLastTick = 0;
 	static unsigned long countLED = 0;
 	static unsigned long countBeep = 0;
-	static unsigned long ulIdleCycleCount = 0;
 
 	WDT_Restart(WDT);                                                            // Сбросить вачдог
-	ulIdleCycleCount++;                                                          // приращение счетчика
+//	static unsigned long cpu_idle_max_count = 0; // 1566594 // максимальное значение счетчика, вычисляется при калибровке и соответствует 100% CPU idle
+//	static unsigned long ulIdleCycleCount = 0;
+//	ulIdleCycleCount++;                                                          // приращение счетчика
+//	if(ticks - countLastTick >= 3000)		// мсек
+//	{
+//		countLastTick = ticks;                            // расчет нагрузки
+//		if(ulIdleCycleCount > cpu_idle_max_count) cpu_idle_max_count = ulIdleCycleCount; // это калибровка запоминаем максимальные значения
+//		HP.CPU_IDLE = (100 * ulIdleCycleCount) / cpu_idle_max_count;              // вычисляем текущую загрузку
+//		ulIdleCycleCount = 0;
+//	}
 	register unsigned long ticks = GetTickCount();
-	if(ticks - countLastTick >= 3000)		// мсек
-	{
-		countLastTick = ticks;                            // расчет нагрузки
-		if(ulIdleCycleCount > cpu_idle_max_count) cpu_idle_max_count = ulIdleCycleCount; // это калибровка запоминаем максимальные значения
-		MC.CPU_IDLE = (100 * ulIdleCycleCount) / cpu_idle_max_count;              // вычисляем текущую загрузку
-		ulIdleCycleCount = 0;
-	}
 	// Светодиод мигание в зависимости от ошибки и подача звукового сигнала при ошибке
 	if(MC.get_errcode() != OK) {          // Ошибка
 		if(ticks - countLED > TIME_LED_ERR) {
@@ -564,16 +564,14 @@ extern "C" void vApplicationIdleHook(void)  // FreeRTOS expects C linkage
 		digitalWriteDirect(PIN_LED_OK, !digitalReadDirect(PIN_LED_OK));
 		countLED = ticks;
 	}
-
 //	static uint32_t tst = 1000;
 //	uint32_t tm;
-//	if(--tst == 0) tm = micros();
+//	if(--tst < 5) tm = micros();
 	pmc_enable_sleepmode(0);
-//	if(tst == 0) {
+//	if(tst < 5) {
 //		Serial.print("$"); Serial.print(micros() - tm);	Serial.print("$\n");
-//		tst = 1000;
+//		if(tst == 0) tst = 1000;
 //	}
-
 }
 
 // --------------------------- W E B ------------------------
@@ -926,21 +924,21 @@ void vReadSensor(void *)
 		}
 		// read in vPumps():
 		//for(i = 0; i < ANUMBER; i++) MC.sADC[i].Read();                  // Прочитать данные с датчиков давления
-	#ifdef USE_UPS
+		MC.dPWM.get_readState(0); // Основная группа регистров, включая мощность
+#ifdef USE_UPS
 		if(!MC.NO_Power)
-	#endif
-			{
-				MC.dPWM.get_readState(0); // Основная группа регистров, включая мощность
-				if(WaterBoosterStatus > 0 && WaterBoosterTimeout > MC.Option.PWM_StartingTime) {
-					if(MC.Option.PWM_DryRun && MC.dPWM.get_Power() < MC.Option.PWM_DryRun) { // Сухой ход
-						CriticalErrors |= ERRC_WaterBooster;
-						set_Error(ERR_PWM_DRY_RUN, (char*)__FUNCTION__);
-					} else if(MC.Option.PWM_Max && MC.dPWM.get_Power() > MC.Option.PWM_Max) { // Перегрузка
-						CriticalErrors |= ERRC_WaterBooster;
-						set_Error(ERR_PWM_MAX, (char*)__FUNCTION__);
-					}
+#endif
+		{
+			if(WaterBoosterStatus > 0 && WaterBoosterTimeout > MC.Option.PWM_StartingTime) {
+				if(MC.Option.PWM_DryRun && MC.dPWM.get_Power() < MC.Option.PWM_DryRun) { // Сухой ход
+					CriticalErrors |= ERRC_WaterBooster;
+					set_Error(ERR_PWM_DRY_RUN, (char*)__FUNCTION__);
+				} else if(MC.Option.PWM_Max && MC.dPWM.get_Power() > MC.Option.PWM_Max) { // Перегрузка
+					CriticalErrors |= ERRC_WaterBooster;
+					set_Error(ERR_PWM_MAX, (char*)__FUNCTION__);
 				}
 			}
+		}
 		// read in vPumps():
 		//for(i = 0; i < INUMBER; i++) MC.sInput[i].Read();                // Прочитать данные сухой контакт
 		for(i = 0; i < FNUMBER; i++) MC.sFrequency[i].Read();			// Получить значения датчиков потока
@@ -967,13 +965,13 @@ void vReadSensor(void *)
 		if(!MC.NO_Power)
 #endif
 			if(millis() - readPWM > PWM_READ_PERIOD) {
-				readPWM=millis();
+				readPWM = millis();
 				MC.dPWM.get_readState(1);     // Последняя группа регистров
 			}
 
 		Weight_NeedRead = true;
 		vReadSensor_delay8ms((cDELAY_DS1820 - (millis() - ttime)) / 8); 	// Ожидать время преобразования
-		if(Weight_Percent <= MC.Option.Weight_Empty) {
+		if(Weight_Percent < MC.Option.Weight_Empty) {
 			if(!(CriticalErrors & ERRC_WeightLow)) set_Error(ERR_WEIGHT_LOW, (char*)__FUNCTION__);
 			CriticalErrors |= ERRC_WeightLow;
 		} else if(CriticalErrors & ERRC_WeightLow) CriticalErrors &= ~ERRC_WeightLow;
@@ -1269,15 +1267,27 @@ void vService(void *)
 {
 	static uint8_t  task_updstat_countm = rtcSAM3X8.get_minutes();
 	static uint8_t  task_every_min = task_updstat_countm;
-	static uint32_t timer_sec = GetTickCount();
+	static TickType_t timer_sec = GetTickCount(), timer_idle = 0, timer_total = 0;
 
 	for(;;) {
 		if(vPumpsNewError != 0) {
 			set_Error(vPumpsNewError, (char*)"vPumps");
 			vPumpsNewError = 0;
 		}
-		register uint32_t t = GetTickCount();
+		register TickType_t t = xTaskGetTickCount();
 		if(t - timer_sec >= 1000) { // 1 sec
+			extern TickType_t xTickCountZero;
+			TickType_t ttmpt = t - xTickCountZero - timer_total;
+			if(ttmpt > 5000) {
+				if(t < timer_sec) {
+					vTaskResetRunTimeCounters();
+					timer_idle = timer_total = 0;
+				} else {
+					TickType_t ttmp = timer_idle;
+					MC.CPU_LOAD = 100 - (((timer_idle = vTaskGetRunTimeCounter(xTaskGetIdleTaskHandle())) - ttmp) / (ttmpt / 100UL));
+					timer_total = t - xTickCountZero;
+				}
+			}
 			timer_sec = t;
 			// Drain OFF
 			if(TimerDrainingWater && --TimerDrainingWater == 0) {

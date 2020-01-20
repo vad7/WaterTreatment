@@ -316,7 +316,7 @@ public:
     TYPE_SOURSE_WEB get_SourceWeb();                    	// Получить источник загрузки веб морды
 
 	// Переменные
-	uint8_t CPU_IDLE;                                      // загрузка CPU
+	uint8_t CPU_LOAD;                                      // загрузка CPU
 	uint32_t mRTOS;                                        // Память занимаемая задачами
 	uint32_t startRAM;                                     // Свободная память при старте FREE Rtos - пытаемся определить свободную память при работе
 

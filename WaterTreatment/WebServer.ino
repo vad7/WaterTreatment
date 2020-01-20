@@ -488,7 +488,7 @@ void parserGET(uint8_t thread)
 			if(t) TimeIntervalToStr(rtcSAM3X8.unixtime() - t, strReturn, 1);
 			else strcat(strReturn,"-");
 			strcat(strReturn,"|SI>");
-			_itoa(100-MC.CPU_IDLE,strReturn);
+			_itoa(MC.CPU_LOAD,strReturn);
 			strcat(strReturn,"%");//|SF>");
 			//_itoa(freeRam()+MC.startRAM,strReturn);                          strcat(strReturn,"b|");
 			ADD_WEBDELIM(strReturn);
@@ -539,7 +539,7 @@ void parserGET(uint8_t thread)
 		}
 		if (strcmp(str,"get_loadingCPU")==0)  // Функция freeRam
 		{
-			_itoa(100-MC.CPU_IDLE,strReturn);
+			_itoa(MC.CPU_LOAD,strReturn);
 			strcat(strReturn,"%" WEBDELIM) ;
 			continue;
 		}

@@ -295,7 +295,7 @@ const char *mess_SMTP_LOGIN   = {"SMTP_LOGIN"};          // логин серв�
 const char *mess_SMTP_PASS    = {"SMTP_PASS"};           // пароль сервера если включена авторизация
 const char *mess_SMTP_MAILTO  = {"SMTP_MAILTO"};         // адрес отправителя
 const char *mess_SMTP_RCPTTO  = {"SMTP_RCPTTO"};         // адрес получателя
-const char *mess_SMS_SERVICE  = {"SMS_SERVICE"};         // сервис отправки смс
+const char *mess_SMS_SERVICE  = {"SMS_list"};         // сервис отправки смс
 const char *mess_SMS_IP       = {"SMS_IP"};              // IP Адрес сервера для отправки смс
 const char *mess_SMS_PHONE    = {"SMS_PHONE"};           // телефон куда отправляется смс
 const char *mess_SMS_P1       = {"SMS_P1"};              // первый параметр для отправки смс
@@ -303,8 +303,8 @@ const char *mess_SMS_P2       = {"SMS_P2"};              // второй пар�
 const char *mess_SMS_NAMEP1   = {"SMS_NAMEP1"};          // описание первого параметра для отправки смс
 const char *mess_SMS_NAMEP2   = {"SMS_NAMEP2"};          // описание второго параметра для отправки смс
 const char *mess_MESS_TIN     = {"MESS_TAIR"};           // Критическая температура (если меньше то генерится уведомление)
-const char *mess_MAIL_RET     = {"MAIL_RET"};            // Ответ на тестовую почту
-const char *mess_SMS_RET      = {"SMS_RET"};             // Ответ на тестовую  sms
+const char *mess_MAIL_RET     = {"scan_MAIL"};           // Ответ на тестовую почту
+const char *mess_SMS_RET      = {"scan_SMS"};            // Ответ на тестовую  sms
 
 // Дата время
 const char *time_TIME       = {"TIME"};         // текущее время  12:45 без секунд
