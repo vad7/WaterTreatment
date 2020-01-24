@@ -1324,10 +1324,17 @@ xSaveStats:		if((i = MC.save_WorkStats()) == OK)
 				// Датчики температуры смещение
 				if(strstr(str,"Temp"))          // Проверка для запросов содержащих Temp
 				{
-					for(i=0; i<TNUMBER; i++) if(strcmp(x,MC.sTemp[i].get_name())==0) {p=i; break;} // Поиск среди имен  смещение 0
-					if(p >= TNUMBER)  {strcat(strReturn,"E03");ADD_WEBDELIM(strReturn);  continue; }  // Не соответсвие имени функции и параметра
-					else  // параметр верный
-					{
+					for(i = 0; i < TNUMBER; i++) {
+						if(strcmp(x, MC.sTemp[i].get_name()) == 0) {
+							p = i;
+							break;
+						}
+					}
+					if(p < 0 || p >= TNUMBER) { // Не соответсвие имени функции и параметра
+						strcat(strReturn, "E03");
+						ADD_WEBDELIM(strReturn);
+						continue;
+					} else {  // параметр верный
 						if(strncmp(str,"get_", 4)==0) {              // Функция get_
 							str += 4;
 							if(strcmp(str,"Temp")==0)              // Функция get_Temp
@@ -1980,7 +1987,9 @@ TYPE_RET_POST parserPOST(uint8_t thread, uint16_t size)
 
 		while(buf_len < lenFile)  // Чтение остальных данных по сети
 		{
-			_delay(10);
+			uint8_t i = 0;
+			for(; i < 100; i++) if(!Socket[thread].client.available()) _delay(1); else break;
+			if(i == 100) break;
 			len = Socket[thread].client.get_ReceivedSizeRX();                          // получить длину входного пакета
 			if(len > W5200_MAX_LEN - 1) len = W5200_MAX_LEN - 1; // Ограничить размером в максимальный размер пакета w5200
 			Socket[thread].client.read(Socket[thread].inBuf, len);                      // прочитать буфер
