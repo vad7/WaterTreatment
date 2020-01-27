@@ -1857,7 +1857,7 @@ xWgt_get:
 						} else if(*x == 'N') {      	// set_Wgt(N=) - full brine weight
 							MC.Option.WeightFull = pm * 10 + 0.05f;
 						} else if(*x == 'K') {      	// set_Wgt(K=) - Coefficient
-							MC.Option.WeightScale = pm * 10000 + 0.00005f;
+							MC.Option.WeightScale = pm * 10000f + 0.00005f;
 						} else if(*x == '0') {      	// set_Wgt(0=) - Zero
 							MC.Option.WeightZero = pm;
 						} else if(*x == 'X') {      	// set_Wgt(X=) - Test value

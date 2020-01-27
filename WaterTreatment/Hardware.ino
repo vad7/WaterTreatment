@@ -229,18 +229,22 @@ void sensorADC::initSensorADC(uint8_t sensor, uint8_t pinA, uint16_t filter_size
 // Установка 0 датчика темпеартуры
 int8_t sensorADC::set_zeroValue(int16_t p)
 {
-	if((p>=-1024)&&(p<=4096)) { clearBuffer(); cfg.zeroValue=p; return OK;} // Суммы обнулить надо
-	else return WARNING_VALUE;
+//	if((p >= -1024) && (p <= 4096)) {
+		clearBuffer();
+		cfg.zeroValue = p;
+		return OK;
+//	} // Суммы обнулить надо
+//	else return WARNING_VALUE;
 }
 
 // Установить значение коэффициента преобразования напряжение (отсчеты ацп)-температура
 int8_t sensorADC::set_transADC(float p)
 {
-	if((p >= 0.0f) && (p <= 4.0f)) {
+//	if((p >= 0.0f) && (p <= 4.0f)) {
 		clearBuffer();   // Суммы обнулить надо
 		cfg.transADC = rd(p, 1000);
 		return OK;
-	} else return WARNING_VALUE;
+//	} else return WARNING_VALUE;
 }
 
 // Установить значение давления датчика в режиме теста
