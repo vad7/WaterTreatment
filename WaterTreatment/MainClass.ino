@@ -114,7 +114,8 @@ void MainClass::scan_OneWire(char *result_str)
 {
 	if(!OW_scan_flags && OW_prepare_buffers()) {
 		OW_scan_flags = 1; // Идет сканирование
-		char *_result_str = result_str + m_strlen(result_str);
+		journal.jprintf("Scan 1-Wire:\n");
+//		char *_result_str = result_str + m_strlen(result_str);
 		OneWireBus.Scan(result_str);
 #ifdef ONEWIRE_DS2482_SECOND
 		OneWireBus2.Scan(result_str);
@@ -125,14 +126,14 @@ void MainClass::scan_OneWire(char *result_str)
 #ifdef ONEWIRE_DS2482_FOURTH
 		OneWireBus4.Scan(result_str);
 #endif
-		journal.jprintf("OneWire found(%d): ", OW_scanTableIdx);
-		while(strlen(_result_str)) {
-			journal.jprintf(_result_str);
-			uint16_t l = strlen(_result_str);
-			_result_str += l > PRINTF_BUF-1 ? PRINTF_BUF-1 : l;
-		}
+		journal.jprintf("Found: %d\n", OW_scanTableIdx);
+//		while(strlen(_result_str)) {
+//			journal.jprintf(_result_str);
+//			uint16_t l = strlen(_result_str);
+//			_result_str += l > PRINTF_BUF-1 ? PRINTF_BUF-1 : l;
+//		}
 #ifdef RADIO_SENSORS
-		journal.jprintf("\nRadio found(%d): ", radio_received_num);
+		journal.jprintf("Radio found(%d): ", radio_received_num);
 		for(uint8_t i = 0; i < radio_received_num; i++) {
 			OW_scanTable[OW_scanTableIdx].num = OW_scanTableIdx + 1;
 			OW_scanTable[OW_scanTableIdx].bus = 7;
@@ -144,8 +145,8 @@ void MainClass::scan_OneWire(char *result_str)
 			journal.jprintf("%s", p);
 			if(++OW_scanTableIdx >= OW_scanTable_max) break;
 		}
-#endif
 		journal.jprintf("\n");
+#endif
 		OW_scan_flags = 0;
 	}
 }
@@ -838,7 +839,7 @@ char* MainClass::get_option(char *var, char *ret)
    if(strcmp(var,option_CriticalErrorsTimeout)==0){ return _itoa(Option.CriticalErrorsTimeout, ret); } else
    if(strncmp(var,option_SGL1W, sizeof(option_SGL1W)-1)==0) {
 	   uint8_t bit = var[sizeof(option_SGL1W)-1] - '0' - 1;
-	   if(bit <= 2) {
+	   if(bit <= 3) {
 		   return strcat(ret,(char*)(GETBIT(Option.flags, f1Wire1TSngl + bit) ? cOne : cZero));
 	   }
    }

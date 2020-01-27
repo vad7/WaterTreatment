@@ -136,7 +136,11 @@ void get_txtSettings(uint8_t thread)
      strcat(Socket[thread].outBuf," - Дополнительное оборудование -\r\n");
      strcat(Socket[thread].outBuf,"Логировать обмен между беспроводными датчиками: "); MC.get_option((char*)option_LogWirelessSensors,Socket[thread].outBuf);STR_END;
      strcat(Socket[thread].outBuf,"Генерация звукового сигнала: "); MC.get_option((char*)option_BEEP,Socket[thread].outBuf);STR_END;
-     strcat(Socket[thread].outBuf,"На шинах 1-Wire(DS2482) только один датчик: "); if((MC.get_flags() & (1<<f1Wire2TSngl))) strcat(Socket[thread].outBuf, "2 "); if((MC.get_flags() & (1<<f1Wire3TSngl))) strcat(Socket[thread].outBuf, "3 "); if((MC.get_flags() & (1<<f1Wire4TSngl))) strcat(Socket[thread].outBuf, "4");
+     strcat(Socket[thread].outBuf,"На шинах 1-Wire(DS2482) только один датчик: ");
+     if((MC.get_flags() & (1<<f1Wire1TSngl))) strcat(Socket[thread].outBuf, "1 ");
+     if((MC.get_flags() & (1<<f1Wire2TSngl))) strcat(Socket[thread].outBuf, "2 ");
+     if((MC.get_flags() & (1<<f1Wire3TSngl))) strcat(Socket[thread].outBuf, "3 ");
+     if((MC.get_flags() & (1<<f1Wire4TSngl))) strcat(Socket[thread].outBuf, "4");
      sendBufferRTOS(thread,(byte*)Socket[thread].outBuf,strlen(Socket[thread].outBuf));  
     
      strcpy(Socket[thread].outBuf,"\n\n  1.2 Сетевые настройки\r\n");
