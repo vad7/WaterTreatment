@@ -428,103 +428,161 @@ void get_datTest(uint8_t thread)
 
 // Получить состояние для отсылки по почте
 // посылается в клиента используя tempBuf
-void get_mailState(EthernetClient client,char *tempBuf)
+void get_mailState(EthernetClient client, char *tempBuf)
 {
-uint8_t i,j;
-int16_t x; 
+	uint8_t i;
 
-       strcpy(tempBuf,"\r\n  Водоподготовка");
-       strcat(tempBuf,cStrEnd);  client.write(tempBuf,strlen(tempBuf));
-    
-       strcpy(tempBuf,"Состояние: "); MC.StateToStr(tempBuf);
-       strcat(tempBuf,cStrEnd);  client.write(tempBuf,strlen(tempBuf));  
-      
-       strcpy(tempBuf,"Последняя ошибка: ");  _itoa(MC.get_errcode(),tempBuf); strcat(tempBuf," - "); strcat(tempBuf,MC.get_lastErr());
-       strcat(tempBuf,cStrEnd);  client.write(tempBuf,strlen(tempBuf));
-   
-       strcpy(tempBuf,"Режим работы: ");strcat(tempBuf,MC.TestToStr());
-       strcat(tempBuf,cStrEnd);  client.write(tempBuf,strlen(tempBuf)); 
-           
-      strcpy(tempBuf,"Последняя перезагрузка: "); DecodeTimeDate(MC.get_startDT(),tempBuf,3);
-      strcat(tempBuf,cStrEnd);  client.write(tempBuf,strlen(tempBuf));  
-     
-      strcpy(tempBuf,"Время с последней перезагрузки: "); TimeIntervalToStr(MC.get_uptime(),tempBuf);
-      strcat(tempBuf,cStrEnd);  client.write(tempBuf,strlen(tempBuf));  
-     
-      strcpy(tempBuf,"Причина последней перезагрузки: "); strcat(tempBuf,ResetCause());
-      strcat(tempBuf,cStrEnd);  client.write(tempBuf,strlen(tempBuf));  
+	strcpy(tempBuf, "\r\n Водоподготовка");
+	strcat(tempBuf, cStrEnd);
+	client.write(tempBuf, strlen(tempBuf));
 
-      strcpy(tempBuf,"\n  2. Датчики температуры");
-      strcat(tempBuf,cStrEnd);  client.write(tempBuf,strlen(tempBuf));
-      for(i=0;i<TNUMBER;i++)   // Информация по  датчикам температуры
-         {
-            if (MC.sTemp[i].get_present())  // только присутствующие датчики
-            {
-              strcpy(tempBuf,MC.sTemp[i].get_name()); if((x=8-strlen(MC.sTemp[i].get_name()))>0) { for(j=0;j<x;j++)  strcat(tempBuf," "); }
-              strcat(tempBuf,"["); strcat(tempBuf,addressToHex(MC.sTemp[i].get_address())); strcat(tempBuf,"] ");
-              strcat(tempBuf,MC.sTemp[i].get_note());  strcat(tempBuf,": ");
-              _ftoa(tempBuf,(float)MC.sTemp[i].get_Temp()/100.0f,2);
-              if (MC.sTemp[i].get_lastErr()!=OK) { strcat(tempBuf," error:"); _itoa(MC.sTemp[i].get_lastErr(),tempBuf); }
-              strcat(tempBuf,cStrEnd);  client.write(tempBuf,strlen(tempBuf));
-            }  //   if (MC.sTemp[i].get_present())
-         }
-      strcpy(tempBuf,"\n  3. Аналоговые датчики");
-      strcat(tempBuf,cStrEnd);  client.write(tempBuf,strlen(tempBuf));
-      for(i=0;i<ANUMBER;i++)   // Информация по  аналоговым датчикам
-         {   
-           if (MC.sADC[i].get_present()) // только присутствующие датчики
-            {          
-            strcpy(tempBuf,MC.sADC[i].get_name()); if((x=8-strlen(MC.sADC[i].get_name()))>0) { for(j=0;j<x;j++)  strcat(tempBuf," "); }
-            strcat(tempBuf,MC.sADC[i].get_note());  strcat(tempBuf,": ");
-            _dtoa(tempBuf, MC.sADC[i].get_Value(), 2);
-            if (MC.sADC[i].get_lastErr()!=OK ) { strcat(tempBuf," error:"); _itoa(MC.sADC[i].get_lastErr(),tempBuf); }
-            strcat(tempBuf,cStrEnd);  client.write(tempBuf,strlen(tempBuf));
-            }
-         }
-   
-       strcpy(tempBuf,"\n  4. Датчики 'сухой контакт'");
-       strcat(tempBuf,cStrEnd);  client.write(tempBuf,strlen(tempBuf));
-       for(i=0;i<INUMBER;i++)  
-           {
-           if (MC.sInput[i].get_present()) // только присутствующие датчики
-              { 
-              strcpy(tempBuf,MC.sInput[i].get_name()); if((x=8-strlen(MC.sInput[i].get_name()))>0) { for(j=0;j<x;j++)  strcat(tempBuf," "); }
-              strcat(tempBuf,MC.sInput[i].get_note());  strcat(tempBuf,": ");
-              _itoa(MC.sInput[i].get_Input(),tempBuf);
-              strcat(tempBuf," alarm:"); _itoa(MC.sInput[i].get_alarmInput(),tempBuf);
-              strcat(tempBuf,cStrEnd);  client.write(tempBuf,strlen(tempBuf));
-              }     
-           }
+	strcpy(tempBuf, "Состояние: ");
+	MC.StateToStr(tempBuf);
+	strcat(tempBuf, cStrEnd);
+	client.write(tempBuf, strlen(tempBuf));
 
-       strcpy(tempBuf,"\n  5. Реле");
-       strcat(tempBuf,cStrEnd);  client.write(tempBuf,strlen(tempBuf)); 
-       for(i=0;i<RNUMBER;i++)  
-           {
-            if (MC.dRelay[i].get_present()) // только присутствующие датчики
-              {
-              strcpy(tempBuf,MC.dRelay[i].get_name()); if((x=8-strlen(MC.dRelay[i].get_name()))>0) { for(j=0;j<x;j++)  strcat(tempBuf," "); }
-              strcat(tempBuf,MC.dRelay[i].get_note());  strcat(tempBuf,": ");
-              _itoa(MC.dRelay[i].get_Relay(),tempBuf);
-              strcat(tempBuf,cStrEnd);  client.write(tempBuf,strlen(tempBuf)); 
-              }         
-           }
-       
-       strcpy(tempBuf,"\n  6. Электросчетчик"); strcat(tempBuf,cStrEnd);  client.write(tempBuf,strlen(tempBuf));
-           strcpy(tempBuf,"Текущее входное напряжение [В]: ");            MC.dPWM.get_param((char*)pwm_VOLTAGE,tempBuf);strcat(tempBuf,cStrEnd);  client.write(tempBuf,strlen(tempBuf));
-           strcpy(tempBuf,"Текущая потребляемая мощность [Вт]: ");        MC.dPWM.get_param((char*)pwm_POWER,tempBuf); strcat(tempBuf,cStrEnd);  client.write(tempBuf,strlen(tempBuf));
+	strcpy(tempBuf, "Текущая ошибка: ");
+	_itoa(MC.get_errcode(), tempBuf);
+	strcat(tempBuf, " - ");
+	strcat(tempBuf, MC.get_lastErr());
+	strcat(tempBuf, cStrEnd);
+	if(Errors[0] != OK && Errors[1] != OK) {
+		strcat(tempBuf, "Предыдущие ошибки:");
+		strcat(tempBuf, cStrEnd);
+		for(i = 0; i < (int16_t)(sizeof(Errors) / sizeof(Errors[0])); i++) {
+			if(Errors[i] == OK) break;
+			DecodeTimeDate(ErrorsTime[i], tempBuf, 3);
+			strcat(tempBuf, " - ");
+			strcat(tempBuf, noteError[abs(Errors[i])]);
+			strcat(tempBuf, " (");
+			_itoa(Errors[i], tempBuf);
+			strcat(tempBuf, ")");
+			strcat(tempBuf, cStrEnd);
+		}
+		strcat(tempBuf, cStrEnd);
+	}
+	client.write(tempBuf, strlen(tempBuf));
 
-        strcpy(tempBuf,"\n  7. Частотные датчики потока");
-        strcat(tempBuf,cStrEnd);  client.write(tempBuf,strlen(tempBuf)); 
-        for(i=0;i<FNUMBER;i++)  
-           {
-              if (MC.sFrequency[i].get_present())
-                {
-                strcpy(tempBuf,MC.sFrequency[i].get_name()); if((x=8-strlen(MC.sFrequency[i].get_name()))>0) { for(j=0;j<x;j++)  strcat(tempBuf," "); }
-                strcat(tempBuf,MC.sFrequency[i].get_note());  strcat(tempBuf,": ");
-                _ftoa(tempBuf,(float)MC.sFrequency[i].get_Value()/1000.0f,3);
-                strcat(tempBuf,cStrEnd);  client.write(tempBuf,strlen(tempBuf));    
-                }      
-           }        
-       
+	strcpy(tempBuf, "Режим работы: ");
+	strcat(tempBuf, MC.TestToStr());
+	strcat(tempBuf, cStrEnd);
+	client.write(tempBuf, strlen(tempBuf));
+
+	strcpy(tempBuf, "Последняя перезагрузка: ");
+	DecodeTimeDate(MC.get_startDT(), tempBuf, 3);
+	strcat(tempBuf, cStrEnd);
+	client.write(tempBuf, strlen(tempBuf));
+
+	strcpy(tempBuf, "Время с последней перезагрузки: ");
+	TimeIntervalToStr(MC.get_uptime(), tempBuf);
+	strcat(tempBuf, cStrEnd);
+	client.write(tempBuf, strlen(tempBuf));
+
+	strcpy(tempBuf, "Причина последней перезагрузки: ");
+	strcat(tempBuf, ResetCause());
+	strcat(tempBuf, cStrEnd);
+	client.write(tempBuf, strlen(tempBuf));
+
+	strcpy(tempBuf, "\n 2. Датчики температуры");
+	strcat(tempBuf, cStrEnd);
+	client.write(tempBuf, strlen(tempBuf));
+	for(i = 0; i < TNUMBER; i++)   // Информация по  датчикам температуры
+	{
+		if(MC.sTemp[i].get_present())  // только присутствующие датчики
+		{
+			strcat(tempBuf, MC.sTemp[i].get_note());
+			strcpy(tempBuf, " (");
+			strcpy(tempBuf, MC.sTemp[i].get_name());
+			strcpy(tempBuf, "): ");
+			_dtoa(tempBuf, MC.sTemp[i].get_Temp(), 2);
+			if(MC.sTemp[i].get_lastErr() != OK) {
+				strcat(tempBuf, " ERR:");
+				_itoa(MC.sTemp[i].get_lastErr(), tempBuf);
+			}
+			strcat(tempBuf, cStrEnd);
+			client.write(tempBuf, strlen(tempBuf));
+		}
+	}
+	strcpy(tempBuf, "\n 3. Аналоговые датчики");
+	strcat(tempBuf, cStrEnd);
+	client.write(tempBuf, strlen(tempBuf));
+	for(i = 0; i < ANUMBER; i++)   // Информация по  аналоговым датчикам
+	{
+		if(MC.sADC[i].get_present()) // только присутствующие датчики
+		{
+			strcat(tempBuf, MC.sADC[i].get_note());
+			strcpy(tempBuf, " (");
+			strcpy(tempBuf, MC.sADC[i].get_name());
+			strcpy(tempBuf, "): ");
+			_dtoa(tempBuf, MC.sADC[i].get_Value(), 2);
+			if(MC.sADC[i].get_lastErr() != OK) {
+				strcat(tempBuf, " error:");
+				_itoa(MC.sADC[i].get_lastErr(), tempBuf);
+			}
+			strcat(tempBuf, cStrEnd);
+			client.write(tempBuf, strlen(tempBuf));
+		}
+	}
+
+	strcpy(tempBuf, "\n 4. Контактные датчики");
+	strcat(tempBuf, cStrEnd);
+	client.write(tempBuf, strlen(tempBuf));
+	for(i = 0; i < INUMBER; i++) {
+		if(MC.sInput[i].get_present()) // только присутствующие датчики
+		{
+			strcat(tempBuf, MC.sInput[i].get_note());
+			strcpy(tempBuf, " (");
+			strcpy(tempBuf, MC.sInput[i].get_name());
+			strcpy(tempBuf, "): ");
+			_itoa(MC.sInput[i].get_Input(), tempBuf);
+			strcat(tempBuf, " alarm:");
+			_itoa(MC.sInput[i].get_alarmInput(), tempBuf);
+			strcat(tempBuf, cStrEnd);
+			client.write(tempBuf, strlen(tempBuf));
+		}
+	}
+
+	strcpy(tempBuf, "\n 5. Частотные датчики");
+	strcat(tempBuf, cStrEnd);
+	client.write(tempBuf, strlen(tempBuf));
+	for(i = 0; i < FNUMBER; i++) {
+		if(MC.sFrequency[i].get_present()) {
+			strcat(tempBuf, MC.sFrequency[i].get_note());
+			strcpy(tempBuf, " (");
+			strcpy(tempBuf, MC.sFrequency[i].get_name());
+			strcpy(tempBuf, "): ");
+			_dtoa(tempBuf, MC.sFrequency[i].get_Value(), 3);
+			strcat(tempBuf, cStrEnd);
+			client.write(tempBuf, strlen(tempBuf));
+		}
+	}
+
+	strcpy(tempBuf, "\n 6. Реле");
+	strcat(tempBuf, cStrEnd);
+	client.write(tempBuf, strlen(tempBuf));
+	for(i = 0; i < RNUMBER; i++) {
+		if(MC.dRelay[i].get_present()) // только присутствующие датчики
+		{
+			strcat(tempBuf, MC.dRelay[i].get_note());
+			strcpy(tempBuf, " (");
+			strcpy(tempBuf, MC.dRelay[i].get_name());
+			strcpy(tempBuf, "): ");
+			_itoa(MC.dRelay[i].get_Relay(), tempBuf);
+			strcat(tempBuf, cStrEnd);
+			client.write(tempBuf, strlen(tempBuf));
+		}
+	}
+
+	strcpy(tempBuf, "\n 7. Электросчетчик");
+	strcat(tempBuf, cStrEnd);
+	client.write(tempBuf, strlen(tempBuf));
+	strcpy(tempBuf, "Текущее входное напряжение [В]: ");
+	MC.dPWM.get_param((char*) pwm_VOLTAGE, tempBuf);
+	strcat(tempBuf, cStrEnd);
+	client.write(tempBuf, strlen(tempBuf));
+	strcpy(tempBuf, "Текущая потребляемая мощность [Вт]: ");
+	MC.dPWM.get_param((char*) pwm_POWER, tempBuf);
+	strcat(tempBuf, cStrEnd);
+	client.write(tempBuf, strlen(tempBuf));
 }
 

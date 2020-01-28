@@ -67,7 +67,7 @@ struct History_setup {
 // -----------------------------------------------------------------------------------------------------------------------------------
 //  Arduino DUE Core
 #ifdef CONFIG_1    // Имя и описание конфигурации и ОСОБЕННОСТИ конфигурации -------------------------------
-//	#define TEST_BOARD 				// Тестовая плата!
+	#define TEST_BOARD 				// Тестовая плата!
 
     #define CONFIG_NAME   "vad7"
     #define CONFIG_NOTE   "Обезжелезивание Quantum DMI-65, дозирование хлора, водоснабжение"
@@ -77,17 +77,6 @@ struct History_setup {
     #define UART_SPEED    250000	// Скорость отладочного порта
 	#define KEY_ON_OFF				// + KEY1 Наличие кнопки включения и переключения в safeNetwork (нажата при сбросе)
     //#define SPI_FLASH				// + Наличие чипа флеш памяти на шине SPI
-    //#define ONEWIRE_DS2482		// + Использование мастера i2c Onewire DS2482 (адрес AD1,0 = 0,0)
-    //#define ONEWIRE_DS2482_SECOND	// второй мастер i2 Onewire DS2482 (адрес AD1,0 = 0,1)
-	//#define ONEWIRE_DS2482_THIRD	// третий мастер i2 Onewire DS2482 (адрес AD1,0 = 1,0)
-	//#define ONEWIRE_DS2482_FOURTH	// четвертый мастер i2 Onewire DS2482 (адрес AD1,0 = 1,1)
-    //#define ONEWIRE_DS2482_2WAY  	// Используются 2-х проводные шины OneWire (паразитное питание)
-	#ifdef ONEWIRE_DS2482_2WAY
-      const uint8_t ONEWIRE_2WAY = 0b1010; // На каких шинах (4|3|2|1) двух-проводные датчики, битовая маска
-	#else
-      const uint8_t ONEWIRE_2WAY = 0b0000;
-	#endif
-	#define PIN_ONE_WIRE_BUS 64     // INA3. нога с интерфейсом программный 1-Wire (температурные датчики)
     #define LOAD_VERIFICATION     	// Признак чтения настроек c проверкой версии, длины, CRC16. Закоментируйте эту строку для ПОПЫТКИ загрузить старый формат, Запись всегда идет в новом
     //#define EXTERNAL_AREF     	  	// Использование внешней опоры для АЦП
     #ifdef EXTERNAL_AREF        	// Какая опора для АЦП используется
@@ -337,9 +326,22 @@ struct History_setup {
 	// наличие датчиков  датчиков от конфигурации минимальные максимальные и тестовые температуры
 	// Температура хранится в сотых градуса
 	// --------------------------------------------------------------------------------
+    //#define ONEWIRE_DS2482		// + Использование мастера i2c Onewire DS2482 (адрес AD1,0 = 0,0)
+    //#define ONEWIRE_DS2482_SECOND	// второй мастер i2 Onewire DS2482 (адрес AD1,0 = 0,1)
+	//#define ONEWIRE_DS2482_THIRD	// третий мастер i2 Onewire DS2482 (адрес AD1,0 = 1,0)
+	//#define ONEWIRE_DS2482_FOURTH	// четвертый мастер i2 Onewire DS2482 (адрес AD1,0 = 1,1)
+    //#define ONEWIRE_DS2482_2WAY  	// Используются 2-х проводные шины OneWire (паразитное питание)
+	#ifdef ONEWIRE_DS2482_2WAY
+      const uint8_t ONEWIRE_2WAY = 0b1010; // На каких шинах (4|3|2|1) двух-проводные датчики, битовая маска
+	#else
+      const uint8_t ONEWIRE_2WAY = 0b0000;
+	#endif
+	#define PIN_ONE_WIRE_BUS       64     // INA3. нога с интерфейсом программный 1-Wire (температурные датчики)
+	#define ONEWIRE_READ_PERIOD    15000UL// Период чтения датчиков 1-Wire, ms
+
 	#define TNUMBER     1    // Число температурных датчиков
 	//#define RADIO_SENSORS_MAX 0
-	#define TNTC        9	// Количество датчиков NTC на DUE
+	//#define TNTC        9	// Количество датчиков NTC на DUE
 	////#define TNTC_EXT    4	// Количество датчиков NTC на внешнем АЦП
 
 	#define TAIR        0    // Температура воздуха

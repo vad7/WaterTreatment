@@ -237,9 +237,7 @@ int8_t  deviceOneWire::Read(byte *addr, int16_t &val)
 	byte data[9];
 
 	if((i = lock_I2C_bus_reset(0))) return i;
-	if(GETBIT(MC.get_flags(), f1Wire1TSngl + bus)) OneWireDrv.skip();
-	else
-		OneWireDrv.select(addr);
+	if(GETBIT(MC.get_flags(), f1Wire1TSngl + bus)) OneWireDrv.skip(); else OneWireDrv.select(addr);
 	OneWireDrv.write(0xBE); // Команда на чтение регистра температуры
 	for(i = 0; i < 9; i++) {
 		int16_t r = OneWireDrv.read();

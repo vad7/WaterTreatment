@@ -186,8 +186,6 @@ void setup() {
 #endif
 	SPI_switchAllOFF();                         // Выключить все устройства на SPI
 
-	delay(10);
-
 	// Борьба с зависшими устройствами на шине  I2C (в первую очередь часы) неудачный сброс
 	Recover_I2C_bus();
 
@@ -899,29 +897,41 @@ void vReadSensor(void *)
 { //const char *pcTaskName = "ReadSensor\r\n";
 	static unsigned long readPWM = 0;
 	static uint32_t ttime;
-	static uint32_t oldTime = millis();
-	static uint8_t  prtemp = 0;
-	
+	static uint8_t  prtemp;
+	static uint32_t oldTime, OneWire_time;
+	oldTime = millis();
+	OneWire_time = oldTime - ONEWIRE_READ_PERIOD;
+
+	journal.printf("OWT: %u, %u\n", OneWire_time, ttime - OneWire_time);
+
 	for(;;) {
 		int8_t i;
 		//WDT_Restart(WDT);
 
+		prtemp = 0;
 		ttime = millis();
-#ifdef RADIO_SENSORS		
-		radio_timecnt++;
-#endif		
-		if(OW_scan_flags == 0) {
-			prtemp = MC.Prepare_Temp(0);
+		if(ttime - OneWire_time >= ONEWIRE_READ_PERIOD) {
+			OneWire_time = ttime;
+
+			journal.printf("OWT: %u\n", OneWire_time);
+
+
+			if(OW_scan_flags == 0) {
+				prtemp = MC.Prepare_Temp(0);
 #ifdef ONEWIRE_DS2482_SECOND
-			prtemp |= MC.Prepare_Temp(1);
+				prtemp |= MC.Prepare_Temp(1);
 #endif
 #ifdef ONEWIRE_DS2482_THIRD
-			prtemp |= MC.Prepare_Temp(2);
+				prtemp |= MC.Prepare_Temp(2);
 #endif
 #ifdef ONEWIRE_DS2482_FOURTH
-			prtemp |= MC.Prepare_Temp(3);
+				prtemp |= MC.Prepare_Temp(3);
 #endif
+			}
 		}
+#ifdef RADIO_SENSORS
+		radio_timecnt++;
+#endif
 		// read in vPumps():
 		//for(i = 0; i < ANUMBER; i++) MC.sADC[i].Read();                  // Прочитать данные с датчиков давления
 		MC.dPWM.get_readState(0); // Основная группа регистров, включая мощность
@@ -976,15 +986,20 @@ void vReadSensor(void *)
 			CriticalErrors |= ERRC_WeightLow;
 		} else if(CriticalErrors & ERRC_WeightLow) CriticalErrors &= ~ERRC_WeightLow;
 
-		if(OW_scan_flags == 0) {
-			uint8_t flags = 0;
+		if(prtemp) {
+			// do not need averaging: // uint8_t flags = 0;
 			for(i = 0; i < TNUMBER; i++) {                                   // Прочитать данные с температурных датчиков
 				if((prtemp & (1<<MC.sTemp[i].get_bus())) == 0) {
-					if(MC.sTemp[i].Read() == OK) flags |= MC.sTemp[i].get_setup_flags();
+					MC.sTemp[i].Read();
+
+					journal.printf("RT: %.2d\n", MC.sTemp[i].get_Temp());
+
+
+					// do not need averaging: // if(MC.sTemp[i].Read() == OK) flags |= MC.sTemp[i].get_setup_flags();
 				}
 				_delay(1);     												// пауза
 			}
-			/* do not need averaging...
+			/* do not need averaging:
 			int32_t temp;
 			if(GETBIT(flags, fTEMP_as_TIN_average)) { // Расчет средних датчиков для TIN
 				temp = 0;
@@ -1004,7 +1019,7 @@ void vReadSensor(void *)
 				}
 			}
 			if(temp2 != STARTTEMP) MC.sTemp[TIN].set_Temp(temp2);
-		    */ // do not need averaging...
+		    */ // do not need averaging.
 		}
 
 		MC.calculatePower();  // Расчет мощностей
