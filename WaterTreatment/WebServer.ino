@@ -1564,12 +1564,6 @@ x_get_maxValue:					_dtoa(strReturn, MC.sADC[p].get_maxValue(), 2);
 								ADD_WEBDELIM(strReturn); continue;
 							}
 
-							if(strncmp(str, "zero", 4)==0)           // Функция get_zeroADC
-							{ _itoa(MC.sADC[p].get_zeroValue(),strReturn); ADD_WEBDELIM(strReturn); continue; }
-
-							if(strncmp(str, "trans", 5)==0)           // Функция get_transADC
-							{ _dtoa(strReturn, MC.sADC[p].get_transADC(), 3); ADD_WEBDELIM(strReturn); continue; }
-
 							if(strncmp(str, "pin", 3)==0)           // Функция get_pinADC
 							{
 	#ifdef ANALOG_MODBUS
@@ -1586,16 +1580,29 @@ x_get_maxValue:					_dtoa(strReturn, MC.sADC[p].get_maxValue(), 2);
 							if(strncmp(str, "test", 4)==0)           // Функция get_testADC
 							{ _dtoa(strReturn, MC.sADC[p].get_testValue(), 2); ADD_WEBDELIM(strReturn); continue; }
 
-							if(strncmp(str, "eP", 2)==0)           // Функция get_eADC (errorcode)
+							if(strncmp(str, "eA", 2)==0)           // Функция get_eADC (errorcode)
 							{ _itoa(MC.sADC[p].get_lastErr(),strReturn); ADD_WEBDELIM(strReturn); continue; }
 
-							if(strncmp(str, "isP", 3)==0)           // Функция get_isADC
+							if(strncmp(str, "isA", 3)==0)           // Функция get_isADC
 							{
 								if (MC.sADC[p].get_present()==true)  strcat(strReturn,cOne); else  strcat(strReturn,cZero);
 								ADD_WEBDELIM(strReturn) ;    continue;
 							}
-							if(strncmp(str, "nP", 2)==0)           // Функция get_nADC (note)
+							if(strncmp(str, "nA", 2)==0)           // Функция get_nADC (note)
 							{ strcat(strReturn,MC.sADC[p].get_note()); ADD_WEBDELIM(strReturn); continue; }
+
+							if(*str == 'z')                       // Функция get_zADC
+							{ _itoa(MC.sADC[p].get_zeroValue(),strReturn); ADD_WEBDELIM(strReturn); continue; }
+
+							if(strncmp(str, "tA", 2)==0)           // Функция get_tADC
+							{ _dtoa(strReturn, MC.sADC[p].get_transADC(), 3); ADD_WEBDELIM(strReturn); continue; }
+
+							if(*str == 'G') { 					// get_GADC
+x_get_GADC:						i = MC.sADC[p].get_ADC_Gain();
+								if(i >= 3) i = 4;
+								_itoa(i, strReturn);
+								ADD_WEBDELIM(strReturn); continue;
+							}
 
 							if(strcmp(str, "ADCLvL")==0) {   // Функция get_ADCLvL()
 								_itoa(MC.sADC[p].get_Value() / 100, strReturn);
@@ -1629,13 +1636,18 @@ x_get_maxValue:					_dtoa(strReturn, MC.sADC[p].get_maxValue(), 2);
 								else {  strcat(strReturn, "E05" WEBDELIM); continue;  }         // выход за диапазон ПРЕДУПРЕЖДЕНИЕ значение не установлено
 							}
 
-							if(strncmp(str, "trans", 5)==0)           // Функция set_transADC
+							if(strncmp(str, "tA", 2)==0)              // Функция set_tADC
 							{ if (MC.sADC[p].set_transADC(pm)==OK)    // Установить значение
 								{_dtoa(strReturn, MC.sADC[p].get_transADC(), 3); ADD_WEBDELIM(strReturn); continue;}
 								else { strcat(strReturn,"E05" WEBDELIM);  continue;}         // выход за диапазон ПРЕДУПРЕЖДЕНИЕ значение не установлено
 							}
 
-							if(strncmp(str, "zero", 4) == 0)           // Функция set_zeroADC
+							if(*str == 'G') { 					// set_GADC
+								MC.sADC[p].set_ADC_Gain(pm);
+								goto x_get_GADC;
+							}
+
+							if(*str == 'z')                      // Функция set_zADC
 							{
 								if(MC.sADC[p].set_zeroValue((int16_t) pm) == OK)    // Установить значение
 								{

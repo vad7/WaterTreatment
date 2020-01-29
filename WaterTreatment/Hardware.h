@@ -52,15 +52,14 @@ class sensorADC
   public:
     void initSensorADC(uint8_t sensor, uint8_t pinA, uint16_t filter_size); // Инициализация датчика  порядковый номер датчика и нога он куда прикреплен
     int8_t  Read();                                      // чтение данных c аналогового датчика давления (АЦП) возвращает код ошибки, делает все преобразования
-    //int16_t Test();                                      // полный цикл получения данных возвращает значение давления, только тестирование!! никакие переменные класса не трогает!!
     __attribute__((always_inline)) inline int16_t get_minValue(){return cfg.minValue;}     // Минимальное значение датчика - нижняя граница диапазона
     __attribute__((always_inline)) inline int16_t get_maxValue(){return cfg.maxValue;}     // Максимальноедавление датчика - верхняя граница диапазона
     int16_t get_zeroValue(){return cfg.zeroValue;}           // Выход датчика (отсчеты ацп)  соответсвующий 0
     int8_t  set_zeroValue(int16_t p);                    // Установка Выход датчика (отсчеты ацп)  соответсвующий 0
     uint16_t get_lastADC(){ return lastADC; }            // Последнее считанное значение датчика в отсчетах с фильтром
-    __attribute__((always_inline)) inline int16_t get_Value() { return Value; };                                 // Получить значение давления датчика - это то что используется
-    uint16_t get_transADC(){return cfg.transADC;}        // Получить значение коэффициента преобразования напряжение-температура
-    int8_t set_transADC(float p);                        // Установить значение коэффициента преобразования напряжение-температура
+    __attribute__((always_inline)) inline int16_t get_Value() { return Value; };  // Получить значение датчика
+    uint16_t get_transADC(){return cfg.transADC;}        // Получить значение коэффициента преобразования
+    int8_t set_transADC(float p);                        // Установить значение коэффициента преобразования
     __attribute__((always_inline)) inline boolean get_present(){return GETBIT(flags,fPresent);} // Наличие датчика в текущей конфигурации
     __attribute__((always_inline)) inline boolean get_fmodbus(){return GETBIT(flags,fsensModbus);} // Подключен по Modbus
     int8_t  get_lastErr(){return err;}                   // Получить последнюю ошибку
@@ -70,6 +69,8 @@ class sensorADC
     int8_t  set_minValue(int16_t p) { if(p < cfg.maxValue) { cfg.minValue = p; return OK; } else return -1; }
     int8_t  set_maxValue(int16_t p)  { if(p > cfg.minValue) { cfg.maxValue = p; return OK; } else return -1; }
     void    set_testMode(TEST_MODE t){testMode=t;}       // Установить значение текущий режим работы
+    inline uint8_t get_ADC_Gain() { return cfg.ADC_Gain; }
+    void set_ADC_Gain(uint8_t gain);
      
     char*   get_note(){return note;}                     // Получить наименование датчика
     char*   get_name(){return name;}                     // Получить имя датчика
@@ -88,25 +89,21 @@ class sensorADC
     //int16_t  Temp;										// Температура в сотых
     
   private:
-    int16_t Value;                                       // давление датчика (обработанное) в сотых (бара или др. единиц)
+    int16_t Value;                                       // Значение датчика (обработанное) в сотых (бара или др. единиц)
     struct {     // Save GROUP, firth number
-		uint8_t number;										 // Номер
-		int16_t zeroValue;                                   // отсчеты АЦП при нуле датчика
-		union {
-			float transADC_f;
-			struct {
-				uint16_t transADC;                           // коэффициент пересчета АЦП в давление, тысячные
-				uint16_t _reserved_2;
-			} __attribute__((packed));
-		};
-		int16_t testValue;                                   // значение датчика в режиме тестирования, сотые
-		int16_t minValue;                                    // минимальное значение, сотые
-		int16_t maxValue;                                    // максимальное значение, сотые
+		uint8_t number;									 // Номер
+		int16_t zeroValue;                               // отсчеты АЦП при нуле датчика
+		uint16_t transADC;                               // коэффициент пересчета значения АЦП в значение, тысячные
+		uint8_t ADC_Gain;								 // Усиление(1..3)
+		uint8_t Reserved;
+		int16_t testValue;                               // значение датчика в режиме тестирования, сотые
+		int16_t minValue;                                // минимальное значение, сотые
+		int16_t maxValue;                                // максимальное значение, сотые
     } __attribute__((packed)) cfg;// Save Group end
     TEST_MODE testMode;                                  // Значение режима тестирования
     uint16_t lastADC;                                    // Последние значение отсчета ацп
        
-    uint8_t pin;                                         // Ножка куда прицеплен датчик
+    uint8_t pin;                                         // Канал ADC
     int8_t  err;                                         // ошибка датчика (работа)
     byte 	flags;                                       // флаги  датчика
     // Кольцевой буфер для усреднения

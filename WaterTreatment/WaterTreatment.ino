@@ -205,6 +205,7 @@ void setup() {
 	if(GPBR->SYS_GPBR[4]) journal.jprintf(" %d", GPBR->SYS_GPBR[4]);
 	journal.jprintf("\n");
 
+
 #ifdef PIN_LED1                            // Включение (точнее индикация) питания платы если необходимо
 	pinMode(PIN_LED1,OUTPUT);
 	digitalWriteDirect(PIN_LED1, HIGH);
@@ -901,21 +902,14 @@ void vReadSensor(void *)
 	static uint32_t oldTime, OneWire_time;
 	oldTime = millis();
 	OneWire_time = oldTime - ONEWIRE_READ_PERIOD;
-
-	journal.printf("OWT: %u, %u\n", OneWire_time, ttime - OneWire_time);
-
 	for(;;) {
 		int8_t i;
 		//WDT_Restart(WDT);
 
-		prtemp = 0;
+		prtemp = fDS2482_bus_mask;
 		ttime = millis();
 		if(ttime - OneWire_time >= ONEWIRE_READ_PERIOD) {
 			OneWire_time = ttime;
-
-			journal.printf("OWT: %u\n", OneWire_time);
-
-
 			if(OW_scan_flags == 0) {
 				prtemp = MC.Prepare_Temp(0);
 #ifdef ONEWIRE_DS2482_SECOND
@@ -986,41 +980,35 @@ void vReadSensor(void *)
 			CriticalErrors |= ERRC_WeightLow;
 		} else if(CriticalErrors & ERRC_WeightLow) CriticalErrors &= ~ERRC_WeightLow;
 
-		if(prtemp) {
-			// do not need averaging: // uint8_t flags = 0;
-			for(i = 0; i < TNUMBER; i++) {                                   // Прочитать данные с температурных датчиков
-				if((prtemp & (1<<MC.sTemp[i].get_bus())) == 0) {
-					MC.sTemp[i].Read();
-
-					journal.printf("RT: %.2d\n", MC.sTemp[i].get_Temp());
-
-
-					// do not need averaging: // if(MC.sTemp[i].Read() == OK) flags |= MC.sTemp[i].get_setup_flags();
-				}
-				_delay(1);     												// пауза
+		// do not need averaging: // uint8_t flags = 0;
+		for(i = 0; i < TNUMBER; i++) {                                   // Прочитать данные с температурных датчиков
+			if((prtemp & (1<<MC.sTemp[i].get_bus())) == 0) {
+				MC.sTemp[i].Read();
+				// do not need averaging: // if(MC.sTemp[i].Read() == OK) flags |= MC.sTemp[i].get_setup_flags();
 			}
-			/* do not need averaging:
-			int32_t temp;
-			if(GETBIT(flags, fTEMP_as_TIN_average)) { // Расчет средних датчиков для TIN
-				temp = 0;
-				uint8_t cnt = 0;
-				for(i = 0; i < TNUMBER; i++) {
-					if(MC.sTemp[i].get_setup_flag(fTEMP_as_TIN_average) && MC.sTemp[i].get_Temp() != STARTTEMP) {
-						temp += MC.sTemp[i].get_Temp();
-						cnt++;
-					}
-				}
-				if(cnt) temp /= cnt; else temp = STARTTEMP;
-			} else temp = STARTTEMP;
-			int16_t temp2 = temp;
-			if(GETBIT(flags, fTEMP_as_TIN_min)) { // Выбор минимальной температуры для TIN
-				for(i = 0; i < TNUMBER; i++) {
-					if(MC.sTemp[i].get_setup_flag(fTEMP_as_TIN_min) && temp2 > MC.sTemp[i].get_Temp()) temp2 = MC.sTemp[i].get_Temp();
-				}
-			}
-			if(temp2 != STARTTEMP) MC.sTemp[TIN].set_Temp(temp2);
-		    */ // do not need averaging.
+			_delay(1);     												// пауза
 		}
+		/* do not need averaging:
+		int32_t temp;
+		if(GETBIT(flags, fTEMP_as_TIN_average)) { // Расчет средних датчиков для TIN
+			temp = 0;
+			uint8_t cnt = 0;
+			for(i = 0; i < TNUMBER; i++) {
+				if(MC.sTemp[i].get_setup_flag(fTEMP_as_TIN_average) && MC.sTemp[i].get_Temp() != STARTTEMP) {
+					temp += MC.sTemp[i].get_Temp();
+					cnt++;
+				}
+			}
+			if(cnt) temp /= cnt; else temp = STARTTEMP;
+		} else temp = STARTTEMP;
+		int16_t temp2 = temp;
+		if(GETBIT(flags, fTEMP_as_TIN_min)) { // Выбор минимальной температуры для TIN
+			for(i = 0; i < TNUMBER; i++) {
+				if(MC.sTemp[i].get_setup_flag(fTEMP_as_TIN_min) && temp2 > MC.sTemp[i].get_Temp()) temp2 = MC.sTemp[i].get_Temp();
+			}
+		}
+		if(temp2 != STARTTEMP) MC.sTemp[TIN].set_Temp(temp2);
+		*/ // do not need averaging.
 
 		MC.calculatePower();  // Расчет мощностей
 		Stats.Update();

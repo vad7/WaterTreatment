@@ -192,8 +192,8 @@ function loadParam(paramid, noretry, resultdiv) {
 											var count = values[1].split(';');
 											for(var j = 0; j < count.length - 1; j++) {
 												var P = count[j];
-												loadsens += "get_zeroADC(" +P+ "),get_transADC(" +P+ "),get_maxADC(" +P+ "),get_minADC(" +P+ "),get_minrADC(" +P+ "),get_pinADC(" +P+ "),get_nADC(" +P+ "),get_testADC(" +P+ "),";
-												upsens += "get_ADC(" +P+ "),get_adcADC(" +P+ "),get_eADC(" +P+ "),";
+												loadsens += "get_zADC(" +P+ "),get_tADC(" +P+ "),get_maxADC(" +P+ "),get_minADC(" +P+ "),get_minrADC(" +P+ "),get_pinADC(" +P+ "),get_GADC(" +P+ "),get_nADC(" +P+ "),get_testADC(" +P+ "),";
+												upsens += "get_ADC(" +P+ "),get_adcADC(" +P+ "),";
 												P = P.toLowerCase();
 												content += '<tr id="get_isadc-' +P+ '">';
 												content += '<td>' +count[j]+ '</td>';
@@ -201,12 +201,12 @@ function loadParam(paramid, noretry, resultdiv) {
 												content += '<td id="get_adc-' +P+ '" nowrap>-</td>';
 												content += '<td nowrap><input id="get_minadc-' +P+ '" type="number" step="0.01"><input type="submit" value=">" onclick="setParam(\'get_minADC(' +count[j]+ ')\');"></td>';
 												content += '<td nowrap><input id="get_maxadc-' +P+ '" type="number" step="0.01"><input type="submit" value=">" onclick="setParam(\'get_maxADC(' +count[j]+ ')\');"></td>';
-												content += '<td nowrap><input id="get_zeroadc-' +P+ '" type="number" step="1"><input type="submit" value=">" onclick="setParam(\'get_zeroADC(' +count[j]+ ')\');"></td>';
-												content += '<td nowrap><input id="get_transadc-' +P+ '" type="number" step="0.001"><input type="submit" value=">" onclick="setParam(\'get_transADC(' +count[j]+ ')\');"></td>';
+												content += '<td nowrap><input id="get_zadc-' +P+ '" type="number" step="1"><input type="submit" value=">" onclick="setParam(\'get_zADC(' +count[j]+ ')\');"></td>';
+												content += '<td nowrap><input id="get_tadc-' +P+ '" type="number" step="0.001"><input type="submit" value=">" onclick="setParam(\'get_tADC(' +count[j]+ ')\');"></td>';
+												content += '<td nowrap><input id="get_gadc-' +P+ '" type="number" step="1"><input type="submit" value=">" onclick="setParam(\'get_GADC(' +count[j]+ ')\');"></td>';
 												content += '<td nowrap><input id="get_testadc-' +P+ '" type="number" step="0.01"><input type="submit" value=">" onclick="setParam(\'get_testADC(' +count[j]+ ')\');"></td>';
-												content += '<td id="get_pinadc-' +P+ '">-</td>';
 												content += '<td id="get_adcadc-' +P+ '">-</td>';
-												content += '<td id="get_eadc-' +P+ '">-</td>';
+												content += '<td id="get_pinadc-' +P+ '">-</td>';
 												content += '</tr>';
 											}
 											document.getElementById(idsel + "2").innerHTML = content;
@@ -605,18 +605,18 @@ function setKanalog() {
 	var k2 = document.getElementById("k2").innerHTML;
 	var sens = document.getElementById("get_listadc").selectedOptions[0].text;
 	if(sens == "--") return;
-	var elem = document.getElementById("get_transadc-" + sens.toLowerCase());
+	var elem = document.getElementById("get_tadc-" + sens.toLowerCase());
 	if(elem) {
 		elem.value = k2;
 		elem.innerHTML = k2;
 	}
-	elem = document.getElementById("get_zeroadc-" + sens.toLowerCase());
+	elem = document.getElementById("get_zadc-" + sens.toLowerCase());
 	if(elem) {
 		elem.value = k1;
 		elem.innerHTML = k1;
 	}
-	setParam('get_zeroADC(' + sens + ')');
-	setParam('get_transADC(' + sens + ')');
+	setParam('get_zADC(' + sens + ')');
+	setParam('get_tADC(' + sens + ')');
 }
 
 function updateParam(paramids) {

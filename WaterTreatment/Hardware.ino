@@ -47,7 +47,8 @@ void start_ADC()
 // Установка АЦП
 void adc_setup()
 {
-	uint16_t adcMask = 0;
+	uint32_t adcMask = 0;
+	uint32_t adcGain = 0x55555555; // All gains set to x1 Channel Gain Register
 	uint8_t max = 0;
 #ifdef VCC_CONTROL                             // если разрешено чтение напряжение питания
 	adcMask |= (1<<PIN_ADC_VCC);               // Добавить маску контроля питания
@@ -59,8 +60,10 @@ void adc_setup()
 	// Расчет маски каналов
 	for(uint8_t i = 0; i < ANUMBER; i++) {   // по всем датчикам
 		if(MC.sADC[i].get_present() && !MC.sADC[i].get_fmodbus()) {
-			if(max < MC.sADC[i].get_pinA()) max = MC.sADC[i].get_pinA();
-			adcMask |= 1 << MC.sADC[i].get_pinA();
+			uint32_t ach = MC.sADC[i].get_pinA();
+			if(max < ach) max = ach;
+			adcMask |= 1 << ach;
+			adcGain = (adcGain & ~(3 << (2 * ach))) | (MC.sADC[i].get_ADC_Gain() << (2 * ach));
 		}
 	}
 #ifdef TNTC
@@ -70,15 +73,17 @@ void adc_setup()
 	}
 #endif
 
+	journal.printf("adcMask = %X, adcGain = %X\n", adcMask, adcGain);
+
 	NVIC_EnableIRQ(ADC_IRQn);        // enable ADC interrupt vector
 	ADC->ADC_IDR = 0xFFFFFFFF;       // disable interrupts IDR Interrupt Disable Register
 	ADC->ADC_IER = 1 << max;         // Самый старший канал
 	ADC->ADC_CHDR = 0xFFFF;          // Channel Disable Register CHDR disable all channels
 	ADC->ADC_CHER = adcMask;         // Channel Enable Register CHER enable just A11  каналы здесь SAMX3!!
-	ADC->ADC_CGR = 0x15555555;       // //0x55555555 All gains set to x1 Channel Gain Register
+	ADC->ADC_CGR = adcGain;          // Gain: 0,1 = x1, 2 = x2, 3 = x4
 	ADC->ADC_COR = 0x00000000;       // All offsets off Channel Offset Register
 	// 12bit, 14MHz, trig source TIO from TC0
-	ADC->ADC_MR = ADC_MR_PRESCAL(ADC_PRESCAL) | ADC_MR_LOWRES_BITS_12 | ADC_MR_USEQ_NUM_ORDER | ADC_MR_STARTUP_SUT16 | ADC_MR_TRACKTIM(16) | ADC_MR_SETTLING_AST17 | ADC_MR_TRANSFER(2) | ADC_MR_TRGSEL_ADC_TRIG1 | ADC_MR_TRGEN;
+	ADC->ADC_MR = ADC_MR_PRESCAL(ADC_PRESCAL) | ADC_MR_LOWRES_BITS_12 | ADC_MR_USEQ_NUM_ORDER | ADC_MR_STARTUP_SUT16 | ADC_MR_TRACKTIM(16) | ADC_MR_SETTLING_AST17 | ADC_MR_TRANSFER(2) | ADC_MR_TRGSEL_ADC_TRIG1 | ADC_MR_TRGEN | ADC_MR_ANACH;
 	adc_set_bias_current(ADC, 0);    // for sampling frequency: 0 - below 500 kHz, 1 - between 500 kHz and 1 MHz.
 }
 
@@ -154,6 +159,7 @@ void sensorADC::initSensorADC(uint8_t sensor, uint8_t pinA, uint16_t filter_size
 	cfg.testValue = TESTPRESS[sensor];               // Значение при тестировании
 	cfg.zeroValue = ZEROPRESS[sensor];               // отсчеты АЦП при нуле датчика
 	cfg.transADC = TRANsADC[sensor];                 // коэффициент пересчета АЦП в давление
+	cfg.ADC_Gain = ADC_GAIN[sensor];
 	cfg.number = sensor;
 	pin = pinA;
 	flags = SENSORPRESS[sensor] << fPresent;	 // наличие датчика
@@ -229,22 +235,17 @@ void sensorADC::initSensorADC(uint8_t sensor, uint8_t pinA, uint16_t filter_size
 // Установка 0 датчика темпеартуры
 int8_t sensorADC::set_zeroValue(int16_t p)
 {
-//	if((p >= -1024) && (p <= 4096)) {
 		clearBuffer();
 		cfg.zeroValue = p;
 		return OK;
-//	} // Суммы обнулить надо
-//	else return WARNING_VALUE;
 }
 
 // Установить значение коэффициента преобразования напряжение (отсчеты ацп)-температура
 int8_t sensorADC::set_transADC(float p)
 {
-//	if((p >= 0.0f) && (p <= 4.0f)) {
-		clearBuffer();   // Суммы обнулить надо
-		cfg.transADC = rd(p, 1000);
-		return OK;
-//	} else return WARNING_VALUE;
+	clearBuffer();   // Суммы обнулить надо
+	cfg.transADC = p * 1000 + 0.0005f;
+	return OK;
 }
 
 // Установить значение давления датчика в режиме теста
@@ -252,6 +253,14 @@ int8_t sensorADC::set_testValue(int16_t p)
 {
 	cfg.testValue=p;
 	return OK;
+}
+
+// gain = x1, x2, x4
+void sensorADC::set_ADC_Gain(uint8_t gain)
+{
+	if(gain < 1) gain = 1; else if(gain > 3) gain = 3;
+	cfg.ADC_Gain = gain;
+	ADC->ADC_CGR = (ADC->ADC_CGR & ~(3 << (2 * pin))) | (gain << (2 * pin));
 }
 
 void sensorADC::after_load(void)

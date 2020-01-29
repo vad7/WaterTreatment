@@ -406,9 +406,11 @@ struct History_setup {
 											 1	// A6(D60), INA4-20_1.2 - (+12V)-красный, INA4-20_1.1 - (-12V)-черный.
 										};
 	// Коэффициент преобразования отсчеты АЦП-давление, тысячные
-	const uint16_t TRANsADC[ANUMBER]  = { 181, 2442 };
+	const uint16_t TRANsADC[ANUMBER]  = { 427, 5249 };
 	// напряжение (отсчеты АЦП) соответсвующее cZero
-	const uint16_t ZEROPRESS[ANUMBER] = { 70, 0 };
+	const uint16_t ZEROPRESS[ANUMBER] = { 389, 4226 };
+	// Усиление на шине (0,1 = x1, 2 = x2, 3 = x4)
+	const uint8_t  ADC_GAIN[ANUMBER]  = { 1,  2 };
 
 	const boolean SENSORPRESS[ANUMBER]= { true, true };		// Присутствие датчика в конфигурации
 	const int16_t MINPRESS[ANUMBER]   = {  250, 500 };		// минимальные значения давления, в сотых
