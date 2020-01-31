@@ -69,14 +69,9 @@ void MainClass::init()
 	for(i = 0; i < FNUMBER; i++) sFrequency[i].initFrequency(i);  // Инициализация частотных датчиков
 	for(i = 0; i < RNUMBER; i++) dRelay[i].initRelay(i);           // Инициализация реле
 
-	// Инициалаизация модбаса  перед частотником и счетчиком
-	journal.jprintf("Init Modbus RTU via RS485:");
-	if(Modbus.initModbus() == OK) journal.jprintf(" OK\n");      //  выводим сообщение об установлении связи
-	else {
-		journal.jprintf(" Failed\n");
-	}         //  нет в конфигурации
+	Modbus.initModbus();
 
-	dPWM.initPWM();                                           // инициалаизация счетчика
+	dPWM.initPWM();                                           // инициализация счетчика
 	message.initMessage(MAIN_WEB_TASK);                       // Инициализация Уведомлений, параметр - номер потока сервера в котором идет отправка
 #ifdef MQTT
 	clMQTT.initMQTT(MAIN_WEB_TASK);                           // Инициализация MQTT, параметр - номер потока сервера в котором идет отправка
@@ -272,14 +267,13 @@ int32_t MainClass::save(void)
 int32_t MainClass::load(uint8_t *buffer, uint8_t from_RAM)
 {
 	uint16_t size;
-	journal.printf(" Load settings from ");
+	journal.printf(" Load settings ");
 	if(from_RAM == 0) {
-		journal.jprintf("I2C");
 		if(readEEPROM_I2C(I2C_SETTING_EEPROM, (byte*) &size, sizeof(size))) {
 x_ReadError:
 			error = ERR_CRC16_EEPROM;
 x_Error:
-			journal.jprintf(" - read error %d!\n", error);
+			journal.jprintf(" I2C - read error %d!\n", error);
 			return error;
 		}
 		if(size > I2C_SETTING_EEPROM_NEXT - I2C_SETTING_EEPROM) { error = ERR_BAD_LEN_EEPROM; goto x_Error; }
@@ -296,7 +290,7 @@ x_Error:
 	uint16_t crc = 0xFFFF;
 	for(uint16_t i = 0; i < size; i++)  crc = _crc16(crc, buffer[i]);
 	if(crc != *((uint16_t *)(buffer + size))) {
-		journal.jprintf("Error: %04x != %04x!\n", crc, *((uint16_t *)(buffer + size)));
+		journal.jprintf("I2C Error: %04x != %04x!\n", crc, *((uint16_t *)(buffer + size)));
 		return error = ERR_CRC16_EEPROM;
 	}
 	journal.printf("%04x", crc);
