@@ -1150,7 +1150,10 @@ void vPumps( void * )
 				FloodingTime = millis() | 1;
 				vPumpsNewError = ERR_FLOODING;
 				if(MC.dRelay[RFILL].get_Relay()) MC.dRelay[RFILL].set_OFF();
-				if(MC.dRelay[RDRAIN].get_Relay()) MC.dRelay[RDRAIN].set_OFF();
+				if(MC.dRelay[RDRAIN].get_Relay()) {
+					MC.dRelay[RDRAIN].set_OFF();
+					TimerDrainingWater = 0;
+				}
 				MC.dRelay[RFEEDPUMP].set_OFF();
 				MC.dRelay[RWATEROFF].set_ON();
 				CriticalErrors |= ERRC_Flooding;
@@ -1244,7 +1247,7 @@ xWaterBooster_OFF:
 		// Regenerating
 		if(MC.sInput[REG_ACTIVE].get_Input() || MC.sInput[REG_BACKWASH_ACTIVE].get_Input()) { // Regen Iron removing filter
 			if(MC.dRelay[RSTARTREG].get_Relay()) MC.dRelay[RSTARTREG].set_OFF();
-			if(!(MC.RTC_store.Work & RTC_Work_Regen_F1)) {
+			if(!(MC.RTC_store.Work & RTC_Work_Regen_F1)) { // Started?
 				MC.RTC_store.Work |= RTC_Work_Regen_F1;
 				MC.dRelay[RWATEROFF].set_ON();
 				NewRegenStatus = true;
@@ -1254,7 +1257,7 @@ xWaterBooster_OFF:
 			}
 		} else if(MC.sInput[REG2_ACTIVE].get_Input()) {	// Regen Softening filter
 			if(MC.dRelay[RSTARTREG2].get_Relay()) MC.dRelay[RSTARTREG2].set_OFF();
-			if(!(MC.RTC_store.Work & RTC_Work_Regen_F2)) {
+			if(!(MC.RTC_store.Work & RTC_Work_Regen_F2)) { // Started?
 				MC.RTC_store.Work |= RTC_Work_Regen_F2;
 				NewRegenStatus = true;
 				MC.RTC_store.UsedRegen = 0;
@@ -1298,7 +1301,6 @@ void vService(void *)
 			// Drain OFF
 			if(TimerDrainingWater && --TimerDrainingWater == 0) {
 				MC.dRelay[RDRAIN].set_OFF();
-				MC.WorkStats.LastDrain = rtcSAM3X8.unixtime();
 				if(MC.WorkStats.UsedDrain < MC.Option.MinDrainLiters) {
 					set_Error(ERR_FEW_LITERS_DRAIN, (char*)__FUNCTION__);
 				}
@@ -1333,7 +1335,9 @@ void vService(void *)
 						update_RTC_store_memory();
 					}
 				} else {
-					if(MC.Option.DrainAfterNoConsume && rtcSAM3X8.unixtime() - MC.WorkStats.UsedLastTime >= MC.Option.DrainAfterNoConsume && !CriticalErrors) { // Water did not consumed a long time ago.
+					// Water did not consumed a long time ago.
+					if(MC.Option.DrainAfterNoConsume && rtcSAM3X8.unixtime() - (MC.WorkStats.LastDrain > MC.WorkStats.UsedLastTime ? MC.WorkStats.LastDrain : MC.WorkStats.UsedLastTime) >= MC.Option.DrainAfterNoConsume && !CriticalErrors) {
+						MC.WorkStats.LastDrain = rtcSAM3X8.unixtime();
 						TimerDrainingWater = MC.Option.DrainTime;
 						MC.WorkStats.UsedDrain = 0;
 						MC.dRelay[RDRAIN].set_ON();
@@ -1388,7 +1392,7 @@ void vService(void *)
 					}
 				} else {
 					if(MC.RTC_store.Work & RTC_Work_Regen_F1) {	// Regen Iron removing filter
-						if(!MC.sInput[REG_ACTIVE].get_Input() && !MC.sInput[REG_BACKWASH_ACTIVE].get_Input()) {
+						if(!MC.sInput[REG_ACTIVE].get_Input() && !MC.sInput[REG_BACKWASH_ACTIVE].get_Input()) { // finish?
 							MC.WorkStats.UsedLastRegen = MC.RTC_store.UsedRegen;
 							MC.RTC_store.UsedRegen = 0;
 							MC.WorkStats.DaysFromLastRegen = 0;
@@ -1409,7 +1413,7 @@ void vService(void *)
 							NewRegenStatus = false;
 						}
 					} else if(MC.RTC_store.Work & RTC_Work_Regen_F2) { // Regen Softening filter
-						if(!MC.sInput[REG2_ACTIVE].get_Input()) {
+						if(!MC.sInput[REG2_ACTIVE].get_Input()) { // Finish?
 							MC.WorkStats.UsedLastRegenSoftening = MC.RTC_store.UsedRegen;
 							MC.RTC_store.UsedRegen = 0;
 							MC.WorkStats.DaysFromLastRegenSoftening = 0;

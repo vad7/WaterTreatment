@@ -410,12 +410,13 @@ struct History_setup {
 	// напряжение (отсчеты АЦП) соответсвующее cZero
 	const uint16_t ZEROPRESS[ANUMBER] = { 389, 4226 };
 	// Усиление на шине (0,1 = x1, 2 = x2, 3 = x4)
-	const uint8_t  ADC_GAIN[ANUMBER]  = { 1,  2 };
+	const uint8_t  ADC_GAIN[ANUMBER]  = {   1,    2 };
 
-	const boolean SENSORPRESS[ANUMBER]= { true, true };		// Присутствие датчика в конфигурации
-	const int16_t MINPRESS[ANUMBER]   = {  250, 500 };		// минимальные значения давления, в сотых
+	const boolean SENSORPRESS[ANUMBER]= { true,  true };	// Присутствие датчика в конфигурации
+	const int16_t MINPRESS[ANUMBER]   = {  250,   500 };	// минимальные значения давления, в сотых
 	const uint16_t MAXPRESS[ANUMBER]  = {  370, 10000 };	// Максимальные значения давления, в сотых
-	const uint16_t TESTPRESS[ANUMBER] = {  300, 8000 };		// Значения датчиков при тестировании  опция TEST, в сотых
+	const uint16_t TESTPRESS[ANUMBER] = {  300,  8000 };	// Значения датчиков при тестировании  опция TEST, в сотых
+	const uint8_t ADC_FILTER[ANUMBER] = {    3,    20 };	// Длина фильтра усреднения
 
 	//#define ANALOG_MODBUS 								// Данные аналоговых датчиков читаются по Modbus RTU
 	#ifdef ANALOG_MODBUS
@@ -426,11 +427,9 @@ struct History_setup {
 	#endif
 	// ------------------- ADC SENSOR ----------------------------------
 	#define ADC_PRESCAL					9		// = (42 / ADCClockMhz - 1), - 4.2 MHz
-	#define ADC_SKIP_EXTREMUM			100		// Отбрасывать максимумы/минимумы больше заданной дельты
+	#define ADC_SKIP_EXTREMUM			70		// Отбрасывать максимумы/минимумы больше заданной дельты
 	#define P_NUMSAMLES					1		// Число значений для усреднения показаний давления
-	#define ADC_FREQ					20		// период опроса аналоговых датчиков в секунду
-	#define FILTER_SIZE					7		// Длина фильтра для датчиков давления
-	//#define FILTER_SIZE_OTHER			4		// Длина фильтра для остальных датчиков
+	#define ADC_FREQ					10		// период опроса аналоговых датчиков в секунду
 	#define FILLING_TANK_STEP			300		// сотые %, На сколько должен заполняться бак за время Option.FillingTankTimeout
 
 	#define DELAY_AFTER_SWITCH_RELAY	250		// Задержка после переключения реле, для сглаживания потребления и уменьшения помех(мс)

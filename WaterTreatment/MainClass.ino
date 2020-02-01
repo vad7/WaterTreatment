@@ -63,7 +63,7 @@ void MainClass::init()
 
 	for(i = 0; i < TNUMBER; i++) sTemp[i].initTemp(i);            // Инициализация датчиков температуры
 
-	for(i = 0; i < ANUMBER; i++) sADC[i].initSensorADC(i, pinsAnalog[i], FILTER_SIZE);			// Инициализация аналогово датчика
+	for(i = 0; i < ANUMBER; i++) sADC[i].initSensorADC(i, pinsAnalog[i], ADC_FILTER[i]);	// Инициализация аналогового датчика
 
 	for(i = 0; i < INUMBER; i++) sInput[i].initInput(i);           // Инициализация контактных датчиков
 	for(i = 0; i < FNUMBER; i++) sFrequency[i].initFrequency(i);  // Инициализация частотных датчиков
