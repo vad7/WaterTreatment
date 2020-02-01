@@ -416,7 +416,7 @@ struct History_setup {
 	const int16_t MINPRESS[ANUMBER]   = {  250,   500 };	// минимальные значения давления, в сотых
 	const uint16_t MAXPRESS[ANUMBER]  = {  370, 10000 };	// Максимальные значения давления, в сотых
 	const uint16_t TESTPRESS[ANUMBER] = {  300,  8000 };	// Значения датчиков при тестировании  опция TEST, в сотых
-	const uint8_t ADC_FILTER[ANUMBER] = {    3,    20 };	// Длина фильтра усреднения
+	const uint8_t ADC_FILTER[ANUMBER] = {    4,   100 };	// Длина фильтра усреднения
 
 	//#define ANALOG_MODBUS 								// Данные аналоговых датчиков читаются по Modbus RTU
 	#ifdef ANALOG_MODBUS
