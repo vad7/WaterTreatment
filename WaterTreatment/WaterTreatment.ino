@@ -750,6 +750,7 @@ void vKeysLCD( void * )
 	{
 		if(setup) if(--setup_timeout == 0) goto xSetupExit;
 		if(!digitalReadDirect(PIN_KEY_OK)) {
+			vTaskDelay(KEY_DEBOUNCE_TIME);
 			if(setup) {
 				{
 					uint32_t t = 2000 / KEY_DEBOUNCE_TIME;
@@ -777,14 +778,12 @@ xSetupExit:
 				lcd.command(LCD_DISPLAYCONTROL | LCD_DISPLAYON | LCD_CURSORON | LCD_BLINKON);
 				DisplayTick = ~DisplayTick;
 			}
-			vTaskDelay(KEY_CHECK_PERIOD);
+			while(!digitalReadDirect(PIN_KEY_OK)) vTaskDelay(KEY_DEBOUNCE_TIME);
 			setup_timeout = DISPLAY_SETUP_TIMEOUT / KEY_CHECK_PERIOD;
 			//journal.printf("[OK]\n");
 		} else if(!digitalReadDirect(PIN_KEY_UP)) {
-			while(!digitalReadDirect(PIN_KEY_UP)) {
-				if(!digitalReadDirect(PIN_KEY_DOWN)) goto xSetupExit;
-				vTaskDelay(KEY_DEBOUNCE_TIME);
-			}
+			vTaskDelay(KEY_DEBOUNCE_TIME);
+			while(!digitalReadDirect(PIN_KEY_UP)) vTaskDelay(KEY_DEBOUNCE_TIME);
 			if(setup) {
 				if((setup & 0xFF) < ((setup & 0xFF00) == 0x100 ? (RNUMBER > 8 ? 8 : RNUMBER) : LCD_SetupMenuItems-1)) {
 					setup++;
@@ -794,6 +793,7 @@ xSetupExit:
 			setup_timeout = DISPLAY_SETUP_TIMEOUT / KEY_CHECK_PERIOD;
 			//journal.printf("[UP]\n");
 		} else if(!digitalReadDirect(PIN_KEY_DOWN)) {
+			vTaskDelay(KEY_DEBOUNCE_TIME);
 			while(!digitalReadDirect(PIN_KEY_DOWN)) vTaskDelay(KEY_DEBOUNCE_TIME);
 			if(setup) {
 				if((setup & 0xFF) > 0) {
@@ -951,6 +951,8 @@ void vReadSensor(void *)
 		uint32_t passed = MC.sFrequency[FLOW].Passed;
 		if(!MC.sInput[REG_BACKWASH_ACTIVE].get_Input()) {
 			TimeFeedPump +=	(uint32_t)MC.sFrequency[FLOW].get_Value() * TIME_READ_SENSOR / MC.Option.FeedPumpMaxFlow;
+		} else if(++RegBackwashTimer > MC.Option.BackWashFeedPumpDelay) {
+			TimeFeedPump +=	(uint32_t)MC.sFrequency[FLOW].get_Value() * TIME_READ_SENSOR / MC.Option.BackWashFeedPumpMaxFlow;
 		}
 		MC.sFrequency[FLOW].Passed = 0;
 		if(MC.sInput[REG_ACTIVE].get_Input() || MC.sInput[REG_BACKWASH_ACTIVE].get_Input() || MC.sInput[REG2_ACTIVE].get_Input()) {
@@ -1246,6 +1248,7 @@ xWaterBooster_OFF:
 				MC.RTC_store.Work |= RTC_Work_Regen_F1;
 				MC.dRelay[RWATEROFF].set_ON();
 				NewRegenStatus = true;
+				RegBackwashTimer = 0;
 				MC.RTC_store.UsedRegen = 0;
 				NeedSaveRTC = RTC_SaveAll;
 			}

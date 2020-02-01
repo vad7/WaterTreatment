@@ -481,8 +481,8 @@ function loadParam(paramid, noretry, resultdiv) {
 						if(typeof window["loadParam_after"] == 'function') window["loadParam_after"](paramid);
 					} // end: if (request.responseText != null)
 				} // end: if (request.responseText != null)
-			} else if(request.status == 0) return;
-			else if(noretry != true) {
+//			} else if(request.status == 0) { return; }
+			} else if(noretry != true) {
 				if(request.status == 401 && location.protocol == "file:") NeedLogin = 1;
 				console.log("request.status: " + request.status + " retry load...");
 				check_ready = 1;

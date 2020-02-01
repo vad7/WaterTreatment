@@ -77,6 +77,7 @@ uint32_t TimeFeedPump = 0;	// ms
 uint8_t  NeedSaveWorkStats = 0;
 uint32_t TimerDrainingWater = 0;
 volatile bool NewRegenStatus = false;
+volatile uint32_t RegBackwashTimer = 0;
 uint32_t ResetDUE_countdown = 0;
 bool	 DebugToSerialOn = false;
 
@@ -143,6 +144,8 @@ struct type_option {
 	uint16_t FillingTankTimeout;	// сек, Время заполнения бака на 3% при отсутствии потребления
 	int16_t  Weight_Empty;			// сотые %, Низкий уровень реагента, для тревоги
 	uint16_t CriticalErrorsTimeout;	// сек, время восстановления после критических ошибок, кроме протечки
+	uint16_t BackWashFeedPumpDelay; // в TIME_READ_SENSOR, задержка включения дозатора
+	uint32_t BackWashFeedPumpMaxFlow; // лч, Во время обратной промывки - максимальный проток до которого распределяется время включения дозатора
 } __attribute__((packed));
 
 //  Работа с отдельными флагами type_DateTime
@@ -342,6 +345,7 @@ public:
 	statChart ChartWaterBoost;
 	statChart ChartFeedPump;
 	statChart ChartFillTank;
+	statChart ChartBrineWeight;
 
 	TaskHandle_t xHandlePumps;
 	TaskHandle_t xHandleBooster;

@@ -426,10 +426,10 @@ struct History_setup {
 	#endif
 	// ------------------- ADC SENSOR ----------------------------------
 	#define ADC_PRESCAL					9		// = (42 / ADCClockMhz - 1), - 4.2 MHz
-	#define ADC_SKIP_EXTREMUM			300		// Отбрасывать максимумы/минимумы больше заданной дельты
+	#define ADC_SKIP_EXTREMUM			100		// Отбрасывать максимумы/минимумы больше заданной дельты
 	#define P_NUMSAMLES					1		// Число значений для усреднения показаний давления
-	#define ADC_FREQ					10		// период опроса аналоговых датчиков в секунду
-	#define FILTER_SIZE					3		// Длина фильтра для датчиков давления
+	#define ADC_FREQ					20		// период опроса аналоговых датчиков в секунду
+	#define FILTER_SIZE					7		// Длина фильтра для датчиков давления
 	//#define FILTER_SIZE_OTHER			4		// Длина фильтра для остальных датчиков
 	#define FILLING_TANK_STEP			300		// сотые %, На сколько должен заполняться бак за время Option.FillingTankTimeout
 

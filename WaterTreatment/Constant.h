@@ -345,6 +345,7 @@ const char *chart_fullPOWER  = {"Power"};               // Статистика 
 const char *chart_WaterBoost = {"WaterBoost"};
 const char *chart_FeedPump   = {"FeedPump"};
 const char *chart_FillTank   = {"FillTank"};
+const char *chart_BrineWeight= {"Weight"};
 
 // Описание имен параметров опций   для функций get_option ("get_Opt") set_option ("set_Opt")
 const char *option_ATTEMPT            	= {"ATTEMPT"};            // число попыток пуска
@@ -358,6 +359,8 @@ const char *option_WebOnSPIFlash		= {"WSPIF"};              // флаг, что 
 const char *option_LogWirelessSensors	= {"LOGWS"};              // Логировать обмен между беспроводными датчиками
 const char *option_fDontRegenOnWeekend	= {"NRW"};
 const char *option_FeedPumpMaxFlow		= {"FPMF"};
+const char *option_BackWashFeedPumpMaxFlow= {"BWMF"};
+const char *option_BackWashFeedPumpDelay = {"BWFD"};
 const char *option_RegenHour			= {"RH"};
 const char *option_DaysBeforeRegen		= {"DBR"};
 const char *option_UsedBeforeRegen		= {"UBR"};

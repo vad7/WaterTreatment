@@ -80,6 +80,7 @@ void MainClass::init()
 	ChartWaterBoost.init(true);
 	ChartFeedPump.init(true);
 	ChartFillTank.init(true);
+	ChartBrineWeight.init(true);
 
 	resetSetting();                                           // все переменные
 }
@@ -519,6 +520,7 @@ void MainClass::resetSetting()
 
 	Option.DrainTime = 20;
 	Option.FeedPumpMaxFlow = 4000;
+	Option.BackWashFeedPumpMaxFlow = 8000;
 	Option.FillingTankTimeout = 60;
 	Option.FloodingDebounceTime = 10;
 	Option.FloodingTimeout = 600;
@@ -541,6 +543,7 @@ void MainClass::resetSetting()
 	Option.DrainTime = 11;
 	Option.FillingTankTimeout = 30;
 	Option.CriticalErrorsTimeout = 300;
+	Option.BackWashFeedPumpDelay = 7*60;
 }
 
 // --------------------------------------------------------------------
@@ -766,6 +769,8 @@ boolean MainClass::set_option(char *var, float xx)
    if(strcmp(var,option_fDontRegenOnWeekend)==0){ Option.flags = (Option.flags & ~(1<<fDontRegenOnWeekend)) | ((x!=0)<<fDontRegenOnWeekend); return true; } else
    if(strcmp(var,option_DebugToSerialOn)==0) { DebugToSerialOn = x; return true; } else
    if(strcmp(var,option_FeedPumpMaxFlow)==0) { Option.FeedPumpMaxFlow = x; return true; } else
+   if(strcmp(var,option_BackWashFeedPumpMaxFlow)==0){ Option.BackWashFeedPumpMaxFlow = x; return true; } else
+   if(strcmp(var,option_BackWashFeedPumpDelay)==0){ Option.BackWashFeedPumpDelay = x; return true; } else
    if(strcmp(var,option_RegenHour)==0)       { Option.RegenHour = x; return true; } else
    if(strcmp(var,option_DaysBeforeRegen)==0) { Option.DaysBeforeRegen = x; return true; } else
    if(strcmp(var,option_UsedBeforeRegen)==0) { Option.UsedBeforeRegen = x; return true; } else
@@ -809,6 +814,8 @@ char* MainClass::get_option(char *var, char *ret)
    if(strcmp(var,option_fDontRegenOnWeekend)==0){ return strcat(ret, (char*)(GETBIT(Option.flags, fDontRegenOnWeekend) ? cOne : cZero)); } else
    if(strcmp(var,option_DebugToSerialOn)==0){ return strcat(ret, (char*)(DebugToSerialOn ? cOne : cZero)); } else
    if(strcmp(var,option_FeedPumpMaxFlow)==0){ return _itoa(Option.FeedPumpMaxFlow, ret); } else
+   if(strcmp(var,option_BackWashFeedPumpMaxFlow)==0){ return _itoa(Option.BackWashFeedPumpMaxFlow, ret); } else
+   if(strcmp(var,option_BackWashFeedPumpDelay)==0){ return _itoa(Option.BackWashFeedPumpDelay, ret); } else
    if(strcmp(var,option_RegenHour)==0){ return _itoa(Option.RegenHour, ret); } else
    if(strcmp(var,option_DaysBeforeRegen)==0){ return _itoa(Option.DaysBeforeRegen, ret); } else
    if(strcmp(var,option_UsedBeforeRegen)==0){ return _itoa(Option.UsedBeforeRegen, ret); } else
@@ -864,6 +871,24 @@ char * MainClass::TestToStr()
 // --------------------------------------------------------------------
 // ФУНКЦИИ РАБОТЫ С ГРАФИКАМИ  -----------------------------------
 // --------------------------------------------------------------------
+// получить список доступных графиков в виде строки
+// cat true - список добавляется в конец, false - строка обнуляется и список добавляется
+char * MainClass::get_listChart(char* str)
+{
+	uint8_t i;
+	strcat(str,"none:1;");
+	for(i=0;i<TNUMBER;i++) if(sTemp[i].Chart.get_present()) {strcat(str,sTemp[i].get_name()); strcat(str,":0;");}
+	for(i=0;i<ANUMBER;i++) if(sADC[i].Chart.get_present()) { strcat(str,sADC[i].get_name()); strcat(str,":0;");}
+	for(i=0;i<FNUMBER;i++) if(sFrequency[i].Chart.get_present()) { strcat(str,sFrequency[i].get_name()); strcat(str,":0;");}
+	strcat(str, chart_BrineWeight); strcat(str,":0;");
+	strcat(str, chart_WaterBoost); strcat(str,":0;");
+	strcat(str, chart_FeedPump); strcat(str,":0;");
+	strcat(str, chart_FillTank); strcat(str,":0;");
+	if(dPWM.ChartVoltage.get_present()) {   strcat(str,chart_VOLTAGE); strcat(str,":0;"); }
+	if(dPWM.ChartPower.get_present())   {   strcat(str,chart_fullPOWER); strcat(str,":0;"); }
+	return str;
+}
+
 // обновить статистику, добавить одну точку и если надо записать ее на карту.
 // Все значения в графиках целочислены (сотые), выводятся в формате 0.01
 void  MainClass::updateChart()
@@ -871,6 +896,7 @@ void  MainClass::updateChart()
 	for(uint8_t i=0;i<TNUMBER;i++) if(sTemp[i].Chart.get_present())  sTemp[i].Chart.addPoint(sTemp[i].get_Temp());
 	for(uint8_t i=0;i<ANUMBER;i++) if(sADC[i].Chart.get_present()) sADC[i].Chart.addPoint(sADC[i].get_Value());
 	for(uint8_t i=0;i<FNUMBER;i++) if(sFrequency[i].Chart.get_present()) sFrequency[i].Chart.addPoint(sFrequency[i].get_Value() / 10); // Частотные датчики
+
 	int32_t tmp1, tmp2, tmp3;
 	taskENTER_CRITICAL();
 	tmp1 = Charts_WaterBooster_work;
@@ -883,6 +909,7 @@ void  MainClass::updateChart()
 	ChartWaterBoost.addPoint(tmp1 / 10);
 	ChartFeedPump.addPoint(tmp2 / 10);
 	ChartFillTank.addPoint(tmp3 / 10);
+	ChartBrineWeight.addPoint(Weight_Percent);
 	if(dPWM.ChartVoltage.get_present())   dPWM.ChartVoltage.addPoint(dPWM.get_Voltage() / 10);
 	if(dPWM.ChartPower.get_present())     dPWM.ChartPower.addPoint(dPWM.get_Power() / 10);
 }
@@ -897,32 +924,19 @@ void MainClass::startChart()
  ChartWaterBoost.clear();
  ChartFeedPump.clear();
  ChartFillTank.clear();
+ ChartFillTank.clear();
  dPWM.ChartVoltage.clear();                              // Статистика по напряжению
  dPWM.ChartPower.clear();                                // Статистика по Полная мощность
-}
-
-
-// получить список доступных графиков в виде строки
-// cat true - список добавляется в конец, false - строка обнуляется и список добавляется
-char * MainClass::get_listChart(char* str)
-{
-	uint8_t i;
-	strcat(str,"none:1;");
-	for(i=0;i<TNUMBER;i++) if(sTemp[i].Chart.get_present()) {strcat(str,sTemp[i].get_name()); strcat(str,":0;");}
-	for(i=0;i<ANUMBER;i++) if(sADC[i].Chart.get_present()) { strcat(str,sADC[i].get_name()); strcat(str,":0;");}
-	for(i=0;i<FNUMBER;i++) if(sFrequency[i].Chart.get_present()) { strcat(str,sFrequency[i].get_name()); strcat(str,":0;");}
-	strcat(str, chart_WaterBoost); strcat(str,":0;");
-	strcat(str, chart_FeedPump); strcat(str,":0;");
-	strcat(str, chart_FillTank); strcat(str,":0;");
-	if(dPWM.ChartVoltage.get_present()) {   strcat(str,chart_VOLTAGE); strcat(str,":0;"); }
-	if(dPWM.ChartPower.get_present())   {   strcat(str,chart_fullPOWER); strcat(str,":0;"); }
-	return str;
 }
 
 // получить данные графика  в виде строки, данные ДОБАВЛЯЮТСЯ к str
 void MainClass::get_Chart(char *var, char* str)
 {
 	uint8_t i;
+	if(strcmp(var, chart_NONE) == 0) {
+		strcat(str, "");
+		return;
+	}
 	// В начале имена совпадающие с именами объектов
 	for(i = 0; i < TNUMBER; i++) {
 		if((strcmp(var, sTemp[i].get_name()) == 0) && (sTemp[i].Chart.get_present())) {
@@ -942,9 +956,7 @@ void MainClass::get_Chart(char *var, char* str)
 			return;
 		}
 	}
-	if(strcmp(var, chart_NONE) == 0) {
-		strcat(str, "");
-	} else if(strcmp(var, chart_VOLTAGE) == 0) {
+	if(strcmp(var, chart_VOLTAGE) == 0) {
 		dPWM.ChartVoltage.get_PointsStr(str);
 	} else if(strcmp(var, chart_fullPOWER) == 0) {
 		dPWM.ChartPower.get_PointsStrDiv100(str);
@@ -954,6 +966,8 @@ void MainClass::get_Chart(char *var, char* str)
 		ChartFeedPump.get_PointsStrDiv100(str);
 	} else if(strcmp(var, chart_FillTank) == 0) {
 		ChartFillTank.get_PointsStrDiv100(str);
+	} else if(strcmp(var, chart_BrineWeight) == 0) {
+		ChartBrineWeight.get_PointsStrDiv100(str);
 	}
 }
 
@@ -1046,7 +1060,7 @@ int8_t MainClass::Prepare_Temp(uint8_t bus)
 			}
 		}
 		if(ret) {
-			journal.jprintf(pP_TIME, "Error %d PrepareTemp bus %d\n", i, bus+1);
+			journal.printf(/*pP_TIME,*/ "Error %d PrepareTemp bus %d\n", i, bus+1);
 			if(ret == 2) set_Error(i, (char*) __FUNCTION__);
 		}
 	}
