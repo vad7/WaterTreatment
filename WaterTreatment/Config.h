@@ -112,7 +112,7 @@ struct History_setup {
 		#define I2C_FRAM_MEMORY  0		// 1 - FRAM память
 	#else
 		#define DEBUG                   // В последовательный порт шлет сообщения в первую очередь ошибки
-    	//#define DEBUG_NATIVE_USB		// Отладка через второй USB порт (Native)
+    	#define DEBUG_NATIVE_USB		// Отладка через второй USB порт (Native)
 		#define DEBUG_LEVEL		 1		// 0 - silence, 1 - more...
 		#define I2C_EEPROM_64KB	        // Размер I2C памяти (одна страница)
 		#define I2C_FRAM_MEMORY  0		// 1 - FRAM память
@@ -425,13 +425,13 @@ struct History_setup {
 	  const uint16_t ANALOG_MODBUS_ADDR[ANUMBER] = { 1, 1 };	// Адрес устройства Модбас, если 0, то датчик обычный.
 	  const uint16_t ANALOG_MODBUS_REG[ANUMBER]  = { 60, 59 };	// Регистр Модбас, по которому доступно значение датчика. Для Vacon=(AI2, AI1)
 	#endif
-	// ------------------- ADC SENSOR ----------------------------------
+	// ------------------- ADC Setup ----------------------------------
 	#define ADC_PRESCAL					9		// = (42 / ADCClockMhz - 1), - 4.2 MHz
 	#define ADC_SKIP_EXTREMUM			70		// Отбрасывать максимумы/минимумы больше заданной дельты
 	#define P_NUMSAMLES					1		// Число значений для усреднения показаний давления
 	#define ADC_FREQ					10		// период опроса аналоговых датчиков в секунду
-	#define FILLING_TANK_STEP			300		// сотые %, На сколько должен заполняться бак за время Option.FillingTankTimeout
 
+	#define FILLING_TANK_STEP			200		// сотые %, На сколько должен заполняться бак за время Option.FillingTankTimeout (2% - 40s, 3% - 60s)
 	#define DELAY_AFTER_SWITCH_RELAY	250		// Задержка после переключения реле, для сглаживания потребления и уменьшения помех(мс)
 
 	// Статистика по дням
