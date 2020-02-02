@@ -192,7 +192,7 @@ void setup() {
 	// 2. Инициализация журнала и в нем последовательный порт
 	journal.Init();
 	uint16_t flags;
-	if(readEEPROM_I2C(I2C_SETTING_EEPROM + 2 + sizeof(MC.Option.ver), (uint8_t*)&flags, sizeof(MC.Option.flags))) flags = 0;
+	if(readEEPROM_I2C(I2C_SETTING_EEPROM + 2 + 1 + sizeof(MC.Option.ver), (uint8_t*)&flags, sizeof(MC.Option.flags))) flags = 0;
 	DebugToJournalOn = GETBIT(flags, fDebugToJournal);
 #ifdef TEST_BOARD
 	DebugToJournalOn = true;

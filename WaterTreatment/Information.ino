@@ -218,7 +218,7 @@ void Journal::jprintf_time(const char *format, ...)
 	strcat(pbuf, " ");
 	va_list ap;
 	va_start(ap, format);
-	m_vsnprintf(pbuf, PRINTF_BUF - 9, format, ap);
+	m_vsnprintf(pbuf + 9, PRINTF_BUF - 9, format, ap);
 	va_end(ap);
 #ifdef DEBUG
 	SerialDbg.print(pbuf);
@@ -234,7 +234,7 @@ void Journal::jprintfopt_time(const char *format, ...)
 	strcat(pbuf, " ");
 	va_list ap;
 	va_start(ap, format);
-	m_vsnprintf(pbuf, PRINTF_BUF - 9, format, ap);
+	m_vsnprintf(pbuf + 9, PRINTF_BUF - 9, format, ap);
 	va_end(ap);
 #ifdef DEBUG
 	SerialDbg.print(pbuf);
@@ -251,7 +251,7 @@ void Journal::jprintf_date(const char *format, ...)
 	strcat(pbuf, " ");
 	va_list ap;
 	va_start(ap, format);
-	m_vsnprintf(pbuf, PRINTF_BUF - 20, format, ap);
+	m_vsnprintf(pbuf + 20, PRINTF_BUF - 20, format, ap);
 	va_end(ap);
 #ifdef DEBUG
 	SerialDbg.print(pbuf);

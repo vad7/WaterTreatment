@@ -16,9 +16,9 @@
 // --------------------------------------------------------------------------------
 #include "MainClass.h"
 
-/*
+/* structsize
   char checker(int);
-  char checkSizeOfInt1[sizeof(MC.WorkStats)]={checker(&checkSizeOfInt1)};
+  char checkSizeOfInt1[sizeof(MC.Option)]={checker(&checkSizeOfInt1)};
 //*/
 
 // Установка критической ошибки для класса  вызывает останов 
