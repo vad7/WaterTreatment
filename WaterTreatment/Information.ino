@@ -18,7 +18,7 @@
 #define bufI2C Socket[0].outBuf
 #define bufI2C Socket[0].outBuf
 #ifdef DEBUG_NATIVE_USB
-#define SerialDbg	SerialUSB
+#define SerialDbg	if(Is_otg_vbus_high()) SerialUSB
 #else
 #define SerialDbg	Serial
 #endif
