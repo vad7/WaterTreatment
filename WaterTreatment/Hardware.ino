@@ -605,13 +605,13 @@ xErr:
 #endif
 		numErr++;                  // число ошибок чтение по модбасу
 		if(GETBIT(MC.Option.flags, fPWMLogErrors)) {
-			journal.jprintf_time("%s: Read #%d error %d, repeat...\n", name, group, err);      // Выводим сообщение о повторном чтении
+			journal.jprintfopt_time("%s: Read #%d error %d, repeat...\n", name, group, err);      // Выводим сообщение о повторном чтении
 		}
 		_delay(PWM_DELAY_REPEAT);  // Чтение не удачно, делаем паузу
 	}
-//	if(GETBIT(MC.Option.flags, fPWMLogErrors)) {
+	if(GETBIT(MC.Option.flags, fPWMLogErrors)) {
 		journal.jprintf_time("%s: Read #%d error %d!\n", name, group, err);
-//	}
+	}
 	return err;
 }
 

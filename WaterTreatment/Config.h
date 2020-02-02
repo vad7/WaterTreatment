@@ -199,8 +199,8 @@ struct History_setup {
 	#define INUMBER             5   	// Число контактных датчиков цифровые входы
 #endif
     // Имена индексов
-	#define REG_ACTIVE			0        // Активна регенерация (INP2) (белый/коричневый)
-	#define REG_BACKWASH_ACTIVE 1        // Активна обратная промывка (INP3) (белый/синий)
+	#define REG_ACTIVE			0        // Активна регенерация (INP2) (белый+/коричневый)
+	#define REG_BACKWASH_ACTIVE 1        // Активна обратная промывка (INP3) (белый+/синий)
 	#define REG2_ACTIVE			2        // Активна регенерация умягчителя (INP4)
 	#define FLOODING			3        // Протечка (INP5)
 	#define TANK_EMPTY			4        // Емкость пуста (INP6)
@@ -281,8 +281,8 @@ struct History_setup {
 	#define RDRAIN					4	// Реле слива
 	#define RFILL					5	// Реле заполнения бака
     // устройства DC 5..24V
-	#define RSTARTREG				6	// Реле старта регенерации обезжелезивателя (белый/зеленый)
-	#define RSTARTREG2				7	// Реле старта регенерации умягчителя
+	#define RSTARTREG				6	// Реле старта регенерации обезжелезивателя (белый+/зеленый-)
+	#define RSTARTREG2				7	// Реле старта регенерации умягчителя (белый+/оранжевый-)
 
 	//#define RELAY_WAIT_SWITCH		10	// Заморозить выполнение задач на это время после переключения реле, ms
 
