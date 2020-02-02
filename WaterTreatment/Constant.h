@@ -32,7 +32,7 @@
 #define NTP_REPEAT        3                 // Число попыток запросов NTP сервера
 #define NTP_REPEAT_TIME   1000              // (мсек) Время между повторами ntp пакетов
 #define PING_SERVER       "8.8.8.8"          // ping сервер по ДЕФОЛТУ
-#define WDT_TIME          10                // период Watchdog таймера секунды но не более 16 секунд!!! ЕСЛИ установить 0 то Watchdog будет отключен!!!
+#define WDT_TIME          6                 // период Watchdog таймера секунды но не более 16 секунд!!! ЕСЛИ установить 0 то Watchdog будет отключен!!!
 #ifndef INDEX_FILE
 #define INDEX_FILE        "index.html"       // стартовый файл по умолчанию для большой морды
 #endif
@@ -380,7 +380,7 @@ const char *option_FloodingTimeout		= {"FT"};
 const char *option_PWATER_RegMin		= {"WRM"};
 const char *option_LTANK_Empty			= {"TE"};
 const char *option_Weight_Empty			= {"WE"};
-const char *option_DebugToSerialOn		= {"DBG"};
+const char *option_fDebugToSerialOn		= {"DBG"};
 const char *option_FillingTankTimeout	= {"FTT"};
 const char *option_CriticalErrorsTimeout= {"CET"};
 

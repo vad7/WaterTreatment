@@ -74,7 +74,7 @@ int8_t  deviceOneWire::lock_I2C_bus_reset(uint8_t checkpresence)
 	err = OK;
 #ifdef ONEWIRE_DS2482
 	if(SemaphoreTake(xI2CSemaphore,(I2C_TIME_WAIT/portTICK_PERIOD_MS))==pdFALSE) {
-		journal.printf((char*)cErrorMutex,__FUNCTION__,MutexI2CBuzy);
+		journal.jprintfopt((char*)cErrorMutex,__FUNCTION__,MutexI2CBuzy);
 		err = ERR_I2C_BUZY;
 		return err;
 	}
@@ -212,7 +212,7 @@ int8_t  deviceOneWire::Scan(char *result_str)
 			journal.jprintf("%s Pad:%s\n", result_str, addressToHex(data));
 #ifdef ONEWIRE_DS2482
 			if(SemaphoreTake(xI2CSemaphore, (I2C_TIME_WAIT/portTICK_PERIOD_MS)) == pdFALSE) {
-				journal.printf((char*)cErrorMutex,__FUNCTION__,MutexI2CBuzy);
+				journal.jprintfopt((char*)cErrorMutex,__FUNCTION__,MutexI2CBuzy);
 				err = ERR_I2C_BUZY;
 				break;
 			}

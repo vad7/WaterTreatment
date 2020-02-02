@@ -41,7 +41,7 @@ int8_t set_Error(int8_t _err, char *nam)
 	if(i != sizeof(Errors) / sizeof(Errors[0])) {
 		Errors[i] = _err;
 		ErrorsTime[i] = rtcSAM3X8.unixtime();
-		journal.jprintf(pP_DATE, "$ERROR source: %s, code: %d\n", nam, _err); //journal.jprintf(", code: %d\n",_err);
+		journal.jprintf_date("$ERROR source: %s, code: %d\n", nam, _err); //journal.jprintf(", code: %d\n",_err);
 		if(xTaskGetSchedulerState() == taskSCHEDULER_RUNNING) MC.save_DumpJournal(); // вывод отладочной информации для начала  если запущена freeRTOS
 		MC.message.setMessage(pMESSAGE_ERROR, MC.note_error, 0);    // сформировать уведомление об ошибке
 	}
@@ -213,7 +213,7 @@ int32_t MainClass::save(void)
 	uint8_t tasks_suspended = TaskSuspendAll(); // Запрет других задач
 	if(error == ERR_SAVE_EEPROM || error == ERR_LOAD_EEPROM || error == ERR_CRC16_EEPROM) error = OK;
 	DateTime.saveTime = rtcSAM3X8.unixtime();   // запомнить время сохранения настроек
-	journal.printf(" Save settings ");
+	journal.jprintfopt(" Save settings ");
 	while(1) {
 		// Сохранить параметры и опции отопления и бойлер, уведомления
 		Option.ver = VER_SAVE;
@@ -247,11 +247,11 @@ int32_t MainClass::save(void)
 		addr = addr + sizeof(crc) - (I2C_SETTING_EEPROM + 2);
 		if(writeEEPROM_I2C(I2C_SETTING_EEPROM, (uint8_t *) &addr, 2)) { error = ERR_SAVE_EEPROM; break; } // size all
 		if((error = check_crc16_eeprom(I2C_SETTING_EEPROM + 2, addr - 2)) != OK) {
-			journal.printf("- Verify Error!\n");
+			journal.jprintfopt("- Verify Error!\n");
 			break;
 		}
 		addr += 2;
-		journal.printf("OK, wrote: %d bytes, crc: %04x\n", addr, crc);
+		journal.jprintfopt("OK, wrote: %d bytes, crc: %04x\n", addr, crc);
 		break;
 	}
 	if(tasks_suspended) xTaskResumeAll(); // Разрешение других задач
@@ -268,7 +268,7 @@ int32_t MainClass::save(void)
 int32_t MainClass::load(uint8_t *buffer, uint8_t from_RAM)
 {
 	uint16_t size;
-	journal.printf(" Load settings ");
+	journal.jprintfopt(" Load settings ");
 	if(from_RAM == 0) {
 		if(readEEPROM_I2C(I2C_SETTING_EEPROM, (byte*) &size, sizeof(size))) {
 x_ReadError:
@@ -280,11 +280,11 @@ x_Error:
 		if(size > I2C_SETTING_EEPROM_NEXT - I2C_SETTING_EEPROM) { error = ERR_BAD_LEN_EEPROM; goto x_Error; }
 		if(readEEPROM_I2C(I2C_SETTING_EEPROM + sizeof(size), buffer, size)) goto x_ReadError;
 	} else {
-		journal.printf("FILE");
+		journal.jprintfopt("FILE");
 		size = *((uint16_t *) buffer);
 		buffer += sizeof(size);
 	}
-	journal.printf(", size %d, crc: ", size + 2); // sizeof(crc)
+	journal.jprintfopt(", size %d, crc: ", size + 2); // sizeof(crc)
 	size -= 2;
 	#ifdef LOAD_VERIFICATION
 	
@@ -294,14 +294,14 @@ x_Error:
 		journal.jprintf("I2C Error: %04x != %04x!\n", crc, *((uint16_t *)(buffer + size)));
 		return error = ERR_CRC16_EEPROM;
 	}
-	journal.printf("%04x", crc);
+	journal.jprintfopt("%04x", crc);
 	#else
-	journal.printf("*No verification");
+	journal.jprintfopt("*No verification");
 	#endif
 	uint8_t *buffer_max = buffer + size;
 	size += 2;
 	load_struct(&Option, &buffer, sizeof(Option));
-	journal.printf(", v.%d ", Option.ver);
+	journal.jprintfopt(", v.%d ", Option.ver);
 	if(Option.ver > 100) {
 		journal.jprintf("\nEEPROM with garbage - reseting!\n");
 		resetSetting();
@@ -341,7 +341,7 @@ x_Error:
 xSkip:		load_struct(NULL, &buffer, 0); // skip unknown type
 		}
 	}
-	journal.printf("OK\n");
+	journal.jprintfopt("OK\n");
 	return size + sizeof(crc);
 }
 
@@ -409,7 +409,7 @@ int8_t MainClass::load_WorkStats()
 		return ERR_LOAD2_EEPROM;
 	}
 	memcpy(&WorkStats_saved, &WorkStats, sizeof(WorkStats_saved));
-	journal.printf(" Load counters OK, read: %d bytes\n", sizeof(WorkStats));
+	journal.jprintfopt(" Load counters OK, read: %d bytes\n", sizeof(WorkStats));
 	return OK;
 
 }
@@ -767,7 +767,7 @@ boolean MainClass::set_option(char *var, float xx)
    if(strcmp(var,option_WebOnSPIFlash)==0)   { Option.flags = (Option.flags & ~(1<<fWebStoreOnSPIFlash)) | ((x!=0)<<fWebStoreOnSPIFlash); return true; } else
    if(strcmp(var,option_LogWirelessSensors)==0){ Option.flags = (Option.flags & ~(1<<fLogWirelessSensors)) | ((x!=0)<<fLogWirelessSensors); return true; } else
    if(strcmp(var,option_fDontRegenOnWeekend)==0){ Option.flags = (Option.flags & ~(1<<fDontRegenOnWeekend)) | ((x!=0)<<fDontRegenOnWeekend); return true; } else
-   if(strcmp(var,option_DebugToSerialOn)==0) { DebugToSerialOn = x; return true; } else
+   if(strcmp(var,option_fDebugToSerialOn)==0) { Option.flags = (Option.flags & ~(1<<fDebugToJournal)) | (((DebugToJournalOn = x)!=0)<<fDebugToJournal); return true; } else
    if(strcmp(var,option_FeedPumpMaxFlow)==0) { Option.FeedPumpMaxFlow = x; return true; } else
    if(strcmp(var,option_BackWashFeedPumpMaxFlow)==0){ Option.BackWashFeedPumpMaxFlow = x; return true; } else
    if(strcmp(var,option_BackWashFeedPumpDelay)==0){ Option.BackWashFeedPumpDelay = x; return true; } else
@@ -812,7 +812,7 @@ char* MainClass::get_option(char *var, char *ret)
    if(strcmp(var,option_WebOnSPIFlash)==0)    { return strcat(ret, (char*)(GETBIT(Option.flags, fWebStoreOnSPIFlash) ? cOne : cZero)); } else
    if(strcmp(var,option_LogWirelessSensors)==0){ return strcat(ret, (char*)(GETBIT(Option.flags, fLogWirelessSensors) ? cOne : cZero)); } else
    if(strcmp(var,option_fDontRegenOnWeekend)==0){ return strcat(ret, (char*)(GETBIT(Option.flags, fDontRegenOnWeekend) ? cOne : cZero)); } else
-   if(strcmp(var,option_DebugToSerialOn)==0){ return strcat(ret, (char*)(DebugToSerialOn ? cOne : cZero)); } else
+   if(strcmp(var,option_fDebugToSerialOn)==0){ return strcat(ret, (char*)(GETBIT(Option.flags, fDebugToJournal) ? cOne : cZero)); } else
    if(strcmp(var,option_FeedPumpMaxFlow)==0){ return _itoa(Option.FeedPumpMaxFlow, ret); } else
    if(strcmp(var,option_BackWashFeedPumpMaxFlow)==0){ return _itoa(Option.BackWashFeedPumpMaxFlow, ret); } else
    if(strcmp(var,option_BackWashFeedPumpDelay)==0){ return _itoa(Option.BackWashFeedPumpDelay, ret); } else
@@ -980,7 +980,7 @@ uint8_t MainClass::set_hashUser()
 	strcat(buf, Network.passUser);
 	base64_encode(Security.hashUser, buf, strlen(buf));
 	Security.hashUserLen = strlen(Security.hashUser);
-	journal.printf(" Hash user: %s\n", Security.hashUser);
+	journal.jprintfopt(" Hash user: %s\n", Security.hashUser);
 	return Security.hashUserLen;
 }
 // расчитать хеш для администратора возвращает длину хеша
@@ -992,7 +992,7 @@ uint8_t MainClass::set_hashAdmin()
 	strcat(buf, Network.passAdmin);
 	base64_encode(Security.hashAdmin, buf, strlen(buf));
 	Security.hashAdminLen = strlen(Security.hashAdmin);
-	journal.printf(" Hash admin: %s\n", Security.hashAdmin);
+	journal.jprintfopt(" Hash admin: %s\n", Security.hashAdmin);
 	return Security.hashAdminLen;
 }
 
@@ -1024,7 +1024,7 @@ void MainClass::save_DumpJournal(void)
 	uint8_t i;
 	journal.jprintf(" State:");
 	for(i = 0; i < RNUMBER; i++) journal.jprintf(" %s:%d", MC.dRelay[i].get_name(), MC.dRelay[i].get_Relay());
-	for(i = 0; i < TNUMBER; i++) if(sTemp[i].get_present() && sTemp[i].Chart.get_present()) journal.printf(" %s:%.2d", sTemp[i].get_name(), sTemp[i].get_Temp());
+	for(i = 0; i < TNUMBER; i++) if(sTemp[i].get_present() && sTemp[i].Chart.get_present()) journal.jprintfopt(" %s:%.2d", sTemp[i].get_name(), sTemp[i].get_Temp());
 	journal.jprintf(" Power:%.3d\n", dPWM.get_Power());
 	// Доп инфо
 	for(i = 0; i < ANUMBER; i++) if(sADC[i].get_present()) journal.jprintf(" %s:%.2d", sADC[i].get_name(), sADC[i].get_Value());
@@ -1060,7 +1060,7 @@ int8_t MainClass::Prepare_Temp(uint8_t bus)
 			}
 		}
 		if(ret) {
-			journal.printf(/*pP_TIME,*/ "Error %d PrepareTemp bus %d\n", i, bus+1);
+			journal.jprintfopt_time("Error %d PrepareTemp bus %d\n", i, bus+1);
 			if(ret == 2) set_Error(i, (char*) __FUNCTION__);
 		}
 	}

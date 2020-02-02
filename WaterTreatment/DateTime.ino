@@ -26,16 +26,16 @@ byte packetBuffer[NTP_PACKET_SIZE+1];       // буфер, в котором б�
 // Возвращает код ошибки
 int8_t set_time(void)
 {
-	journal.printf(" I2C RTC DS3232: %s\n", DecodeTimeDate(TimeToUnixTime(getTime_RtcI2C()),(char*) packetBuffer,3));   // Показать что i2c часы работают - показав текущее время
-	journal.printf(" Init SAM3X8E RTC\n");
+	journal.jprintfopt(" I2C RTC DS3232: %s\n", DecodeTimeDate(TimeToUnixTime(getTime_RtcI2C()),(char*) packetBuffer,3));   // Показать что i2c часы работают - показав текущее время
+	journal.jprintfopt(" Init SAM3X8E RTC\n");
 	rtcSAM3X8.init();                             // Запуск внутренних часов
 	if(!(MC.get_updateNTP() && set_time_NTP())) { // Обновить время по NTP
 		uint32_t t = TimeToUnixTime(getTime_RtcI2C());
 		if(t) {
 			rtcSAM3X8.set_clock(t);                // Установить внутренние часы по i2c
-			journal.printf(" Time updated from I2C RTC: %s %s\n", NowDateToStr(), NowTimeToStr());
+			journal.jprintfopt(" Time updated from I2C RTC: %s %s\n", NowDateToStr(), NowTimeToStr());
 		} else {
-			journal.printf("Error read I2C RTC\n");
+			journal.jprintfopt("Error read I2C RTC\n");
 		}
 	}
 	
@@ -178,7 +178,7 @@ boolean set_time_NTP(void)
 	boolean flag = false;
 	IPAddress ip(0, 0, 0, 0);
 
-	journal.printf(/*pP_TIME,*/ "Update time from NTP server: %s\n", MC.get_serverNTP());
+	journal.jprintfopt_time("Update time from NTP server: %s\n", MC.get_serverNTP());
 	//1. Установить адрес  не забываем работаетм через один сокет, опреации строго последовательные,иначе настройки сбиваются
 	WDT_Restart(WDT);                                        // Сбросить вачдог  при ошибке долго ждем
 
@@ -195,14 +195,14 @@ boolean set_time_NTP(void)
 
 	// 2. Посылка пакета
 	if(!Udp.begin(NTP_LOCAL_PORT, W5200_SOCK_SYS)) {
-		journal.printf(" UDP fail\n");
+		journal.jprintfopt(" UDP fail\n");
 		SemaphoreGive(xWebThreadSemaphore);
 		return false;
 	}
 	for(uint8_t i = 0; i < NTP_REPEAT; i++)                                       // Делам 5 попыток получить время
 	{
 		WDT_Restart(WDT);                                            // Сбросить вачдог
-		journal.printf(" Send packet NTP, wait . . .\n");
+		journal.jprintfopt(" Send packet NTP, wait . . .\n");
 		flag = sendNTPpacket(ip);
 		_delay(NTP_REPEAT_TIME);                                             // Ждем, чтобы увидеть, доступен ли ответ:
 		if(flag) {
@@ -229,8 +229,8 @@ boolean set_time_NTP(void)
 		// обновились, можно и часы i2c обновить
 		setTime_RtcI2C(rtcSAM3X8.get_hours(), rtcSAM3X8.get_minutes(), rtcSAM3X8.get_seconds());
 		setDate_RtcI2C(rtcSAM3X8.get_days(), rtcSAM3X8.get_months(), rtcSAM3X8.get_years());
-		journal.printf(" Set time from NTP server: %s ", NowDateToStr());
-		journal.printf("%s\n", NowTimeToStr());  // Одним оператором есть косяк
+		journal.jprintfopt(" Set time from NTP server: %s ", NowDateToStr());
+		journal.jprintfopt("%s\n", NowTimeToStr());  // Одним оператором есть косяк
 	} else {
 		journal.jprintf(" ERROR update time from NTP server! %s ", NowDateToStr());
 		journal.jprintf("%s\n", NowTimeToStr());  // Одним оператором есть косяк
@@ -242,7 +242,7 @@ boolean set_time_NTP(void)
 
 #endif // HTTP_TIME_REQUEST
 
-//  Получить текущее время (с секундами!) в виде строки, не реентерабельна!
+//  Получить текущее время (XX:XX:XX) в виде строки, не реентерабельна!
 char* NowTimeToStr()
 {
 	uint32_t x;
@@ -263,7 +263,7 @@ char* NowTimeToStr()
 
 	return _tmp;
 }
-//  Получить текущее время (без секунд!) в виде строки, не реентерабельна!
+//  Получить текущее время (XX:XX) в виде строки, не реентерабельна!
 char* NowTimeToStr1()
 {
   uint8_t x;
@@ -279,7 +279,7 @@ char* NowTimeToStr1()
   return _tmp;
 }
 
-//  Получить текущую дату в виде строки
+//  Получить текущую дату в виде строки xx.xx.xxxx
 char* NowDateToStr()
 {
   static char _tmp[16];  // Длина xx/xx/xxxx - 10+1 символов

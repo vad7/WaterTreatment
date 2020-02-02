@@ -427,7 +427,7 @@ struct History_setup {
 	#endif
 	// ------------------- ADC Setup ----------------------------------
 	#define ADC_PRESCAL					9		// = (42 / ADCClockMhz - 1), - 4.2 MHz
-	#define ADC_SKIP_EXTREMUM			70		// Отбрасывать максимумы/минимумы больше заданной дельты
+	//#define ADC_SKIP_EXTREMUM			70		// Отбрасывать максимумы/минимумы больше заданной дельты
 	#define P_NUMSAMLES					1		// Число значений для усреднения показаний давления
 	#define ADC_FREQ					10		// период опроса аналоговых датчиков в секунду
 
