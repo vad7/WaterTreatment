@@ -16,9 +16,9 @@
 // --------------------------------------------------------------------------------
 #include "MainClass.h"
 
-/*
+/* structsize
   char checker(int);
-  char checkSizeOfInt1[sizeof(MC.WorkStats)]={checker(&checkSizeOfInt1)};
+  char checkSizeOfInt1[sizeof(MC.Option)]={checker(&checkSizeOfInt1)};
 //*/
 
 // Установка критической ошибки для класса  вызывает останов 
@@ -41,7 +41,7 @@ int8_t set_Error(int8_t _err, char *nam)
 	if(i != sizeof(Errors) / sizeof(Errors[0])) {
 		Errors[i] = _err;
 		ErrorsTime[i] = rtcSAM3X8.unixtime();
-		journal.jprintf(pP_DATE, "$ERROR source: %s, code: %d\n", nam, _err); //journal.jprintf(", code: %d\n",_err);
+		journal.jprintf_date("$ERROR source: %s, code: %d\n", nam, _err); //journal.jprintf(", code: %d\n",_err);
 		if(xTaskGetSchedulerState() == taskSCHEDULER_RUNNING) MC.save_DumpJournal(); // вывод отладочной информации для начала  если запущена freeRTOS
 		MC.message.setMessage(pMESSAGE_ERROR, MC.note_error, 0);    // сформировать уведомление об ошибке
 	}
@@ -63,7 +63,7 @@ void MainClass::init()
 
 	for(i = 0; i < TNUMBER; i++) sTemp[i].initTemp(i);            // Инициализация датчиков температуры
 
-	for(i = 0; i < ANUMBER; i++) sADC[i].initSensorADC(i, pinsAnalog[i], FILTER_SIZE);			// Инициализация аналогово датчика
+	for(i = 0; i < ANUMBER; i++) sADC[i].initSensorADC(i, pinsAnalog[i], ADC_FILTER[i]);	// Инициализация аналогового датчика
 
 	for(i = 0; i < INUMBER; i++) sInput[i].initInput(i);           // Инициализация контактных датчиков
 	for(i = 0; i < FNUMBER; i++) sFrequency[i].initFrequency(i);  // Инициализация частотных датчиков
@@ -80,6 +80,7 @@ void MainClass::init()
 	ChartWaterBoost.init(true);
 	ChartFeedPump.init(true);
 	ChartFillTank.init(true);
+	ChartBrineWeight.init(true);
 
 	resetSetting();                                           // все переменные
 }
@@ -212,7 +213,7 @@ int32_t MainClass::save(void)
 	uint8_t tasks_suspended = TaskSuspendAll(); // Запрет других задач
 	if(error == ERR_SAVE_EEPROM || error == ERR_LOAD_EEPROM || error == ERR_CRC16_EEPROM) error = OK;
 	DateTime.saveTime = rtcSAM3X8.unixtime();   // запомнить время сохранения настроек
-	journal.printf(" Save settings ");
+	journal.jprintfopt(" Save settings ");
 	while(1) {
 		// Сохранить параметры и опции отопления и бойлер, уведомления
 		Option.ver = VER_SAVE;
@@ -246,11 +247,11 @@ int32_t MainClass::save(void)
 		addr = addr + sizeof(crc) - (I2C_SETTING_EEPROM + 2);
 		if(writeEEPROM_I2C(I2C_SETTING_EEPROM, (uint8_t *) &addr, 2)) { error = ERR_SAVE_EEPROM; break; } // size all
 		if((error = check_crc16_eeprom(I2C_SETTING_EEPROM + 2, addr - 2)) != OK) {
-			journal.printf("- Verify Error!\n");
+			journal.jprintfopt("- Verify Error!\n");
 			break;
 		}
 		addr += 2;
-		journal.printf("OK, wrote: %d bytes, crc: %04x\n", addr, crc);
+		journal.jprintfopt("OK, wrote: %d bytes, crc: %04x\n", addr, crc);
 		break;
 	}
 	if(tasks_suspended) xTaskResumeAll(); // Разрешение других задач
@@ -267,7 +268,7 @@ int32_t MainClass::save(void)
 int32_t MainClass::load(uint8_t *buffer, uint8_t from_RAM)
 {
 	uint16_t size;
-	journal.printf(" Load settings ");
+	journal.jprintfopt(" Load settings ");
 	if(from_RAM == 0) {
 		if(readEEPROM_I2C(I2C_SETTING_EEPROM, (byte*) &size, sizeof(size))) {
 x_ReadError:
@@ -279,11 +280,11 @@ x_Error:
 		if(size > I2C_SETTING_EEPROM_NEXT - I2C_SETTING_EEPROM) { error = ERR_BAD_LEN_EEPROM; goto x_Error; }
 		if(readEEPROM_I2C(I2C_SETTING_EEPROM + sizeof(size), buffer, size)) goto x_ReadError;
 	} else {
-		journal.printf("FILE");
+		journal.jprintfopt("FILE");
 		size = *((uint16_t *) buffer);
 		buffer += sizeof(size);
 	}
-	journal.printf(", size %d, crc: ", size + 2); // sizeof(crc)
+	journal.jprintfopt(", size %d, crc: ", size + 2); // sizeof(crc)
 	size -= 2;
 	#ifdef LOAD_VERIFICATION
 	
@@ -293,14 +294,14 @@ x_Error:
 		journal.jprintf("I2C Error: %04x != %04x!\n", crc, *((uint16_t *)(buffer + size)));
 		return error = ERR_CRC16_EEPROM;
 	}
-	journal.printf("%04x", crc);
+	journal.jprintfopt("%04x", crc);
 	#else
-	journal.printf("*No verification");
+	journal.jprintfopt("*No verification");
 	#endif
 	uint8_t *buffer_max = buffer + size;
 	size += 2;
 	load_struct(&Option, &buffer, sizeof(Option));
-	journal.printf(", v.%d ", Option.ver);
+	journal.jprintfopt(", v.%d ", Option.ver);
 	if(Option.ver > 100) {
 		journal.jprintf("\nEEPROM with garbage - reseting!\n");
 		resetSetting();
@@ -340,7 +341,7 @@ x_Error:
 xSkip:		load_struct(NULL, &buffer, 0); // skip unknown type
 		}
 	}
-	journal.printf("OK\n");
+	journal.jprintfopt("OK\n");
 	return size + sizeof(crc);
 }
 
@@ -408,7 +409,7 @@ int8_t MainClass::load_WorkStats()
 		return ERR_LOAD2_EEPROM;
 	}
 	memcpy(&WorkStats_saved, &WorkStats, sizeof(WorkStats_saved));
-	journal.printf(" Load counters OK, read: %d bytes\n", sizeof(WorkStats));
+	journal.jprintfopt(" Load counters OK, read: %d bytes\n", sizeof(WorkStats));
 	return OK;
 
 }
@@ -519,6 +520,7 @@ void MainClass::resetSetting()
 
 	Option.DrainTime = 20;
 	Option.FeedPumpMaxFlow = 4000;
+	Option.BackWashFeedPumpMaxFlow = 8000;
 	Option.FillingTankTimeout = 60;
 	Option.FloodingDebounceTime = 10;
 	Option.FloodingTimeout = 600;
@@ -541,6 +543,7 @@ void MainClass::resetSetting()
 	Option.DrainTime = 11;
 	Option.FillingTankTimeout = 30;
 	Option.CriticalErrorsTimeout = 300;
+	Option.BackWashFeedPumpDelay = 7*60;
 }
 
 // --------------------------------------------------------------------
@@ -764,8 +767,10 @@ boolean MainClass::set_option(char *var, float xx)
    if(strcmp(var,option_WebOnSPIFlash)==0)   { Option.flags = (Option.flags & ~(1<<fWebStoreOnSPIFlash)) | ((x!=0)<<fWebStoreOnSPIFlash); return true; } else
    if(strcmp(var,option_LogWirelessSensors)==0){ Option.flags = (Option.flags & ~(1<<fLogWirelessSensors)) | ((x!=0)<<fLogWirelessSensors); return true; } else
    if(strcmp(var,option_fDontRegenOnWeekend)==0){ Option.flags = (Option.flags & ~(1<<fDontRegenOnWeekend)) | ((x!=0)<<fDontRegenOnWeekend); return true; } else
-   if(strcmp(var,option_DebugToSerialOn)==0) { DebugToSerialOn = x; return true; } else
+   if(strcmp(var,option_fDebugToSerialOn)==0) { Option.flags = (Option.flags & ~(1<<fDebugToJournal)) | (((DebugToJournalOn = x)!=0)<<fDebugToJournal); return true; } else
    if(strcmp(var,option_FeedPumpMaxFlow)==0) { Option.FeedPumpMaxFlow = x; return true; } else
+   if(strcmp(var,option_BackWashFeedPumpMaxFlow)==0){ Option.BackWashFeedPumpMaxFlow = x; return true; } else
+   if(strcmp(var,option_BackWashFeedPumpDelay)==0){ Option.BackWashFeedPumpDelay = x; return true; } else
    if(strcmp(var,option_RegenHour)==0)       { Option.RegenHour = x; return true; } else
    if(strcmp(var,option_DaysBeforeRegen)==0) { Option.DaysBeforeRegen = x; return true; } else
    if(strcmp(var,option_UsedBeforeRegen)==0) { Option.UsedBeforeRegen = x; return true; } else
@@ -807,8 +812,10 @@ char* MainClass::get_option(char *var, char *ret)
    if(strcmp(var,option_WebOnSPIFlash)==0)    { return strcat(ret, (char*)(GETBIT(Option.flags, fWebStoreOnSPIFlash) ? cOne : cZero)); } else
    if(strcmp(var,option_LogWirelessSensors)==0){ return strcat(ret, (char*)(GETBIT(Option.flags, fLogWirelessSensors) ? cOne : cZero)); } else
    if(strcmp(var,option_fDontRegenOnWeekend)==0){ return strcat(ret, (char*)(GETBIT(Option.flags, fDontRegenOnWeekend) ? cOne : cZero)); } else
-   if(strcmp(var,option_DebugToSerialOn)==0){ return strcat(ret, (char*)(DebugToSerialOn ? cOne : cZero)); } else
+   if(strcmp(var,option_fDebugToSerialOn)==0){ return strcat(ret, (char*)(GETBIT(Option.flags, fDebugToJournal) ? cOne : cZero)); } else
    if(strcmp(var,option_FeedPumpMaxFlow)==0){ return _itoa(Option.FeedPumpMaxFlow, ret); } else
+   if(strcmp(var,option_BackWashFeedPumpMaxFlow)==0){ return _itoa(Option.BackWashFeedPumpMaxFlow, ret); } else
+   if(strcmp(var,option_BackWashFeedPumpDelay)==0){ return _itoa(Option.BackWashFeedPumpDelay, ret); } else
    if(strcmp(var,option_RegenHour)==0){ return _itoa(Option.RegenHour, ret); } else
    if(strcmp(var,option_DaysBeforeRegen)==0){ return _itoa(Option.DaysBeforeRegen, ret); } else
    if(strcmp(var,option_UsedBeforeRegen)==0){ return _itoa(Option.UsedBeforeRegen, ret); } else
@@ -864,6 +871,24 @@ char * MainClass::TestToStr()
 // --------------------------------------------------------------------
 // ФУНКЦИИ РАБОТЫ С ГРАФИКАМИ  -----------------------------------
 // --------------------------------------------------------------------
+// получить список доступных графиков в виде строки
+// cat true - список добавляется в конец, false - строка обнуляется и список добавляется
+char * MainClass::get_listChart(char* str)
+{
+	uint8_t i;
+	strcat(str,"none:1;");
+	for(i=0;i<TNUMBER;i++) if(sTemp[i].Chart.get_present()) {strcat(str,sTemp[i].get_name()); strcat(str,":0;");}
+	for(i=0;i<ANUMBER;i++) if(sADC[i].Chart.get_present()) { strcat(str,sADC[i].get_name()); strcat(str,":0;");}
+	for(i=0;i<FNUMBER;i++) if(sFrequency[i].Chart.get_present()) { strcat(str,sFrequency[i].get_name()); strcat(str,":0;");}
+	strcat(str, chart_BrineWeight); strcat(str,":0;");
+	strcat(str, chart_WaterBoost); strcat(str,":0;");
+	strcat(str, chart_FeedPump); strcat(str,":0;");
+	strcat(str, chart_FillTank); strcat(str,":0;");
+	if(dPWM.ChartVoltage.get_present()) {   strcat(str,chart_VOLTAGE); strcat(str,":0;"); }
+	if(dPWM.ChartPower.get_present())   {   strcat(str,chart_fullPOWER); strcat(str,":0;"); }
+	return str;
+}
+
 // обновить статистику, добавить одну точку и если надо записать ее на карту.
 // Все значения в графиках целочислены (сотые), выводятся в формате 0.01
 void  MainClass::updateChart()
@@ -871,6 +896,7 @@ void  MainClass::updateChart()
 	for(uint8_t i=0;i<TNUMBER;i++) if(sTemp[i].Chart.get_present())  sTemp[i].Chart.addPoint(sTemp[i].get_Temp());
 	for(uint8_t i=0;i<ANUMBER;i++) if(sADC[i].Chart.get_present()) sADC[i].Chart.addPoint(sADC[i].get_Value());
 	for(uint8_t i=0;i<FNUMBER;i++) if(sFrequency[i].Chart.get_present()) sFrequency[i].Chart.addPoint(sFrequency[i].get_Value() / 10); // Частотные датчики
+
 	int32_t tmp1, tmp2, tmp3;
 	taskENTER_CRITICAL();
 	tmp1 = Charts_WaterBooster_work;
@@ -883,6 +909,7 @@ void  MainClass::updateChart()
 	ChartWaterBoost.addPoint(tmp1 / 10);
 	ChartFeedPump.addPoint(tmp2 / 10);
 	ChartFillTank.addPoint(tmp3 / 10);
+	ChartBrineWeight.addPoint(Weight_Percent);
 	if(dPWM.ChartVoltage.get_present())   dPWM.ChartVoltage.addPoint(dPWM.get_Voltage() / 10);
 	if(dPWM.ChartPower.get_present())     dPWM.ChartPower.addPoint(dPWM.get_Power() / 10);
 }
@@ -897,32 +924,19 @@ void MainClass::startChart()
  ChartWaterBoost.clear();
  ChartFeedPump.clear();
  ChartFillTank.clear();
+ ChartFillTank.clear();
  dPWM.ChartVoltage.clear();                              // Статистика по напряжению
  dPWM.ChartPower.clear();                                // Статистика по Полная мощность
-}
-
-
-// получить список доступных графиков в виде строки
-// cat true - список добавляется в конец, false - строка обнуляется и список добавляется
-char * MainClass::get_listChart(char* str)
-{
-	uint8_t i;
-	strcat(str,"none:1;");
-	for(i=0;i<TNUMBER;i++) if(sTemp[i].Chart.get_present()) {strcat(str,sTemp[i].get_name()); strcat(str,":0;");}
-	for(i=0;i<ANUMBER;i++) if(sADC[i].Chart.get_present()) { strcat(str,sADC[i].get_name()); strcat(str,":0;");}
-	for(i=0;i<FNUMBER;i++) if(sFrequency[i].Chart.get_present()) { strcat(str,sFrequency[i].get_name()); strcat(str,":0;");}
-	strcat(str, chart_WaterBoost); strcat(str,":0;");
-	strcat(str, chart_FeedPump); strcat(str,":0;");
-	strcat(str, chart_FillTank); strcat(str,":0;");
-	if(dPWM.ChartVoltage.get_present()) {   strcat(str,chart_VOLTAGE); strcat(str,":0;"); }
-	if(dPWM.ChartPower.get_present())   {   strcat(str,chart_fullPOWER); strcat(str,":0;"); }
-	return str;
 }
 
 // получить данные графика  в виде строки, данные ДОБАВЛЯЮТСЯ к str
 void MainClass::get_Chart(char *var, char* str)
 {
 	uint8_t i;
+	if(strcmp(var, chart_NONE) == 0) {
+		strcat(str, "");
+		return;
+	}
 	// В начале имена совпадающие с именами объектов
 	for(i = 0; i < TNUMBER; i++) {
 		if((strcmp(var, sTemp[i].get_name()) == 0) && (sTemp[i].Chart.get_present())) {
@@ -942,9 +956,7 @@ void MainClass::get_Chart(char *var, char* str)
 			return;
 		}
 	}
-	if(strcmp(var, chart_NONE) == 0) {
-		strcat(str, "");
-	} else if(strcmp(var, chart_VOLTAGE) == 0) {
+	if(strcmp(var, chart_VOLTAGE) == 0) {
 		dPWM.ChartVoltage.get_PointsStr(str);
 	} else if(strcmp(var, chart_fullPOWER) == 0) {
 		dPWM.ChartPower.get_PointsStrDiv100(str);
@@ -954,6 +966,8 @@ void MainClass::get_Chart(char *var, char* str)
 		ChartFeedPump.get_PointsStrDiv100(str);
 	} else if(strcmp(var, chart_FillTank) == 0) {
 		ChartFillTank.get_PointsStrDiv100(str);
+	} else if(strcmp(var, chart_BrineWeight) == 0) {
+		ChartBrineWeight.get_PointsStrDiv100(str);
 	}
 }
 
@@ -966,7 +980,7 @@ uint8_t MainClass::set_hashUser()
 	strcat(buf, Network.passUser);
 	base64_encode(Security.hashUser, buf, strlen(buf));
 	Security.hashUserLen = strlen(Security.hashUser);
-	journal.printf(" Hash user: %s\n", Security.hashUser);
+	journal.jprintfopt(" Hash user: %s\n", Security.hashUser);
 	return Security.hashUserLen;
 }
 // расчитать хеш для администратора возвращает длину хеша
@@ -978,7 +992,7 @@ uint8_t MainClass::set_hashAdmin()
 	strcat(buf, Network.passAdmin);
 	base64_encode(Security.hashAdmin, buf, strlen(buf));
 	Security.hashAdminLen = strlen(Security.hashAdmin);
-	journal.printf(" Hash admin: %s\n", Security.hashAdmin);
+	journal.jprintfopt(" Hash admin: %s\n", Security.hashAdmin);
 	return Security.hashAdminLen;
 }
 
@@ -1010,7 +1024,7 @@ void MainClass::save_DumpJournal(void)
 	uint8_t i;
 	journal.jprintf(" State:");
 	for(i = 0; i < RNUMBER; i++) journal.jprintf(" %s:%d", MC.dRelay[i].get_name(), MC.dRelay[i].get_Relay());
-	for(i = 0; i < TNUMBER; i++) if(sTemp[i].get_present() && sTemp[i].Chart.get_present()) journal.printf(" %s:%.2d", sTemp[i].get_name(), sTemp[i].get_Temp());
+	for(i = 0; i < TNUMBER; i++) if(sTemp[i].get_present() && sTemp[i].Chart.get_present()) journal.jprintfopt(" %s:%.2d", sTemp[i].get_name(), sTemp[i].get_Temp());
 	journal.jprintf(" Power:%.3d\n", dPWM.get_Power());
 	// Доп инфо
 	for(i = 0; i < ANUMBER; i++) if(sADC[i].get_present()) journal.jprintf(" %s:%.2d", sADC[i].get_name(), sADC[i].get_Value());
@@ -1046,7 +1060,7 @@ int8_t MainClass::Prepare_Temp(uint8_t bus)
 			}
 		}
 		if(ret) {
-			journal.jprintf(pP_TIME, "Error %d PrepareTemp bus %d\n", i, bus+1);
+			journal.jprintfopt_time("Error %d PrepareTemp bus %d\n", i, bus+1);
 			if(ret == 2) set_Error(i, (char*) __FUNCTION__);
 		}
 	}

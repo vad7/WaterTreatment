@@ -77,8 +77,9 @@ uint32_t TimeFeedPump = 0;	// ms
 uint8_t  NeedSaveWorkStats = 0;
 uint32_t TimerDrainingWater = 0;
 volatile bool NewRegenStatus = false;
+volatile uint32_t RegBackwashTimer = 0;
 uint32_t ResetDUE_countdown = 0;
-bool	 DebugToSerialOn = false;
+bool	 DebugToJournalOn = false;
 
 // Weight
 bool Weight_NeedRead = false;
@@ -100,7 +101,7 @@ volatile uint8_t NeedSaveRTC = 0;
 
 uint16_t task_updstat_chars = 0;
 
-//  Работа с отдельными флагами type_option
+// type_option.flags
 #define fWebStoreOnSPIFlash 0				// флаг, что веб морда лежит на SPI Flash, иначе на SD карте
 #define fBeep               1               // флаг Использование звука
 #define fHistory            2               // флаг записи истории на карту памяти
@@ -111,6 +112,7 @@ uint16_t task_updstat_chars = 0;
 #define fLogWirelessSensors 7				// Логировать обмен между беспроводными датчиками
 #define fPWMLogErrors  		8               // флаг писать в лог ошибки электросчетчика
 #define fDontRegenOnWeekend	9				// Не делать регенерацию в выходные
+#define fDebugToJournal		10				// Расширенная отладка в журнал
  
 // Структура для хранения опций
 struct type_option {
@@ -143,6 +145,8 @@ struct type_option {
 	uint16_t FillingTankTimeout;	// сек, Время заполнения бака на 3% при отсутствии потребления
 	int16_t  Weight_Empty;			// сотые %, Низкий уровень реагента, для тревоги
 	uint16_t CriticalErrorsTimeout;	// сек, время восстановления после критических ошибок, кроме протечки
+	uint16_t BackWashFeedPumpDelay; // в TIME_READ_SENSOR, задержка включения дозатора
+	uint32_t BackWashFeedPumpMaxFlow; // лч, Во время обратной промывки - максимальный проток до которого распределяется время включения дозатора
 } __attribute__((packed));
 
 //  Работа с отдельными флагами type_DateTime
@@ -342,6 +346,7 @@ public:
 	statChart ChartWaterBoost;
 	statChart ChartFeedPump;
 	statChart ChartFillTank;
+	statChart ChartBrineWeight;
 
 	TaskHandle_t xHandlePumps;
 	TaskHandle_t xHandleBooster;

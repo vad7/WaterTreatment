@@ -120,14 +120,14 @@ void web_server(uint8_t thread)
 				if(Socket[thread].client.available()) {
 					len = Socket[thread].client.get_ReceivedSizeRX();                  // получить длину входного пакета
 					if(len > W5200_MAX_LEN) {
-						journal.printf("WEB:Big packet: %d - truncated!\n", len);
+						journal.jprintfopt("WEB:Big packet: %d - truncated!\n", len);
 #ifdef DEBUG
-						journal.printf("%s\n\n", Socket[thread].inBuf);
+						journal.jprintfopt("%s\n\n", Socket[thread].inBuf);
 #endif
 						len = W5200_MAX_LEN; // Ограничить размером в максимальный размер пакета w5200
 					}
 					if(Socket[thread].client.read(Socket[thread].inBuf, len) != len) {
-						journal.printf("WEB:Read error\n");
+						journal.jprintfopt("WEB:Read error\n");
 						break;
 					}
 					// Ищем в запросе полезную информацию (имя файла или запрос ajax)
@@ -137,8 +137,8 @@ void web_server(uint8_t thread)
 						Socket[thread].inBuf[len + 1] = 0;              // обрезать строку
 					}
 #ifdef LOG
-					journal.printf("$QUERY: %s\n",Socket[thread].inPtr);
-					journal.printf("$INPUT: %s\n",(char*)Socket[thread].inBuf);
+					journal.jprintfopt("$QUERY: %s\n",Socket[thread].inPtr);
+					journal.jprintfopt("$INPUT: %s\n",(char*)Socket[thread].inBuf);
 #endif
 					switch(Socket[thread].http_req_type)  // По типу запроса
 					{
@@ -180,13 +180,13 @@ void web_server(uint8_t thread)
 						strcpy(Socket[thread].outBuf, HEADER_ANSWER);   // Начало ответа
 						parserGET(thread);    // выполнение запроса
 #ifdef LOG
-						journal.printf("$RETURN: %s\n",Socket[thread].outBuf);
+						journal.jprintfopt("$RETURN: %s\n",Socket[thread].outBuf);
 #endif
 						if(sendBufferRTOS(thread, (byte*) (Socket[thread].outBuf), strlen(Socket[thread].outBuf)) == 0) {
 							if(MC.get_NetworkFlags() & (1<<fWebLogError)) {
 								uint8_t ip[4];
 								W5100.readSnDIPR(sock, ip);
-								journal.printf("$Error send AJAX(%d.%d.%d.%d): %s\n", ip[0], ip[1], ip[2], ip[3], (char*) Socket[thread].inBuf);
+								journal.jprintfopt("$Error send AJAX(%d.%d.%d.%d): %s\n", ip[0], ip[1], ip[2], ip[3], (char*) Socket[thread].inBuf);
 							}
 						}
 						break;
@@ -200,7 +200,7 @@ void web_server(uint8_t thread)
     						if(MC.get_NetworkFlags() & (1<<fWebLogError)) {
     							uint8_t ip[4];
     							W5100.readSnDIPR(sock, ip);
-    							journal.printf("$Error send POST(%d.%d.%d.%d): %s\n", ip[0], ip[1], ip[2], ip[3], (char*) Socket[thread].inBuf);
+    							journal.jprintfopt("$Error send POST(%d.%d.%d.%d): %s\n", ip[0], ip[1], ip[2], ip[3], (char*) Socket[thread].inBuf);
     						}
                			}
 						break;
@@ -231,7 +231,7 @@ xUNAUTHORIZED:
 					}
 
 					default:
-						journal.printf("$Unknow  %s\n", (char*) Socket[thread].inBuf);
+						journal.jprintfopt("$Unknow  %s\n", (char*) Socket[thread].inBuf);
 					}
 
 					SPI_switchW5200();
@@ -256,7 +256,7 @@ void readFileSD(char *filename, uint8_t thread)
 {
 	int n;
 	SdFile webFile;
-	//  journal.printf("$Thread: %d socket: %d read file: %s\n",thread,Socket[thread].sock,filename);
+	//  journal.jprintfopt("$Thread: %d socket: %d read file: %s\n",thread,Socket[thread].sock,filename);
 	char *str;
 	STORE_DEBUG_INFO(11);
 
@@ -326,7 +326,7 @@ void readFileSD(char *filename, uint8_t thread)
 			get_indexNoSD(thread); // минимальная морда
 		} else if(strncmp(filename, "SD:", 3) == 0) {  // TEST.SD:<filename> - Тестирует скорость чтения файла с SD карты
 			filename += 3;
-			journal.printf("SD card test: %s - ", filename);
+			journal.jprintfopt("SD card test: %s - ", filename);
 			sendConstRTOS(thread, HEADER_FILE_WEB);
 			SPI_switchSD();
 			if(webFile.open(filename, O_READ)) {
@@ -334,7 +334,7 @@ void readFileSD(char *filename, uint8_t thread)
 				uint32_t size = 0;
 				for(;;) {
 					int n = webFile.read(Socket[thread].outBuf, sizeof(Socket[thread].outBuf));
-					if(n < 0) journal.printf("Read SD error (%d,%d)!\n", card.cardErrorCode(), card.cardErrorData());
+					if(n < 0) journal.jprintfopt("Read SD error (%d,%d)!\n", card.cardErrorCode(), card.cardErrorData());
 					if(n <= 0) break;
 					size += n;
 					if(millis() - startTick > (3*W5200_TIME_WAIT/portTICK_PERIOD_MS) - 1000) break; // на секунду меньше, чем блок семафора
@@ -344,16 +344,16 @@ void readFileSD(char *filename, uint8_t thread)
 				webFile.close();
 				journal.jprintf("read %u bytes, %u b/sec\n", size, (uint64_t)size * 1000 / startTick);
 				/*/ check write!
-				if(!webFile.open(filename, O_RDWR)) journal.printf("Error open for writing!\n");
+				if(!webFile.open(filename, O_RDWR)) journal.jprintfopt("Error open for writing!\n");
 				else {
 					n = webFile.write("Test write!");
-					journal.printf("Wrote %d byte\n", n);
-					if(!webFile.sync()) journal.printf("Sync failed (%d,%d)\n", card.cardErrorCode(), card.cardErrorData());
+					journal.jprintfopt("Wrote %d byte\n", n);
+					if(!webFile.sync()) journal.jprintfopt("Sync failed (%d,%d)\n", card.cardErrorCode(), card.cardErrorData());
 					webFile.close();
 				}
 				//*/
 			} else {
-				journal.printf("not found (%d,%d)!\n", card.cardErrorCode(), card.cardErrorData());
+				journal.jprintfopt("not found (%d,%d)!\n", card.cardErrorCode(), card.cardErrorData());
 			}
 		}
 		return;
@@ -376,20 +376,20 @@ void readFileSD(char *filename, uint8_t thread)
 					if(card.begin(PIN_SPI_CS_SD, SD_SCK_MHZ(SD_CLOCK))) {
 						if(webFile.open(filename, O_READ)) goto xFileFound;
 					} else {
-						journal.printf("Reinit SD card failed!\n");
+						journal.jprintfopt("Reinit SD card failed!\n");
 						//MC.set_fSD(false);
 					}
 				}
 				sendConstRTOS(thread, HEADER_FILE_NOT_FOUND);
 				uint8_t ip[4];
 				W5100.readSnDIPR(Socket[thread].sock, ip);
-				journal.printf((char*) "WEB: %d.%d.%d.%d - File not found: %s\n", ip[0], ip[1], ip[2], ip[3], filename);
+				journal.jprintfopt((char*) "WEB: %d.%d.%d.%d - File not found: %s\n", ip[0], ip[1], ip[2], ip[3], filename);
 				return;
 			} // файл не найден
 xFileFound:
 			// Файл открыт читаем данные и кидаем в сеть
 	#ifdef LOG
-			journal.printf("$Thread: %d socket: %d read file: %s\n",thread,Socket[thread].sock,filename);
+			journal.jprintfopt("$Thread: %d socket: %d read file: %s\n",thread,Socket[thread].sock,filename);
 	#endif
 			if(strstr(filename, ".css") != NULL) sendConstRTOS(thread, HEADER_FILE_CSS); // разные заголовки
 			else sendConstRTOS(thread, HEADER_FILE_WEB);
@@ -398,7 +398,7 @@ xFileFound:
 				if(sendBufferRTOS(thread, (byte*) (Socket[thread].outBuf), n) == 0) break;
 				SPI_switchSD();
 			} // while
-			if(n < 0) journal.printf("Read SD error (%d,%d)!\n", card.cardErrorCode(), card.cardErrorData());
+			if(n < 0) journal.jprintfopt("Read SD error (%d,%d)!\n", card.cardErrorCode(), card.cardErrorData());
 			SPI_switchSD();
 			webFile.close();
 		}
@@ -409,7 +409,7 @@ xFileFound:
 			SerialFlashFile ff = SerialFlash.open(filename);
 			if(ff) {
 	#ifdef LOG
-				journal.printf("$Thread: %d socket: %d read file: %s\n",thread,Socket[thread].sock,filename);
+				journal.jprintfopt("$Thread: %d socket: %d read file: %s\n",thread,Socket[thread].sock,filename);
 	#endif
 				if(strstr(filename, ".css") != NULL) sendConstRTOS(thread, HEADER_FILE_CSS); // разные заголовки
 				else sendConstRTOS(thread, HEADER_FILE_WEB);
@@ -419,14 +419,14 @@ xFileFound:
 					if(sendBufferRTOS(thread, (byte*) (Socket[thread].outBuf), n) == 0) break;
 					//	SPI_switchSD();
 				} // while
-				//if(n < 0) journal.printf("Read SD error (%d,%d)!\n", card.cardErrorCode(), card.cardErrorData());
+				//if(n < 0) journal.jprintfopt("Read SD error (%d,%d)!\n", card.cardErrorCode(), card.cardErrorData());
 				//SPI_switchSD();
 				//webFile.close();
 			} else {
 				sendConstRTOS(thread, HEADER_FILE_NOT_FOUND);
 				uint8_t ip[4];
 				W5100.readSnDIPR(Socket[thread].sock, ip);
-				journal.printf((char*) "WEB GET(%d.%d.%d.%d) - Not found: %s\n", ip[0], ip[1], ip[2], ip[3], filename);
+				journal.jprintfopt((char*) "WEB GET(%d.%d.%d.%d) - Not found: %s\n", ip[0], ip[1], ip[2], ip[3], filename);
 				return;
 			}
 		}
@@ -466,8 +466,8 @@ void parserGET(uint8_t thread)
 		}
 		if(strReturn > Socket[thread].outBuf + sizeof(Socket[thread].outBuf) - 250)  // Контроль длины выходной строки - если слишком длинная обрезаем и выдаем ошибку
 		{
-			journal.printf("$ERROR - Response buffer overflowed!\n");
-			journal.printf("%s\n",strReturn);
+			journal.jprintfopt("$ERROR - Response buffer overflowed!\n");
+			journal.jprintfopt("%s\n",strReturn);
 			strcat(strReturn,"E07");
 			ADD_WEBDELIM(strReturn);
 			break;   // выход из обработки запроса
@@ -1963,7 +1963,7 @@ TYPE_RET_POST parserPOST(uint8_t thread, uint16_t size)
 	char *nameFile;      // указатель имя файла
 	int32_t buf_len, lenFile;
 
-	//journal.printf(" POST =>"); journal.printf("%s\n", Socket[thread].inPtr); if(strlen(Socket[thread].inPtr) >= PRINTF_BUF) journal.printf("%s\n", Socket[thread].inPtr + PRINTF_BUF - 1);
+	//journal.jprintfopt(" POST =>"); journal.jprintfopt("%s\n", Socket[thread].inPtr); if(strlen(Socket[thread].inPtr) >= PRINTF_BUF) journal.jprintfopt("%s\n", Socket[thread].inPtr + PRINTF_BUF - 1);
 	STORE_DEBUG_INFO(51);
 
 	// Поиски во входном буфере: данных, имени файла и длины файла
@@ -2045,7 +2045,7 @@ TYPE_RET_POST parserPOST(uint8_t thread, uint16_t size)
 				return pLOAD_ERR;
 			}
 			numFilesWeb = 0;
-			journal.jprintf(pP_TIME, "Start upload, erase SPI disk ");
+			journal.jprintf_time("Start upload, erase SPI disk ");
 			SerialFlash.eraseAll();
 			while(SerialFlash.ready() == false) {
 				xSemaphoreGive(xWebThreadSemaphore); // отдать семафор вебморды, что бы обработались другие потоки веб морды
@@ -2071,11 +2071,11 @@ TYPE_RET_POST parserPOST(uint8_t thread, uint16_t size)
 				return pLOAD_ERR;
 			}
 			numFilesWeb = 0;
-			journal.jprintf(pP_TIME, "Start upload to SD.\n");
+			journal.jprintf_time("Start upload to SD.\n");
 			return pNULL;
 		} else if(strcmp(nameFile, LOAD_FLASH_END) == 0 || strcmp(nameFile, LOAD_SD_END) == 0) {  // Окончание загрузки вебморды
 			if(SemaphoreTake(xLoadingWebSemaphore, 0) == pdFALSE) { // Семафор не захвачен (был захвачен ранее) все ок
-				journal.jprintf(pP_TIME, "Ok, %d files uploaded, free %.1f KB\n", numFilesWeb, fWebUploadingFilesTo == 1 ? (float)SerialFlash.free_size() / 1024 : (float)card.vol()->freeClusterCount() * card.vol()->blocksPerCluster() * 512 / 1024);
+				journal.jprintf_time("Ok, %d files uploaded, free %.1f KB\n", numFilesWeb, fWebUploadingFilesTo == 1 ? (float)SerialFlash.free_size() / 1024 : (float)card.vol()->freeClusterCount() * card.vol()->blocksPerCluster() * 512 / 1024);
 				fWebUploadingFilesTo = 0;
 				SemaphoreGive (xLoadingWebSemaphore);
 				return pLOAD_OK;

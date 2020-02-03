@@ -32,7 +32,7 @@
 #define NTP_REPEAT        3                 // Число попыток запросов NTP сервера
 #define NTP_REPEAT_TIME   1000              // (мсек) Время между повторами ntp пакетов
 #define PING_SERVER       "8.8.8.8"          // ping сервер по ДЕФОЛТУ
-#define WDT_TIME          10                // период Watchdog таймера секунды но не более 16 секунд!!! ЕСЛИ установить 0 то Watchdog будет отключен!!!
+#define WDT_TIME          6                 // период Watchdog таймера секунды но не более 16 секунд!!! ЕСЛИ установить 0 то Watchdog будет отключен!!!
 #ifndef INDEX_FILE
 #define INDEX_FILE        "index.html"       // стартовый файл по умолчанию для большой морды
 #endif
@@ -345,6 +345,7 @@ const char *chart_fullPOWER  = {"Power"};               // Статистика 
 const char *chart_WaterBoost = {"WaterBoost"};
 const char *chart_FeedPump   = {"FeedPump"};
 const char *chart_FillTank   = {"FillTank"};
+const char *chart_BrineWeight= {"Weight"};
 
 // Описание имен параметров опций   для функций get_option ("get_Opt") set_option ("set_Opt")
 const char *option_ATTEMPT            	= {"ATTEMPT"};            // число попыток пуска
@@ -358,6 +359,8 @@ const char *option_WebOnSPIFlash		= {"WSPIF"};              // флаг, что 
 const char *option_LogWirelessSensors	= {"LOGWS"};              // Логировать обмен между беспроводными датчиками
 const char *option_fDontRegenOnWeekend	= {"NRW"};
 const char *option_FeedPumpMaxFlow		= {"FPMF"};
+const char *option_BackWashFeedPumpMaxFlow= {"BWMF"};
+const char *option_BackWashFeedPumpDelay = {"BWFD"};
 const char *option_RegenHour			= {"RH"};
 const char *option_DaysBeforeRegen		= {"DBR"};
 const char *option_UsedBeforeRegen		= {"UBR"};
@@ -377,7 +380,7 @@ const char *option_FloodingTimeout		= {"FT"};
 const char *option_PWATER_RegMin		= {"WRM"};
 const char *option_LTANK_Empty			= {"TE"};
 const char *option_Weight_Empty			= {"WE"};
-const char *option_DebugToSerialOn		= {"DBG"};
+const char *option_fDebugToSerialOn		= {"DBG"};
 const char *option_FillingTankTimeout	= {"FTT"};
 const char *option_CriticalErrorsTimeout= {"CET"};
 

@@ -112,7 +112,7 @@ struct History_setup {
 		#define I2C_FRAM_MEMORY  0		// 1 - FRAM память
 	#else
 		#define DEBUG                   // В последовательный порт шлет сообщения в первую очередь ошибки
-    	//#define DEBUG_NATIVE_USB		// Отладка через второй USB порт (Native)
+    	#define DEBUG_NATIVE_USB		// Отладка через второй USB порт (Native)
 		#define DEBUG_LEVEL		 1		// 0 - silence, 1 - more...
 		#define I2C_EEPROM_64KB	        // Размер I2C памяти (одна страница)
 		#define I2C_FRAM_MEMORY  0		// 1 - FRAM память
@@ -199,8 +199,8 @@ struct History_setup {
 	#define INUMBER             5   	// Число контактных датчиков цифровые входы
 #endif
     // Имена индексов
-	#define REG_ACTIVE			0        // Активна регенерация (INP2)
-	#define REG_BACKWASH_ACTIVE 1        // Активна обратная промывка (INP3)
+	#define REG_ACTIVE			0        // Активна регенерация (INP2) (белый+/коричневый)
+	#define REG_BACKWASH_ACTIVE 1        // Активна обратная промывка (INP3) (белый+/синий)
 	#define REG2_ACTIVE			2        // Активна регенерация умягчителя (INP4)
 	#define FLOODING			3        // Протечка (INP5)
 	#define TANK_EMPTY			4        // Емкость пуста (INP6)
@@ -281,8 +281,8 @@ struct History_setup {
 	#define RDRAIN					4	// Реле слива
 	#define RFILL					5	// Реле заполнения бака
     // устройства DC 5..24V
-	#define RSTARTREG				6	// Реле старта регенерации обезжелезивателя
-	#define RSTARTREG2				7	// Реле старта регенерации умягчителя
+	#define RSTARTREG				6	// Реле старта регенерации обезжелезивателя (белый+/зеленый-)
+	#define RSTARTREG2				7	// Реле старта регенерации умягчителя (белый+/оранжевый-)
 
 	//#define RELAY_WAIT_SWITCH		10	// Заморозить выполнение задач на это время после переключения реле, ms
 
@@ -410,12 +410,13 @@ struct History_setup {
 	// напряжение (отсчеты АЦП) соответсвующее cZero
 	const uint16_t ZEROPRESS[ANUMBER] = { 389, 4226 };
 	// Усиление на шине (0,1 = x1, 2 = x2, 3 = x4)
-	const uint8_t  ADC_GAIN[ANUMBER]  = { 1,  2 };
+	const uint8_t  ADC_GAIN[ANUMBER]  = {   1,    2 };
 
-	const boolean SENSORPRESS[ANUMBER]= { true, true };		// Присутствие датчика в конфигурации
-	const int16_t MINPRESS[ANUMBER]   = {  250, 500 };		// минимальные значения давления, в сотых
+	const boolean SENSORPRESS[ANUMBER]= { true,  true };	// Присутствие датчика в конфигурации
+	const int16_t MINPRESS[ANUMBER]   = {  250,   500 };	// минимальные значения давления, в сотых
 	const uint16_t MAXPRESS[ANUMBER]  = {  370, 10000 };	// Максимальные значения давления, в сотых
-	const uint16_t TESTPRESS[ANUMBER] = {  300, 8000 };		// Значения датчиков при тестировании  опция TEST, в сотых
+	const uint16_t TESTPRESS[ANUMBER] = {  300,  8000 };	// Значения датчиков при тестировании  опция TEST, в сотых
+	const uint8_t ADC_FILTER[ANUMBER] = {    4,   100 };	// Длина фильтра усреднения
 
 	//#define ANALOG_MODBUS 								// Данные аналоговых датчиков читаются по Modbus RTU
 	#ifdef ANALOG_MODBUS
@@ -424,15 +425,13 @@ struct History_setup {
 	  const uint16_t ANALOG_MODBUS_ADDR[ANUMBER] = { 1, 1 };	// Адрес устройства Модбас, если 0, то датчик обычный.
 	  const uint16_t ANALOG_MODBUS_REG[ANUMBER]  = { 60, 59 };	// Регистр Модбас, по которому доступно значение датчика. Для Vacon=(AI2, AI1)
 	#endif
-	// ------------------- ADC SENSOR ----------------------------------
+	// ------------------- ADC Setup ----------------------------------
 	#define ADC_PRESCAL					9		// = (42 / ADCClockMhz - 1), - 4.2 MHz
-	#define ADC_SKIP_EXTREMUM			300		// Отбрасывать максимумы/минимумы больше заданной дельты
+	//#define ADC_SKIP_EXTREMUM			70		// Отбрасывать максимумы/минимумы больше заданной дельты
 	#define P_NUMSAMLES					1		// Число значений для усреднения показаний давления
 	#define ADC_FREQ					10		// период опроса аналоговых датчиков в секунду
-	#define FILTER_SIZE					3		// Длина фильтра для датчиков давления
-	//#define FILTER_SIZE_OTHER			4		// Длина фильтра для остальных датчиков
-	#define FILLING_TANK_STEP			300		// сотые %, На сколько должен заполняться бак за время Option.FillingTankTimeout
 
+	#define FILLING_TANK_STEP			200		// сотые %, На сколько должен заполняться бак за время Option.FillingTankTimeout (2% - 40s, 3% - 60s)
 	#define DELAY_AFTER_SWITCH_RELAY	250		// Задержка после переключения реле, для сглаживания потребления и уменьшения помех(мс)
 
 	// Статистика по дням

@@ -191,20 +191,23 @@ void setup() {
 
 	// 2. Инициализация журнала и в нем последовательный порт
 	journal.Init();
+	uint16_t flags;
+	if(readEEPROM_I2C(I2C_SETTING_EEPROM + 2 + 1 + sizeof(MC.Option.ver), (uint8_t*)&flags, sizeof(MC.Option.flags))) flags = 0;
+	DebugToJournalOn = GETBIT(flags, fDebugToJournal);
 #ifdef TEST_BOARD
-	DebugToSerialOn = true;
+	DebugToJournalOn = true;
 	journal.jprintf("\n---> TEST BOARD!!!\n\n");
 #endif
-	journal.printf("Firmware version: %s\n",VERSION);
-	showID();                                                                  // информация о чипе
-	getIDchip((char*)Socket[0].inBuf);
-	journal.printf("Chip ID SAM3X8E: %s\n", Socket[0].inBuf);// информация об серийном номере чипа
+
+	//journal.jprintfopt("Firmware version: %s\n", VERSION);
+	//showID();                                                                  // информация о чипе
+	//getIDchip((char*)Socket[0].inBuf);
+	//journal.jprintfopt("Chip ID SAM3X8E: %s\n", Socket[0].inBuf);// информация об серийном номере чипа
 	if(GPBR->SYS_GPBR[0] & 0x80000000) GPBR->SYS_GPBR[0] = 0; else GPBR->SYS_GPBR[0] |= 0x80000000; // очистка старой причины
 	lastErrorFreeRtosCode = GPBR->SYS_GPBR[0] & 0x7FFFFFFF;         // Сохранение кода ошибки при страте (причину перегрузки)
-	journal.jprintf("Reset: %s, 0x%04x", ResetCause(), lastErrorFreeRtosCode);
+	journal.jprintf_date("Reset: %s, 0x%04x", ResetCause(), lastErrorFreeRtosCode);
 	if(GPBR->SYS_GPBR[4]) journal.jprintf(" %d", GPBR->SYS_GPBR[4]);
 	journal.jprintf("\n");
-
 
 #ifdef PIN_LED1                            // Включение (точнее индикация) питания платы если необходимо
 	pinMode(PIN_LED1,OUTPUT);
@@ -218,7 +221,7 @@ void setup() {
 #endif
 
 	// 3. Инициализация и проверка шины i2c
-	journal.printf("* Setting and checking I2C devices . . .\n");
+	journal.jprintfopt("* Setting and checking I2C devices . . .\n");
 
 	uint8_t eepStatus=0;
 #ifndef I2C_JOURNAL_IN_RAM
@@ -251,13 +254,13 @@ void setup() {
 	if(eepStatus)  // если I2C память не инициализирована, делаем попытку запустится на малой частоте один раз!
 	{
 		if((eepStatus=eepromI2C.begin(twiClock100kHz))>0) {
-			journal.printf("$ERROR - I2C mem init failed on speed %d kHz, status = %d\n",twiClock100kHz/1000,eepStatus);
+			journal.jprintfopt("$ERROR - I2C mem init failed on speed %d kHz, status = %d\n",twiClock100kHz/1000,eepStatus);
 			eepromI2C.begin(I2C_SPEED);
 			goto x_I2C_init_std_message;
-		} else journal.printf("I2C bus low speed, init on %d kHz - OK\n",twiClock100kHz/1000);
+		} else journal.jprintfopt("I2C bus low speed, init on %d kHz - OK\n",twiClock100kHz/1000);
 	} else {
 x_I2C_init_std_message:
-		journal.printf("I2C init on %d kHz - OK\n",I2C_SPEED/1000);
+		journal.jprintfopt("I2C init on %d kHz - OK\n",I2C_SPEED/1000);
 	}
 
 	// Сканирование шины i2c
@@ -291,38 +294,38 @@ x_I2C_init_std_message:
 			}
 			if(error==0)
 			{
-				journal.printf("I2C device found at address %s",byteToHex(address));
+				journal.jprintfopt("I2C device found at address %s",byteToHex(address));
 				switch (address)
 				{
 #ifdef ONEWIRE_DS2482
 				case I2C_ADR_DS2482_4:
 				case I2C_ADR_DS2482_3:
 				case I2C_ADR_DS2482_2:
-				case I2C_ADR_DS2482:  		journal.printf(" - OneWire DS2482-100 bus: %d%s\n", address - I2C_ADR_DS2482 + 1, (ONEWIRE_2WAY & (1<<(address - I2C_ADR_DS2482))) ? " (2W)" : ""); break;
+				case I2C_ADR_DS2482:  		journal.jprintfopt(" - OneWire DS2482-100 bus: %d%s\n", address - I2C_ADR_DS2482 + 1, (ONEWIRE_2WAY & (1<<(address - I2C_ADR_DS2482))) ? " (2W)" : ""); break;
 #endif
 #if I2C_FRAM_MEMORY == 1
-				case I2C_ADR_EEPROM:	journal.printf(" - FRAM FM24V%02d\n", I2C_MEMORY_TOTAL*10/1024); break;
+				case I2C_ADR_EEPROM:	journal.jprintfopt(" - FRAM FM24V%02d\n", I2C_MEMORY_TOTAL*10/1024); break;
 #if I2C_MEMORY_TOTAL != I2C_SIZE_EEPROM
-				case I2C_ADR_EEPROM+1:	journal.printf(" - FRAM second 64k page\n"); break;
+				case I2C_ADR_EEPROM+1:	journal.jprintfopt(" - FRAM second 64k page\n"); break;
 #endif
 #else
-				case I2C_ADR_EEPROM:	journal.printf(" - EEPROM AT24C%d\n", I2C_SIZE_EEPROM);break; // 0x50 возможны варианты
+				case I2C_ADR_EEPROM:	journal.jprintfopt(" - EEPROM AT24C%d\n", I2C_SIZE_EEPROM);break; // 0x50 возможны варианты
 #if I2C_MEMORY_TOTAL != I2C_SIZE_EEPROM
-				case I2C_ADR_EEPROM+1:	journal.printf(" - EEPROM second 64k page\n"); break;
+				case I2C_ADR_EEPROM+1:	journal.jprintfopt(" - EEPROM second 64k page\n"); break;
 #endif
 #endif
-				case I2C_ADR_RTC   :		journal.printf(" - RTC DS3231\n"); break; // 0x68
-				default            :		journal.printf(" - Unknow\n"); break; // не определенный тип
+				case I2C_ADR_RTC   :		journal.jprintfopt(" - RTC DS3231\n"); break; // 0x68
+				default            :		journal.jprintfopt(" - Unknow\n"); break; // не определенный тип
 				}
 				_delay(100);
 			}
-			//    else journal.printf("I2C device bad endTransmission at address %s code %d",byteToHex(address), error);
+			//    else journal.jprintfopt("I2C device bad endTransmission at address %s code %d",byteToHex(address), error);
 		} // for
 	} //  (eepStatus==0)
 
 #ifndef ONEWIRE_DS2482         // если нет моста
 	if(OneWireBus.Init()) journal.jprintf("Error init 1-Wire: %d\n", OneWireBus.GetLastErr());
-	else journal.printf("1-Wire init Ok\n");
+	else journal.jprintfopt("1-Wire init Ok\n");
 #endif
 
 #ifdef RADIO_SENSORS
@@ -338,15 +341,15 @@ x_I2C_init_std_message:
 #endif
 
 	// 4. Инициализировать основной класс
-	journal.printf("* Init %s.\n",(char*)nameMainClass);
+	journal.jprintfopt("* Init %s.\n",(char*)nameMainClass);
 	MC.init();                           // Основной класс
 
 	// 5. Установка сервисных пинов
 
-	journal.printf("* Read safe Network key.\n");
+	journal.jprintfopt("* Read safe Network key.\n");
 	pinMode(PIN_KEY_SAFE, INPUT_PULLUP);               // Кнопка 1, Нажатие при включении - режим safeNetwork (настрока сети по умолчанию 192.168.0.177  шлюз 192.168.0.1, не спрашивает пароль на вход в веб морду)
 	MC.safeNetwork=!digitalReadDirect(PIN_KEY_SAFE);
-	if (MC.safeNetwork)  journal.jprintf("Mode safeNetwork ON \n"); else journal.printf("Mode safeNetwork OFF \n");
+	if (MC.safeNetwork)  journal.jprintf("Mode safeNetwork ON \n"); else journal.jprintfopt("Mode safeNetwork OFF \n");
 
 	pinMode(PIN_BEEP, OUTPUT);              // Выход на пищалку
 	pinMode(PIN_LED_OK, OUTPUT);            // Выход на светодиод мигает 0.5 герца - ОК  с частотой 2 герца ошибка
@@ -354,10 +357,10 @@ x_I2C_init_std_message:
 	digitalWriteDirect(PIN_LED_OK,HIGH);    // Выключить светодиод
 
 	// 6. Чтение ЕЕПРОМ
-	journal.printf("* Load data from I2C memory.\n");
+	journal.jprintfopt("* Load data from I2C memory.\n");
 	if(MC.load_WorkStats() == ERR_HEADER2_EEPROM)           // Загрузить счетчики
 	{
-		journal.printf("I2C memory is empty!\n");
+		journal.jprintfopt("I2C memory is empty!\n");
 		MC.save_WorkStats();
 	} else {
 		MC.load((uint8_t *)Socket[0].outBuf, 0);      // Загрузить настройки
@@ -368,7 +371,7 @@ x_I2C_init_std_message:
 	MC.set_hashAdmin();
 
 	// 7. Инициализация СД карты и запоминание результата 3 попытки
-	journal.printf("* Init SD card.\n");
+	journal.jprintfopt("* Init SD card.\n");
 	WDT_Restart(WDT);
 	MC.set_fSD(initSD());
 	WDT_Restart(WDT);                          // Сбросить вачдог  иногда карта долго инициализируется
@@ -377,36 +380,36 @@ x_I2C_init_std_message:
 
 	// 8. Инициализация spi флеш диска
 #ifdef SPI_FLASH
-	journal.printf("* Init SPI flash disk.\n");
+	journal.jprintfopt("* Init SPI flash disk.\n");
 	MC.set_fSPIFlash(initSpiDisk(true));  // проверка диска с выводом инфо
 #else
-	journal.printf("* No SPI flash in config.\n");
+	journal.jprintfopt("* No SPI flash in config.\n");
 #endif
 
-	journal.printf(" Web interface source: ");
+	journal.jprintfopt(" Web interface source: ");
 	switch (MC.get_SourceWeb())
 	{
-	case pMIN_WEB:   journal.printf("internal\n"); break;
-	case pSD_WEB:    journal.printf("SD card\n"); break;
-	case pFLASH_WEB: journal.printf("SPI Flash\n"); break;
-	default:         journal.printf("unknown\n"); break;
+	case pMIN_WEB:   journal.jprintfopt("internal\n"); break;
+	case pSD_WEB:    journal.jprintfopt("SD card\n"); break;
+	case pFLASH_WEB: journal.jprintfopt("SPI Flash\n"); break;
+	default:         journal.jprintfopt("unknown\n"); break;
 	}
 
-	journal.printf("* Start read ADC sensors.\n");
+	journal.jprintfopt("* Start read ADC sensors.\n");
 	start_ADC(); // после инициализации
-	//journal.printf(" Mask ADC_IMR: 0x%08x\n",ADC->ADC_IMR);
+	//journal.jprintfopt(" Mask ADC_IMR: 0x%08x\n",ADC->ADC_IMR);
 
 	// 10. Сетевые настройки
-	journal.printf("* Setting Network.\n");
+	journal.jprintfopt("* Setting Network.\n");
 	if(initW5200(true)) {   // Инициализация сети с выводом инфы в консоль
 		W5100.getMACAddress((uint8_t *)Socket[0].outBuf);
-		journal.printf(" MAC: %s\n", MAC2String((uint8_t *)Socket[0].outBuf));
+		journal.jprintfopt(" MAC: %s\n", MAC2String((uint8_t *)Socket[0].outBuf));
 	}
 	digitalWriteDirect(PIN_BEEP,LOW);          // Выключить пищалку
 	WDT_Restart(WDT);
 
 	// 11. Разбираемся со всеми часами и синхронизацией
-	journal.printf("* Setting time.\n");
+	journal.jprintfopt("* Setting time.\n");
 	int16_t s = rtcI2C.readRTC(RTC_STATUS);        //read the status register
 	if(s != -1) {
 		if(s & (1<<RTC_OSF)) {
@@ -419,30 +422,30 @@ x_I2C_init_std_message:
 			if(rtcI2C.readRTC(RTC_STORE_ADDR, (uint8_t*)&MC.RTC_store, sizeof(MC.RTC_store))) {
 				memset(&MC.RTC_store, 0, sizeof(MC.RTC_store));
 				journal.jprintf(" Error read RTC store!\n");
-			} else journal.printf(" RTC MEM: %02X, D: %d, R: %d\n", MC.RTC_store.Work, MC.RTC_store.UsedToday, MC.RTC_store.UsedRegen);
+			} else journal.jprintfopt(" RTC MEM: %02X, D: %d, R: %d\n", MC.RTC_store.Work, MC.RTC_store.UsedToday, MC.RTC_store.UsedRegen);
 		}
 	} else journal.jprintf(" Error read RTC!\n");
 	set_time();
 
 	// 12. Инициалазация уведомлений
-	//journal.printf("* Message DNS update.\n");
+	//journal.jprintfopt("* Message DNS update.\n");
 	//MC.message.dnsUpdate();
 
 	// 13. Инициалазация MQTT
 #ifdef MQTT
-	journal.printf("* Client MQTT update IP from DNS . . .\n");
+	journal.jprintfopt("* Client MQTT update IP from DNS . . .\n");
 	MC.clMQTT.dnsUpdateStart();
 #else
-	journal.printf("* Client MQTT disabled\n");
+	journal.jprintfopt("* Client MQTT disabled\n");
 #endif
 
 	WDT_Restart(WDT);
 	// 14. Инициалазация Statistics
-	journal.printf("* Statistics ");
+	journal.jprintfopt("* Statistics ");
 	if(MC.get_fSD()) {
-		journal.printf("writing on SD card\n");
+		journal.jprintfopt("writing on SD card\n");
 		Stats.Init();             // Инициализовать статистику
-	} else journal.printf("not available\n");
+	} else journal.jprintfopt("not available\n");
 
 #ifdef TEST_BOARD
 	// Scan oneWire - TEST.
@@ -451,10 +454,10 @@ x_I2C_init_std_message:
 
 	Weight.begin(HX711_DOUT_PIN, HX711_SCK_PIN);
 	Weight_Clear_Averaging();
-	journal.printf("* Scale inited, ADC: %d\n", Weight.read() - MC.Option.WeightZero);
+	journal.jprintfopt("* Scale inited, ADC: %d\n", Weight.read() - MC.Option.WeightZero);
 
 	// Создание задач FreeRTOS  ----------------------
-	journal.printf("* Create tasks FreeRTOS.\n");
+	journal.jprintfopt("* Create tasks FreeRTOS.\n");
 	MC.mRTOS=236;  //расчет памяти для задач 236 - размер данных шедуллера, каждая задача требует 64 байта+ стек (он в словах!!)
 	MC.mRTOS=MC.mRTOS+64+4*configMINIMAL_STACK_SIZE;  // задача бездействия
 	//MC.mRTOS=MC.mRTOS+4*configTIMER_TASK_STACK_DEPTH;  // программные таймера (их теперь нет)
@@ -469,9 +472,9 @@ x_I2C_init_std_message:
 	MC.mRTOS=MC.mRTOS+64+4* 150;
 
 	// ПРИОРИТЕТ 2 средний
-	if(xTaskCreate(vKeysLCD, "KeysLCD", 70, NULL, 4, &MC.xHandleKeysLCD) == errCOULD_NOT_ALLOCATE_REQUIRED_MEMORY) set_Error(ERR_MEM_FREERTOS,(char*)nameFREERTOS);
+	if(xTaskCreate(vKeysLCD, "KeysLCD", 100, NULL, 4, &MC.xHandleKeysLCD) == errCOULD_NOT_ALLOCATE_REQUIRED_MEMORY) set_Error(ERR_MEM_FREERTOS,(char*)nameFREERTOS);
 	MC.mRTOS=MC.mRTOS+64+4* 70;
-	if(xTaskCreate(vService, "Service", 170, NULL, 2, &MC.xHandleService) == errCOULD_NOT_ALLOCATE_REQUIRED_MEMORY) set_Error(ERR_MEM_FREERTOS,(char*)nameFREERTOS);
+	if(xTaskCreate(vService, "Service", 200, NULL, 2, &MC.xHandleService) == errCOULD_NOT_ALLOCATE_REQUIRED_MEMORY) set_Error(ERR_MEM_FREERTOS,(char*)nameFREERTOS);
 	MC.mRTOS=MC.mRTOS+64+4* 170;
 
 	// ПРИОРИТЕТ 1 низкий - обслуживание вебморды в несколько потоков
@@ -500,25 +503,25 @@ x_I2C_init_std_message:
 		if (xModbusSemaphore==NULL) set_Error(ERR_MEM_FREERTOS,(char*)nameFREERTOS);
 	}
 
-	journal.printf(" Create tasks - OK, size %d bytes\n",MC.mRTOS);
+	journal.jprintfopt(" Create tasks - OK, size %d bytes\n",MC.mRTOS);
 
-	//journal.printf("* Send a notification . . .\n");
+	//journal.jprintfopt("* Send a notification . . .\n");
 	//MC.message.setMessage(pMESSAGE_RESET,(char*)"Контроллер был перезагружен",0);    // сформировать уведомление о загрузке
-	journal.printf("* Information:\n");
+	journal.jprintfopt("* Information:\n");
 	freeRamShow();
 	MC.startRAM=freeRam()-MC.mRTOS;   // оценка свободной памяти до пуска шедулера, поправка на 1054 байта
-	journal.printf("FREE MEMORY %d bytes\n",MC.startRAM);
-	journal.printf("Temperature SAM3X8E: %.2f\n",temp_DUE());
-	journal.printf("Temperature DS2331: %.2d\n", getTemp_RtcI2C());
+	journal.jprintfopt("FREE MEMORY %d bytes\n",MC.startRAM);
+	journal.jprintfopt("Temperature SAM3X8E: %.2f\n",temp_DUE());
+	journal.jprintfopt("Temperature DS2331: %.2d\n", getTemp_RtcI2C());
 	//MC.Stat.generate_TestData(STAT_POINT); // Сгенерировать статистику STAT_POINT точек только тестирование
-	journal.printf("Start FreeRTOS!\n\n");
+	journal.jprintfopt("Start FreeRTOS!\n\n");
 #ifndef TEST_BOARD
-	DebugToSerialOn = false;
+	DebugToJournalOn = false;
 #endif
 	eepromI2C.use_RTOS_delay = 1;       //vad711
 	//
 	vTaskStartScheduler();              // СТАРТ !!
-	journal.printf("FreeRTOS FAILURE!\n");
+	journal.jprintfopt("FreeRTOS FAILURE!\n");
 }
 
 
@@ -567,6 +570,7 @@ extern "C" void vApplicationIdleHook(void)  // FreeRTOS expects C linkage
 //	uint32_t tm;
 //	if(--tst < 5) tm = micros();
 	pmc_enable_sleepmode(0);
+	WDT_Restart(WDT);                                                            // Сбросить вачдог
 //	if(tst < 5) {
 //		Serial.print("$"); Serial.print(micros() - tm);	Serial.print("$\n");
 //		if(tst == 0) tst = 1000;
@@ -615,7 +619,7 @@ void vWeb0(void *)
 			// 1. Проверка захваченого семафора сети ожидаем  3 времен W5200_TIME_WAIT если мютекса не получаем то сбрасывае мютекс
 			if(SemaphoreTake(xWebThreadSemaphore, ((3 + (fWebUploadingFilesTo != 0) * 30) * W5200_TIME_WAIT / portTICK_PERIOD_MS)) == pdFALSE) {
 				SemaphoreGive(xWebThreadSemaphore);
-				journal.jprintf(pP_TIME, "UNLOCK mutex xWebThread\n");
+				journal.jprintf_time("UNLOCK mutex xWebThread\n");
 				active = false;
 				MC.num_resMutexSPI++;
 			} // Захват мютекса SPI или ОЖИДАНИНЕ 2 времен W5200_TIME_WAIT и его освобождение
@@ -624,7 +628,7 @@ void vWeb0(void *)
 			// Проверка и сброс митекса шины I2C  если мютекса не получаем то сбрасывае мютекс
 			if(SemaphoreTake(xI2CSemaphore, (3 * I2C_TIME_WAIT / portTICK_PERIOD_MS)) == pdFALSE) {
 				SemaphoreGive(xI2CSemaphore);
-				journal.jprintf(pP_TIME, "UNLOCK mutex xI2CSemaphore\n");
+				journal.jprintf_time("UNLOCK mutex xI2CSemaphore\n");
 				MC.num_resMutexI2C++;
 			} // Захват мютекса I2C или ОЖИДАНИНЕ 3 времен I2C_TIME_WAIT  и его освобождение
 			else SemaphoreGive(xI2CSemaphore);
@@ -642,7 +646,7 @@ void vWeb0(void *)
 				resW5200 = xTaskGetTickCount();
 				if(timeResetW5200 == 0) timeResetW5200 = resW5200;      // Первая итерация не должна быть сразу
 				if(resW5200 - timeResetW5200 > MC.time_resW5200() * 1000UL) {
-					journal.printf("Resetting the chip %s by timer . . .\n", nameWiznet);
+					journal.jprintfopt("Resetting the chip %s by timer . . .\n", nameWiznet);
 					MC.fNetworkReset = true;                          // Послать команду сброса и применения сетевых настроек
 					timeResetW5200 = resW5200;                         // Запомить время сброса
 					active = false;
@@ -656,7 +660,7 @@ void vWeb0(void *)
 				if(!MC.NO_Power) {
 					boolean lst = linkStatusWiznet(false);
 					if(!lst || !network_last_link) {
-						if(!lst) journal.jprintf(pP_TIME, "%s no link[%02X], resetting...\n", nameWiznet, W5100.readPHYCFGR());
+						if(!lst) journal.jprintf_time("%s no link[%02X], resetting...\n", nameWiznet, W5100.readPHYCFGR());
 						MC.fNetworkReset = true;                          // Послать команду сброса и применения сетевых настроек
 						MC.num_resW5200++;              // Добавить счетчик инициализаций
 						active = false;
@@ -750,6 +754,7 @@ void vKeysLCD( void * )
 	{
 		if(setup) if(--setup_timeout == 0) goto xSetupExit;
 		if(!digitalReadDirect(PIN_KEY_OK)) {
+			vTaskDelay(KEY_DEBOUNCE_TIME);
 			if(setup) {
 				{
 					uint32_t t = 2000 / KEY_DEBOUNCE_TIME;
@@ -777,14 +782,12 @@ xSetupExit:
 				lcd.command(LCD_DISPLAYCONTROL | LCD_DISPLAYON | LCD_CURSORON | LCD_BLINKON);
 				DisplayTick = ~DisplayTick;
 			}
-			vTaskDelay(KEY_CHECK_PERIOD);
+			while(!digitalReadDirect(PIN_KEY_OK)) vTaskDelay(KEY_DEBOUNCE_TIME);
 			setup_timeout = DISPLAY_SETUP_TIMEOUT / KEY_CHECK_PERIOD;
-			//journal.printf("[OK]\n");
+			//journal.jprintfopt("[OK]\n");
 		} else if(!digitalReadDirect(PIN_KEY_UP)) {
-			while(!digitalReadDirect(PIN_KEY_UP)) {
-				if(!digitalReadDirect(PIN_KEY_DOWN)) goto xSetupExit;
-				vTaskDelay(KEY_DEBOUNCE_TIME);
-			}
+			vTaskDelay(KEY_DEBOUNCE_TIME);
+			while(!digitalReadDirect(PIN_KEY_UP)) vTaskDelay(KEY_DEBOUNCE_TIME);
 			if(setup) {
 				if((setup & 0xFF) < ((setup & 0xFF00) == 0x100 ? (RNUMBER > 8 ? 8 : RNUMBER) : LCD_SetupMenuItems-1)) {
 					setup++;
@@ -792,8 +795,9 @@ xSetupExit:
 				}
 			} else if(MC.get_errcode()) Error_Beep_confirmed = true;
 			setup_timeout = DISPLAY_SETUP_TIMEOUT / KEY_CHECK_PERIOD;
-			//journal.printf("[UP]\n");
+			//journal.jprintfopt("[UP]\n");
 		} else if(!digitalReadDirect(PIN_KEY_DOWN)) {
+			vTaskDelay(KEY_DEBOUNCE_TIME);
 			while(!digitalReadDirect(PIN_KEY_DOWN)) vTaskDelay(KEY_DEBOUNCE_TIME);
 			if(setup) {
 				if((setup & 0xFF) > 0) {
@@ -802,7 +806,7 @@ xSetupExit:
 				}
 			} else if(MC.get_errcode()) Error_Beep_confirmed = true;
 			setup_timeout = DISPLAY_SETUP_TIMEOUT / KEY_CHECK_PERIOD;
-			//journal.printf("[DWN]\n");
+			//journal.jprintfopt("[DWN]\n");
 		}
 		if(xTaskGetTickCount() - DisplayTick > DISPLAY_UPDATE) { // Update display
 			// Display:
@@ -951,6 +955,8 @@ void vReadSensor(void *)
 		uint32_t passed = MC.sFrequency[FLOW].Passed;
 		if(!MC.sInput[REG_BACKWASH_ACTIVE].get_Input()) {
 			TimeFeedPump +=	(uint32_t)MC.sFrequency[FLOW].get_Value() * TIME_READ_SENSOR / MC.Option.FeedPumpMaxFlow;
+		} else if(++RegBackwashTimer > MC.Option.BackWashFeedPumpDelay) {
+			TimeFeedPump +=	(uint32_t)MC.sFrequency[FLOW].get_Value() * TIME_READ_SENSOR / MC.Option.BackWashFeedPumpMaxFlow;
 		}
 		MC.sFrequency[FLOW].Passed = 0;
 		if(MC.sInput[REG_ACTIVE].get_Input() || MC.sInput[REG_BACKWASH_ACTIVE].get_Input() || MC.sInput[REG2_ACTIVE].get_Input()) {
@@ -1026,9 +1032,9 @@ void vReadSensor(void *)
 					rtcSAM3X8.set_clock(t);                		 // Установить внутренние часы по i2c
 					int32_t dt = t > oldTime ? t - oldTime : -(oldTime - t);
 					MC.updateDateTime(dt);  // Обновить переменные времени с новым значением часов
-					journal.printf("Sync from I2C RTC: %s %s (%d)\n", NowDateToStr(), NowTimeToStr(), dt);
+					journal.jprintfopt("Sync from I2C RTC: %s %s (%d)\n", NowDateToStr(), NowTimeToStr(), dt);
 				} else {
-					journal.printf("Error read I2C RTC\n");
+					journal.jprintfopt("Error read I2C RTC\n");
 				}
 				oldTime = millis();
 			}
@@ -1089,14 +1095,14 @@ void vReadSensor_delay8ms(int16_t ms8)
 				MC.save_WorkStats();
 				Stats.SaveStats(0);
 				Stats.SaveHistory(0);
-				journal.jprintf(pP_DATE, "Power lost!\n");
+				journal.jprintf_date("Power lost!\n");
 			}
 			MC.NO_Power_delay = NO_POWER_ON_DELAY_CNT;
 		} else if(MC.NO_Power) { // Включаемся
 			if(MC.NO_Power_delay) {
 				if(--MC.NO_Power_delay == 0) MC.fNetworkReset = true;
 			} else {
-				journal.jprintf(pP_DATE, "Power restored!\n");
+				journal.jprintf_date("Power restored!\n");
 				MC.NO_Power = 0;
 			}
 		}
@@ -1148,7 +1154,10 @@ void vPumps( void * )
 				FloodingTime = millis() | 1;
 				vPumpsNewError = ERR_FLOODING;
 				if(MC.dRelay[RFILL].get_Relay()) MC.dRelay[RFILL].set_OFF();
-				if(MC.dRelay[RDRAIN].get_Relay()) MC.dRelay[RDRAIN].set_OFF();
+				if(MC.dRelay[RDRAIN].get_Relay()) {
+					MC.dRelay[RDRAIN].set_OFF();
+					TimerDrainingWater = 0;
+				}
 				MC.dRelay[RFEEDPUMP].set_OFF();
 				MC.dRelay[RWATEROFF].set_ON();
 				CriticalErrors |= ERRC_Flooding;
@@ -1242,16 +1251,17 @@ xWaterBooster_OFF:
 		// Regenerating
 		if(MC.sInput[REG_ACTIVE].get_Input() || MC.sInput[REG_BACKWASH_ACTIVE].get_Input()) { // Regen Iron removing filter
 			if(MC.dRelay[RSTARTREG].get_Relay()) MC.dRelay[RSTARTREG].set_OFF();
-			if(!(MC.RTC_store.Work & RTC_Work_Regen_F1)) {
+			if(!(MC.RTC_store.Work & RTC_Work_Regen_F1)) { // Started?
 				MC.RTC_store.Work |= RTC_Work_Regen_F1;
 				MC.dRelay[RWATEROFF].set_ON();
 				NewRegenStatus = true;
+				RegBackwashTimer = 0;
 				MC.RTC_store.UsedRegen = 0;
 				NeedSaveRTC = RTC_SaveAll;
 			}
 		} else if(MC.sInput[REG2_ACTIVE].get_Input()) {	// Regen Softening filter
 			if(MC.dRelay[RSTARTREG2].get_Relay()) MC.dRelay[RSTARTREG2].set_OFF();
-			if(!(MC.RTC_store.Work & RTC_Work_Regen_F2)) {
+			if(!(MC.RTC_store.Work & RTC_Work_Regen_F2)) { // Started?
 				MC.RTC_store.Work |= RTC_Work_Regen_F2;
 				NewRegenStatus = true;
 				MC.RTC_store.UsedRegen = 0;
@@ -1279,6 +1289,7 @@ void vService(void *)
 		}
 		register TickType_t t = xTaskGetTickCount();
 		if(t - timer_sec >= 1000) { // 1 sec
+			WDT_Restart(WDT);  						// Watchdog reset
 			extern TickType_t xTickCountZero;
 			TickType_t ttmpt = t - xTickCountZero - timer_total;
 			if(ttmpt > 5000) {
@@ -1295,7 +1306,6 @@ void vService(void *)
 			// Drain OFF
 			if(TimerDrainingWater && --TimerDrainingWater == 0) {
 				MC.dRelay[RDRAIN].set_OFF();
-				MC.WorkStats.LastDrain = rtcSAM3X8.unixtime();
 				if(MC.WorkStats.UsedDrain < MC.Option.MinDrainLiters) {
 					set_Error(ERR_FEW_LITERS_DRAIN, (char*)__FUNCTION__);
 				}
@@ -1330,7 +1340,9 @@ void vService(void *)
 						update_RTC_store_memory();
 					}
 				} else {
-					if(MC.Option.DrainAfterNoConsume && rtcSAM3X8.unixtime() - MC.WorkStats.UsedLastTime >= MC.Option.DrainAfterNoConsume && !CriticalErrors) { // Water did not consumed a long time ago.
+					// Water did not consumed a long time ago.
+					if(MC.Option.DrainAfterNoConsume && rtcSAM3X8.unixtime() - (MC.WorkStats.LastDrain > MC.WorkStats.UsedLastTime ? MC.WorkStats.LastDrain : MC.WorkStats.UsedLastTime) >= MC.Option.DrainAfterNoConsume && !CriticalErrors) {
+						MC.WorkStats.LastDrain = rtcSAM3X8.unixtime();
 						TimerDrainingWater = MC.Option.DrainTime;
 						MC.WorkStats.UsedDrain = 0;
 						MC.dRelay[RDRAIN].set_ON();
@@ -1360,11 +1372,11 @@ void vService(void *)
 							if(MC.sInput[TANK_FULL].get_Input()) {
 #endif
 								if((need_regen & RTC_Work_Regen_F1) && !MC.dRelay[RSTARTREG].get_Relay()) {
-									journal.jprintf(pP_DATE, "Regen F1 start\n");
+									journal.jprintf_date("Regen F1 start\n");
 									MC.dRelay[RWATEROFF].set_ON();
 									MC.dRelay[RSTARTREG].set_ON();
 								} else if((need_regen & RTC_Work_Regen_F2) && !MC.dRelay[RSTARTREG2].get_Relay()) {
-									journal.jprintf(pP_DATE, "Regen F2 start\n");
+									journal.jprintf_date("Regen F2 start\n");
 									MC.dRelay[RSTARTREG2].set_ON();
 								}
 							} else {
@@ -1380,12 +1392,12 @@ void vService(void *)
 					task_every_min = m;
 					uint8_t err = update_RTC_store_memory();
 					if(err) {
-						journal.printf("Error %d save RTC!\n", err);
+						journal.jprintfopt("Error %d save RTC!\n", err);
 						set_Error(ERR_RTC_WRITE, (char*)__FUNCTION__);
 					}
 				} else {
 					if(MC.RTC_store.Work & RTC_Work_Regen_F1) {	// Regen Iron removing filter
-						if(!MC.sInput[REG_ACTIVE].get_Input() && !MC.sInput[REG_BACKWASH_ACTIVE].get_Input()) {
+						if(!MC.sInput[REG_ACTIVE].get_Input() && !MC.sInput[REG_BACKWASH_ACTIVE].get_Input()) { // finish?
 							MC.WorkStats.UsedLastRegen = MC.RTC_store.UsedRegen;
 							MC.RTC_store.UsedRegen = 0;
 							MC.WorkStats.DaysFromLastRegen = 0;
@@ -1397,16 +1409,16 @@ void vService(void *)
 							taskEXIT_CRITICAL();
 							NeedSaveWorkStats = 1;
 							MC.dRelay[RWATEROFF].set_OFF();
-							journal.jprintf(pP_DATE, "Regen F1 finished\n");
+							journal.jprintf_date("Regen F1 finished\n");
 							if(MC.WorkStats.UsedLastRegen < MC.Option.MinRegenLiters) {
 								set_Error(ERR_FEW_LITERS_REG, (char*)__FUNCTION__);
 							}
 						} else if(NewRegenStatus) {
-							journal.jprintf(pP_DATE, "Regen F1 begin\n");
+							journal.jprintf_date("Regen F1 begin\n");
 							NewRegenStatus = false;
 						}
 					} else if(MC.RTC_store.Work & RTC_Work_Regen_F2) { // Regen Softening filter
-						if(!MC.sInput[REG2_ACTIVE].get_Input()) {
+						if(!MC.sInput[REG2_ACTIVE].get_Input()) { // Finish?
 							MC.WorkStats.UsedLastRegenSoftening = MC.RTC_store.UsedRegen;
 							MC.RTC_store.UsedRegen = 0;
 							MC.WorkStats.DaysFromLastRegenSoftening = 0;
@@ -1417,9 +1429,9 @@ void vService(void *)
 							NeedSaveRTC |= (1<<bRTC_Work) | (1<<bRTC_UsedRegen) | (1<<bRTC_Urgently);
 							taskEXIT_CRITICAL();
 							NeedSaveWorkStats = 1;
-							journal.jprintf(pP_DATE, "Regen F2 finished\n");
+							journal.jprintf_date("Regen F2 finished\n");
 						} else if(NewRegenStatus) {
-							journal.jprintf(pP_DATE, "Regen F2 begin\n");
+							journal.jprintf_date("Regen F2 begin\n");
 							NewRegenStatus = false;
 						}
 					}

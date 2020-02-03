@@ -301,11 +301,11 @@ void freeRamShow()
   register char * stack_ptr asm( "sp" );
   struct mallinfo mi = mallinfo();
  
-  journal.printf("Ram used (bytes):\n");
-  journal.printf("  dynamic: %d\n",mi.uordblks);
-  journal.printf("  static:  %d\n",&_end - ramstart);
-  journal.printf("  stack:   %d\n",ramend - stack_ptr);
-  journal.printf("Estimation free Ram: %d\n",stack_ptr - heapend + mi.fordblks);
+  journal.jprintfopt("Ram used (bytes):\n");
+  journal.jprintfopt("  dynamic: %d\n",mi.uordblks);
+  journal.jprintfopt("  static:  %d\n",&_end - ramstart);
+  journal.jprintfopt("  stack:   %d\n",ramend - stack_ptr);
+  journal.jprintfopt("Estimation free Ram: %d\n",stack_ptr - heapend + mi.fordblks);
  
 }
 
@@ -350,18 +350,18 @@ float temp_DUE()
 void SupplyMonitorON(uint32_t voltage)
 {
 	startSupcStatusReg = SUPC->SUPC_SR;                        // запомнить состояние при старте
-	journal.printf("Supply Controller Status Register [SUPC_SR]: 0x%08x\n", startSupcStatusReg);
+	journal.jprintfopt("Supply Controller Status Register [SUPC_SR]: 0x%08x\n", startSupcStatusReg);
 
 	SUPC->SUPC_SMMR |= voltage | SUPC_SMMR_SMRSTEN_ENABLE | SUPC_SMMR_SMSMPL_CSM;   // RESET если напряжение просело, контроль 1/32768 сек
 	SUPC->SUPC_MR |= SUPC_MR_KEY(SUPC_KEY_VALUE) | SUPC_MR_BODDIS_ENABLE; // Включение контроля (это лишнее при сбросе это включено)
-	journal.printf("Supply monitor ON, voltage: %.1fV\n", (float) voltage / 10 + 1.9);
+	journal.jprintfopt("Supply monitor ON, voltage: %.1fV\n", (float) voltage / 10 + 1.9);
 }
 
 // Программный сброс контроллера
 void Software_Reset() {
   const int RSTC_KEY = 0xA5;
   RSTC->RSTC_CR = RSTC_CR_KEY(RSTC_KEY) | RSTC_CR_PROCRST | RSTC_CR_PERRST;
-  while (true);
+  while(true) ;
 }
 
 // Получить причину последнего сброса контроллера, wdt_addr=1 - адрес, где сработал watchdog
@@ -401,7 +401,7 @@ void showID()
 	uint32_t test = 0x0;
 	test = CHIPiD_CIDR;
 	//test = CHIPiD_EXID;
-	journal.printf("Chip ID EXID: %d\n", test);
+	journal.jprintfopt("Chip ID EXID: %d\n", test);
 }
 
 
@@ -491,7 +491,7 @@ char * get_Schedule(uint32_t *sh)
 uint8_t initSD(void)
 {
 	boolean success = false;   // флаг успешности инициализации
-	journal.printf("Init SD card: ");
+	journal.jprintfopt("Init SD card: ");
 #ifdef NO_SD_CONTROL                // Если реализован механизм проверки наличия карты в слоте (выключатель в слоте карты)
 	pinMode(PIN_NO_SD_CARD, INPUT);     // ++ CD Программирование проверки наличия карты
 	if (digitalReadDirect(PIN_NO_SD_CARD)) {journal.jprintf("slot empty!\n"); return false;}
@@ -502,7 +502,7 @@ uint8_t initSD(void)
 	} else success = true;  // Карта инициализирована с первого раза
 
 	if(success)  // Запоминаем результаты
-		journal.printf("OK\n");
+		journal.jprintfopt("OK\n");
 	else {
 		//set_Error(ERR_SD_INIT,"SD card");   // Уведомить об ошибке
 		MC.message.setMessage(pMESSAGE_SD, (char*) "Ошибка инициализации SD карты", 0);    // сформировать уведомление
@@ -519,15 +519,15 @@ uint8_t initSD(void)
 		return 0;
 	}
 	// вывод информации о карте
-	journal.printf((char*) "SD card info\n");
-	journal.printf((char*) " Manufacturer ID: 0x%x\n", int(cid.mid));
-	journal.printf((char*) " OEM ID: %c%c\n", cid.oid[0], cid.oid[1]);
-	journal.printf((char*) " Serial number: 0x%x\n", int(cid.psn));
-	journal.printf((char*) " Volume is FAT%d\n", int(card.vol()->fatType()));
-	journal.printf((char*) " blocksPerCluster: %d\n", int(card.vol()->blocksPerCluster()));
-	journal.printf((char*) " clusterCount: %d\n", card.vol()->clusterCount());
+	journal.jprintfopt((char*) "SD card info\n");
+	journal.jprintfopt((char*) " Manufacturer ID: 0x%x\n", int(cid.mid));
+	journal.jprintfopt((char*) " OEM ID: %c%c\n", cid.oid[0], cid.oid[1]);
+	journal.jprintfopt((char*) " Serial number: 0x%x\n", int(cid.psn));
+	journal.jprintfopt((char*) " Volume is FAT%d\n", int(card.vol()->fatType()));
+	journal.jprintfopt((char*) " blocksPerCluster: %d\n", int(card.vol()->blocksPerCluster()));
+	journal.jprintfopt((char*) " clusterCount: %d\n", card.vol()->clusterCount());
 	// too slow on some cards:
-	//journal.printf((char*) " freeSpace: %.2f Mb\n", (float) 0.000512 * card.vol()->freeClusterCount() * card.vol()->blocksPerCluster());
+	//journal.jprintfopt((char*) " freeSpace: %.2f Mb\n", (float) 0.000512 * card.vol()->freeClusterCount() * card.vol()->blocksPerCluster());
 
 	// 3. Проверка наличия индексного файла
 	if(!card.exists(INDEX_FILE)) {
@@ -537,7 +537,7 @@ uint8_t initSD(void)
 		SPI_switchW5200();
 		return 1;
 	} // стартовый файл не найден
-	journal.printf((char*) " Found %s file\n", INDEX_FILE);
+	journal.jprintfopt((char*) " Found %s file\n", INDEX_FILE);
 
 	SPI_switchW5200();
 	return 2;
@@ -810,14 +810,14 @@ xCopyChar:
 __attribute__((always_inline))  inline byte writeEEPROM_I2C(unsigned long addr, byte *values, unsigned int nBytes)
 {
 	if(SemaphoreTake(xI2CSemaphore, I2C_TIME_WAIT / portTICK_PERIOD_MS) == pdFALSE) {  // Если шедулер запущен то захватываем семафор
-		journal.printf((char*) cErrorMutex, __FUNCTION__, MutexI2CBuzy);
+		journal.jprintfopt((char*) cErrorMutex, __FUNCTION__, MutexI2CBuzy);
 		return 7;
 	}
 	uint32_t _ret = eepromI2C.write(addr, values, nBytes);
 	SemaphoreGive(xI2CSemaphore);
 #if DEBUG_LEVEL > 1
 	if(_ret) {
-		journal.printf("\nEEPROM write (%d,%d) error %d\n", addr, nBytes, _ret);
+		journal.jprintfopt("\nEEPROM write (%d,%d) error %d\n", addr, nBytes, _ret);
 	}
 #endif
 	return _ret;
@@ -826,14 +826,14 @@ __attribute__((always_inline))  inline byte writeEEPROM_I2C(unsigned long addr, 
 __attribute__((always_inline))   inline byte readEEPROM_I2C(unsigned long addr, byte *values, unsigned int nBytes)
 {
 	if(SemaphoreTake(xI2CSemaphore, I2C_TIME_WAIT / portTICK_PERIOD_MS) == pdFALSE) {  // Если шедулер запущен то захватываем семафор
-		journal.printf((char*) cErrorMutex, __FUNCTION__, MutexI2CBuzy);
+		journal.jprintfopt((char*) cErrorMutex, __FUNCTION__, MutexI2CBuzy);
 		return 7;
 	}
 	uint32_t _ret = eepromI2C.read(addr, values, nBytes);
 	SemaphoreGive(xI2CSemaphore);
 #if DEBUG_LEVEL > 1
 	if(_ret) {
-		journal.printf("\nEEPROM read (%d,%d) error %d\n", addr, nBytes, _ret);
+		journal.jprintfopt("\nEEPROM read (%d,%d) error %d\n", addr, nBytes, _ret);
 	}
 #endif
 	return _ret;
@@ -843,7 +843,7 @@ __attribute__((always_inline))   inline byte readEEPROM_I2C(unsigned long addr, 
 __attribute__((always_inline)) inline int16_t getTemp_RtcI2C()
 {
 	if(SemaphoreTake(xI2CSemaphore, I2C_TIME_WAIT / portTICK_PERIOD_MS) == pdFALSE) {  // Если шедулер запущен то захватываем семафор
-		journal.printf((char*) cErrorMutex, __FUNCTION__, MutexI2CBuzy);
+		journal.jprintfopt((char*) cErrorMutex, __FUNCTION__, MutexI2CBuzy);
 		return ERROR_TEMPERATURE;
 	}
 	int16_t rtc_temp = rtcI2C.temperature();
@@ -856,7 +856,7 @@ tmElements_t ret_getTime_RtcI2C;
 __attribute__((always_inline))   inline tmElements_t getTime_RtcI2C()
 {
 	if(SemaphoreTake(xI2CSemaphore, I2C_TIME_WAIT / portTICK_PERIOD_MS) == pdFALSE) {  // Если шедулер запущен то захватываем семафор
-		journal.printf("getTime_RtcI2C %s", MutexI2CBuzy);
+		journal.jprintfopt("getTime_RtcI2C %s", MutexI2CBuzy);
 		return ret_getTime_RtcI2C;
 	}
 	if(rtcI2C.read(ret_getTime_RtcI2C)) ret_getTime_RtcI2C.Year = 0;
@@ -868,7 +868,7 @@ __attribute__((always_inline))   inline tmElements_t getTime_RtcI2C()
 __attribute__((always_inline)) inline void setTime_RtcI2C(uint8_t hour, uint8_t min, uint8_t sec)
 {
 	if(SemaphoreTake(xI2CSemaphore, I2C_TIME_WAIT / portTICK_PERIOD_MS) == pdFALSE) {  // Если шедулер запущен то захватываем семафор
-		journal.printf((char*) cErrorMutex, __FUNCTION__, MutexI2CBuzy);
+		journal.jprintfopt((char*) cErrorMutex, __FUNCTION__, MutexI2CBuzy);
 		return;
 	}
 	rtcI2C.setTime(hour, min, sec);
@@ -879,7 +879,7 @@ __attribute__((always_inline)) inline void setTime_RtcI2C(uint8_t hour, uint8_t 
 __attribute__((always_inline)) inline void setDate_RtcI2C(uint8_t date, uint8_t mon, uint16_t year)
 {
 	if(SemaphoreTake(xI2CSemaphore, I2C_TIME_WAIT / portTICK_PERIOD_MS) == pdFALSE) {  // Если шедулер запущен то захватываем семафор
-		journal.printf((char*) cErrorMutex, __FUNCTION__, MutexI2CBuzy);
+		journal.jprintfopt((char*) cErrorMutex, __FUNCTION__, MutexI2CBuzy);
 		return;
 	}
 	rtcI2C.setDate(date, mon, year);
@@ -891,7 +891,7 @@ __attribute__((always_inline)) inline void setDate_RtcI2C(uint8_t date, uint8_t 
 uint8_t update_RTC_store_memory(void)
 {
 	if(SemaphoreTake(xI2CSemaphore, I2C_TIME_WAIT / portTICK_PERIOD_MS) == pdFALSE) {  // Если шедулер запущен то захватываем семафор
-		journal.printf((char*) cErrorMutex, __FUNCTION__, MutexI2CBuzy);
+		journal.jprintfopt((char*) cErrorMutex, __FUNCTION__, MutexI2CBuzy);
 		return 7;
 	}
 	type_RTC_memory store;
@@ -913,11 +913,11 @@ uint8_t update_RTC_store_memory(void)
 		if(addr == 255) addr = sizeof(store.UsedToday) + sizeof(store.UsedRegen);
 		len += sizeof(store.Work);
 	}
-	//journal.printf("RTC(%d,%d)=> %02X, %d, %d\n", RTC_STORE_ADDR + addr, len, store.Work, store.UsedToday, store.UsedRegen);
+	//journal.jprintfopt("RTC(%d,%d)=> %02X, %d, %d\n", RTC_STORE_ADDR + addr, len, store.Work, store.UsedToday, store.UsedRegen);
 	if(len) if(!(len = rtcI2C.writeRTC(RTC_STORE_ADDR + addr, (uint8_t*)&store + addr, len))) NeedSaveRTC = 0;
 //	memset(&store, 0, sizeof(store));
 //	uint8_t er = rtcI2C.readRTC(RTC_STORE_ADDR, (uint8_t*)&store, sizeof(store));
-//	journal.printf("RTC(%d)<= %02X, %d, %d\n", sizeof(store), store.Work, store.UsedToday, store.UsedRegen);
+//	journal.jprintfopt("RTC(%d)<= %02X, %d, %d\n", sizeof(store), store.Work, store.UsedToday, store.UsedRegen);
 	SemaphoreGive(xI2CSemaphore);
 	return len;
 }

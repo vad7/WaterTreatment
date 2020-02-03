@@ -73,7 +73,7 @@ void adc_setup()
 	}
 #endif
 
-	journal.printf("adcMask = %X, adcGain = %X\n", adcMask, adcGain);
+	journal.jprintfopt("adcMask = %X, adcGain = %X\n", adcMask, adcGain);
 
 	NVIC_EnableIRQ(ADC_IRQn);        // enable ADC interrupt vector
 	ADC->ADC_IDR = 0xFFFFFFFF;       // disable interrupts IDR Interrupt Disable Register
@@ -204,7 +204,7 @@ void sensorADC::initSensorADC(uint8_t sensor, uint8_t pinA, uint16_t filter_size
 				 _delay(ANALOG_MODBUS_ERR_DELAY);
 			 }
 			 if(err) {
-				 journal.jprintf(pP_TIME, "Error read %s by Modbus: %d\n", name, err);
+				 journal.jprintf_time("Error read %s by Modbus: %d\n", name, err);
 				 set_Error(ERR_READ_PRESS, name);
 				 return ERR_READ_PRESS;
 			 }
@@ -435,7 +435,7 @@ int8_t sensorFrequency::Read()
 			//       Value=((float)Frequency/1000.0)/((float)kfValue/360000.0);          // ЛИТРЫ В ЧАС (ИЛИ ТЫСЯЧНЫЕ КУБА) частота в тысячных, и коэффициент правим
 			Value = Frequency * 360 / kfValue; // ЛИТРЫ В ЧАС (ИЛИ ТЫСЯЧНЫЕ КУБА) частота в тысячных, и коэффициент правим
 		}
-		//journal.printf("Flow(%d): %d = %d (%d, %d) f: %d\n", ticks, cnt / 100, Value, Passed, PassedRest / 100, Frequency);
+		//journal.jprintfopt("Flow(%d): %d = %d (%d, %d) f: %d\n", ticks, cnt / 100, Value, Passed, PassedRest / 100, Frequency);
 		return 1;
 	}
 	return 0;
@@ -533,7 +533,7 @@ int8_t devRelay::set_Relay(int8_t r)
 	delay(RELAY_WAIT_SWITCH);
 	if(tasks_suspended) xTaskResumeAll();
 #endif
-	if(number != RFEEDPUMP) journal.printf("Relay %s: %s\n", name, Relay ? "ON" : "OFF");
+	if(number > RFEEDPUMP) journal.jprintfopt("Relay %s: %s\n", name, Relay ? "ON" : "OFF");
 	return OK;
 }
 
@@ -605,12 +605,12 @@ xErr:
 #endif
 		numErr++;                  // число ошибок чтение по модбасу
 		if(GETBIT(MC.Option.flags, fPWMLogErrors)) {
-			journal.jprintf(pP_TIME, "%s: Read #%d error %d, repeat...\n", name, group, err);      // Выводим сообщение о повторном чтении
+			journal.jprintfopt_time("%s: Read #%d error %d, repeat...\n", name, group, err);      // Выводим сообщение о повторном чтении
 		}
 		_delay(PWM_DELAY_REPEAT);  // Чтение не удачно, делаем паузу
 	}
 	if(GETBIT(MC.Option.flags, fPWMLogErrors)) {
-		journal.jprintf(pP_TIME, "%s: Read #%d error %d!\n", name, group, err);
+		journal.jprintf_time("%s: Read #%d error %d!\n", name, group, err);
 	}
 	return err;
 }

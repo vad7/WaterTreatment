@@ -18,7 +18,7 @@
 #define bufI2C Socket[0].outBuf
 #define bufI2C Socket[0].outBuf
 #ifdef DEBUG_NATIVE_USB
-#define SerialDbg	SerialUSB
+#define SerialDbg	if(Is_otg_vbus_high()) SerialUSB
 #else
 #define SerialDbg	Serial
 #endif
@@ -173,7 +173,7 @@ void Journal::Format(void)
 void Journal::printf(const char *format, ...)             
 {
 #ifdef DEBUG
-	if(!DebugToSerialOn) return;
+	if(!DebugToJournalOn) return;
 	va_list ap;
 	va_start(ap, format);
 	m_vsnprintf(pbuf, PRINTF_BUF, format, ap);
@@ -182,7 +182,7 @@ void Journal::printf(const char *format, ...)
 #endif
 }
 
-// Печать в консоль и журнал возвращает число записанных байт
+// Печать в консоль и журнал
 void Journal::jprintf(const char *format, ...)
 {
 	va_list ap;
@@ -196,16 +196,10 @@ void Journal::jprintf(const char *format, ...)
 	_write(pbuf);
 }
 
-//type_promt вставляется в начале журнала а далее печать в консоль и журнал возвращает число записанных байт с типом промта
-void Journal::jprintf(type_promt pr,const char *format, ...)
+// Печать в консоль и журнал
+void Journal::jprintfopt(const char *format, ...)
 {
-	switch (pr)
-	{
-	case  pP_NONE: break;
-	case  pP_TIME: jprintf((char*)"%s ",NowTimeToStr()); break;                       // время
-	case  pP_DATE: jprintf((char*)"%s %s ",NowDateToStr(),NowTimeToStr()); break;     // дата и время
-	case  pP_USER: jprintf((char*)promtUser); break;                                  // константа определяемая пользователем
-	}
+	if(!DebugToJournalOn) return;
 	va_list ap;
 	va_start(ap, format);
 	m_vsnprintf(pbuf, PRINTF_BUF, format, ap);
@@ -213,8 +207,57 @@ void Journal::jprintf(type_promt pr,const char *format, ...)
 #ifdef DEBUG
 	SerialDbg.print(pbuf);
 #endif
+	// добавить строку в журнал
+	_write(pbuf);
+}
+
+// +Time, далее печать в консоль и журнал
+void Journal::jprintf_time(const char *format, ...)
+{
+	strcpy(pbuf, NowTimeToStr());
+	strcat(pbuf, " ");
+	va_list ap;
+	va_start(ap, format);
+	m_vsnprintf(pbuf + 9, PRINTF_BUF - 9, format, ap);
+	va_end(ap);
+#ifdef DEBUG
+	SerialDbg.print(pbuf);
+#endif
 	_write(pbuf);   // добавить строку в журнал
 }   
+
+// +Time, опционально печать в консоль и журнал
+void Journal::jprintfopt_time(const char *format, ...)
+{
+	if(!DebugToJournalOn) return;
+	strcpy(pbuf, NowTimeToStr());
+	strcat(pbuf, " ");
+	va_list ap;
+	va_start(ap, format);
+	m_vsnprintf(pbuf + 9, PRINTF_BUF - 9, format, ap);
+	va_end(ap);
+#ifdef DEBUG
+	SerialDbg.print(pbuf);
+#endif
+	_write(pbuf);   // добавить строку в журнал
+}
+
+// +DateTime, далее печать в консоль и журнал
+void Journal::jprintf_date(const char *format, ...)
+{
+	strcpy(pbuf, NowDateToStr());
+	strcat(pbuf, " ");
+	strcat(pbuf, NowTimeToStr());
+	strcat(pbuf, " ");
+	va_list ap;
+	va_start(ap, format);
+	m_vsnprintf(pbuf + 20, PRINTF_BUF - 20, format, ap);
+	va_end(ap);
+#ifdef DEBUG
+	SerialDbg.print(pbuf);
+#endif
+	_write(pbuf);   // добавить строку в журнал
+}
 
 // Печать ТОЛЬКО в журнал возвращает число записанных байт для использования в критических секциях кода
 void Journal::jprintf_only(const char *format, ...)
@@ -303,7 +346,7 @@ void Journal::_write(char *dataPtr)
 	if(numBytes > JOURNAL_LEN - 2) numBytes = JOURNAL_LEN - 2; // Ограничиваем размером журнала JOURNAL_LEN не забываем про два служебных символа
 	// Запись в I2C память
 	if(SemaphoreTake(xI2CSemaphore, I2C_TIME_WAIT / portTICK_PERIOD_MS) == pdFALSE) {  // Если шедулер запущен то захватываем семафор
-		journal.printf((char*) cErrorMutex, __FUNCTION__, MutexI2CBuzy);
+		journal.jprintfopt((char*) cErrorMutex, __FUNCTION__, MutexI2CBuzy);
 		return;
 	}
 	__asm__ volatile ("" ::: "memory");
