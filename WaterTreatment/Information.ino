@@ -18,9 +18,14 @@
 #define bufI2C Socket[0].outBuf
 #define bufI2C Socket[0].outBuf
 #ifdef DEBUG_NATIVE_USB
-#define SerialDbg	if(Is_otg_vbus_high()) SerialUSB
+	#define SerialDbg	SerialUSB
+	#ifdef NATIVE_USB_VBUS_CHECK
+		#define IF_NATIVE_USB_CONNECTED if(Is_otg_vbus_high())
+	#else
+		#define IF_NATIVE_USB_CONNECTED if(DebugToSerialOn)
+	#endif
 #else
-#define SerialDbg	Serial
+	#define SerialDbg	Serial
 #endif
 
 // --------------------------------------------------------------------------------------------------------------- 
@@ -173,7 +178,9 @@ void Journal::Format(void)
 void Journal::printf(const char *format, ...)             
 {
 #ifdef DEBUG
-	if(!DebugToJournalOn) return;
+#ifdef DEBUG_NATIVE_USB
+	IF_NATIVE_USB_CONNECTED return;
+#endif
 	va_list ap;
 	va_start(ap, format);
 	m_vsnprintf(pbuf, PRINTF_BUF, format, ap);
@@ -190,7 +197,10 @@ void Journal::jprintf(const char *format, ...)
 	m_vsnprintf(pbuf, PRINTF_BUF, format, ap);
 	va_end(ap);
 #ifdef DEBUG
-	SerialDbg.print(pbuf);
+#ifdef DEBUG_NATIVE_USB
+	IF_NATIVE_USB_CONNECTED
+#endif
+		SerialDbg.print(pbuf);
 #endif
 	// добавить строку в журнал
 	_write(pbuf);
@@ -205,7 +215,10 @@ void Journal::jprintfopt(const char *format, ...)
 	m_vsnprintf(pbuf, PRINTF_BUF, format, ap);
 	va_end(ap);
 #ifdef DEBUG
-	SerialDbg.print(pbuf);
+#ifdef DEBUG_NATIVE_USB
+	IF_NATIVE_USB_CONNECTED
+#endif
+		SerialDbg.print(pbuf);
 #endif
 	// добавить строку в журнал
 	_write(pbuf);
@@ -221,7 +234,10 @@ void Journal::jprintf_time(const char *format, ...)
 	m_vsnprintf(pbuf + 9, PRINTF_BUF - 9, format, ap);
 	va_end(ap);
 #ifdef DEBUG
-	SerialDbg.print(pbuf);
+#ifdef DEBUG_NATIVE_USB
+	IF_NATIVE_USB_CONNECTED
+#endif
+		SerialDbg.print(pbuf);
 #endif
 	_write(pbuf);   // добавить строку в журнал
 }   
@@ -237,7 +253,10 @@ void Journal::jprintfopt_time(const char *format, ...)
 	m_vsnprintf(pbuf + 9, PRINTF_BUF - 9, format, ap);
 	va_end(ap);
 #ifdef DEBUG
-	SerialDbg.print(pbuf);
+#ifdef DEBUG_NATIVE_USB
+	IF_NATIVE_USB_CONNECTED
+#endif
+		SerialDbg.print(pbuf);
 #endif
 	_write(pbuf);   // добавить строку в журнал
 }
@@ -254,7 +273,10 @@ void Journal::jprintf_date(const char *format, ...)
 	m_vsnprintf(pbuf + 20, PRINTF_BUF - 20, format, ap);
 	va_end(ap);
 #ifdef DEBUG
-	SerialDbg.print(pbuf);
+#ifdef DEBUG_NATIVE_USB
+	IF_NATIVE_USB_CONNECTED
+#endif
+		SerialDbg.print(pbuf);
 #endif
 	_write(pbuf);   // добавить строку в журнал
 }

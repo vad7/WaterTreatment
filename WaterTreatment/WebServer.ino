@@ -703,14 +703,10 @@ xSaveStats:		if((i = MC.save_WorkStats()) == OK)
 				ADD_WEBDELIM(strReturn); continue;
 			}
 		}
-		if (strcmp(str,"get_tempSAM3x")==0)  // Функция get_tempSAM3x  - получение температуры чипа sam3x
-		{
-			_ftoa(strReturn,temp_DUE(),2); ADD_WEBDELIM(strReturn); continue;
-		}
-		if (strcmp(str,"get_tempDS3231")==0)  // Функция get_tempDS3231  - получение температуры DS3231
-		{
-			_dtoa(strReturn, getTemp_RtcI2C(), 2); ADD_WEBDELIM(strReturn); continue;
-		}
+//		if (strcmp(str,"get_tDS")==0)  // Функция get_tDS  - получение температуры DS3231
+//		{
+//			_dtoa(strReturn, getTemp_RtcI2C(), 2); ADD_WEBDELIM(strReturn); continue;
+//		}
 		if (strcmp(str,"get_PWR") == 0)
 		{
 			_dtoa(strReturn, MC.dPWM.get_Power(), 3); ADD_WEBDELIM(strReturn); continue;

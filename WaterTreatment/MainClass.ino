@@ -515,6 +515,7 @@ void MainClass::resetSetting()
 	// Временные задержки
 	Option.ver = VER_SAVE;
 	Option.tChart = 60;                  //  период накопления статистики по умолчанию 60 секунд
+	Option.flags = (1<<fDebugToJournal) | (1<<fDebugToSerial);
 	SETBIT1(Option.flags, fBeep);         //  Звук
 	SETBIT1(Option.flags, fHistory);      //  Сброс статистика на карту
 

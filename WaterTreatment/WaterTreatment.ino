@@ -192,10 +192,11 @@ void setup() {
 	// 2. Инициализация журнала и в нем последовательный порт
 	journal.Init();
 	uint16_t flags;
-	if(readEEPROM_I2C(I2C_SETTING_EEPROM + 2 + 1 + sizeof(MC.Option.ver), (uint8_t*)&flags, sizeof(MC.Option.flags))) flags = 0;
+	if(readEEPROM_I2C(I2C_SETTING_EEPROM + 2 + 1 + sizeof(MC.Option.ver), (uint8_t*)&flags, sizeof(MC.Option.flags))) flags = (1<<fDebugToSerial);
 	DebugToJournalOn = GETBIT(flags, fDebugToJournal);
+	DebugToSerialOn = GETBIT(flags, fDebugToSerial);
 #ifdef TEST_BOARD
-	DebugToJournalOn = true;
+	DebugToJournalOn = DebugToSerialOn = true;
 	journal.jprintf("\n---> TEST BOARD!!!\n\n");
 #endif
 
@@ -205,7 +206,7 @@ void setup() {
 	//journal.jprintfopt("Chip ID SAM3X8E: %s\n", Socket[0].inBuf);// информация об серийном номере чипа
 	if(GPBR->SYS_GPBR[0] & 0x80000000) GPBR->SYS_GPBR[0] = 0; else GPBR->SYS_GPBR[0] |= 0x80000000; // очистка старой причины
 	lastErrorFreeRtosCode = GPBR->SYS_GPBR[0] & 0x7FFFFFFF;         // Сохранение кода ошибки при страте (причину перегрузки)
-	journal.jprintf_date("Reset: %s, 0x%04x", ResetCause(), lastErrorFreeRtosCode);
+	journal.jprintf("\n\n# RESET: %s, 0x%04x", ResetCause(), lastErrorFreeRtosCode);
 	if(GPBR->SYS_GPBR[4]) journal.jprintf(" %d", GPBR->SYS_GPBR[4]);
 	journal.jprintf("\n");
 
@@ -221,7 +222,7 @@ void setup() {
 #endif
 
 	// 3. Инициализация и проверка шины i2c
-	journal.jprintfopt("* Setting and checking I2C devices . . .\n");
+	journal.jprintfopt("* Init I2C devices:\n");
 
 	uint8_t eepStatus=0;
 #ifndef I2C_JOURNAL_IN_RAM
@@ -254,13 +255,13 @@ void setup() {
 	if(eepStatus)  // если I2C память не инициализирована, делаем попытку запустится на малой частоте один раз!
 	{
 		if((eepStatus=eepromI2C.begin(twiClock100kHz))>0) {
-			journal.jprintfopt("$ERROR - I2C mem init failed on speed %d kHz, status = %d\n",twiClock100kHz/1000,eepStatus);
+			journal.jprintfopt("$ERROR - I2C mem init failed on %dkHz, status = %d\n",twiClock100kHz/1000,eepStatus);
 			eepromI2C.begin(I2C_SPEED);
 			goto x_I2C_init_std_message;
-		} else journal.jprintfopt("I2C bus low speed, init on %d kHz - OK\n",twiClock100kHz/1000);
+		} else journal.jprintfopt("I2C bus low speed, init on %dkHz - OK\n",twiClock100kHz/1000);
 	} else {
 x_I2C_init_std_message:
-		journal.jprintfopt("I2C init on %d kHz - OK\n",I2C_SPEED/1000);
+		journal.jprintfopt("I2C init on %dkHz - OK\n",I2C_SPEED/1000);
 	}
 
 	// Сканирование шины i2c
@@ -294,14 +295,14 @@ x_I2C_init_std_message:
 			}
 			if(error==0)
 			{
-				journal.jprintfopt("I2C device found at address %s",byteToHex(address));
+				journal.jprintfopt("I2C found at %s",byteToHex(address));
 				switch (address)
 				{
 #ifdef ONEWIRE_DS2482
 				case I2C_ADR_DS2482_4:
 				case I2C_ADR_DS2482_3:
 				case I2C_ADR_DS2482_2:
-				case I2C_ADR_DS2482:  		journal.jprintfopt(" - OneWire DS2482-100 bus: %d%s\n", address - I2C_ADR_DS2482 + 1, (ONEWIRE_2WAY & (1<<(address - I2C_ADR_DS2482))) ? " (2W)" : ""); break;
+				case I2C_ADR_DS2482:  		journal.jprintfopt(" - 1-Wire DS2482-100 bus: %d%s\n", address - I2C_ADR_DS2482 + 1, (ONEWIRE_2WAY & (1<<(address - I2C_ADR_DS2482))) ? " (2W)" : ""); break;
 #endif
 #if I2C_FRAM_MEMORY == 1
 				case I2C_ADR_EEPROM:	journal.jprintfopt(" - FRAM FM24V%02d\n", I2C_MEMORY_TOTAL*10/1024); break;
@@ -341,15 +342,14 @@ x_I2C_init_std_message:
 #endif
 
 	// 4. Инициализировать основной класс
-	journal.jprintfopt("* Init %s.\n",(char*)nameMainClass);
+	journal.jprintfopt("* Init %s\n",(char*)nameMainClass);
 	MC.init();                           // Основной класс
 
 	// 5. Установка сервисных пинов
 
-	journal.jprintfopt("* Read safe Network key.\n");
 	pinMode(PIN_KEY_SAFE, INPUT_PULLUP);               // Кнопка 1, Нажатие при включении - режим safeNetwork (настрока сети по умолчанию 192.168.0.177  шлюз 192.168.0.1, не спрашивает пароль на вход в веб морду)
 	MC.safeNetwork=!digitalReadDirect(PIN_KEY_SAFE);
-	if (MC.safeNetwork)  journal.jprintf("Mode safeNetwork ON \n"); else journal.jprintfopt("Mode safeNetwork OFF \n");
+	if(MC.safeNetwork) journal.jprintf("* Mode safe Network ON\n");
 
 	pinMode(PIN_BEEP, OUTPUT);              // Выход на пищалку
 	pinMode(PIN_LED_OK, OUTPUT);            // Выход на светодиод мигает 0.5 герца - ОК  с частотой 2 герца ошибка
@@ -357,7 +357,7 @@ x_I2C_init_std_message:
 	digitalWriteDirect(PIN_LED_OK,HIGH);    // Выключить светодиод
 
 	// 6. Чтение ЕЕПРОМ
-	journal.jprintfopt("* Load data from I2C memory.\n");
+	journal.jprintfopt("* Load data from I2C\n");
 	if(MC.load_WorkStats() == ERR_HEADER2_EEPROM)           // Загрузить счетчики
 	{
 		journal.jprintfopt("I2C memory is empty!\n");
@@ -371,7 +371,7 @@ x_I2C_init_std_message:
 	MC.set_hashAdmin();
 
 	// 7. Инициализация СД карты и запоминание результата 3 попытки
-	journal.jprintfopt("* Init SD card.\n");
+	journal.jprintfopt("* Init SD card\n");
 	WDT_Restart(WDT);
 	MC.set_fSD(initSD());
 	WDT_Restart(WDT);                          // Сбросить вачдог  иногда карта долго инициализируется
@@ -380,13 +380,11 @@ x_I2C_init_std_message:
 
 	// 8. Инициализация spi флеш диска
 #ifdef SPI_FLASH
-	journal.jprintfopt("* Init SPI flash disk.\n");
+	journal.jprintfopt("* Init SPI flash disk\n");
 	MC.set_fSPIFlash(initSpiDisk(true));  // проверка диска с выводом инфо
-#else
-	journal.jprintfopt("* No SPI flash in config.\n");
 #endif
 
-	journal.jprintfopt(" Web interface source: ");
+	journal.jprintfopt(" Web source: ");
 	switch (MC.get_SourceWeb())
 	{
 	case pMIN_WEB:   journal.jprintfopt("internal\n"); break;
@@ -395,12 +393,12 @@ x_I2C_init_std_message:
 	default:         journal.jprintfopt("unknown\n"); break;
 	}
 
-	journal.jprintfopt("* Start read ADC sensors.\n");
+	journal.jprintfopt("* Start ADC\n");
 	start_ADC(); // после инициализации
 	//journal.jprintfopt(" Mask ADC_IMR: 0x%08x\n",ADC->ADC_IMR);
 
 	// 10. Сетевые настройки
-	journal.jprintfopt("* Setting Network.\n");
+	journal.jprintfopt("* Set Network\n");
 	if(initW5200(true)) {   // Инициализация сети с выводом инфы в консоль
 		W5100.getMACAddress((uint8_t *)Socket[0].outBuf);
 		journal.jprintfopt(" MAC: %s\n", MAC2String((uint8_t *)Socket[0].outBuf));
@@ -409,7 +407,7 @@ x_I2C_init_std_message:
 	WDT_Restart(WDT);
 
 	// 11. Разбираемся со всеми часами и синхронизацией
-	journal.jprintfopt("* Setting time.\n");
+	journal.jprintfopt("* Set time\n");
 	int16_t s = rtcI2C.readRTC(RTC_STATUS);        //read the status register
 	if(s != -1) {
 		if(s & (1<<RTC_OSF)) {
@@ -433,17 +431,15 @@ x_I2C_init_std_message:
 
 	// 13. Инициалазация MQTT
 #ifdef MQTT
-	journal.jprintfopt("* Client MQTT update IP from DNS . . .\n");
+	journal.jprintfopt("* Init MQTT\n");
 	MC.clMQTT.dnsUpdateStart();
-#else
-	journal.jprintfopt("* Client MQTT disabled\n");
 #endif
 
 	WDT_Restart(WDT);
 	// 14. Инициалазация Statistics
 	journal.jprintfopt("* Statistics ");
 	if(MC.get_fSD()) {
-		journal.jprintfopt("writing on SD card\n");
+		journal.jprintfopt("writing on SD\n");
 		Stats.Init();             // Инициализовать статистику
 	} else journal.jprintfopt("not available\n");
 
@@ -457,7 +453,7 @@ x_I2C_init_std_message:
 	journal.jprintfopt("* Scale inited, ADC: %d\n", Weight.read() - MC.Option.WeightZero);
 
 	// Создание задач FreeRTOS  ----------------------
-	journal.jprintfopt("* Create tasks FreeRTOS.\n");
+	journal.jprintfopt("* Create tasks FreeRTOS ");
 	MC.mRTOS=236;  //расчет памяти для задач 236 - размер данных шедуллера, каждая задача требует 64 байта+ стек (он в словах!!)
 	MC.mRTOS=MC.mRTOS+64+4*configMINIMAL_STACK_SIZE;  // задача бездействия
 	//MC.mRTOS=MC.mRTOS+4*configTIMER_TASK_STACK_DEPTH;  // программные таймера (их теперь нет)
@@ -503,7 +499,7 @@ x_I2C_init_std_message:
 		if (xModbusSemaphore==NULL) set_Error(ERR_MEM_FREERTOS,(char*)nameFREERTOS);
 	}
 
-	journal.jprintfopt(" Create tasks - OK, size %d bytes\n",MC.mRTOS);
+	journal.jprintfopt("OK, size %d bytes\n", MC.mRTOS);
 
 	//journal.jprintfopt("* Send a notification . . .\n");
 	//MC.message.setMessage(pMESSAGE_RESET,(char*)"Контроллер был перезагружен",0);    // сформировать уведомление о загрузке
@@ -511,17 +507,21 @@ x_I2C_init_std_message:
 	freeRamShow();
 	MC.startRAM=freeRam()-MC.mRTOS;   // оценка свободной памяти до пуска шедулера, поправка на 1054 байта
 	journal.jprintfopt("FREE MEMORY %d bytes\n",MC.startRAM);
-	journal.jprintfopt("Temperature SAM3X8E: %.2f\n",temp_DUE());
-	journal.jprintfopt("Temperature DS2331: %.2d\n", getTemp_RtcI2C());
+	journal.jprintfopt("t DS2331: %.2d\n", getTemp_RtcI2C());
+	journal.jprintf_date("t SAM3x: %.2f\n", temp_DUE());
 	//MC.Stat.generate_TestData(STAT_POINT); // Сгенерировать статистику STAT_POINT точек только тестирование
-	journal.jprintfopt("Start FreeRTOS!\n\n");
+	//journal.jprintfopt("Start FreeRTOS.\n\n");
+
+
+	if(Is_otg_vbus_high()) journal.jprintf("USB CONNECTED\n");
+
 #ifndef TEST_BOARD
 	DebugToJournalOn = false;
 #endif
 	eepromI2C.use_RTOS_delay = 1;       //vad711
 	//
 	vTaskStartScheduler();              // СТАРТ !!
-	journal.jprintfopt("FreeRTOS FAILURE!\n");
+	journal.jprintf("FreeRTOS FAILURE!\n");
 }
 
 
@@ -646,7 +646,7 @@ void vWeb0(void *)
 				resW5200 = xTaskGetTickCount();
 				if(timeResetW5200 == 0) timeResetW5200 = resW5200;      // Первая итерация не должна быть сразу
 				if(resW5200 - timeResetW5200 > MC.time_resW5200() * 1000UL) {
-					journal.jprintfopt("Resetting the chip %s by timer . . .\n", nameWiznet);
+					journal.jprintfopt("Resetting the chip %s by timer.\n", nameWiznet);
 					MC.fNetworkReset = true;                          // Послать команду сброса и применения сетевых настроек
 					timeResetW5200 = resW5200;                         // Запомить время сброса
 					active = false;
@@ -660,7 +660,7 @@ void vWeb0(void *)
 				if(!MC.NO_Power) {
 					boolean lst = linkStatusWiznet(false);
 					if(!lst || !network_last_link) {
-						if(!lst) journal.jprintf_time("%s no link[%02X], resetting...\n", nameWiznet, W5100.readPHYCFGR());
+						if(!lst) journal.jprintf_time("%s no link[%02X], resetting.\n", nameWiznet, W5100.readPHYCFGR());
 						MC.fNetworkReset = true;                          // Послать команду сброса и применения сетевых настроек
 						MC.num_resW5200++;              // Добавить счетчик инициализаций
 						active = false;
@@ -741,7 +741,7 @@ void vKeysLCD( void * )
 	lcd.print((char*)"WaterTreatment v");
 	lcd.print((char*)VERSION);
 	lcd.setCursor(0, 2);
-	lcd.print((char*)"Vadim Kulakov(c)2019");
+	lcd.print((char*)"Vadim Kulakov(c)2020");
 	lcd.setCursor(0, 3);
 	lcd.print((char*)"vad7@yahoo.com");
 	vTaskDelay(3000);

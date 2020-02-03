@@ -327,23 +327,18 @@ int freeRam()
 #define TEMP_OFFSET      0.80f
 #define TEMP_FACTOR      0.00265f
 #define TEMP_FIXTEMP     27.0f
-float temp_DUE() 
+float temp_DUE()
 {
-  uint32_t ulValue = 0;
- 
-  adc_enable_channel(ADC, ADC_TEMPERATURE_SENSOR);                                                 // Enable the corresponding channel
-  adc_enable_ts(ADC);                                                                              // Enable the temperature sensor
-  adc_start(ADC);                                                                                  // Start the ADC
-  //  while ((adc_get_status(ADC) & ADC_ISR_DRDY) != ADC_ISR_DRDY);                                // Wait for end of conversion
- while ((ADC->ADC_ISR & (0x1u << ADC_TEMPERATURE_SENSOR)) != (0x1u << ADC_TEMPERATURE_SENSOR));    // Wait for end of conversion
-//    ulValue = adc_get_latest_value(ADC);  // Read the value
-  ulValue =  (unsigned int)(*(ADC->ADC_CDR+ADC_TEMPERATURE_SENSOR)) ;                              // Read the value
-  adc_disable_ts(ADC);
-  adc_disable_channel(ADC, ADC_TEMPERATURE_SENSOR);                                                // Disable the corresponding channel
- 
-  //Serial.println(MC.AdcTempSAM3x);
-  return TEMP_FIXTEMP +((float)(ulValue*TEMP_TRANS)-TEMP_OFFSET)/TEMP_FACTOR;
- // return TEMP_FIXTEMP +((float)(MC.AdcTempSAM3x*TEMP_TRANS)-TEMP_OFFSET)/TEMP_FACTOR;
+	uint32_t ulValue = 0;
+	adc_enable_channel(ADC, ADC_TEMPERATURE_SENSOR);                                                 // Enable the corresponding channel
+	adc_enable_ts(ADC);                                                                              // Enable the temperature sensor
+	delayMicroseconds(40);
+	adc_start(ADC);                                                                                  // Start the ADC
+	while((ADC->ADC_ISR & (0x1u << ADC_TEMPERATURE_SENSOR)) != (0x1u << ADC_TEMPERATURE_SENSOR)) ;   // Wait for end of conversion
+	ulValue = *(ADC->ADC_CDR + ADC_TEMPERATURE_SENSOR);                              				 // Read the value
+	adc_disable_ts(ADC);
+	adc_disable_channel(ADC, ADC_TEMPERATURE_SENSOR);                                                // Disable the corresponding channel
+	return TEMP_FIXTEMP + ((float) (ulValue * TEMP_TRANS ) - TEMP_OFFSET) / TEMP_FACTOR;
 }
 
 // Включение монитора питания ---------------------------------------------------
