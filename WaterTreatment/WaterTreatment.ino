@@ -185,18 +185,21 @@ void setup() {
 	pinMode(PIN_SPI_CS_FLASH,OUTPUT);           // сигнал CS управление чипом флеш памяти (ВРЕМЕННО, пока нет реализации)
 #endif
 	SPI_switchAllOFF();                         // Выключить все устройства на SPI
-
+	// Отключить питание (VUSB) на Native USB
+	Set_bits(UOTGHS->UOTGHS_CTRL, UOTGHS_CTRL_VBUSHWC);
+	PIO_Configure(PIOB, PIO_OUTPUT_0, PIO_PB10A_UOTGVBOF, PIO_DEFAULT);
+	PIOB->PIO_CODR = PIO_PB10A_UOTGVBOF; // =0
+	//
 	// Борьба с зависшими устройствами на шине  I2C (в первую очередь часы) неудачный сброс
 	Recover_I2C_bus();
 
 	// 2. Инициализация журнала и в нем последовательный порт
 	journal.Init();
 	uint16_t flags;
-	if(readEEPROM_I2C(I2C_SETTING_EEPROM + 2 + 1 + sizeof(MC.Option.ver), (uint8_t*)&flags, sizeof(MC.Option.flags))) flags = (1<<fDebugToSerial);
+	if(readEEPROM_I2C(I2C_SETTING_EEPROM + 2 + 1 + sizeof(MC.Option.ver), (uint8_t*)&flags, sizeof(MC.Option.flags))) flags = 0;
 	DebugToJournalOn = GETBIT(flags, fDebugToJournal);
-	DebugToSerialOn = GETBIT(flags, fDebugToSerial);
 #ifdef TEST_BOARD
-	DebugToJournalOn = DebugToSerialOn = true;
+	DebugToJournalOn = true;
 	journal.jprintf("\n---> TEST BOARD!!!\n\n");
 #endif
 

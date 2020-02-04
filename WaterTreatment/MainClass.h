@@ -80,7 +80,6 @@ volatile bool NewRegenStatus = false;
 volatile uint32_t RegBackwashTimer = 0;
 uint32_t ResetDUE_countdown = 0;
 bool	 DebugToJournalOn = false;
-bool	 DebugToSerialOn = false;
 
 // Weight
 bool Weight_NeedRead = false;
@@ -114,7 +113,7 @@ uint16_t task_updstat_chars = 0;
 #define fPWMLogErrors  		8               // флаг писать в лог ошибки электросчетчика
 #define fDontRegenOnWeekend	9				// Не делать регенерацию в выходные
 #define fDebugToJournal		10				// Расширенная отладка в журнал
-#define fDebugToSerial		11				// Отладка в сериал (TX0/RX0 или NativeUSB)
+
 // Структура для хранения опций
 struct type_option {
 	uint8_t ver;					// номер версии для сохранения
