@@ -39,10 +39,10 @@ public:
   void Init();                                            // Инициализация
   void printf(const char *format, ...) ;                  // Печать только в консоль
   void jprintf(const char *format, ...);                  // Печать в консоль и журнал
+  void jprintf_time(const char *format, ...);			// +Time, далее печать в консоль и журнал
+  void jprintf_date(const char *format, ...);			// +DateTime, далее печать в консоль и журнал
   void jprintfopt(const char *format, ...);               // Опционально. Печать в консоль и журнал
-  void jprintf_time(const char *format, ...);
   void jprintfopt_time(const char *format, ...);		// Опционально.
-  void jprintf_date(const char *format, ...);
   void jprintf_only(const char *format, ...);            // Печать ТОЛЬКО в журнал для использования в критических секциях кода
   int32_t send_Data(uint8_t thread);                     // отдать журнал в сеть клиенту  Возвращает число записанных байт
   int32_t available(void);                               // Возвращает размер журнала

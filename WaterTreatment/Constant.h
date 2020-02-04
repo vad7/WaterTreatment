@@ -79,6 +79,11 @@ const uint16_t  defaultPort=80;
 #define MAIN_WEB_TASK      0                // какой поток вебсервера является основным (поток в котором идет отправка MQTT и уведомлений) обычно 0
 
 // ------------------- SERIAL --------------------------------
+#ifdef DEBUG_NATIVE_USB
+	#define SerialDbg	SerialUSB
+#else
+	#define SerialDbg	Serial
+#endif
 // Конфигурирование Modbus
 #if RADIO_SENSORS_PORT == 2
 	#define RADIO_SENSORS_SERIAL	Serial2	// Аппаратный порт

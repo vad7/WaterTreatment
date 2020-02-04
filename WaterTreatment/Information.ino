@@ -17,11 +17,6 @@
 
 #define bufI2C Socket[0].outBuf
 #define bufI2C Socket[0].outBuf
-#ifdef DEBUG_NATIVE_USB
-	#define SerialDbg	SerialUSB
-#else
-	#define SerialDbg	Serial
-#endif
 
 // --------------------------------------------------------------------------------------------------------------- 
 //  Класс системный журнал пишет в консоль и в память ------------------------------------------------------------
@@ -129,7 +124,7 @@ void Journal::Format(void)
 {
 	err = OK;
 	#ifdef DEBUG
-	SerialDbg.print("Formating I2C journal ");
+	printf("Formating I2C journal ");
 	#endif
 //	memset(buf, I2C_JOURNAL_FORMAT, W5200_MAX_LEN);
 //	for(uint32_t i = 0; i < JOURNAL_LEN / W5200_MAX_LEN; i++) {
@@ -173,7 +168,7 @@ void Journal::Format(void)
 void Journal::printf(const char *format, ...)             
 {
 #ifdef DEBUG
-	if(Is_otg_vbus_high()) return;
+	if(!Is_otg_vbus_high()) return;
 	va_list ap;
 	va_start(ap, format);
 	m_vsnprintf(pbuf, PRINTF_BUF, format, ap);
@@ -214,8 +209,8 @@ void Journal::jprintfopt(const char *format, ...)
 // +Time, далее печать в консоль и журнал
 void Journal::jprintf_time(const char *format, ...)
 {
-	strcpy(pbuf, NowTimeToStr());
-	strcat(pbuf, " ");
+	NowTimeToStr(pbuf);
+	pbuf[8] = ' ';
 	va_list ap;
 	va_start(ap, format);
 	m_vsnprintf(pbuf + 9, PRINTF_BUF - 9, format, ap);
@@ -230,8 +225,8 @@ void Journal::jprintf_time(const char *format, ...)
 void Journal::jprintfopt_time(const char *format, ...)
 {
 	if(!DebugToJournalOn) return;
-	strcpy(pbuf, NowTimeToStr());
-	strcat(pbuf, " ");
+	NowTimeToStr(pbuf);
+	pbuf[8] = ' ';
 	va_list ap;
 	va_start(ap, format);
 	m_vsnprintf(pbuf + 9, PRINTF_BUF - 9, format, ap);
@@ -245,10 +240,10 @@ void Journal::jprintfopt_time(const char *format, ...)
 // +DateTime, далее печать в консоль и журнал
 void Journal::jprintf_date(const char *format, ...)
 {
-	strcpy(pbuf, NowDateToStr());
-	strcat(pbuf, " ");
-	strcat(pbuf, NowTimeToStr());
-	strcat(pbuf, " ");
+	NowDateToStr(pbuf);
+	pbuf[10] = ' ';
+	NowTimeToStr(pbuf + 11);
+	pbuf[19] = ' ';
 	va_list ap;
 	va_start(ap, format);
 	m_vsnprintf(pbuf + 20, PRINTF_BUF - 20, format, ap);

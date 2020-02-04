@@ -131,7 +131,7 @@ boolean set_time_NTP(void)
 		// обновились, можно и часы i2c обновить
 		setTime_RtcI2C(rtcSAM3X8.get_hours(), rtcSAM3X8.get_minutes(), rtcSAM3X8.get_seconds());
 		setDate_RtcI2C(rtcSAM3X8.get_days(), rtcSAM3X8.get_months(), rtcSAM3X8.get_years());
-		journal.jprintf("OK\n Set time from server: %s %s (was %s)\n", NowDateToStr(), NowTimeToStr(), TimeToStr(lt));
+		journal.jprintf("OK\n Set time from server: %s %s (was %s)\n", NowDateToStr(), NowTimeToStr(), UTimeToStr(lt));
 	}
 	SemaphoreGive(xWebThreadSemaphore);
 	return flag > 0;
@@ -243,48 +243,47 @@ boolean set_time_NTP(void)
 #endif // HTTP_TIME_REQUEST
 
 //  Получить текущее время (XX:XX:XX) в виде строки, не реентерабельна!
-char* NowTimeToStr()
+char* NowTimeToStr(char *buf)
 {
-	uint32_t x;
-	static char _tmp[12];  // Длина xx:xx:xx - 10+1 символов
-	x = rtcSAM3X8.get_hours();
-	if(x < 10) strcpy(_tmp, cZero);	else _tmp[0] = '\0';
-	_itoa(x, _tmp);
-	strcat(_tmp, ":");
-
-	x = rtcSAM3X8.get_minutes();
-	if(x < 10) strcat(_tmp, cZero);
-	_itoa(x, _tmp);
-	strcat(_tmp, ":");
-
-	x = rtcSAM3X8.get_seconds();
-	if(x < 10) strcat(_tmp, cZero);
-	_itoa(x, _tmp);
-
-	return _tmp;
-}
-//  Получить текущее время (XX:XX) в виде строки, не реентерабельна!
-char* NowTimeToStr1()
-{
-  uint8_t x;
-  static char _tmp[6];   // Длина xx:xx - 5+1 символов
-  x = rtcSAM3X8.get_hours();
-  _tmp[0] = '0' + x / 10;
-  _tmp[1] = '0' + x % 10;
-  _tmp[2] = ':';
-  x = rtcSAM3X8.get_minutes();
-  _tmp[3] = '0' + x / 10;
-  _tmp[4] = '0' + x % 10;
-  _tmp[5] = '\0';
-  return _tmp;
+	static char _tmp[9];  // Длина xx:xx:xx\0
+	if(buf == NULL) buf = _tmp;
+	uint32_t tm = RTC->RTC_TIMR;
+	uint32_t x = SAM_RTC_HOUR(tm);
+	buf[0] = '0' + x / 10;
+	buf[1] = '0' + x % 10;
+	buf[2] = ':';
+	x = SAM_RTC_MIN(tm);
+	buf[3] = '0' + x / 10;
+	buf[4] = '0' + x % 10;
+	buf[5] = ':';
+	x = SAM_RTC_SEC(tm);
+	buf[6] = '0' + x / 10;
+	buf[7] = '0' + x % 10;
+	buf[8] = '\0';
+	return buf;
 }
 
 //  Получить текущую дату в виде строки xx.xx.xxxx
-char* NowDateToStr()
+char* NowDateToStr(char *buf)
 {
-  static char _tmp[16];  // Длина xx/xx/xxxx - 10+1 символов
-  m_snprintf((char *)&_tmp, sizeof(_tmp), FORMAT_DATE_STR, rtcSAM3X8.get_days(), rtcSAM3X8.get_months(), rtcSAM3X8.get_years());
-  return _tmp;
+	static char _tmp[12];  // Длина xx/xx/xxxx - 10+1 символов
+	if(buf == NULL) buf = _tmp;
+	uint32_t dt = RTC->RTC_CALR;
+	uint32_t x = SAM_RTC_DAYS(dt);
+	buf[0] = '0' + x / 10;
+	buf[1] = '0' + x % 10;
+	buf[2] = '.';
+	x = SAM_RTC_MONTH(dt);
+	buf[3] = '0' + x / 10;
+	buf[4] = '0' + x % 10;
+	buf[5] = '.';
+	x = SAM_RTC_YEARS(dt);
+	buf[6] = '0' + x / 1000;
+	buf[7] = '0' + x % 1000 / 100;
+	buf[8] = '0' + x % 100 / 10;
+	buf[9] = '0' + x % 10;
+	buf[10] = '\0';
+	return buf;
 }
 
 // (Длительность инервала в строку) Время в формате день day 12:34 используется для рассчета uptime
@@ -323,14 +322,6 @@ xSec:	_itoa(Sec, ret);
 		strcat(ret, "c");
 	}
 	return ret;
-}
-
-// вывод Времени в формате 12:34:34, не реентерабельна
-char* TimeToStr(uint32_t idt)
-{
-	static char _tmp[10];  // Длина xx:xx:xx - 10+1 символов
-	m_snprintf((char *)_tmp, sizeof(_tmp), "%02d:%02d:%02d", (idt % 86400L) / 3600, (idt % 3600) / 60, idt % 60);
-	return _tmp;
 }
 
 // http://stackoverflow.com/questions/21593692/convert-unix-timestamp-to-date-without-system-libs

@@ -745,17 +745,24 @@ boolean MainClass::set_datetime(char *var, char *c)
 	return true;
 }
 // Получить параметр дата и время из строки
-char* MainClass::get_datetime(char *var,char *ret)
+void MainClass::get_datetime(char *var, char *ret)
 {
-if(strcmp(var,time_TIME)==0)  {return strcat(ret,NowTimeToStr1());                      }else  
-if(strcmp(var,time_DATE)==0)  {return strcat(ret,NowDateToStr());                       }else  
-if(strcmp(var,time_NTP)==0)   {return strcat(ret,DateTime.serverNTP);                   }else                
-if(strcmp(var,time_UPDATE)==0){if (GETBIT(DateTime.flags,fUpdateNTP)) return  strcat(ret,(char*)cOne);
-                               else                                   return  strcat(ret,(char*)cZero);}else  
-if(strcmp(var,time_TIMEZONE)==0){return  _itoa(DateTime.timeZone,ret);         }else  
-if(strcmp(var,time_UPDATE_I2C)==0){ if (GETBIT(DateTime.flags,fUpdateI2C)) return  strcat(ret,(char*)cOne);
-                                    else                                   return  strcat(ret,(char*)cZero); }else      
-return strcat(ret,(char*)cInvalid);
+	if(strcmp(var, time_TIME) == 0) {
+		ret += strlen(ret);
+		NowTimeToStr(ret);
+		ret[5] = '\0';
+	} else if(strcmp(var, time_DATE) == 0) {
+		strcat(ret, NowDateToStr());
+	} else if(strcmp(var, time_NTP) == 0) {
+		strcat(ret, DateTime.serverNTP);
+	} else if(strcmp(var, time_UPDATE) == 0) {
+		if(GETBIT(DateTime.flags, fUpdateNTP)) strcat(ret, (char*) cOne); else strcat(ret, (char*) cZero);
+	} else if(strcmp(var, time_TIMEZONE) == 0) {
+		_itoa(DateTime.timeZone, ret);
+	} else if(strcmp(var, time_UPDATE_I2C) == 0) {
+		if(GETBIT(DateTime.flags, fUpdateI2C)) strcat(ret, (char*) cOne);
+		else strcat(ret, (char*) cZero);
+	} else strcat(ret, (char*) cInvalid);
 }
 
 // Установить опции  из числа (float), "set_Opt"
