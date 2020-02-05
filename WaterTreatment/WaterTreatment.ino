@@ -907,6 +907,7 @@ void vReadSensor(void *)
 	static uint32_t oldTime, OneWire_time;
 	oldTime = millis();
 	OneWire_time = oldTime - ONEWIRE_READ_PERIOD;
+	vReadSensor_delay1ms(1000 * (WEIGHT_AVERAGE_BUFFER + 2) / HX711_RATE_HZ);
 	for(;;) {
 		int8_t i;
 		//WDT_Restart(WDT);
@@ -980,12 +981,7 @@ void vReadSensor(void *)
 				MC.dPWM.get_readState(1);     // Последняя группа регистров
 			}
 
-		Weight_NeedRead = true;
-		vReadSensor_delay8ms((cDELAY_DS1820 - (millis() - ttime)) / 8); 	// Ожидать время преобразования
-		if(Weight_Percent < MC.Option.Weight_Empty) {
-			if(!(CriticalErrors & ERRC_WeightLow)) set_Error(ERR_WEIGHT_LOW, (char*)__FUNCTION__);
-			CriticalErrors |= ERRC_WeightLow;
-		} else if(CriticalErrors & ERRC_WeightLow) CriticalErrors &= ~ERRC_WeightLow;
+		vReadSensor_delay1ms((cDELAY_DS1820 - (millis() - ttime))); 	// Ожидать время преобразования
 
 		// do not need averaging: // uint8_t flags = 0;
 		for(i = 0; i < TNUMBER; i++) {                                   // Прочитать данные с температурных датчиков
@@ -1020,7 +1016,7 @@ void vReadSensor(void *)
 		MC.calculatePower();  // Расчет мощностей
 		Stats.Update();
 
-		vReadSensor_delay8ms((TIME_READ_SENSOR - (millis() - ttime)) / 2 / 8);     // 1. Ожидать время нужное для цикла чтения
+		vReadSensor_delay1ms((TIME_READ_SENSOR - (millis() - ttime)) / 2);     // 1. Ожидать время нужное для цикла чтения
 
 		//  Синхронизация часов с I2C часами если стоит соответствующий флаг
 		if(MC.get_updateI2C())  // если надо обновить часы из I2c
@@ -1051,7 +1047,7 @@ void vReadSensor(void *)
 			last_life_h = hour;
 		}
 		//
-		vReadSensor_delay8ms((TIME_READ_SENSOR - (millis() - ttime)) / 8);     // Ожидать время нужное для цикла чтения
+		vReadSensor_delay1ms(TIME_READ_SENSOR - (millis() - ttime));     // Ожидать время нужное для цикла чтения
 		ttime = TIME_READ_SENSOR - (millis() - ttime);
 		if(ttime && ttime <= 8) vTaskDelay(ttime);
 
@@ -1059,21 +1055,34 @@ void vReadSensor(void *)
 	vTaskDelete( NULL);
 }
 
-// Вызывается во время задержек в задаче чтения датчиков
-void vReadSensor_delay8ms(int16_t ms8)
+// Вызывается во время задержек в задаче чтения датчиков, должна быть вызвана перед основным циклом на время заполнения буфера усреднения
+void vReadSensor_delay1ms(int ms)
 {
 	do {
-		if(ms8) vTaskDelay(8);
+		if(ms > 0) vTaskDelay(1);
 
-		if(Weight_NeedRead) {
+//		if(Weight_NeedRead) { // allways
 			if(MC.get_testMode() != NORMAL) {
-				Weight_NeedRead = false;
-				Weight_value = Weight_Test;
-				Weight_Percent = Weight_value * 10000 / MC.Option.WeightFull;
-			} else if(Weight.is_ready()) {
-				Weight_NeedRead = false;
+//				Weight_NeedRead = false;
+				if(Weight_value != Weight_Test) {
+					Weight_value = Weight_Test;
+					Weight_Percent = Weight_value * 10000 / MC.Option.WeightFull;
+				}
+			} else if(Weight.is_ready()) { // 10Hz or 80Hz
+				static int32_t median1 = 0, median2 = 0;
+//				Weight_NeedRead = false;
 				// Read HX711
-				int32_t adc_val = Weight.read();
+				int32_t adc_val, median3 = Weight.read();
+				// Медианный фильтр
+				if(median1 <= median2 && median1 <= median3) {
+					adc_val = median2 <= median3 ? median2 : median3;
+				} else if(median2 <= median1 && median2 <= median3) {
+					adc_val = median1 <= median3 ? median1 : median3;
+				} else {
+					adc_val = median1 <= median2 ? median1 : median2;
+				}
+				median1 = median2;
+				median2 = median3;
 				// Усреднение значений
 				Weight_adc_sum = Weight_adc_sum + adc_val - Weight_adc_filter[Weight_adc_idx];
 				Weight_adc_filter[Weight_adc_idx] = adc_val;
@@ -1082,12 +1091,17 @@ void vReadSensor_delay8ms(int16_t ms8)
 					Weight_adc_idx = 0;
 					Weight_adc_flagFull = true;
 				}
-				if(Weight_adc_flagFull) adc_val = Weight_adc_sum / (sizeof(Weight_adc_filter) / sizeof(Weight_adc_filter[0])); else adc_val = Weight_adc_sum / Weight_adc_idx;
+				//if(Weight_adc_flagFull) adc_val = Weight_adc_sum / WEIGHT_AVERAGE_BUFFER; else adc_val = Weight_adc_sum / Weight_adc_idx;
+				adc_val = Weight_adc_sum / WEIGHT_AVERAGE_BUFFER;
 				Weight_value = (adc_val - MC.Option.WeightZero) * 10000 / MC.Option.WeightScale - MC.Option.WeightTare;
 				Weight_Percent = Weight_value * 10000 / MC.Option.WeightFull;
 				if(Weight_Percent < 0) Weight_Percent = 0; else if(Weight_Percent > 10000) Weight_Percent = 10000;
+				if(Weight_Percent < MC.Option.Weight_Empty) {
+					if(!(CriticalErrors & ERRC_WeightLow)) set_Error(ERR_WEIGHT_LOW, (char*)__FUNCTION__);
+					CriticalErrors |= ERRC_WeightLow;
+				} else if(CriticalErrors & ERRC_WeightLow) CriticalErrors &= ~ERRC_WeightLow;
 			}
-		}
+//		}
 
 #ifdef USE_UPS
 		MC.sInput[SPOWER].Read(true);
@@ -1111,7 +1125,7 @@ void vReadSensor_delay8ms(int16_t ms8)
 #ifdef RADIO_SENSORS
 		check_radio_sensors();
 #endif
-	} while(--ms8 > 0);
+	} while(--ms > 0);
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -1134,7 +1148,7 @@ void vPumps( void * )
 		for(uint8_t i = 0; i < RNUMBER; i++) MC.dRelay[i].NextTimerOn();
 
 		// Read sensors
-		for(uint8_t i = 0; i < INUMBER; i++) MC.sInput[i].Read(true);		// Прочитать данные сухой контакт
+		for(uint8_t i = 0; i < INUMBER; i++) MC.sInput[i].Read(true);		// Прочитать данные сухой контакт (FAST mode)
 		bool tank_empty = MC.sInput[TANK_EMPTY].get_Input();
 		if(ADC_has_been_read) {		// Не чаще, чем ADC
 			ADC_has_been_read = false;

@@ -1,20 +1,21 @@
 ﻿<html>
 <head>
-  <title>Датчики температуры. Водоподготовка.</title>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link rel="stylesheet" type="text/css" href="style.css">
-  <script type='text/javascript' src='scripts.js'></script>
-  <script type="text/javascript">
-    window.onload = function() {
+<title>Датчики температуры. Водоподготовка.</title>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="stylesheet" type="text/css" href="style.css">
+<script type='text/javascript' src='scripts.js'></script>
+<script type="text/javascript">
+window.onload = function() {
 	urlupdate = 2000;
-    loadParam("get_tblTempF");
-  </script>
+	loadParam("get_tblTempF");
+}
+</script>
 </head>
 <body  class="sensorst">
 <div id="menu" class="menu"><script src="menu.js"></script></div>
 <div class="content">
-  <h1>Датчики температуры<input type="submit" value="Записать в EEPROM"  onclick='loadParam("set_SAVE")'></h1>
+<h1>Датчики температуры<input type="submit" value="Записать в EEPROM"  onclick='loadParam("set_SAVE")'></h1>
 <div class="row1">
 <h2>Температуные датчики, &deg;C <input type="submit" value="Сброс ошибок" onclick='loadParam("RESET_TERR")' style="float:right"></h2>
 	<table><thead>
@@ -26,7 +27,6 @@
 	  <th>Максимум</th>
 	  <th>Поправка</th>
 	  <th>Тест</th>
-	  <th>TIN<sup>1</sup>: средн/мин; ТП<sup>2</sup></th>
 	  <th>Шина</th>
 	  <th>Ошибок</th>
 	  <th>Код ошибки</th>
@@ -34,8 +34,6 @@
 	</thead><tbody id="get_tbltempf">
 	</tbody></table>
 </div>
-1. Для TIN усреднение и/или выбор минимальной температуры. TIN должен быть не привязан, для корректной работы.<br/>
-2. Для управления реле теплого пола при отоплении, если температура любого датчика с этим флагом меньше целевой - ТП Вкл, иначе - Выкл.<br>
 </div>
 </body>
 </html>

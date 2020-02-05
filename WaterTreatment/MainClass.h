@@ -82,7 +82,7 @@ uint32_t ResetDUE_countdown = 0;
 bool	 DebugToJournalOn = false;
 
 // Weight
-bool Weight_NeedRead = false;
+//bool Weight_NeedRead = false; // allways
 int32_t  Weight_adc_sum;                          	// сумма
 int32_t  Weight_adc_filter[WEIGHT_AVERAGE_BUFFER]; 	// массив накопленных значений
 uint16_t Weight_adc_idx;  			                // текущий индекс
