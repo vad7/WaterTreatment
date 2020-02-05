@@ -209,7 +209,7 @@ void setup() {
 	//journal.jprintfopt("Chip ID SAM3X8E: %s\n", Socket[0].inBuf);// информация об серийном номере чипа
 	if(GPBR->SYS_GPBR[0] & 0x80000000) GPBR->SYS_GPBR[0] = 0; else GPBR->SYS_GPBR[0] |= 0x80000000; // очистка старой причины
 	lastErrorFreeRtosCode = GPBR->SYS_GPBR[0] & 0x7FFFFFFF;         // Сохранение кода ошибки при страте (причину перегрузки)
-	journal.jprintf("\n\n# RESET: %s, 0x%04x", ResetCause(), lastErrorFreeRtosCode);
+	journal.jprintf("\n# RESET: %s, 0x%04x", ResetCause(), lastErrorFreeRtosCode);
 	if(GPBR->SYS_GPBR[4]) journal.jprintf(" %d", GPBR->SYS_GPBR[4]);
 	journal.jprintf("\n");
 
@@ -510,13 +510,10 @@ x_I2C_init_std_message:
 	freeRamShow();
 	MC.startRAM=freeRam()-MC.mRTOS;   // оценка свободной памяти до пуска шедулера, поправка на 1054 байта
 	journal.jprintfopt("FREE MEMORY %d bytes\n",MC.startRAM);
-	journal.jprintfopt("t DS2331: %.2d\n", getTemp_RtcI2C());
-	journal.jprintf_date("t SAM3x: %.2f\n", temp_DUE());
+	journal.jprintfopt("Temp DS2331: %.2d\n", getTemp_RtcI2C());
+	journal.jprintf_date("Temp SAM3x: %.2f%s\n", temp_DUE(), Is_otg_vbus_high() ? ", USB" : "");
 	//MC.Stat.generate_TestData(STAT_POINT); // Сгенерировать статистику STAT_POINT точек только тестирование
 	//journal.jprintfopt("Start FreeRTOS.\n\n");
-
-
-	if(Is_otg_vbus_high()) journal.jprintf("USB CONNECTED\n");
 
 #ifndef TEST_BOARD
 	DebugToJournalOn = false;
@@ -732,7 +729,8 @@ void vWeb2(void *)
 }
 
 //////////////////////////////////////////////////////////////////////////
-#define LCD_SetupMenuItems 2
+#define LCD_SetupMenuItems	2
+#define LCD_SetupFlag 		0x80000000
 const char *LCD_SetupMenu[LCD_SetupMenuItems] = { "1. Exit", "2. Relays" };
 // Задача Пользовательский интерфейс (MC.xHandleKeysLCD) "KeysLCD"
 void vKeysLCD( void * )
@@ -750,7 +748,7 @@ void vKeysLCD( void * )
 	vTaskDelay(3000);
 	static uint32_t DisplayTick = xTaskGetTickCount();
 	static char buffer[ALIGN(LCD_COLS * 2)];
-	static uint32_t setup = 0; // 0..FF - menu, +FF00 - item selected
+	static uint32_t setup = 0; // 0x8000MMII: 8 - Setup active, MМ - Menu item (0..<max LCD_SetupMenuItems-1>) , II - Selecting item (0...)
 	static uint32_t setup_timeout;
 	//static uint32_t displayed_area = 0; // b1 - Yd,Days Fe,Soft
 	for(;;)
@@ -771,17 +769,17 @@ void vKeysLCD( void * )
 					}
 					if(t == 0) goto xSetupExit;
 				}
-				if((setup & 0xFF00) == 0x100) { // menu item selected
-					MC.dRelay[setup & 0xFF].set_Relay(MC.dRelay[setup & 0xFF].get_Relay() ? -fR_StatusManual : fR_StatusManual);
-				} else if(setup == 1) {
+				if((setup & 0xFF00) == 0) { 			// menu item 1 selected - Exit
 xSetupExit:
 					lcd.command(LCD_DISPLAYCONTROL | LCD_DISPLAYON);
 					setup = 0;
-				} else setup <<= 8;
+				} else if((setup & 0xFF00) == 0x100) {	// menu item 1 selected - Relay
+					MC.dRelay[setup & 0xFF].set_Relay(MC.dRelay[setup & 0xFF].get_Relay() ? -fR_StatusManual : fR_StatusManual);
+				} else setup = (setup << 8) & LCD_SetupFlag;
 				DisplayTick = ~DisplayTick;
-			} else if(MC.get_errcode() && !Error_Beep_confirmed) Error_Beep_confirmed = true;
-			else {
-				setup = 0x80000000;
+			} else if(MC.get_errcode() && !Error_Beep_confirmed) Error_Beep_confirmed = true; // Supress beeping
+			else { // Enter Setup
+				setup = LCD_SetupFlag;
 				lcd.command(LCD_DISPLAYCONTROL | LCD_DISPLAYON | LCD_CURSORON | LCD_BLINKON);
 				DisplayTick = ~DisplayTick;
 			}
@@ -823,11 +821,11 @@ xSetupExit:
 				lcd.clear();
 				if((setup & 0xFF00) == 0x100) { // Relays
 					for(uint8_t i = 0; i < (RNUMBER > 8 ? 8 : RNUMBER) ; i++) {
-						lcd.setCursor(i / 2, 10 * (i % 2));
+						lcd.setCursor(10 * (i % 2), i / 2);
 						lcd.print(MC.dRelay[i].get_Relay() ? '*' : ' ');
 						lcd.print(MC.dRelay[i].get_name());
 					}
-					lcd.setCursor((setup & 0xFF) / 2, 10 * ((setup & 0xFF) % 2));
+					lcd.setCursor(10 * ((setup & 0xFF) % 2), (setup & 0xFF) / 2);
 				} else lcd.print(LCD_SetupMenu[setup & 0xFF]);
 			} else {
 				lcd.setCursor(0, 0);

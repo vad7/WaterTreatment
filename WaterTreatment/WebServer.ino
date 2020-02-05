@@ -987,8 +987,8 @@ xSaveStats:		if((i = MC.save_WorkStats()) == OK)
 				default:         strcat(strReturn,"unknown;"); break;
 				}
 
-				strcat(strReturn,"Входное напряжение питания контроллера (В): |");
-				m_snprintf(strReturn + strlen(strReturn), 256, "если ниже %.1dV - сброс;", ((SUPC->SUPC_SMMR & SUPC_SMMR_SMTH_Msk) >> SUPC_SMMR_SMTH_Pos) + 19);
+				strcat(strReturn, "Входное напряжение питания контроллера, V:|");
+				strReturn += m_snprintf(strReturn += strlen(strReturn), 256, "если ниже %.1d - сброс;", ((SUPC->SUPC_SMMR & SUPC_SMMR_SMTH_Msk) >> SUPC_SMMR_SMTH_Pos) + 19);
 				strReturn += m_snprintf(strReturn += strlen(strReturn), 256, "Режим safeNetwork (%sадрес:%d.%d.%d.%d шлюз:%d.%d.%d.%d)|%s;", defaultDHCP ?"DHCP, ":"",defaultIP[0],defaultIP[1],defaultIP[2],defaultIP[3],defaultGateway[0],defaultGateway[1],defaultGateway[2],defaultGateway[3],MC.safeNetwork ?cYes:cNo);
 				//strcat(strReturn,"Уникальный ID чипа SAM3X8E|");
 				//getIDchip(strReturn); strcat(strReturn,";");

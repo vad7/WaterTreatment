@@ -131,7 +131,9 @@ boolean set_time_NTP(void)
 		// обновились, можно и часы i2c обновить
 		setTime_RtcI2C(rtcSAM3X8.get_hours(), rtcSAM3X8.get_minutes(), rtcSAM3X8.get_seconds());
 		setDate_RtcI2C(rtcSAM3X8.get_days(), rtcSAM3X8.get_months(), rtcSAM3X8.get_years());
-		journal.jprintf("OK\n Set time from server: %s %s (was %s)\n", NowDateToStr(), NowTimeToStr(), UTimeToStr(lt));
+		journal.jprintf("OK\n Set time from server: %s %s, ", NowDateToStr(), NowTimeToStr());
+		journal.jprintf("was: %02d:%02d:%02d\n", lt % 86400L / 3600, lt % 3600 / 60, lt % 60);
+
 	}
 	SemaphoreGive(xWebThreadSemaphore);
 	return flag > 0;
@@ -229,11 +231,9 @@ boolean set_time_NTP(void)
 		// обновились, можно и часы i2c обновить
 		setTime_RtcI2C(rtcSAM3X8.get_hours(), rtcSAM3X8.get_minutes(), rtcSAM3X8.get_seconds());
 		setDate_RtcI2C(rtcSAM3X8.get_days(), rtcSAM3X8.get_months(), rtcSAM3X8.get_years());
-		journal.jprintfopt(" Set time from NTP server: %s ", NowDateToStr());
-		journal.jprintfopt("%s\n", NowTimeToStr());  // Одним оператором есть косяк
+		journal.jprintfopt(" Set time from NTP server: %s %s\n", NowDateToStr(), NowTimeToStr());
 	} else {
-		journal.jprintf(" ERROR update time from NTP server! %s ", NowDateToStr());
-		journal.jprintf("%s\n", NowTimeToStr());  // Одним оператором есть косяк
+		journal.jprintf_date(" ERROR update time from NTP server!\n");
 	}
 	SemaphoreGive(xWebThreadSemaphore);
 
