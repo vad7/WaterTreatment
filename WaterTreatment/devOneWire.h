@@ -16,7 +16,7 @@
  
 #include "Constant.h"                     // Должен быть первым !!!! кое что берется в стандартных либах для настройки либ, Config.h входит в него
 #include <DS2482.h>                       // мост OneWire аппаратная реализация доработана
-#include <OneWire.h>                      // OneWire библиотека OneWire шина програмная
+#include "OneWire.h"                      // OneWire библиотека OneWire шина програмная
 
 #define DS2482_CONFIG	(DS2482_CONFIG_APU)	// 0 - не конфигурить
 

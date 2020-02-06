@@ -703,10 +703,10 @@ xSaveStats:		if((i = MC.save_WorkStats()) == OK)
 				ADD_WEBDELIM(strReturn); continue;
 			}
 		}
-//		if (strcmp(str,"get_tDS")==0)  // Функция get_tDS  - получение температуры DS3231
-//		{
-//			_dtoa(strReturn, getTemp_RtcI2C(), 2); ADD_WEBDELIM(strReturn); continue;
-//		}
+		if (strcmp(str,"get_tDS")==0)  // Функция get_tDS  - получение температуры DS3231
+		{
+			_dtoa(strReturn, getTemp_RtcI2C(), 2); ADD_WEBDELIM(strReturn); continue;
+		}
 		if (strcmp(str,"get_PWR") == 0)
 		{
 			_dtoa(strReturn, MC.dPWM.get_Power(), 3); ADD_WEBDELIM(strReturn); continue;
@@ -995,7 +995,7 @@ xSaveStats:		if((i = MC.save_WorkStats()) == OK)
 				//strcat(strReturn,"Значение регистра VERSIONR сетевого чипа WizNet (51-w5100, 3-w5200, 4-w5500)|");_itoa(W5200VERSIONR(),strReturn);strcat(strReturn,";");
 
 				strReturn += m_snprintf(strReturn += strlen(strReturn), 256, "Состояние системы (день недели: %d)|Err:%d(%X) B:%d %s%s Day:%d Reg:%d;", MC.RTC_store.Work & RTC_Work_WeekDay_MASK, MC.get_errcode(), CriticalErrors, WaterBoosterStatus, MC.RTC_store.Work & RTC_Work_Regen_F1 ? "R1 " : "", MC.RTC_store.Work & RTC_Work_Regen_F2 ? "R2 " : "", MC.RTC_store.UsedToday, MC.RTC_store.UsedRegen);
-				strReturn += m_snprintf(strReturn += strlen(strReturn), 256, "Состояние FreeRTOS при старте (task+err_code) <sup>2</sup>|0x%04X;", lastErrorFreeRtosCode);
+				strReturn += m_snprintf(strReturn += strlen(strReturn), 256, "Состояние FreeRTOS при старте (task+err_code) <sup>2</sup>|0x%04X 0x%04X;", lastErrorFreeRtosCode, GPBR->SYS_GPBR[5]);
 
 				startSupcStatusReg |= SUPC->SUPC_SR;                                  // Копим изменения
 				m_snprintf(strReturn += strlen(strReturn), 256, "Регистры контроллера питания (SUPC) SAM3X8E [SMMR MR SR]|0x%08X %08X %08X", SUPC->SUPC_SMMR, SUPC->SUPC_MR, startSupcStatusReg);  // Регистры состояния контроллера питания
@@ -1411,7 +1411,7 @@ xget_testTemp:					_dtoa(strReturn, MC.sTemp[p].get_testTemp(), 2); ADD_WEBDELIM
 									i = MC.sTemp[p].get_radio_received_idx();
 									if(i >= 0) {
 										m_snprintf(strReturn + strlen(strReturn), 20, " \xF0\x9F\x93\xB6%c", Radio_RSSI_to_Level(radio_received[i].RSSI));
-										if(str[9] == '2') m_snprintf(strReturn + strlen(strReturn), 20, ", %.1dV", radio_received[i].battery);
+										if(str[5] == '2') m_snprintf(strReturn + strlen(strReturn), 20, ", %.1dV", radio_received[i].battery);
 									} else strcat(strReturn, " \xF0\x9F\x93\xB6");
 								}
 	#endif
@@ -1425,7 +1425,7 @@ xget_testTemp:					_dtoa(strReturn, MC.sTemp[p].get_testTemp(), 2); ADD_WEBDELIM
 							}
 
 							if(strncmp(str, "fTemp", 5)==0){  // get_fTempX(N): X - номер флага fTEMP_* (1..), N - имя датчика (flag)
-								_itoa(MC.sTemp[p].get_setup_flag(str[9] - '0' - 1 + fTEMP_ignory_errors), strReturn);
+								_itoa(MC.sTemp[p].get_setup_flag(str[5] - '0' - 1 + fTEMP_ignory_errors), strReturn);
 								ADD_WEBDELIM(strReturn);  continue;
 							}
 
@@ -1449,7 +1449,7 @@ xget_testTemp:					_dtoa(strReturn, MC.sTemp[p].get_testTemp(), 2); ADD_WEBDELIM
 							}
 
 							if(strncmp(str, "fTemp", 5) == 0) {   // set_fTempX(N=V): X - номер флага fTEMP_* (1..), N - имя датчика (flag)
-								i = str[9] - '0' - 1 + fTEMP_ignory_errors;
+								i = str[5] - '0' - 1 + fTEMP_ignory_errors;
 								MC.sTemp[p].set_setup_flag(i, int(pm));
 								_itoa(MC.sTemp[p].get_setup_flag(i), strReturn);
 								ADD_WEBDELIM(strReturn); continue;

@@ -380,6 +380,8 @@ void sensorFrequency::initFrequency(int sensor)
    //   CHANGE прерывание вызывается при смене значения на порту, с LOW на HIGH и наоборот
    //   RISING прерывание вызывается только при смене значения на порту с LOW на HIGH
    //   FALLING прерывание вызывается только при смене значения на порту с HIGH на LOW
+   PIO_SetInput(g_APinDescription[pin].pPort, g_APinDescription[pin].ulPin, PIO_DEGLITCH);
+   //PIO_SetDebounceFilter(g_APinDescription[pin].pPort, g_APinDescription[pin].ulPin, 1); // PIO_DEBOUNCE - Cutoff freq in Hz
 #if FNUMBER > 0
    if(sensor == 0) attachInterrupt(pin, InterruptFreq0, CHANGE);
 #if FNUMBER > 1
@@ -400,18 +402,20 @@ void sensorFrequency::initFrequency(int sensor)
 // Получить (точнее обновить) значение датчика, возвращает 1, если новое значение рассчитано
 int8_t sensorFrequency::Read()
 {
-	if(GetTickCount() - sTime >= (uint32_t) FREQ_BASE_TIME_READ * 1000) {  // если только пришло время измерения
-		uint32_t tickCount, cnt;
-		//if(xTaskGetSchedulerState() == taskSCHEDULER_RUNNING) taskENTER_CRITICAL();
-		{
-			tickCount = GetTickCount();
-			cnt = count;
-			count = 0;
-		}
-		//if(xTaskGetSchedulerState() == taskSCHEDULER_RUNNING) taskEXIT_CRITICAL();
-		//__asm__ volatile ("" ::: "memory");
+	uint32_t tickCount;
+	if((tickCount = GetTickCount()) - sTime >= (uint32_t) FREQ_BASE_TIME_READ * 1000) {  // если только пришло время измерения
+		uint32_t cnt;
+		noInterrupts();
+		cnt = count;
+		count = 0;
+		interrupts();
+		//__asm__ volatile ("" ::: "memory");0
 		uint32_t ticks = tickCount - sTime;
 		sTime = tickCount;
+
+		journal.printf("CNT: %d (%d)\n", cnt, digitalReadDirect(pin));
+
+
 		if(testMode != NORMAL) {    // В режиме теста
 			Value = testValue;
 			Frequency = Value * kfValue / 360;
@@ -444,12 +448,10 @@ int8_t sensorFrequency::Read()
 void sensorFrequency::reset(void)
 {
 
-	//if(xTaskGetSchedulerState() == taskSCHEDULER_RUNNING) taskENTER_CRITICAL();
 	sTime = GetTickCount();
 	count = 0;
 	Passed = 0;
 	PassedRest = 0;
-	//if(xTaskGetSchedulerState() == taskSCHEDULER_RUNNING) taskEXIT_CRITICAL();
 }
 
 // Установить Состояние датчика в режиме теста

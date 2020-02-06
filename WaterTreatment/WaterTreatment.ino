@@ -203,6 +203,8 @@ void setup() {
 	journal.jprintf("\n---> TEST BOARD!!!\n\n");
 #endif
 
+	journal.jprintf("\nSysCoreClock: %u\n", SystemCoreClock);
+
 	//journal.jprintfopt("Firmware version: %s\n", VERSION);
 	//showID();                                                                  // информация о чипе
 	//getIDchip((char*)Socket[0].inBuf);
@@ -912,6 +914,7 @@ void vReadSensor(void *)
 		int8_t i;
 		//WDT_Restart(WDT);
 
+		STORE_DEBUG_INFO2(10);
 		prtemp = fDS2482_bus_mask;
 		ttime = millis();
 		if(ttime - OneWire_time >= ONEWIRE_READ_PERIOD) {
@@ -929,6 +932,8 @@ void vReadSensor(void *)
 #endif
 			}
 		}
+		STORE_DEBUG_INFO2(11);
+
 #ifdef RADIO_SENSORS
 		radio_timecnt++;
 #endif
@@ -949,9 +954,12 @@ void vReadSensor(void *)
 				}
 			}
 		}
+		STORE_DEBUG_INFO2(12);
+
 		// read in vPumps():
 		//for(i = 0; i < INUMBER; i++) MC.sInput[i].Read();                // Прочитать данные сухой контакт
 		for(i = 0; i < FNUMBER; i++) MC.sFrequency[i].Read();			// Получить значения датчиков потока
+		STORE_DEBUG_INFO2(13);
 
 		// Flow water
 		uint32_t passed = MC.sFrequency[FLOW].Passed;
@@ -973,6 +981,8 @@ void vReadSensor(void *)
 		}
 		if(passed) MC.WorkStats.UsedLastTime = rtcSAM3X8.unixtime();
 		//
+		STORE_DEBUG_INFO2(14);
+
 #ifdef USE_UPS
 		if(!MC.NO_Power)
 #endif
@@ -980,8 +990,11 @@ void vReadSensor(void *)
 				readPWM = millis();
 				MC.dPWM.get_readState(1);     // Последняя группа регистров
 			}
+		STORE_DEBUG_INFO2(15);
 
 		vReadSensor_delay1ms((cDELAY_DS1820 - (millis() - ttime))); 	// Ожидать время преобразования
+
+		STORE_DEBUG_INFO2(16);
 
 		// do not need averaging: // uint8_t flags = 0;
 		for(i = 0; i < TNUMBER; i++) {                                   // Прочитать данные с температурных датчиков
@@ -1012,12 +1025,15 @@ void vReadSensor(void *)
 		}
 		if(temp2 != STARTTEMP) MC.sTemp[TIN].set_Temp(temp2);
 		*/ // do not need averaging.
+		STORE_DEBUG_INFO2(17);
 
 		MC.calculatePower();  // Расчет мощностей
 		Stats.Update();
+		STORE_DEBUG_INFO2(18);
 
 		vReadSensor_delay1ms((TIME_READ_SENSOR - (millis() - ttime)) / 2);     // 1. Ожидать время нужное для цикла чтения
 
+		STORE_DEBUG_INFO2(19);
 		//  Синхронизация часов с I2C часами если стоит соответствующий флаг
 		if(MC.get_updateI2C())  // если надо обновить часы из I2c
 		{
@@ -1036,6 +1052,7 @@ void vReadSensor(void *)
 				oldTime = millis();
 			}
 		}
+		STORE_DEBUG_INFO2(20);
 		// Проверки граничных температур для уведомлений, если разрешено!
 		static uint8_t last_life_h = 255;
 		if(MC.message.get_fMessageLife()) // Подача сигнала жизни если разрешено!
@@ -1046,21 +1063,26 @@ void vReadSensor(void *)
 			}
 			last_life_h = hour;
 		}
+		STORE_DEBUG_INFO2(21);
 		//
 		vReadSensor_delay1ms(TIME_READ_SENSOR - (millis() - ttime));     // Ожидать время нужное для цикла чтения
 		ttime = TIME_READ_SENSOR - (millis() - ttime);
 		if(ttime && ttime <= 8) vTaskDelay(ttime);
 
 	}  // for
+	STORE_DEBUG_INFO2(22);
 	vTaskDelete( NULL);
 }
 
 // Вызывается во время задержек в задаче чтения датчиков, должна быть вызвана перед основным циклом на время заполнения буфера усреднения
 void vReadSensor_delay1ms(int ms)
 {
+	if(abs(ms) > 1000) journal.jprintf("vReadSensor_delay1ms(%d) %d\n", ms, GPBR->SYS_GPBR[5]);
+	STORE_DEBUG_INFO2(1);
 	do {
 		if(ms > 0) vTaskDelay(1);
 
+		STORE_DEBUG_INFO2(2);
 //		if(Weight_NeedRead) { // allways
 			if(MC.get_testMode() != NORMAL) {
 //				Weight_NeedRead = false;
@@ -1069,10 +1091,12 @@ void vReadSensor_delay1ms(int ms)
 					Weight_Percent = Weight_value * 10000 / MC.Option.WeightFull;
 				}
 			} else if(Weight.is_ready()) { // 10Hz or 80Hz
+				STORE_DEBUG_INFO2(3);
 				static int32_t median1 = 0, median2 = 0;
 //				Weight_NeedRead = false;
 				// Read HX711
 				int32_t adc_val, median3 = Weight.read();
+				STORE_DEBUG_INFO2(4);
 				// Медианный фильтр
 				if(median1 <= median2 && median1 <= median3) {
 					adc_val = median2 <= median3 ? median2 : median3;
@@ -1126,6 +1150,7 @@ void vReadSensor_delay1ms(int ms)
 		check_radio_sensors();
 #endif
 	} while(--ms > 0);
+	STORE_DEBUG_INFO2(5);
 }
 
 //////////////////////////////////////////////////////////////////////////

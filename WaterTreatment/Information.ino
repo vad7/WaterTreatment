@@ -37,8 +37,7 @@ void Journal::Init()
 	bufferHead = 0;
 	full = 0;                   // Буфер не полный
 	memset(_data, 0, JOURNAL_LEN);
-	printf("\nSTART ----\n");
-	printf("Init RAM journal, size %d . . .\n", JOURNAL_LEN);
+	jprintf("\nSTART ----\nInit RAM journal, size %d . . .\n", JOURNAL_LEN);
 	return;
 #else                      // журнал во флеше
 
@@ -88,8 +87,7 @@ void Journal::Init()
 		if((bufferTail >= 0) && (bufferHead >= 0)) break;
 	}
 	if(bufferTail < bufferHead) full = 1;                   // Буфер полный
-	printf("\nSTART ---\n");
-	printf("Found I2C journal: size %d bytes, head=%d, tail=%d\n", JOURNAL_LEN, bufferHead, bufferTail);
+	jprintfopt("\nSTART ---\nFound I2C journal: size %d bytes, head=%d, tail=%d\n", JOURNAL_LEN, bufferHead, bufferTail);
 #endif //  #ifndef I2C_EEPROM_64KB     // журнал в памяти
 }
 

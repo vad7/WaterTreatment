@@ -67,7 +67,7 @@ struct History_setup {
 // -----------------------------------------------------------------------------------------------------------------------------------
 //  Arduino DUE Core
 #ifdef CONFIG_1    // Имя и описание конфигурации и ОСОБЕННОСТИ конфигурации -------------------------------
-//	#define TEST_BOARD 				// Тестовая плата!
+	#define TEST_BOARD 				// Тестовая плата!
 
     #define CONFIG_NAME   "vad7"
     #define CONFIG_NOTE   "Обезжелезивание Quantum DMI-65, дозирование хлора, водоснабжение"
@@ -340,8 +340,11 @@ struct History_setup {
       const uint8_t ONEWIRE_2WAY = 0b0000;
 	#endif
 	#define PIN_ONE_WIRE_BUS       64     // INA3. нога с интерфейсом программный 1-Wire (температурные датчики)
+#ifdef TEST_BOARD
+	#define ONEWIRE_READ_PERIOD    1000UL // Период чтения датчиков 1-Wire, ms
+#else
 	#define ONEWIRE_READ_PERIOD    15000UL// Период чтения датчиков 1-Wire, ms
-
+#endif
 	#define TNUMBER     1    // Число температурных датчиков
 	//#define RADIO_SENSORS_MAX 0
 	//#define TNTC        9	// Количество датчиков NTC на DUE
