@@ -329,23 +329,23 @@ int freeRam()
 #define TEMP_FIXTEMP     27.0f
 float temp_DUE()
 {
-	uint32_t ulValue = 0;
 	adc_enable_channel(ADC, ADC_TEMPERATURE_SENSOR);                                                 // Enable the corresponding channel
 	adc_enable_ts(ADC);                                                                              // Enable the temperature sensor
-	delayMicroseconds(40);
+	delayMicroseconds(100);
 	adc_start(ADC);                                                                                  // Start the ADC
-	while((ADC->ADC_ISR & (0x1u << ADC_TEMPERATURE_SENSOR)) != (0x1u << ADC_TEMPERATURE_SENSOR)) ;   // Wait for end of conversion
-	ulValue = *(ADC->ADC_CDR + ADC_TEMPERATURE_SENSOR);                              				 // Read the value
+	uint32_t timeout = 1000000;
+	while(!(ADC->ADC_ISR & (1 << ADC_TEMPERATURE_SENSOR)) && --timeout) ;   						// Wait for end of conversion
+	uint32_t ulValue = (unsigned int)*(ADC->ADC_CDR + ADC_TEMPERATURE_SENSOR);                              		 // Read the value
 	adc_disable_ts(ADC);
 	adc_disable_channel(ADC, ADC_TEMPERATURE_SENSOR);                                                // Disable the corresponding channel
-	return TEMP_FIXTEMP + ((float) (ulValue * TEMP_TRANS ) - TEMP_OFFSET) / TEMP_FACTOR;
+	return TEMP_FIXTEMP + (ulValue * TEMP_TRANS - TEMP_OFFSET) / TEMP_FACTOR;
 }
 
 // Включение монитора питания ---------------------------------------------------
 void SupplyMonitorON(uint32_t voltage)
 {
 	startSupcStatusReg = SUPC->SUPC_SR;                        // запомнить состояние при старте
-	journal.jprintfopt("Supply Controller Status Register [SUPC_SR]: 0x%08x\n", startSupcStatusReg);
+	journal.jprintfopt("Supply Controller Register [SUPC_SR]: 0x%08x\n", startSupcStatusReg);
 
 	SUPC->SUPC_SMMR |= voltage | SUPC_SMMR_SMRSTEN_ENABLE | SUPC_SMMR_SMSMPL_CSM;   // RESET если напряжение просело, контроль 1/32768 сек
 	SUPC->SUPC_MR |= SUPC_MR_KEY(SUPC_KEY_VALUE) | SUPC_MR_BODDIS_ENABLE; // Включение контроля (это лишнее при сбросе это включено)

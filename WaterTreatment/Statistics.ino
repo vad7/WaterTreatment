@@ -331,7 +331,7 @@ void Statistics::Reset()
 	counts = 0;
 	day = rtcSAM3X8.get_days();
 	month = rtcSAM3X8.get_months();
-	previous = millis();
+	previous = GetTickCount();
 }
 
 // Обновить статистику, вызывается часто, раз в TIME_READ_SENSOR
@@ -341,8 +341,8 @@ void Statistics::Update()
 #ifndef TEST_BOARD
 	if(MC.get_testMode() != NORMAL) return;
 #endif
-	uint32_t tm = millis() - previous;
-	previous = millis();
+	uint32_t tm = GetTickCount() - previous;
+	previous = GetTickCount();
 	if(rtcSAM3X8.get_days() != day) {
 		if(SaveStats(2) == OK) {
 			Reset();

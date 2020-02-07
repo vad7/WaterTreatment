@@ -43,6 +43,8 @@ struct type_WorkStats {
 	uint16_t UsedLastRegenSoftening;// Liters
 } __attribute__((packed));
 
+#define WS_AVERAGE_DAYS				100		// После этого начнется новый отсчет, предыдущее среднее значение будет взято как первое значение.
+
 #define RTC_Work_WeekDay_MASK		0x07	// Active weekday (1-7)
 #define RTC_Work_Regen_MASK			0x30	// 0 - not, bit - wait a regen hour
 #define RTC_Work_Regen_F1			0x10	// Iron remover

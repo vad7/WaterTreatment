@@ -203,8 +203,6 @@ void setup() {
 	journal.jprintf("\n---> TEST BOARD!!!\n\n");
 #endif
 
-	journal.jprintf("\nSysCoreClock: %u\n", SystemCoreClock);
-
 	//journal.jprintfopt("Firmware version: %s\n", VERSION);
 	//showID();                                                                  // информация о чипе
 	//getIDchip((char*)Socket[0].inBuf);
@@ -399,6 +397,7 @@ x_I2C_init_std_message:
 	}
 
 	journal.jprintfopt("* Start ADC\n");
+	journal.jprintf_date("Temp SAM3x: %.2f\n", temp_DUE());
 	start_ADC(); // после инициализации
 	//journal.jprintfopt(" Mask ADC_IMR: 0x%08x\n",ADC->ADC_IMR);
 
@@ -513,7 +512,7 @@ x_I2C_init_std_message:
 	MC.startRAM=freeRam()-MC.mRTOS;   // оценка свободной памяти до пуска шедулера, поправка на 1054 байта
 	journal.jprintfopt("FREE MEMORY %d bytes\n",MC.startRAM);
 	journal.jprintfopt("Temp DS2331: %.2d\n", getTemp_RtcI2C());
-	journal.jprintf_date("Temp SAM3x: %.2f%s\n", temp_DUE(), Is_otg_vbus_high() ? ", USB" : "");
+	if(Is_otg_vbus_high()) journal.jprintf("+USB\n");
 	//MC.Stat.generate_TestData(STAT_POINT); // Сгенерировать статистику STAT_POINT точек только тестирование
 	//journal.jprintfopt("Start FreeRTOS.\n\n");
 
@@ -907,16 +906,15 @@ void vReadSensor(void *)
 	static uint32_t ttime;
 	static uint8_t  prtemp;
 	static uint32_t oldTime, OneWire_time;
-	oldTime = millis();
+	oldTime = GetTickCount();
 	OneWire_time = oldTime - ONEWIRE_READ_PERIOD;
 	vReadSensor_delay1ms(1000 * (WEIGHT_AVERAGE_BUFFER + 2) / HX711_RATE_HZ);
 	for(;;) {
 		int8_t i;
 		//WDT_Restart(WDT);
 
-		STORE_DEBUG_INFO2(10);
 		prtemp = fDS2482_bus_mask;
-		ttime = millis();
+		ttime = GetTickCount();
 		if(ttime - OneWire_time >= ONEWIRE_READ_PERIOD) {
 			OneWire_time = ttime;
 			if(OW_scan_flags == 0) {
@@ -932,7 +930,6 @@ void vReadSensor(void *)
 #endif
 			}
 		}
-		STORE_DEBUG_INFO2(11);
 
 #ifdef RADIO_SENSORS
 		radio_timecnt++;
@@ -954,12 +951,10 @@ void vReadSensor(void *)
 				}
 			}
 		}
-		STORE_DEBUG_INFO2(12);
 
 		// read in vPumps():
 		//for(i = 0; i < INUMBER; i++) MC.sInput[i].Read();                // Прочитать данные сухой контакт
 		for(i = 0; i < FNUMBER; i++) MC.sFrequency[i].Read();			// Получить значения датчиков потока
-		STORE_DEBUG_INFO2(13);
 
 		// Flow water
 		uint32_t passed = MC.sFrequency[FLOW].Passed;
@@ -981,20 +976,16 @@ void vReadSensor(void *)
 		}
 		if(passed) MC.WorkStats.UsedLastTime = rtcSAM3X8.unixtime();
 		//
-		STORE_DEBUG_INFO2(14);
 
 #ifdef USE_UPS
 		if(!MC.NO_Power)
 #endif
-			if(millis() - readPWM > PWM_READ_PERIOD) {
-				readPWM = millis();
+			if(GetTickCount() - readPWM > PWM_READ_PERIOD) {
+				readPWM = GetTickCount();
 				MC.dPWM.get_readState(1);     // Последняя группа регистров
 			}
-		STORE_DEBUG_INFO2(15);
 
-		vReadSensor_delay1ms((cDELAY_DS1820 - (millis() - ttime))); 	// Ожидать время преобразования
-
-		STORE_DEBUG_INFO2(16);
+		vReadSensor_delay1ms(cDELAY_DS1820 - (int32_t)(GetTickCount() - ttime)); 	// Ожидать время преобразования
 
 		// do not need averaging: // uint8_t flags = 0;
 		for(i = 0; i < TNUMBER; i++) {                                   // Прочитать данные с температурных датчиков
@@ -1025,19 +1016,16 @@ void vReadSensor(void *)
 		}
 		if(temp2 != STARTTEMP) MC.sTemp[TIN].set_Temp(temp2);
 		*/ // do not need averaging.
-		STORE_DEBUG_INFO2(17);
 
 		MC.calculatePower();  // Расчет мощностей
 		Stats.Update();
-		STORE_DEBUG_INFO2(18);
 
-		vReadSensor_delay1ms((TIME_READ_SENSOR - (millis() - ttime)) / 2);     // 1. Ожидать время нужное для цикла чтения
+		vReadSensor_delay1ms((TIME_READ_SENSOR - (int32_t)(GetTickCount() - ttime)) / 2);     // 1. Ожидать время нужное для цикла чтения
 
-		STORE_DEBUG_INFO2(19);
 		//  Синхронизация часов с I2C часами если стоит соответствующий флаг
 		if(MC.get_updateI2C())  // если надо обновить часы из I2c
 		{
-			if(millis() - oldTime > (uint32_t)TIME_I2C_UPDATE) // время пришло обновляться надо Период синхронизации внутренних часов с I2C часами (сек)
+			if(GetTickCount() - oldTime > (uint32_t)TIME_I2C_UPDATE) // время пришло обновляться надо Период синхронизации внутренних часов с I2C часами (сек)
 			{
 				oldTime = rtcSAM3X8.unixtime();
 				uint32_t t = TimeToUnixTime(getTime_RtcI2C());       // Прочитать время из часов i2c тут проблема
@@ -1049,10 +1037,9 @@ void vReadSensor(void *)
 				} else {
 					journal.jprintfopt("Error read I2C RTC\n");
 				}
-				oldTime = millis();
+				oldTime = GetTickCount();
 			}
 		}
-		STORE_DEBUG_INFO2(20);
 		// Проверки граничных температур для уведомлений, если разрешено!
 		static uint8_t last_life_h = 255;
 		if(MC.message.get_fMessageLife()) // Подача сигнала жизни если разрешено!
@@ -1063,26 +1050,23 @@ void vReadSensor(void *)
 			}
 			last_life_h = hour;
 		}
-		STORE_DEBUG_INFO2(21);
 		//
-		vReadSensor_delay1ms(TIME_READ_SENSOR - (millis() - ttime));     // Ожидать время нужное для цикла чтения
-		ttime = TIME_READ_SENSOR - (millis() - ttime);
-		if(ttime && ttime <= 8) vTaskDelay(ttime);
-
+		vReadSensor_delay1ms(TIME_READ_SENSOR - (int32_t)(GetTickCount() - ttime));     // Ожидать время нужное для цикла чтения
 	}  // for
-	STORE_DEBUG_INFO2(22);
 	vTaskDelete( NULL);
 }
 
 // Вызывается во время задержек в задаче чтения датчиков, должна быть вызвана перед основным циклом на время заполнения буфера усреднения
-void vReadSensor_delay1ms(int ms)
+void vReadSensor_delay1ms(int32_t ms)
 {
-	if(abs(ms) > 1000) journal.jprintf("vReadSensor_delay1ms(%d) %d\n", ms, GPBR->SYS_GPBR[5]);
-	STORE_DEBUG_INFO2(1);
+	if(ms <= 0) return;
+	if(ms < 10) {
+		vTaskDelay(ms);
+		return;
+	}
+	ms -= 10;
+	uint32_t tm = GetTickCount();
 	do {
-		if(ms > 0) vTaskDelay(1);
-
-		STORE_DEBUG_INFO2(2);
 //		if(Weight_NeedRead) { // allways
 			if(MC.get_testMode() != NORMAL) {
 //				Weight_NeedRead = false;
@@ -1091,12 +1075,10 @@ void vReadSensor_delay1ms(int ms)
 					Weight_Percent = Weight_value * 10000 / MC.Option.WeightFull;
 				}
 			} else if(Weight.is_ready()) { // 10Hz or 80Hz
-				STORE_DEBUG_INFO2(3);
 				static int32_t median1 = 0, median2 = 0;
 //				Weight_NeedRead = false;
 				// Read HX711
 				int32_t adc_val, median3 = Weight.read();
-				STORE_DEBUG_INFO2(4);
 				// Медианный фильтр
 				if(median1 <= median2 && median1 <= median3) {
 					adc_val = median2 <= median3 ? median2 : median3;
@@ -1149,8 +1131,13 @@ void vReadSensor_delay1ms(int ms)
 #ifdef RADIO_SENSORS
 		check_radio_sensors();
 #endif
-	} while(--ms > 0);
-	STORE_DEBUG_INFO2(5);
+		int32_t tm2 = GetTickCount() - tm;
+		if((tm2 -= ms) >= 0) {
+			if(tm2 < 10) vTaskDelay(10 - tm2);
+			break;
+		}
+		vTaskDelay(tm2 > -10 ? 3 : 10);
+	} while(true);
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -1189,9 +1176,9 @@ void vPumps( void * )
 		// Check Errors
 		int16_t press = MC.sADC[PWATER].get_Value();
 		if(MC.sInput[FLOODING].get_Input()) {
-			if(FloodingTime == 0) FloodingTime = millis();
-			else if(millis() - FloodingTime > (uint32_t) MC.Option.FloodingDebounceTime * 1000) {
-				FloodingTime = millis() | 1;
+			if(FloodingTime == 0) FloodingTime = GetTickCount();
+			else if(GetTickCount() - FloodingTime > (uint32_t) MC.Option.FloodingDebounceTime * 1000) {
+				FloodingTime = GetTickCount() | 1;
 				vPumpsNewError = ERR_FLOODING;
 				if(MC.dRelay[RFILL].get_Relay()) MC.dRelay[RFILL].set_OFF();
 				if(MC.dRelay[RDRAIN].get_Relay()) {
@@ -1205,7 +1192,7 @@ void vPumps( void * )
 			}
 		} else {
 			if(CriticalErrors & ERRC_Flooding) {
-				if(millis() - FloodingTime > (uint32_t) MC.Option.FloodingTimeout * 1000) {
+				if(GetTickCount() - FloodingTime > (uint32_t) MC.Option.FloodingTimeout * 1000) {
 					MC.dRelay[RWATEROFF].set_OFF();
 					CriticalErrors &= ~ERRC_Flooding;
 					FloodingTime = 0;
@@ -1263,12 +1250,12 @@ xWaterBooster_OFF:
 			if(MC.dRelay[RFILL].get_Relay()) {
 				if(MC.Option.FillingTankTimeout) {
 					if(WaterBoosterStatus == 0 && TimerDrainingWater == 0 && !MC.sInput[REG_ACTIVE].get_Input() && !MC.sInput[REG_BACKWASH_ACTIVE].get_Input() && !MC.sInput[REG2_ACTIVE].get_Input()) { // No water consuming
-						if(millis() - FillingTankTimer >= (uint32_t) MC.Option.FillingTankTimeout * 1000) {
+						if(GetTickCount() - FillingTankTimer >= (uint32_t) MC.Option.FillingTankTimeout * 1000) {
 							if(FillingTankLastLevel + FILLING_TANK_STEP > MC.sADC[LTANK].get_Value()) vPumpsNewError = ERR_TANK_NO_FILLING;
 							FillingTankLastLevel = MC.sADC[LTANK].get_Value();
-							FillingTankTimer = millis();
+							FillingTankTimer = GetTickCount();
 						}
-					} else FillingTankTimer = millis();
+					} else FillingTankTimer = GetTickCount();
 				}
 #endif
 				taskENTER_CRITICAL();
@@ -1277,7 +1264,7 @@ xWaterBooster_OFF:
 			} else if(!(CriticalErrors & ~ERRC_TankEmpty)) {
 				MC.dRelay[RFILL].set_ON();	// Start filling tank
 				FillingTankLastLevel = MC.sADC[LTANK].get_Value();
-				FillingTankTimer = millis();
+				FillingTankTimer = GetTickCount();
 			}
 #ifdef TANK_ANALOG_LEVEL
 		} else if(MC.sADC[LTANK].get_Value() >= MC.sADC[LTANK].get_maxValue()) {
@@ -1373,6 +1360,10 @@ void vService(void *)
 						if(ut > 10) {
 							MC.WorkStats.UsedAverageDay += ut;
 							MC.WorkStats.UsedAverageDayNum++;
+							if(MC.WorkStats.UsedAverageDayNum >= WS_AVERAGE_DAYS) {
+								MC.WorkStats.UsedAverageDay = MC.WorkStats.UsedAverageDay / MC.WorkStats.UsedAverageDayNum;
+								MC.WorkStats.UsedAverageDayNum = 1;
+							}
 						}
 						NeedSaveWorkStats = 1;
 						NeedSaveRTC = RTC_SaveAll;
