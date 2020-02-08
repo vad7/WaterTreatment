@@ -776,7 +776,7 @@ xSetupExit:
 					setup = 0;
 				} else if((setup & 0xFF00) == 0x100) {	// menu item 1 selected - Relay
 					MC.dRelay[setup & 0xFF].set_Relay(MC.dRelay[setup & 0xFF].get_Relay() ? -fR_StatusManual : fR_StatusManual);
-				} else setup = (setup << 8) & LCD_SetupFlag; // select menu item
+				} else setup = (setup << 8) | LCD_SetupFlag; // select menu item
 				DisplayTick = ~DisplayTick;
 			} else if(MC.get_errcode() && !Error_Beep_confirmed) Error_Beep_confirmed = true; // Supress beeping
 			else { // Enter Setup
