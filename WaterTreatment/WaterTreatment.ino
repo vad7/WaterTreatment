@@ -770,13 +770,13 @@ void vKeysLCD( void * )
 					}
 					if(t == 0) goto xSetupExit;
 				}
-				if((setup & 0xFF00) == 0) { 			// menu item 1 selected - Exit
+				if((setup & 0xFFFF) == 0) { 			// menu item 1 selected - Exit
 xSetupExit:
 					lcd.command(LCD_DISPLAYCONTROL | LCD_DISPLAYON);
 					setup = 0;
 				} else if((setup & 0xFF00) == 0x100) {	// menu item 1 selected - Relay
 					MC.dRelay[setup & 0xFF].set_Relay(MC.dRelay[setup & 0xFF].get_Relay() ? -fR_StatusManual : fR_StatusManual);
-				} else setup = (setup << 8) & LCD_SetupFlag;
+				} else setup = (setup << 8) & LCD_SetupFlag; // select menu item
 				DisplayTick = ~DisplayTick;
 			} else if(MC.get_errcode() && !Error_Beep_confirmed) Error_Beep_confirmed = true; // Supress beeping
 			else { // Enter Setup
@@ -827,7 +827,10 @@ xSetupExit:
 						lcd.print(MC.dRelay[i].get_name());
 					}
 					lcd.setCursor(10 * ((setup & 0xFF) % 2), (setup & 0xFF) / 2);
-				} else lcd.print(LCD_SetupMenu[setup & 0xFF]);
+				} else {
+					lcd.print(LCD_SetupMenu[setup & 0xFF]);
+					lcd.setCursor(0, 0);
+				}
 			} else {
 				lcd.setCursor(0, 0);
 				int32_t tmp = MC.sFrequency[FLOW].get_Value();
@@ -986,6 +989,10 @@ void vReadSensor(void *)
 			}
 
 		vReadSensor_delay1ms(cDELAY_DS1820 - (int32_t)(GetTickCount() - ttime)); 	// Ожидать время преобразования
+		if(Weight_Percent < MC.Option.Weight_Empty) {
+			if(!(CriticalErrors & ERRC_WeightLow)) set_Error(ERR_WEIGHT_LOW, (char*)__FUNCTION__);
+			CriticalErrors |= ERRC_WeightLow;
+		} else if(CriticalErrors & ERRC_WeightLow) CriticalErrors &= ~ERRC_WeightLow;
 
 		// do not need averaging: // uint8_t flags = 0;
 		for(i = 0; i < TNUMBER; i++) {                                   // Прочитать данные с температурных датчиков
@@ -1102,10 +1109,6 @@ void vReadSensor_delay1ms(int32_t ms)
 				Weight_value = (adc_val - MC.Option.WeightZero) * 10000 / MC.Option.WeightScale - MC.Option.WeightTare;
 				Weight_Percent = Weight_value * 10000 / MC.Option.WeightFull;
 				if(Weight_Percent < 0) Weight_Percent = 0; else if(Weight_Percent > 10000) Weight_Percent = 10000;
-				if(Weight_Percent < MC.Option.Weight_Empty) {
-					if(!(CriticalErrors & ERRC_WeightLow)) set_Error(ERR_WEIGHT_LOW, (char*)__FUNCTION__);
-					CriticalErrors |= ERRC_WeightLow;
-				} else if(CriticalErrors & ERRC_WeightLow) CriticalErrors &= ~ERRC_WeightLow;
 			}
 //		}
 

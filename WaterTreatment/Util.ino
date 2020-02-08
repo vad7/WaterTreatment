@@ -331,7 +331,7 @@ float temp_DUE()
 {
 	adc_enable_channel(ADC, ADC_TEMPERATURE_SENSOR);                                                 // Enable the corresponding channel
 	adc_enable_ts(ADC);                                                                              // Enable the temperature sensor
-	//delayMicroseconds(100);
+	delayMicroseconds(40);
 	adc_start(ADC);                                                                                  // Start the ADC
 	uint32_t timeout = 1000000;
 	while(!(ADC->ADC_ISR & (1 << ADC_TEMPERATURE_SENSOR)) && --timeout) ;   						// Wait for end of conversion

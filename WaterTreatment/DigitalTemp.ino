@@ -113,8 +113,8 @@ int8_t sensorTemp::Read()
 						if(!get_setup_flag(fTEMP_dont_log_errors)) {
 							journal.jprintf_time("%s: Error ", name);
 							if(err == ERR_ONEWIRE_CRC || err >= 0x40) { // Ошибка CRC или ошибка чтения, но успели прочитать температуру
-								journal.jprintfopt("%s (%d). t=%.2d, prev=%.2d\n", err == ERR_ONEWIRE_CRC ? "CRC" : "read", err >= 0x40 ? err - 0x40 : err, ttemp, lastTemp);
-							} else journal.jprintfopt("%s (%d)\n", err == ERR_ONEWIRE ? "RESET" : "read", err);
+								journal.jprintf("%s (%d). t=%.2d, prev=%.2d\n", err == ERR_ONEWIRE_CRC ? "CRC" : "read", err >= 0x40 ? err - 0x40 : err, ttemp, lastTemp);
+							} else journal.jprintf("%s (%d)\n", err == ERR_ONEWIRE ? "RESET" : "read", err);
 							//err = ERR_READ_TEMP;
 						}
 						if(++numErrorRead == 0) numErrorRead--;

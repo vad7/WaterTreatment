@@ -141,7 +141,7 @@
 
 #include "OneWire.h"
 
-#ifdef DONT_DISABLE_INTERRUPTS
+#ifdef ONEWIRE_NO_DIS_INTS
 // us > 0
 inline void delay_micros(uint32_t us)
 {

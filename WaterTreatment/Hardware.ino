@@ -412,10 +412,6 @@ int8_t sensorFrequency::Read()
 		//__asm__ volatile ("" ::: "memory");0
 		uint32_t ticks = tickCount - sTime;
 		sTime = tickCount;
-
-		journal.printf("CNT: %d (%d)\n", cnt, digitalReadDirect(pin));
-
-
 		if(testMode != NORMAL) {    // В режиме теста
 			Value = testValue;
 			Frequency = Value * kfValue / 360;
@@ -611,7 +607,7 @@ xErr:
 		}
 		_delay(PWM_DELAY_REPEAT);  // Чтение не удачно, делаем паузу
 	}
-	if(GETBIT(MC.Option.flags, fPWMLogErrors)) {
+	if(err && GETBIT(MC.Option.flags, fPWMLogErrors)) {
 		journal.jprintf_time("%s: Read #%d error %d!\n", name, group, err);
 	}
 	return err;
@@ -632,7 +628,7 @@ char* devPWM::get_param(char *var, char *ret)
 		_dtoa(ret, Voltage, 1);
 		return ret;
 	} else if(strcmp(var, pwm_POWER) == 0) {      // мощность
-		_dtoa(ret, Power, 1);
+		_dtoa(ret, Power, 0);
 		return ret;
 	} else if(strcmp(var, pwm_TestPower) == 0) {
 		_dtoa(ret, TestPower, 0);

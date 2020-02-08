@@ -160,7 +160,7 @@ struct History_setup {
     // Для каждой конфигурации теперь свои определения!!!
     // --------------------------------------------------------------------------------
     // Конфигурирование Modbus электро счетчика
-	#define MODBUS_PORT_NUM         Serial2     // Аппаратный порт куда прицеплен Modbus
+	#define MODBUS_PORT_NUM         Serial1     // Аппаратный порт куда прицеплен Modbus
     #define MODBUS_PORT_SPEED       9600        // Скорость порта куда прицеплен частотник и счетчик
     #define MODBUS_PORT_CONFIG      SERIAL_8N1  // Конфигурация порта куда прицеплен частотник и счетчик
     #define MODBUS_TIME_WAIT        1000        // Время ожидания захвата мютекса для modbus мсек
@@ -422,7 +422,7 @@ struct History_setup {
 	const int16_t MINPRESS[ANUMBER]   = {  250,   500 };	// минимальные значения давления, в сотых
 	const uint16_t MAXPRESS[ANUMBER]  = {  370, 10000 };	// Максимальные значения давления, в сотых
 	const uint16_t TESTPRESS[ANUMBER] = {  300,  8000 };	// Значения датчиков при тестировании  опция TEST, в сотых
-	const uint8_t ADC_FILTER[ANUMBER] = {    3,   110 };	// Длина фильтра усреднения
+	const uint8_t ADC_FILTER[ANUMBER] = {    5,   100 };	// Длина фильтра усреднения
 
 	//#define ANALOG_MODBUS 								// Данные аналоговых датчиков читаются по Modbus RTU
 	#ifdef ANALOG_MODBUS
