@@ -68,10 +68,11 @@ uint32_t ErrorsTime[16];
 
 volatile bool ADC_has_been_read = false;
 int		 WaterBoosterStatus = 0; // 0 - все выключены, 1 - вкл твердотельное, 2 - вкл оба, -1 - выкл обычное
+uint32_t WaterBoosterTimeout = 0;
+uint32_t WaterBoosterCountL = 0;
 //bool 	WaterBoosterError = false;
 //volatile bool FloodingError = false;
 //bool	 TankEmpty = false;
-uint32_t WaterBoosterTimeout = 0;
 uint32_t FloodingTime = 0;	// unixtime
 uint32_t FillingTankTimer = 0;
 int16_t  FillingTankLastLevel = 0;
@@ -349,6 +350,7 @@ public:
 	statChart ChartFeedPump;
 	statChart ChartFillTank;
 	statChart ChartBrineWeight;
+	statChart ChartWaterBoosterCount;
 
 	TaskHandle_t xHandlePumps;
 	TaskHandle_t xHandleBooster;

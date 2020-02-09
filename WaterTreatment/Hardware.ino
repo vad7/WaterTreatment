@@ -577,7 +577,7 @@ int8_t devPWM::get_readState(uint8_t group)
 			uint32_t tmp;
 			err = Modbus.readInputRegisters32(PWM_MODBUS_ADR, PWM_POWER, &tmp);
 			if(err == OK) {
-				tmp = tmp / 10 + (tmp % 10 >= 5 ? 1 : 0);
+				tmp = tmp / 10 + (tmp % 10 >= 5 ? 1 : 0); // round to W
 				Power = tmp;
 				/* group = 1 */
 			} else goto xErr;

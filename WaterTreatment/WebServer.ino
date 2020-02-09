@@ -727,12 +727,8 @@ xSaveStats:		if((i = MC.save_WorkStats()) == OK)
 			str += 6;
 			if(strcmp(str, webWS_UsedToday) == 0) _itoa(MC.RTC_store.UsedToday, strReturn); // get_WSUD
 			else if(strcmp(str, webWS_UsedYesterday) == 0) _itoa(MC.WorkStats.UsedYesterday, strReturn); // get_WSUY
-			else if(strcmp(str, webWS_UsedAverageDay) == 0) _itoa(MC.WorkStats.UsedAverageDay / MC.WorkStats.UsedAverageDayNum, strReturn); // get_WSA
-			else if(strcmp(str, webWS_LastDrain) == 0) if(MC.WorkStats.LastDrain) TimeIntervalToStr(rtcSAM3X8.unixtime() - MC.WorkStats.LastDrain, strReturn, 0); else strcat(strReturn, "-"); // get_WSDD
-			else if(strcmp(str, webWS_UsedDrain) == 0) _itoa(MC.WorkStats.UsedDrain, strReturn); // get_WSD
-			else if(strcmp(str, webWS_UsedTotal) == 0) {  // get_WST
-				if(i) MC.WorkStats.UsedTotal = l_i32; // set_WST=x
-				_dtoa(strReturn, MC.WorkStats.UsedTotal + MC.RTC_store.UsedToday, 3);
+			else if(strcmp(str, webWS_LastDrain) == 0) {
+				if(MC.WorkStats.LastDrain) TimeIntervalToStr(rtcSAM3X8.unixtime() - MC.WorkStats.LastDrain, strReturn, 0); else strcat(strReturn, "-"); // get_WSDD
 			} else if(strcmp(str, webWS_RegCnt) == 0) {  // get_WSRC
 				if(i) MC.WorkStats.RegCnt = l_i32;  // set_WSRC=x
 				_itoa(MC.WorkStats.RegCnt, strReturn);
@@ -751,6 +747,12 @@ xSaveStats:		if((i = MC.save_WorkStats()) == OK)
 				} else _itoa(MC.WorkStats.UsedLastRegenSoftening, strReturn);
 			} else if(strcmp(str, webWS_DaysFromLastRegenSoftening) == 0) _itoa(MC.WorkStats.DaysFromLastRegenSoftening, strReturn); // get_WSRSD
 			else if(strcmp(str, webWS_UsedSinceLastRegenSoftening) == 0) _itoa(MC.WorkStats.UsedSinceLastRegenSoftening + MC.RTC_store.UsedToday, strReturn); // get_WSRSS
+			else if(*str == webWS_UsedDrain) _itoa(MC.WorkStats.UsedDrain, strReturn); // get_WSD
+			else if(*str == webWS_UsedTotal) {  // get_WST
+				if(i) MC.WorkStats.UsedTotal = l_i32; // set_WST=x
+				_dtoa(strReturn, MC.WorkStats.UsedTotal + MC.RTC_store.UsedToday, 3);
+			} else if(*str == webWS_UsedAverageDay) _itoa(MC.WorkStats.UsedAverageDay / MC.WorkStats.UsedAverageDayNum, strReturn); // get_WSA
+			else if(*str == webWS_WaterBoosterCountL) _itoa(-WaterBoosterCountL, strReturn); // get_WSB
 			ADD_WEBDELIM(strReturn); continue;
 		}
 

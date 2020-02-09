@@ -348,9 +348,10 @@ const char *chart_NONE       = {"NONE"};                    // 0 ничего н
 const char *chart_VOLTAGE    = {"Voltage"};                 // Статистика по напряжению
 const char *chart_CURRENT    = {"Current"};                 // Статистика по току
 const char *chart_fullPOWER  = {"Power"};               // Статистика по Полная мощность
-const char *chart_WaterBoost = {"WaterBoost"};
-const char *chart_FeedPump   = {"FeedPump"};
-const char *chart_FillTank   = {"FillTank"};
+const char *chart_WaterBoostCount = {"WaterBoost,L"};
+const char *chart_WaterBoost = {"WaterBoost,s"};
+const char *chart_FeedPump   = {"FeedPump,s"};
+const char *chart_FillTank   = {"FillTank,s"};
 const char *chart_BrineWeight= {"Weight"};
 
 // Описание имен параметров опций   для функций get_option ("get_Opt") set_option ("set_Opt")
@@ -393,10 +394,7 @@ const char *option_CriticalErrorsTimeout= {"CET"};
 // WorkStats, get_WS..., set_WS...(x)
 const char *webWS_UsedToday 					= { "UD" };
 const char *webWS_UsedYesterday 				= { "UY" };
-const char *webWS_UsedAverageDay 				= { "A" };
 const char *webWS_LastDrain		 		 		= { "DD" };
-const char *webWS_UsedDrain 	 				= { "D" };
-const char *webWS_UsedTotal  					= { "T" };
 const char *webWS_RegCnt  						= { "RC" };
 const char *webWS_DaysFromLastRegen 		 	= { "RD" };
 const char *webWS_UsedSinceLastRegen  			= { "RS" };
@@ -405,7 +403,10 @@ const char *webWS_RegCntSoftening  				= { "RSC" };
 const char *webWS_DaysFromLastRegenSoftening	= { "RSD" };
 const char *webWS_UsedSinceLastRegenSoftening	= { "RSS" };
 const char *webWS_UsedLastRegenSoftening  		= { "RSL" };
-
+#define		webWS_UsedAverageDay 					'A'
+#define		webWS_WaterBoosterCountL				'B'
+#define		webWS_UsedDrain 	 					'D'
+#define		webWS_UsedTotal  						'T'
 
 // --------------------------------------------------------------------------------
 // ОШИБКИ едины для всего - сквозной список

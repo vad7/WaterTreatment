@@ -51,9 +51,12 @@ int8_t set_Error(int8_t _err, char *nam)
 			for(i = 0; i < TNUMBER; i++) if(MC.sTemp[i].get_present() && MC.sTemp[i].Chart.get_present()) journal.jprintf(" %s:%.2d", MC.sTemp[i].get_name(), MC.sTemp[i].get_Temp());
 			journal.jprintf(" Weight:%.2d%%", Weight_Percent);
 			if(_err == ERR_WEIGHT_LOW) {
-				journal.jprintf("(%.1d=%d) [", Weight_value, Weight_adc_sum / WEIGHT_AVERAGE_BUFFER);
+				journal.jprintf("(%.1d=%d) [", Weight_value, Weight_adc_sum / (Weight_adc_flagFull ? WEIGHT_AVERAGE_BUFFER : Weight_adc_idx));
 				for(i = 0; i < WEIGHT_AVERAGE_BUFFER; i++) journal.jprintf("%d,", Weight_adc_filter[i]);
 				journal.jprintf("] %d", Weight_adc_idx);
+			} else if(_err == ERR_PWM_DRY_RUN || _err == ERR_PWM_MAX) {
+				journal.jprintf(" WBTime:%d", WaterBoosterTimeout);
+
 			}
 			journal.jprintf("\n");
 		}
@@ -95,6 +98,7 @@ void MainClass::init()
 	ChartFeedPump.init(true);
 	ChartFillTank.init(true);
 	ChartBrineWeight.init(true);
+	ChartWaterBoosterCount.init(true);
 
 	resetSetting();                                           // все переменные
 }
@@ -545,7 +549,7 @@ void MainClass::resetSetting()
 	Option.MinWaterBoostOnTime = 2000;
 	Option.MinWaterBoostOffTime = 10000;
 	Option.PWATER_RegMin = 300;
-	Option.PWM_StartingTime = 500;
+	Option.PWM_StartingTime = 1000;
 	Option.PWM_DryRun = 800;
 	Option.PWM_Max = 1500;
 	Option.RegenHour = 3;
@@ -903,6 +907,7 @@ char * MainClass::get_listChart(char* str)
 	for(i=0;i<ANUMBER;i++) if(sADC[i].Chart.get_present()) { strcat(str,sADC[i].get_name()); strcat(str,":0;");}
 	for(i=0;i<FNUMBER;i++) if(sFrequency[i].Chart.get_present()) { strcat(str,sFrequency[i].get_name()); strcat(str,":0;");}
 	strcat(str, chart_BrineWeight); strcat(str,":0;");
+	strcat(str, chart_WaterBoostCount); strcat(str,":0;");
 	strcat(str, chart_WaterBoost); strcat(str,":0;");
 	strcat(str, chart_FeedPump); strcat(str,":0;");
 	strcat(str, chart_FillTank); strcat(str,":0;");
@@ -982,6 +987,8 @@ void MainClass::get_Chart(char *var, char* str)
 		dPWM.ChartVoltage.get_PointsStr(str);
 	} else if(strcmp(var, chart_fullPOWER) == 0) {
 		dPWM.ChartPower.get_PointsStrDiv100(str);
+	} else if(strcmp(var, chart_WaterBoostCount) == 0) {
+		ChartWaterBoosterCount.get_PointsStr(str);
 	} else if(strcmp(var, chart_WaterBoost) == 0) {
 		ChartWaterBoost.get_PointsStrDiv100(str);
 	} else if(strcmp(var, chart_FeedPump) == 0) {

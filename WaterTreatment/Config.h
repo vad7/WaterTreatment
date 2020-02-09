@@ -300,7 +300,7 @@ struct History_setup {
 											46,	// REL2
 											45,	// REL3
 											44,	// REL4
-											92, // REL5 // PC20 (Arduino DUE Core only!)
+											31, // REL5
 											9,	// REL6, DC_OUT7(L)
 											8	// REL7, DC_OUT8(L)
                                        };
@@ -422,7 +422,7 @@ struct History_setup {
 	const int16_t MINPRESS[ANUMBER]   = {  250,   500 };	// минимальные значения давления, в сотых
 	const uint16_t MAXPRESS[ANUMBER]  = {  370, 10000 };	// Максимальные значения давления, в сотых
 	const uint16_t TESTPRESS[ANUMBER] = {  300,  8000 };	// Значения датчиков при тестировании  опция TEST, в сотых
-	const uint8_t ADC_FILTER[ANUMBER] = {    5,   100 };	// Длина фильтра усреднения
+	const uint8_t ADC_FILTER[ANUMBER] = {    4,   120 };	// Длина фильтра усреднения
 
 	//#define ANALOG_MODBUS 								// Данные аналоговых датчиков читаются по Modbus RTU
 	#ifdef ANALOG_MODBUS

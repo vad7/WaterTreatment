@@ -787,7 +787,7 @@ xSetupExit:
 			vTaskDelay(KEY_DEBOUNCE_TIME);
 			while(!digitalReadDirect(PIN_KEY_UP)) vTaskDelay(KEY_DEBOUNCE_TIME);
 			if(setup) {
-				if((setup & 0xFF) < ((setup & 0xFF00) == 0x100 ? (RNUMBER > 8 ? 8 : RNUMBER) : LCD_SetupMenuItems-1)) {
+				if((setup & 0xFF) < ((setup & 0xFF00) == 0x100 ? (RNUMBER > 7 ? 7 : RNUMBER-1) : LCD_SetupMenuItems-1)) {
 					setup++;
 					DisplayTick = ~DisplayTick;
 				}
@@ -876,14 +876,19 @@ xSetupExit:
 					buf = dptoa(buf, MC.get_errcode(), 0);
 				}
 				if(buf == buffer) {
-					strcpy(buf = buffer, "Days,Fe:"); buf += 8;
-					tmp = MC.WorkStats.DaysFromLastRegen;
-					if(tmp < 100) *buf++ = ' ';
-					buf = dptoa(buf, tmp, 0);
-					strcpy(buf, " Soft:"); buf += 6;
-					tmp = MC.WorkStats.DaysFromLastRegenSoftening;
-					if(tmp < 100) *buf++ = ' ';
-					buf = dptoa(buf, tmp, 0);
+					if((tmp = MC.dPWM.get_Power()) != 0) {
+						strcpy(buf = buffer, "Power,W: "); buf += 9;
+						buf = dptoa(buf, tmp, 0);
+					} else {
+						strcpy(buf = buffer, "Days,Fe:"); buf += 8;
+						tmp = MC.WorkStats.DaysFromLastRegen;
+						if(tmp < 100) *buf++ = ' ';
+						buf = dptoa(buf, tmp, 0);
+						strcpy(buf, " Soft:"); buf += 6;
+						tmp = MC.WorkStats.DaysFromLastRegenSoftening;
+						if(tmp < 100) *buf++ = ' ';
+						buf = dptoa(buf, tmp, 0);
+					}
 				}
 				buffer_space_padding(buf, LCD_COLS - (buf - buffer));
 				lcd.print(buffer);
@@ -935,11 +940,11 @@ void vReadSensor(void *)
 #endif
 		// read in vPumps():
 		//for(i = 0; i < ANUMBER; i++) MC.sADC[i].Read();                  // Прочитать данные с датчиков давления
-		MC.dPWM.get_readState(0); // Основная группа регистров, включая мощность
 #ifdef USE_UPS
 		if(!MC.NO_Power)
 #endif
 		{
+			MC.dPWM.get_readState(0); // Основная группа регистров, включая мощность
 			if(WaterBoosterStatus > 0 && WaterBoosterTimeout > MC.Option.PWM_StartingTime) {
 				if(MC.Option.PWM_DryRun && MC.dPWM.get_Power() < MC.Option.PWM_DryRun) { // Сухой ход
 					CriticalErrors |= ERRC_WaterBooster;
@@ -954,15 +959,14 @@ void vReadSensor(void *)
 		// read in vPumps():
 		//for(i = 0; i < INUMBER; i++) MC.sInput[i].Read();                // Прочитать данные сухой контакт
 		for(i = 0; i < FNUMBER; i++) MC.sFrequency[i].Read();			// Получить значения датчиков потока
-
 		// Flow water
 		uint32_t passed = MC.sFrequency[FLOW].Passed;
+		MC.sFrequency[FLOW].Passed = 0;
 		if(!MC.sInput[REG_BACKWASH_ACTIVE].get_Input()) {
 			TimeFeedPump +=	(uint32_t)MC.sFrequency[FLOW].get_Value() * TIME_READ_SENSOR / MC.Option.FeedPumpMaxFlow;
 		} else if(++RegBackwashTimer > MC.Option.BackWashFeedPumpDelay) {
 			TimeFeedPump +=	(uint32_t)MC.sFrequency[FLOW].get_Value() * TIME_READ_SENSOR / MC.Option.BackWashFeedPumpMaxFlow;
 		}
-		MC.sFrequency[FLOW].Passed = 0;
 		if(MC.sInput[REG_ACTIVE].get_Input() || MC.sInput[REG_BACKWASH_ACTIVE].get_Input() || MC.sInput[REG2_ACTIVE].get_Input()) {
 			MC.RTC_store.UsedRegen += passed;
 			Stats_WaterRegen_work += passed;
@@ -973,6 +977,7 @@ void vReadSensor(void *)
 			History_WaterUsed_work += passed;
 			NeedSaveRTC |= (1<<bRTC_UsedToday);
 		}
+		WaterBoosterCountL += passed;
 		if(passed) MC.WorkStats.UsedLastTime = rtcSAM3X8.unixtime();
 		//
 
@@ -1096,7 +1101,6 @@ void vReadSensor_delay1ms(int32_t ms)
 					Weight_adc_flagFull = true;
 				}
 				if(Weight_adc_flagFull) adc_val = Weight_adc_sum / WEIGHT_AVERAGE_BUFFER; else adc_val = Weight_adc_sum / Weight_adc_idx;
-				adc_val = Weight_adc_sum / WEIGHT_AVERAGE_BUFFER;
 				Weight_value = (adc_val - MC.Option.WeightZero) * 10000 / MC.Option.WeightScale - MC.Option.WeightTare;
 				Weight_Percent = Weight_value * 10000 / MC.Option.WeightFull;
 				if(Weight_Percent < 0) Weight_Percent = 0; else if(Weight_Percent > 10000) Weight_Percent = 10000;
@@ -1186,7 +1190,7 @@ void vPumps( void * )
 				MC.dRelay[RFEEDPUMP].set_OFF();
 				MC.dRelay[RWATEROFF].set_ON();
 				CriticalErrors |= ERRC_Flooding;
-				if(WaterBoosterStatus > 0) goto xWaterBooster_OFF;
+				if(WaterBoosterStatus > 0) goto xWaterBooster_GO_OFF;
 			}
 		} else {
 			if(CriticalErrors & ERRC_Flooding) {
@@ -1205,12 +1209,12 @@ void vPumps( void * )
 			MC.dRelay[RBOOSTER1].set_ON();
 			WaterBoosterTimeout = 0;
 			WaterBoosterStatus = 1;
+			MC.ChartWaterBoosterCount.addPoint(WaterBoosterCountL);
 		} else if(WaterBoosterStatus > 0) {
 			if(CriticalErrors || (WaterBoosterTimeout >= MC.Option.MinWaterBoostOnTime && press >= MC.sADC[PWATER].get_maxValue())) { // Stopping
-xWaterBooster_OFF:
+xWaterBooster_GO_OFF:
 				if(WaterBoosterStatus == 1) {
-					MC.dRelay[RBOOSTER1].set_OFF();
-					WaterBoosterStatus = 0;
+					goto xWaterBooster_OFF;
 				} else {// Off full cycle
 					MC.dRelay[RBOOSTER2].set_OFF();
 					WaterBoosterStatus = -1;
@@ -1220,7 +1224,9 @@ xWaterBooster_OFF:
 				WaterBoosterStatus = 2;
 			}
 		} else if(WaterBoosterStatus == -1) {
+xWaterBooster_OFF:
 			MC.dRelay[RBOOSTER1].set_OFF();
+			WaterBoosterCountL = 0;
 			WaterBoosterTimeout = 0;
 			WaterBoosterStatus = 0;
 		}
