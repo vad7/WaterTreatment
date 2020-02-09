@@ -41,8 +41,22 @@ int8_t set_Error(int8_t _err, char *nam)
 	if(i != sizeof(Errors) / sizeof(Errors[0])) {
 		Errors[i] = _err;
 		ErrorsTime[i] = rtcSAM3X8.unixtime();
-		journal.jprintf_date("$ERROR source: %s, code: %d\n", nam, _err); //journal.jprintf(", code: %d\n",_err);
-		if(xTaskGetSchedulerState() == taskSCHEDULER_RUNNING) MC.save_DumpJournal(); // вывод отладочной информации для начала  если запущена freeRTOS
+		journal.jprintf_date("$ERROR source: %s, code: %d\n", nam, _err);
+		if(xTaskGetSchedulerState() == taskSCHEDULER_RUNNING) {
+			journal.jprintf(" State:");
+			for(i = 0; i < RNUMBER; i++) journal.jprintf(" %s:%d", MC.dRelay[i].get_name(), MC.dRelay[i].get_Relay());
+			for(i = 0; i < INUMBER; i++) if(MC.sInput[i].get_present()) journal.jprintf(" %s:%d", MC.sInput[i].get_name(), MC.sInput[i].get_Input());
+			journal.jprintf("\n Power:%d", MC.dPWM.get_Power());
+			for(i = 0; i < ANUMBER; i++) if(MC.sADC[i].get_present()) journal.jprintf(" %s:%.2d", MC.sADC[i].get_name(), MC.sADC[i].get_Value());
+			for(i = 0; i < TNUMBER; i++) if(MC.sTemp[i].get_present() && MC.sTemp[i].Chart.get_present()) journal.jprintf(" %s:%.2d", MC.sTemp[i].get_name(), MC.sTemp[i].get_Temp());
+			journal.jprintf(" Weight:%.2d%%", Weight_Percent);
+			if(_err == ERR_WEIGHT_LOW) {
+				journal.jprintf("(%.1d=%d) [", Weight_value, Weight_adc_sum / WEIGHT_AVERAGE_BUFFER);
+				for(i = 0; i < WEIGHT_AVERAGE_BUFFER; i++) journal.jprintf("%d,", Weight_adc_filter[i]);
+				journal.jprintf("] %d", Weight_adc_idx);
+			}
+			journal.jprintf("\n");
+		}
 		MC.message.setMessage(pMESSAGE_ERROR, MC.note_error, 0);    // сформировать уведомление об ошибке
 	}
 	return _err;
@@ -50,7 +64,7 @@ int8_t set_Error(int8_t _err, char *nam)
 
 void Weight_Clear_Averaging(void)
 {
-	memset(&Weight_adc_filter, 0, sizeof(Weight_adc_filter));
+	memset(Weight_adc_filter, 0, sizeof(Weight_adc_filter));
 	Weight_adc_sum = 0;
 	Weight_adc_flagFull = false;
 	Weight_adc_idx = 0;
@@ -1023,21 +1037,6 @@ void MainClass::calculatePower()
 #ifdef CORRECT_POWER220
 	for(uint8_t i = 0; i < sizeof(correct_power220)/sizeof(correct_power220[0]); i++) if(dRelay[correct_power220[i].num].get_Relay()) power220 += correct_power220[i].value;
 #endif
-}
-
-// Записать состояние в журнал
-// Параметр на входе true - вывод в журнал и консоль false - консоль
-void MainClass::save_DumpJournal(void)
-{
-	uint8_t i;
-	journal.jprintf(" State:");
-	for(i = 0; i < RNUMBER; i++) journal.jprintf(" %s:%d", MC.dRelay[i].get_name(), MC.dRelay[i].get_Relay());
-	for(i = 0; i < TNUMBER; i++) if(sTemp[i].get_present() && sTemp[i].Chart.get_present()) journal.jprintfopt(" %s:%.2d", sTemp[i].get_name(), sTemp[i].get_Temp());
-	journal.jprintf(" Power:%.3d\n", dPWM.get_Power());
-	// Доп инфо
-	for(i = 0; i < ANUMBER; i++) if(sADC[i].get_present()) journal.jprintf(" %s:%.2d", sADC[i].get_name(), sADC[i].get_Value());
-	for(i = 0; i < INUMBER; i++) if(sInput[i].get_present()) journal.jprintf(" %s:%d", sInput[i].get_name(), sInput[i].get_Input());
-	journal.jprintf(cStrEnd);
 }
 
 // Возвращает 0 - Нет ошибок или ни одного активного датчика, 1 - ошибка, 2 - превышен предел ошибок

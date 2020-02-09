@@ -454,7 +454,7 @@ x_I2C_init_std_message:
 
 	Weight.begin(HX711_DOUT_PIN, HX711_SCK_PIN);
 	Weight_Clear_Averaging();
-	journal.jprintfopt("* Scale inited, ADC: %d\n", Weight.read() - MC.Option.WeightZero);
+	journal.jprintfopt("* Scale inited, ADC: %d\n", Weight.read());
 
 	// Создание задач FreeRTOS  ----------------------
 	journal.jprintfopt("* Create tasks FreeRTOS ");
@@ -515,13 +515,9 @@ x_I2C_init_std_message:
 	if(Is_otg_vbus_high()) journal.jprintf("+USB\n");
 	//MC.Stat.generate_TestData(STAT_POINT); // Сгенерировать статистику STAT_POINT точек только тестирование
 	//journal.jprintfopt("Start FreeRTOS.\n\n");
-
-#ifndef TEST_BOARD
-	DebugToJournalOn = false;
-#endif
-	eepromI2C.use_RTOS_delay = 1;       //vad711
+	eepromI2C.use_RTOS_delay = 1;
 	//
-	vTaskStartScheduler();              // СТАРТ !!
+	vTaskStartScheduler();
 	journal.jprintf("FreeRTOS FAILURE!\n");
 }
 
@@ -911,7 +907,7 @@ void vReadSensor(void *)
 	static uint32_t oldTime, OneWire_time;
 	oldTime = GetTickCount();
 	OneWire_time = oldTime - ONEWIRE_READ_PERIOD;
-	vReadSensor_delay1ms(1000 * (WEIGHT_AVERAGE_BUFFER + 2) / HX711_RATE_HZ);
+	Weight_adc_median1 = Weight_adc_median2 = Weight.read();
 	for(;;) {
 		int8_t i;
 		//WDT_Restart(WDT);
@@ -989,10 +985,6 @@ void vReadSensor(void *)
 			}
 
 		vReadSensor_delay1ms(cDELAY_DS1820 - (int32_t)(GetTickCount() - ttime)); 	// Ожидать время преобразования
-		if(Weight_Percent < MC.Option.Weight_Empty) {
-			if(!(CriticalErrors & ERRC_WeightLow)) set_Error(ERR_WEIGHT_LOW, (char*)__FUNCTION__);
-			CriticalErrors |= ERRC_WeightLow;
-		} else if(CriticalErrors & ERRC_WeightLow) CriticalErrors &= ~ERRC_WeightLow;
 
 		// do not need averaging: // uint8_t flags = 0;
 		for(i = 0; i < TNUMBER; i++) {                                   // Прочитать данные с температурных датчиков
@@ -1082,33 +1074,36 @@ void vReadSensor_delay1ms(int32_t ms)
 					Weight_Percent = Weight_value * 10000 / MC.Option.WeightFull;
 				}
 			} else if(Weight.is_ready()) { // 10Hz or 80Hz
-				static int32_t median1 = 0, median2 = 0;
 //				Weight_NeedRead = false;
 				// Read HX711
 				int32_t adc_val, median3 = Weight.read();
 				// Медианный фильтр
-				if(median1 <= median2 && median1 <= median3) {
-					adc_val = median2 <= median3 ? median2 : median3;
-				} else if(median2 <= median1 && median2 <= median3) {
-					adc_val = median1 <= median3 ? median1 : median3;
+				if(Weight_adc_median1 <= Weight_adc_median2 && Weight_adc_median1 <= median3) {
+					adc_val = Weight_adc_median2 <= median3 ? Weight_adc_median2 : median3;
+				} else if(Weight_adc_median2 <= Weight_adc_median1 && Weight_adc_median2 <= median3) {
+					adc_val = Weight_adc_median1 <= median3 ? Weight_adc_median1 : median3;
 				} else {
-					adc_val = median1 <= median2 ? median1 : median2;
+					adc_val = Weight_adc_median1 <= Weight_adc_median2 ? Weight_adc_median1 : Weight_adc_median2;
 				}
-				median1 = median2;
-				median2 = median3;
+				Weight_adc_median1 = Weight_adc_median2;
+				Weight_adc_median2 = median3;
 				// Усреднение значений
 				Weight_adc_sum = Weight_adc_sum + adc_val - Weight_adc_filter[Weight_adc_idx];
 				Weight_adc_filter[Weight_adc_idx] = adc_val;
-				if(Weight_adc_idx < sizeof(Weight_adc_filter) / sizeof(Weight_adc_filter[0]) - 1) Weight_adc_idx++;
+				if(Weight_adc_idx < WEIGHT_AVERAGE_BUFFER - 1) Weight_adc_idx++;
 				else {
 					Weight_adc_idx = 0;
 					Weight_adc_flagFull = true;
 				}
-				//if(Weight_adc_flagFull) adc_val = Weight_adc_sum / WEIGHT_AVERAGE_BUFFER; else adc_val = Weight_adc_sum / Weight_adc_idx;
+				if(Weight_adc_flagFull) adc_val = Weight_adc_sum / WEIGHT_AVERAGE_BUFFER; else adc_val = Weight_adc_sum / Weight_adc_idx;
 				adc_val = Weight_adc_sum / WEIGHT_AVERAGE_BUFFER;
 				Weight_value = (adc_val - MC.Option.WeightZero) * 10000 / MC.Option.WeightScale - MC.Option.WeightTare;
 				Weight_Percent = Weight_value * 10000 / MC.Option.WeightFull;
 				if(Weight_Percent < 0) Weight_Percent = 0; else if(Weight_Percent > 10000) Weight_Percent = 10000;
+				if(Weight_Percent < MC.Option.Weight_Empty) {
+					if(!(CriticalErrors & ERRC_WeightLow)) set_Error(ERR_WEIGHT_LOW, (char*)__FUNCTION__);
+					CriticalErrors |= ERRC_WeightLow;
+				} else if(CriticalErrors & ERRC_WeightLow) CriticalErrors &= ~ERRC_WeightLow;
 			}
 //		}
 

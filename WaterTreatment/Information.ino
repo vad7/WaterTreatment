@@ -409,36 +409,44 @@ void Journal::_write(char *dataPtr)
 
  // Инициализация
 void statChart::init(boolean pres)
-{  
-  err=OK; 
-  present=pres;                                 // наличие статистики - зависит от конфигурации
-  pos=0;                                        // текущая позиция для записи
-  num=0;                                        // число накопленных точек
-  flagFULL=false;                               // false в буфере менее CHART_POINT точек
-  if (pres)                                     // отводим память если используем статистику
-  { 
-    data=(int16_t*)malloc(sizeof(int16_t)*CHART_POINT);
-    if (data==NULL) {err=ERR_OUT_OF_MEMORY; set_Error(err,(char*)__FUNCTION__);return;}  // ОШИБКА если память не выделена
-    for(int i=0;i<CHART_POINT;i++) data[i]=0;     // обнуление
-  }  
+{
+	err = OK;
+	present = pres;                                 // наличие статистики - зависит от конфигурации
+	pos = 0;                                        // текущая позиция для записи
+	num = 0;                                        // число накопленных точек
+	flagFULL = false;                               // false в буфере менее CHART_POINT точек
+	if(pres)                                     // отводим память если используем статистику
+	{
+		data = (int16_t*) malloc(sizeof(int16_t) * CHART_POINT);
+		if(data == NULL) {
+			err = ERR_OUT_OF_MEMORY;
+			set_Error(err, (char*) __FUNCTION__);
+			return;
+		}
+		memset(data, 0, sizeof(int16_t) * CHART_POINT);
+	}
 }
 
 // Очистить статистику
 void statChart::clear()
-{   
-  pos=0;                                        // текущая позиция для записи
-  num=0;                                        // число накопленных точек
-  flagFULL=false;                               // false в буфере менее CHART_POINT точек
-  for(int i=0;i<CHART_POINT;i++) data[i]=0;     // обнуление
+{
+	pos = 0;                                        // текущая позиция для записи
+	num = 0;                                        // число накопленных точек
+	flagFULL = false;                               // false в буфере менее CHART_POINT точек
+	memset(data, 0, sizeof(int16_t) * CHART_POINT);
 }
 
- // добавить точку в массиве
+// добавить точку в массиве
 void statChart::addPoint(int16_t y)
 {
- if (!present) return; 
- data[pos]=y;
- if (pos<CHART_POINT-1) pos++; else { pos=0; flagFULL=true; }
- if (!flagFULL) num++ ;   // буфер пока не полный
+	if(!present) return;
+	data[pos] = y;
+	if(pos < CHART_POINT - 1) pos++;
+	else {
+		pos = 0;
+		flagFULL = true;
+	}
+	if(!flagFULL) num++;   // буфер пока не полный
 }
 
 // получить точку нумерация 0-самая новая CHART_POINT-1 - самая старая, (работает кольцевой буфер)

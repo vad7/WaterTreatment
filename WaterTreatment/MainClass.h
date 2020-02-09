@@ -85,9 +85,11 @@ bool	 DebugToJournalOn = false;
 
 // Weight
 //bool Weight_NeedRead = false; // allways
-int32_t  Weight_adc_sum;                          	// сумма
 int32_t  Weight_adc_filter[WEIGHT_AVERAGE_BUFFER]; 	// массив накопленных значений
-uint16_t Weight_adc_idx;  			                // текущий индекс
+int32_t  Weight_adc_sum;                          	// сумма
+uint8_t  Weight_adc_idx;  			                // текущий индекс
+int32_t  Weight_adc_median1, Weight_adc_median2;	// медианный фильтр
+
 boolean  Weight_adc_flagFull;          			    // буфер полный
 int32_t	 Weight_value = 0;							// десятые грамма
 int16_t  Weight_Percent = 0;						// %, сотые
@@ -292,9 +294,7 @@ public:
 	// Опции
 	inline uint8_t  get_Beep() {return GETBIT(Option.flags,fBeep);};           // подача звуковых сигналов
 	uint8_t  get_WebStoreOnSPIFlash() {return GETBIT(Option.flags,fWebStoreOnSPIFlash);}// получить флаг хранения веб морды на флеш диске
-
 	uint16_t get_flags() { return Option.flags; }					  // Все флаги
-	void	 save_DumpJournal(void);
 
 	// Времена
 	void set_countNTP(uint32_t b) {countNTP=b;}             // Установить текущее время обновления по NTP, (секундах)

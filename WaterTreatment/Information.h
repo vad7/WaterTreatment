@@ -90,7 +90,7 @@ class statChart                                         // организова�
   void get_PointsStrSubDiv100(char *&b, statChart *sChart); // получить строку, вычесть точки sChart
   void get_PointsStrPower(char *&b, statChart *inChart, statChart *outChart, uint16_t Capacity); // Расчитать мощность на лету используется для графика потока, передаются указатели на температуры
   
-  inline boolean get_present() {return present;}        // Наличие датчика в текущей конфигурации
+  inline boolean get_present() {return present;}        // Строится в текущей конфигурации
   inline uint16_t get_num()  {return num;}              // Получить число накопленных точек
  private:
   int8_t err;                                            // Ошибка

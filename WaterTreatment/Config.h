@@ -193,7 +193,7 @@ struct History_setup {
 	#define HX711_DOUT_PIN		39			// ULN6
 	#define HX711_SCK_PIN		40			// ULN7
 	#define HX711_RATE_HZ		10			// 10Hz = RATE(p15) to GND, 80Hz = RATE(p15) to VCC
-	#define WEIGHT_AVERAGE_BUFFER 10
+	#define WEIGHT_AVERAGE_BUFFER 20
 
     // Контактные датчики (sInput[]------------------------------------------------------------------
 #ifndef TANK_ANALOG_LEVEL
@@ -357,7 +357,7 @@ struct History_setup {
     const uint8_t SENSORTEMP[TNUMBER]={    1 };
     // минимальные значения температур                                                                                                                                                
     const int16_t MINTEMP[TNUMBER] = {   100 };
-    // Макимальные значения температур, ВНИМАНИЕ! для TBOILER температура меняется если включен режим сальмонеллы на SALLMONELA_TEMP+300                                              
+    // Макимальные значения температур
     const int16_t MAXTEMP[TNUMBER] = {  3000 };
     // Значения датчиков при тестировании, опция TEST                                                                                                                                 
     const int16_t TESTTEMP[TNUMBER]= {  1200 };
