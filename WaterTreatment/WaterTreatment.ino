@@ -502,7 +502,6 @@ x_I2C_init_std_message:
 		vSemaphoreCreateBinary(xModbusSemaphore);                       // Создание мютекса
 		if (xModbusSemaphore==NULL) set_Error(ERR_MEM_FREERTOS,(char*)nameFREERTOS);
 	}
-
 	journal.jprintfopt("OK, size %d bytes\n", MC.mRTOS);
 
 	//journal.jprintfopt("* Send a notification . . .\n");
@@ -513,6 +512,7 @@ x_I2C_init_std_message:
 	journal.jprintfopt("FREE MEMORY %d bytes\n",MC.startRAM);
 	journal.jprintfopt("Temp DS2331: %.2d\n", getTemp_RtcI2C());
 	if(Is_otg_vbus_high()) journal.jprintf("+USB\n");
+
 	//MC.Stat.generate_TestData(STAT_POINT); // Сгенерировать статистику STAT_POINT точек только тестирование
 	//journal.jprintfopt("Start FreeRTOS.\n\n");
 	eepromI2C.use_RTOS_delay = 1;
