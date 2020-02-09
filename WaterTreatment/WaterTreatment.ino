@@ -1259,7 +1259,10 @@ xWaterBooster_OFF:
 							FillingTankLastLevel = MC.sADC[LTANK].get_Value();
 							FillingTankTimer = GetTickCount();
 						}
-					} else FillingTankTimer = GetTickCount();
+					} else {
+						FillingTankLastLevel = MC.sADC[LTANK].get_Value();
+						FillingTankTimer = GetTickCount();
+					}
 				}
 #endif
 				taskENTER_CRITICAL();
@@ -1415,7 +1418,9 @@ void vService(void *)
 									MC.dRelay[RSTARTREG2].set_ON();
 								}
 							} else {
-								MC.dRelay[RFILL].set_ON();	// Start filing tank
+								MC.dRelay[RFILL].set_ON();	// Start filling tank
+								FillingTankLastLevel = MC.sADC[LTANK].get_Value();
+								FillingTankTimer = GetTickCount();
 							}
 						}
 					}

@@ -75,7 +75,7 @@ uint32_t WaterBoosterCountL = 0;
 //bool	 TankEmpty = false;
 uint32_t FloodingTime = 0;	// unixtime
 uint32_t FillingTankTimer = 0;
-int16_t  FillingTankLastLevel = 0;
+int16_t  FillingTankLastLevel = 0;	// in 0.01%
 uint32_t TimeFeedPump = 0;	// ms
 uint8_t  NeedSaveWorkStats = 0;
 uint32_t TimerDrainingWater = 0;
@@ -147,7 +147,7 @@ struct type_option {
 	int16_t  LTANK_Empty;			// сотые %, Низкий уровень воды в баке - нужно включить заполнение бака до максимального
 	uint32_t DrainAfterNoConsume;	// Через сколько секунд сливать воду при отсутствии потребления
 	uint16_t DrainTime;				// Время слива воды, сек
-	uint16_t FillingTankTimeout;	// сек, Время заполнения бака на 3% при отсутствии потребления
+	uint16_t FillingTankTimeout;	// сек, Время заполнения бака на FILLING_TANK_STEP % при отсутствии потребления
 	int16_t  Weight_Empty;			// сотые %, Низкий уровень реагента, для тревоги
 	uint16_t CriticalErrorsTimeout;	// сек, время восстановления после критических ошибок, кроме протечки
 	uint16_t BackWashFeedPumpDelay; // в TIME_READ_SENSOR, задержка включения дозатора

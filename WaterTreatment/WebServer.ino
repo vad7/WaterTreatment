@@ -1603,7 +1603,8 @@ x_get_GADC:						i = MC.sADC[p].get_ADC_Gain();
 							}
 
 							if(strcmp(str, "ADCLvL")==0) {   // Функция get_ADCLvL()
-								_itoa(MC.sADC[p].get_Value() / 100, strReturn);
+								l_i32 = MC.sADC[p].get_Value();
+								_itoa(l_i32 / 100 + (l_i32 % 100 >= 50 ? 1 : 0), strReturn);
 								ADD_WEBDELIM(strReturn); continue;
 							}
 
