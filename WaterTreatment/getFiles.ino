@@ -172,7 +172,7 @@ void get_txtSettings(uint8_t thread)
      strcat(Socket[thread].outBuf,"Установленная дата: "); MC.get_datetime((char*)time_DATE,Socket[thread].outBuf);STR_END;
      strcat(Socket[thread].outBuf,"Установленное время: "); MC.get_datetime((char*)time_TIME,Socket[thread].outBuf);STR_END;
      strcat(Socket[thread].outBuf,"Адрес NTP сервера: "); MC.get_datetime((char*)time_NTP,Socket[thread].outBuf);STR_END;
-     strcat(Socket[thread].outBuf,"Часовой пояс (часы): "); MC.get_datetime((char*)time_TIMEZONE,Socket[thread].outBuf);STR_END;
+     strcat(Socket[thread].outBuf,"Часовой пояс (часы): "); _itoa(TIME_ZONE, Socket[thread].outBuf);STR_END;
      strcat(Socket[thread].outBuf,"Синхронизация времени по NTP раз в сутки: "); MC.get_datetime((char*)time_UPDATE,Socket[thread].outBuf);STR_END;
      strcat(Socket[thread].outBuf,"Синхронизация раз в час с I2C часами: "); MC.get_datetime((char*)time_UPDATE_I2C,Socket[thread].outBuf);STR_END;
   

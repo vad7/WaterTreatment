@@ -163,7 +163,6 @@ struct type_option {
 struct type_DateTime
 {
     uint8_t flags;                        //  Флаги опций до 8 флагов
-    int8_t timeZone;                      //  Часовой пояс
     char serverNTP[NTP_SERVER_LEN+1];     //  Адрес NTP сервера
     uint32_t saveTime;                    //  дата и время сохранения настроек в eeprom
 };

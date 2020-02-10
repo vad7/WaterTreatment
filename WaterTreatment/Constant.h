@@ -25,7 +25,7 @@
 //#define LOG                               // В последовательный порт шлет лог веб сервера (логируются запросы)
 #define FAST_LIB                            // использование допиленной библиотеки езернета
 #define TIME_ZONE         3                 // поправка на часовой пояс по ДЕФОЛТУ
-#define NTP_SERVER        "ru.pool.ntp.org" // NTP сервер для синхронизации времени по ДЕФОЛТУ
+#define NTP_SERVER        "time.nist.gov"   // NTP сервер для синхронизации времени по ДЕФОЛТУ
 #define NTP_SERVER_LEN    60                // максимальная длиная адреса NTP сервера
 #define NTP_PORT		  123
 #define NTP_LOCAL_PORT    8888              // локальный порт, который будет прослушиваться на предмет UDP-пакетов NTP сервера
@@ -317,7 +317,6 @@ const char *time_TIME       = {"TIME"};         // текущее время  12
 const char *time_DATE       = {"DATE"};         // текушая дата типа  12/04/2016
 const char *time_NTP        = {"NTP"};          // адрес NTP сервера строка до 60 символов.
 const char *time_UPDATE     = {"UPDATE"};       // Время синхронизации с NTP сервером.
-const char *time_TIMEZONE   = {"TIMEZONE"};     // Часовой пояс
 const char *time_UPDATE_I2C = {"UPDATE_I2C"};   // Синхронизация времени раз в час с i2c часами
 
 // Сеть

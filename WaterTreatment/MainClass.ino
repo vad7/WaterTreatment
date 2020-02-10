@@ -528,7 +528,6 @@ void MainClass::resetSetting()
 	SETBIT1(DateTime.flags, fUpdateI2C);           // Обновление часов I2C
 
 	strcpy(DateTime.serverNTP, (char*) NTP_SERVER);  // NTP сервер по умолчанию
-	DateTime.timeZone = TIME_ZONE;                   // Часовой пояс
 
 	// Временные задержки
 	Option.ver = VER_SAVE;
@@ -696,23 +695,19 @@ char* MainClass::get_network(char *var,char *ret)
 // Установить параметр дата и время из строки
 boolean MainClass::set_datetime(char *var, char *c)
 {
-	float tz;
-	int16_t m, h, d, mo, y;
-	int16_t buf[4];
+	int16_t buf[3];
 	uint32_t oldTime = rtcSAM3X8.unixtime(); // запомнить время
 	int32_t dTime = 0;
 	if(strcmp(var, time_TIME) == 0) {
 		if(!parseInt16_t(c, ':', buf, 2, 10)) return false;
-		h = buf[0];
-		m = buf[1];
-		rtcSAM3X8.set_time(h, m, 0);  // внутренние
+		rtcSAM3X8.set_time(buf[0], buf[1], 0);  // внутренние
 		setTime_RtcI2C(rtcSAM3X8.get_hours(), rtcSAM3X8.get_minutes(), rtcSAM3X8.get_seconds()); // внешние
 		dTime = rtcSAM3X8.unixtime() - oldTime; // получить изменение времени
 	} else if(strcmp(var, time_DATE) == 0) {
-		char ch, f = 0;
-		m = 0;
+		uint8_t i = 0, f = 0;
+		char ch;
 		do { // ищем разделитель чисел
-			ch = c[m++];
+			ch = c[i++];
 			if(ch >= '0' && ch <= '9') f = 1;
 			else if(f == 1) {
 				f = 2;
@@ -720,10 +715,7 @@ boolean MainClass::set_datetime(char *var, char *c)
 			}
 		} while(ch != '\0');
 		if(f != 2 || !parseInt16_t(c, ch, buf, 3, 10)) return false;
-		d = buf[0];
-		mo = buf[1];
-		y = buf[2];
-		rtcSAM3X8.set_date(d, mo, y); // внутренние
+		rtcSAM3X8.set_date(buf[0], buf[1], buf[2]); // внутренние
 		setDate_RtcI2C(rtcSAM3X8.get_days(), rtcSAM3X8.get_months(), rtcSAM3X8.get_years()); // внешние
 		dTime = rtcSAM3X8.unixtime() - oldTime; // получить изменение времени
 	} else if(strcmp(var, time_NTP) == 0) {
@@ -742,12 +734,6 @@ boolean MainClass::set_datetime(char *var, char *c)
 			countNTP = 0;
 			return true;
 		} else return false;
-	} else if(strcmp(var, time_TIMEZONE) == 0) {
-		tz = my_atof(c);
-		if(tz == -9876543.00f) return false;
-		else if((tz < -12) || (tz > 12)) return false;
-		else DateTime.timeZone = (int) tz;
-		return true;
 	} else if(strcmp(var, time_UPDATE_I2C) == 0) {
 		if(strcmp(c, cZero) == 0) {
 			SETBIT0(DateTime.flags, fUpdateI2C);
@@ -775,8 +761,6 @@ void MainClass::get_datetime(char *var, char *ret)
 		strcat(ret, DateTime.serverNTP);
 	} else if(strcmp(var, time_UPDATE) == 0) {
 		if(GETBIT(DateTime.flags, fUpdateNTP)) strcat(ret, (char*) cOne); else strcat(ret, (char*) cZero);
-	} else if(strcmp(var, time_TIMEZONE) == 0) {
-		_itoa(DateTime.timeZone, ret);
 	} else if(strcmp(var, time_UPDATE_I2C) == 0) {
 		if(GETBIT(DateTime.flags, fUpdateI2C)) strcat(ret, (char*) cOne);
 		else strcat(ret, (char*) cZero);

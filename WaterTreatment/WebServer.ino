@@ -752,7 +752,9 @@ xSaveStats:		if((i = MC.save_WorkStats()) == OK)
 				if(i) MC.WorkStats.UsedTotal = l_i32; // set_WST=x
 				_dtoa(strReturn, MC.WorkStats.UsedTotal + MC.RTC_store.UsedToday, 3);
 			} else if(*str == webWS_UsedAverageDay) _itoa(MC.WorkStats.UsedAverageDay / MC.WorkStats.UsedAverageDayNum, strReturn); // get_WSA
-			else if(*str == webWS_WaterBoosterCountL) _itoa(-WaterBoosterCountL, strReturn); // get_WSB
+			else if(*str == webWS_WaterBoosterCountL) {
+				if(WaterBoosterCountL == 0) strcat("-", strReturn); else _itoa(-WaterBoosterCountL, strReturn); // get_WSB
+			}
 			ADD_WEBDELIM(strReturn); continue;
 		}
 
@@ -840,7 +842,7 @@ xSaveStats:		if((i = MC.save_WorkStats()) == OK)
 				if(strncmp(str, "_VAR_", 5) == 0) {	// RESET_CNT_VAR_xx=n
 					str += 5;
 					*(str + 2) = '\0';
-					if((l_i32 = strtol(str + 3, NULL, 0)) != LONG_MAX) {
+					if((l_i32 = strtol(str + 3, NULL, 0)) != LONG_MAX) { // NO REENTRANT FUNCTION!
 						if(strcmp(str, "D1") == 0) {
 							MC.WorkStats.ResetTime = l_i32;
 						} else if(strcmp(str, "D2") == 0) {
@@ -1270,21 +1272,24 @@ xSaveStats:		if((i = MC.save_WorkStats()) == OK)
 					if(par--) {
 						i = OK;
 						if(strncmp(str, "set", 3) == 0) {
-							if(*y == 'w') i = Modbus.writeHoldingRegisters16(id, par, strtol(z, NULL, 0));
-							else if(*y == 'l') i = Modbus.writeHoldingRegisters32(id, par, strtol(z, NULL, 0));
-							else if(*y == 'f') i = Modbus.writeHoldingRegistersFloat(id, par, strtol(z, NULL, 0));
-							else if(*y == 'c') i = Modbus.writeSingleCoil(id, par, atoi(z));
+							// strtol - NO REENTRANT FUNCTION!
+							if(*y == 'w') i = Modbus.writeHoldingRegisters16(id, par, strtol(z, NULL, 0)); // 1 register (int16).
+							else if(*y == 'l') i = Modbus.writeHoldingRegisters32(id, par, strtol(z, NULL, 0)); // 2 registers (int32).
+							else if(*y == 'f') i = Modbus.writeHoldingRegistersFloat(id, par, strtol(z, NULL, 0)); // 2 registers (float).
+							else if(*y == 'c') i = Modbus.writeSingleCoil(id, par, atoi(z));	// coil
 							else goto x_FunctionNotFound;
 							_delay(MODBUS_TIME_TRANSMISION * 10); // Задержка перед чтением
 						} else if(strncmp(str, "get", 3) == 0) {
 						} else goto x_FunctionNotFound;
 						if(i == OK) {
 							if(*y == 'w') {
-								if((i = Modbus.readHoldingRegisters16(id, par, &par)) == OK) _itoa(par, strReturn);
+								if((i = Modbus.readInputRegisters16(id, par, &par)) == OK) _itoa(par, strReturn);
 							} else if(*y == 'l') {
-								if((i = Modbus.readHoldingRegisters32(id, par, (uint32_t *)&l_i32)) == OK) _itoa(l_i32, strReturn);
+								if((i = Modbus.readInputRegisters32(id, par, (uint32_t *)&l_i32)) == OK) _itoa(l_i32, strReturn);
 							} else if(*y == 'i') {
 								if((i = Modbus.readInputRegistersFloat(id, par, &pm)) == OK) _ftoa(strReturn, pm, 2);
+							} else if(*y == 'f') {
+								if((i = Modbus.readHoldingRegisters16(id, par, &par)) == OK) _itoa(par, strReturn);
 							} else if(*y == 'f') {
 								if((i = Modbus.readHoldingRegistersFloat(id, par, &pm)) == OK) _ftoa(strReturn, pm, 2);
 							} else if(*y == 'c') {

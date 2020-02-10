@@ -40,6 +40,34 @@
 #include <util/atomic.h>
 #endif
 
+#if defined(__SAM3X8E__) || defined(__SAM3X8H__)
+//------------------------------------------------------------------------------
+/** read pin value
+ * @param[in] pin Arduino pin number
+ * @return value read
+ */
+static inline __attribute__((always_inline))
+bool fastDigitalRead(uint8_t pin) {
+  return g_APinDescription[pin].pPort->PIO_PDSR & g_APinDescription[pin].ulPin;
+}
+//------------------------------------------------------------------------------
+/** Set pin value
+ * @param[in] pin Arduino pin number
+ * @param[in] level value to write
+ */
+static inline __attribute__((always_inline))
+void fastDigitalWrite(uint8_t pin, bool value) {
+  if (value) {
+    g_APinDescription[pin].pPort->PIO_SODR = g_APinDescription[pin].ulPin;
+  } else {
+    g_APinDescription[pin].pPort->PIO_CODR = g_APinDescription[pin].ulPin;
+  }
+}
+#else
+#define fastDigitalRead(pin) 			digitalRead(pin)
+#define fastDigitalWrite(pin, value)	digitalWrite(pin, value)
+#endif
+
 #if FAST_CPU
 // Make shiftIn() be aware of clockspeed for
 // faster CPUs like ESP32, Teensy 3.x and friends.
@@ -52,13 +80,13 @@ uint8_t shiftInSlow(uint8_t dataPin, uint8_t clockPin, uint8_t bitOrder) {
     uint8_t i;
 
     for(i = 0; i < 8; ++i) {
-        digitalWrite(clockPin, HIGH);
+        fastDigitalWrite(clockPin, HIGH);
         delayMicroseconds(1);
         if(bitOrder == LSBFIRST)
-            value |= digitalRead(dataPin) << i;
+            value |= fastDigitalRead(dataPin) << i;
         else
-            value |= digitalRead(dataPin) << (7 - i);
-        digitalWrite(clockPin, LOW);
+            value |= fastDigitalRead(dataPin) << (7 - i);
+        fastDigitalWrite(clockPin, LOW);
         delayMicroseconds(1);
     }
     return value;
@@ -86,7 +114,7 @@ void HX711::begin(byte dout, byte pd_sck, byte gain) {
 }
 
 bool HX711::is_ready() {
-	return digitalRead(DOUT) == LOW;
+	return fastDigitalRead(DOUT) == LOW;
 }
 
 void HX711::set_gain(byte gain) {
@@ -102,7 +130,7 @@ void HX711::set_gain(byte gain) {
 			break;
 	}
 
-	digitalWrite(PD_SCK, LOW);
+	fastDigitalWrite(PD_SCK, LOW);
 	read();
 }
 
@@ -154,11 +182,11 @@ long HX711::read() {
 
 	// Set the channel and the gain factor for the next reading using the clock pin.
 	for (unsigned int i = 0; i < GAIN; i++) {
-		digitalWrite(PD_SCK, HIGH);
+		fastDigitalWrite(PD_SCK, HIGH);
 		#if ARCH_ESPRESSIF
 		delayMicroseconds(1);
 		#endif
-		digitalWrite(PD_SCK, LOW);
+		fastDigitalWrite(PD_SCK, LOW);
 		#if ARCH_ESPRESSIF
 		delayMicroseconds(1);
 		#endif
@@ -289,10 +317,10 @@ long HX711::get_offset() {
 }
 
 void HX711::power_down() {
-	digitalWrite(PD_SCK, LOW);
-	digitalWrite(PD_SCK, HIGH);
+	fastDigitalWrite(PD_SCK, LOW);
+	fastDigitalWrite(PD_SCK, HIGH);
 }
 
 void HX711::power_up() {
-	digitalWrite(PD_SCK, LOW);
+	fastDigitalWrite(PD_SCK, LOW);
 }
