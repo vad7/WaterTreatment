@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019 by Vadim Kulakov vad7@yahoo.com, vad711
+ * Copyright (c) 2020 by Vadim Kulakov vad7@yahoo.com, vad711
   *
  * This file is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
@@ -753,7 +753,7 @@ xSaveStats:		if((i = MC.save_WorkStats()) == OK)
 				_dtoa(strReturn, MC.WorkStats.UsedTotal + MC.RTC_store.UsedToday, 3);
 			} else if(*str == webWS_UsedAverageDay) _itoa(MC.WorkStats.UsedAverageDay / MC.WorkStats.UsedAverageDayNum, strReturn); // get_WSA
 			else if(*str == webWS_WaterBoosterCountL) {
-				if(WaterBoosterCountL == 0) strcat("-", strReturn); else _itoa(-WaterBoosterCountL, strReturn); // get_WSB
+				if(WaterBoosterCountL == 0) strcat(strReturn, "-"); else _itoa(-WaterBoosterCountL, strReturn); // get_WSB
 			}
 			ADD_WEBDELIM(strReturn); continue;
 		}

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019 by Vadim Kulakov vad7@yahoo.com, vad711
+ * Copyright (c) 2020 by Vadim Kulakov vad7@yahoo.com, vad711
   *
  * This file is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
@@ -27,7 +27,7 @@ void get_Header(uint8_t thread,char *name_file)
     strcat(Socket[thread].outBuf, "\"");
     strcat(Socket[thread].outBuf, WEB_HEADER_END);
 	sendPacketRTOS(thread, (byte*)Socket[thread].outBuf, strlen(Socket[thread].outBuf), 0);
-	sendPrintfRTOS(thread, " ------ Контроллер водоподоготовки ver. %s  сборка %s %s ------\r\nКонфигурация: %s: %s\r\nСоздание файла: %s %s \r\n\r\n", VERSION,__DATE__,__TIME__,CONFIG_NAME,CONFIG_NOTE,NowTimeToStr(),NowDateToStr());
+	sendPrintfRTOS(thread, " ------ Контроллер водоподготовки ver. %s  сборка %s %s ------\r\nКонфигурация: %s: %s\r\nСоздание файла: %s %s \r\n\r\n", VERSION,__DATE__,__TIME__,CONFIG_NAME,CONFIG_NOTE,NowTimeToStr(),NowDateToStr());
 }
 
 // Получить состояние
