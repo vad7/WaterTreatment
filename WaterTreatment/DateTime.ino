@@ -27,10 +27,10 @@ byte packetBuffer[NTP_PACKET_SIZE+1];       // буфер, в котором б�
 int8_t set_time(void)
 {
 	journal.jprintfopt(" I2C RTC DS3232: %s\n", DecodeTimeDate(TimeToUnixTime(getTime_RtcI2C()),(char*) packetBuffer,3));   // Показать что i2c часы работают - показав текущее время
-	journal.jprintfopt(" Init SAM3X8E RTC\n");
+	journal.jprintfopt(" Init SAM3x8e RTC\n");
 	rtcSAM3X8.init();                             // Запуск внутренних часов
+	uint32_t t = TimeToUnixTime(getTime_RtcI2C());
 	if(!(MC.get_updateNTP() && set_time_NTP())) { // Обновить время по NTP
-		uint32_t t = TimeToUnixTime(getTime_RtcI2C());
 		if(t) {
 			rtcSAM3X8.set_clock(t);                // Установить внутренние часы по i2c
 			journal.jprintfopt(" Time updated from I2C RTC: %s %s\n", NowDateToStr(), NowTimeToStr());
@@ -39,7 +39,7 @@ int8_t set_time(void)
 		}
 	}
 	
-	MC.set_uptime(rtcSAM3X8.unixtime());                         // Запомнить время старта контроллера
+	MC.set_uptime(t);                         // Запомнить время старта контроллера
 	return OK;
 }
 
@@ -469,13 +469,13 @@ char*  StatDate(uint32_t idt,boolean forma,char *ret)
 // Перевод формата времени Time в формат Unix (секунды с 1970 года)
 #define SEC_1970_TO_2000      946684800
 static  const uint8_t dim[] = { 31,28,31,30,31,30,31,31,30,31,30,31 };
-unsigned long TimeToUnixTime(tmElements_t t) //[V]*
- {
-	if(t.Year == 0) return 0;
-    uint16_t  dc;
-    dc = t.Day;
-    for (uint8_t i = 0; i<(t.Month-1); i++) dc += dim[i];
-    if ((t.Month > 2) && (((t.Year-2000) % 4) == 0))  ++dc;
-    dc = dc + (365 * (t.Year-2000)) + (((t.Year-2000) + 3) / 4) - 1;
-    return ((((((dc * 24L) + t.Hour) * 60) + t.Minute) * 60) + t.Second) + SEC_1970_TO_2000;
- } 
+unsigned long TimeToUnixTime(tmElements_t *t) //[V]*
+{
+	if(t->Year == 0) return 0;
+	uint16_t dc;
+	dc = t->Day;
+	for(uint8_t i = 0; i < (t->Month - 1); i++)	dc += dim[i];
+	if((t->Month > 2) && (((t->Year - 2000) % 4) == 0)) ++dc;
+	dc = dc + (365 * (t->Year - 2000)) + (((t->Year - 2000) + 3) / 4) - 1;
+	return ((((((dc * 24L) + t->Hour) * 60) + t->Minute) * 60) + t->Second) + SEC_1970_TO_2000;
+}

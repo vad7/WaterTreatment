@@ -169,6 +169,13 @@ uint8_t TaskSuspendAll(void) {
 	return 0;
 }
 
+void vWeb0(void *) __attribute__((naked));
+void vWeb1(void *) __attribute__((naked));
+void vWeb2(void *) __attribute__((naked));
+void vKeysLCD( void * ) __attribute__((naked));
+void vReadSensor(void *) __attribute__((naked));
+void vPumps( void * ) __attribute__((naked));
+void vService(void *) __attribute__((naked));
 
 void setup() {
 	// 1. Инициализация SPI
@@ -703,7 +710,7 @@ void vWeb0(void *)
 		} // if (xTaskGetTickCount()-thisTime>10000)
 
 	} //for
-	vTaskDelete( NULL);
+	vTaskSuspend(NULL);
 }
 
 // Второй поток
@@ -713,7 +720,7 @@ void vWeb1(void *)
 		web_server(1);
 		vTaskDelay(TIME_WEB_SERVER / portTICK_PERIOD_MS); // задержка чтения уменьшаем загрузку процессора
 	}
-	vTaskDelete( NULL);
+	vTaskSuspend(NULL);
 }
 // Третий поток
 void vWeb2(void *)
@@ -722,7 +729,7 @@ void vWeb2(void *)
 		web_server(2);
 		vTaskDelay(TIME_WEB_SERVER / portTICK_PERIOD_MS); // задержка чтения уменьшаем загрузку процессора
 	}
-	vTaskDelete( NULL);
+	vTaskSuspend(NULL);
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -898,8 +905,7 @@ xSetupExit:
 		}
 		vTaskDelay(KEY_CHECK_PERIOD);
 	}
-
-	vTaskDelete( NULL );
+	vTaskSuspend(NULL);
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -1032,7 +1038,7 @@ void vReadSensor(void *)
 			if(GetTickCount() - oldTime > (uint32_t)TIME_I2C_UPDATE) // время пришло обновляться надо Период синхронизации внутренних часов с I2C часами (сек)
 			{
 				oldTime = rtcSAM3X8.unixtime();
-				uint32_t t = TimeToUnixTime(getTime_RtcI2C());       // Прочитать время из часов i2c тут проблема
+				uint32_t t = TimeToUnixTime(getTime_RtcI2C());       // Прочитать время из часов i2c
 				if(t) {
 					rtcSAM3X8.set_clock(t);                		 // Установить внутренние часы по i2c
 					int32_t dt = t > oldTime ? t - oldTime : -(oldTime - t);
@@ -1057,7 +1063,7 @@ void vReadSensor(void *)
 		//
 		vReadSensor_delay1ms(TIME_READ_SENSOR - (int32_t)(GetTickCount() - ttime));     // Ожидать время нужное для цикла чтения
 	}  // for
-	vTaskDelete( NULL);
+	vTaskSuspend(NULL);
 }
 
 // Вызывается во время задержек в задаче чтения датчиков, должна быть вызвана перед основным циклом на время заполнения буфера усреднения
@@ -1305,7 +1311,7 @@ xWaterBooster_OFF:
 
 		vTaskDelay(TIME_SLICE_PUMPS); // ms
 	}
-	vTaskDelete( NULL );
+	vTaskSuspend(NULL);
 }
 
 // Service ///////////////////////////////////////////////
@@ -1486,5 +1492,5 @@ void vService(void *)
 		}
 		vTaskDelay(1); // задержка чтения уменьшаем загрузку процессора
 	}
-	vTaskDelete(NULL);
+	vTaskSuspend(NULL);
 }
