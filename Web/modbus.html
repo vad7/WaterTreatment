@@ -1,12 +1,11 @@
-<html>
-<head> 
-	<title>Modbus RTU. Водоподготовка.</title>
-	<meta charset="utf-8" />
-	<meta name="viewport" content="width=device-width, initial-scale=1.0">
-	<link rel="stylesheet" type="text/css" href="style.css">
-	<script type='text/javascript' src='scripts.js'></script>
-	<script type="text/javascript">
+<html><head><title>Modbus RTU. Водоподготовка.</title>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="stylesheet" type="text/css" href="style.css">
+<script type='text/javascript' src='scripts.js'></script>
+<script type="text/javascript">
 	window.onload = function() {
+		loadParam("get_PWM(NAME),get_PWM(M)");
 	};
 	function set_param(e) {
 		var els = e.parentElement.parentElement.getElementsByClassName("mdb");
@@ -54,9 +53,9 @@
 <br>
 <span style="font-size: larger;">Адрес устройства на шине RS485: </span><input id="device" type="number" min="0" max="255" step="1" value="1">
 <br>
-Счетчик PZEM-004T v3: 248. Нумерация параметров с 1.
+<span id="get_pwm-name"></span>: <span id="get_pwm-m"></span>. Нумерация адресов с 1.
 <br> 
-<h3>Чтение, запись. Адреса 4...: <input type="submit" value="+ (16bit)" onclick="add_new_modbus_row('w')"> <input type="submit" value="+ (32bit)" onclick="add_new_modbus_row('l')"> <input type="submit" value="+ (Coil)" onclick="add_new_modbus_row('c')"> <input type="submit" value="+ (Float)" onclick="add_new_modbus_row('f')"> Адреса 3...: <input type="submit" value="+ I(Float)" onclick="add_new_modbus_row('i')"> <input type="submit" value="Обновить, авто:" onclick="refresh_all()"> <input type="checkbox" id="refresh_auto"></h3> 
+<h3>Чтение, Адреса 4...: <input type="submit" value="+ W(16bit)" onclick="add_new_modbus_row('w')"> <input type="submit" value="+ L(32bit)" onclick="add_new_modbus_row('l')"> <input type="submit" value="+ F(Float)" onclick="add_new_modbus_row('f')"> Запись, Адреса 3...: <input type="submit" value="+ H(16bit)" onclick="add_new_modbus_row('h')"> <input type="submit" value="+ I(Float)" onclick="add_new_modbus_row('i')"> <input type="submit" value="+ C(Coil)" onclick="add_new_modbus_row('c')"> <input type="submit" value="Обновить, авто:" onclick="refresh_all()"> <input type="checkbox" id="refresh_auto"></h3> 
 <table id="tbl_modbus">
 	<tr>
 		<th>Устройство</th>

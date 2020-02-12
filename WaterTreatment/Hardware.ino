@@ -618,13 +618,7 @@ char* devPWM::get_param(char *var, char *ret)
 {
 	static uint32_t tmp;
 
-	if(strcmp(var, pwm_NAME) == 0) {       // Имя счетчика
-		return strcat(ret, (char*) name);
-	} else if(strcmp(var, pwm_NOTE) == 0) {      // Описание счетчика
-		return strcat(ret, (char*) note);
-	} else if(strcmp(var, pwm_ERRORS) == 0) {      // Ошибок modbus
-		return _itoa(numErr, ret);
-	} else if(strcmp(var, pwm_VOLTAGE) == 0) {      // Напряжение
+	if(strcmp(var, pwm_VOLTAGE) == 0) {      // Напряжение
 		_dtoa(ret, Voltage, 1);
 		return ret;
 	} else if(strcmp(var, pwm_POWER) == 0) {      // мощность
@@ -653,6 +647,14 @@ char* devPWM::get_param(char *var, char *ret)
 			_dtoa(ret, tmp, 0);
 			return ret;
 		}
+	} else if(strcmp(var, pwm_NAME) == 0) {
+		return strcat(ret, (char*) name);
+	} else if(strcmp(var, pwm_NOTE) == 0) {
+		return strcat(ret, (char*) note);
+	} else if(strcmp(var, pwm_ERRORS) == 0) {
+		return _itoa(numErr, ret);
+	} else if(strcmp(var, pwm_ModbusAddr) == 0) {
+		return _itoa(PWM_MODBUS_ADR, ret);
 	}
 	return strcat(ret,(char*)cInvalid);
 }

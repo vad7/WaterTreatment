@@ -282,6 +282,7 @@ const char *pwm_ACENERGY    = {"E"};               // Суммарная акт�
 const char *pwm_ERRORS  	= {"ERR"};             // Ошибок чтения Modbus
 const char *pwm_RESET		= {"RESET"};
 const char *pwm_TestPower	= {"TP"};
+const char *pwm_ModbusAddr	= {"M"};
 
 // Описание имен параметров уведомлений для функций set_messageSetting get_messageSetting
 const char *mess_MAIL         = {"MAIL"};                // флаг уведомления скидывать на почту
