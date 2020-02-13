@@ -733,8 +733,8 @@ void vWeb2(void *)
 }
 
 //////////////////////////////////////////////////////////////////////////
-#define LCD_SetupMenuItems	2
 #define LCD_SetupFlag 		0x80000000
+#define LCD_SetupMenuItems	2
 const char *LCD_SetupMenu[LCD_SetupMenuItems] = { "1. Exit", "2. Relays" };
 // Задача Пользовательский интерфейс (MC.xHandleKeysLCD) "KeysLCD"
 void vKeysLCD( void * )
@@ -973,18 +973,26 @@ void vReadSensor(void *)
 		} else if(++RegBackwashTimer > MC.Option.BackWashFeedPumpDelay) {
 			TimeFeedPump +=	(uint32_t)MC.sFrequency[FLOW].get_Value() * TIME_READ_SENSOR / MC.Option.BackWashFeedPumpMaxFlow;
 		}
-		if(MC.sInput[REG_ACTIVE].get_Input() || MC.sInput[REG_BACKWASH_ACTIVE].get_Input() || MC.sInput[REG2_ACTIVE].get_Input()) {
-			MC.RTC_store.UsedRegen += passed;
-			Stats_WaterRegen_work += passed;
-			History_WaterRegen_work += passed;
-			NeedSaveRTC |= (1<<bRTC_UsedRegen);
-		} else {
-			if(MC.dRelay[RDRAIN].get_Relay()) MC.WorkStats.UsedDrain += passed; else MC.RTC_store.UsedToday += passed;
-			History_WaterUsed_work += passed;
-			NeedSaveRTC |= (1<<bRTC_UsedToday);
+		if(passed) {
+			WaterBoosterCountL += passed;
+			uint32_t utm = rtcSAM3X8.unixtime();
+			if(MC.sInput[REG_ACTIVE].get_Input() || MC.sInput[REG_BACKWASH_ACTIVE].get_Input() || MC.sInput[REG2_ACTIVE].get_Input()) {
+				MC.RTC_store.UsedRegen += passed;
+				Stats_WaterRegen_work += passed;
+				History_WaterRegen_work += passed;
+				NeedSaveRTC |= (1<<bRTC_UsedRegen);
+				MC.WorkStats.UsedLastTime = utm;
+			} else {
+				if(MC.dRelay[RDRAIN].get_Relay() || MC.WorkStats.LastDrain + MC.Option.DrainTime + (TIME_READ_SENSOR/1000) >= utm) {
+					MC.WorkStats.UsedDrain += passed;
+				} else {
+					MC.RTC_store.UsedToday += passed;
+					MC.WorkStats.UsedLastTime = utm;
+				}
+				History_WaterUsed_work += passed;
+				NeedSaveRTC |= (1<<bRTC_UsedToday);
+			}
 		}
-		WaterBoosterCountL += passed;
-		if(passed) MC.WorkStats.UsedLastTime = rtcSAM3X8.unixtime();
 		//
 
 #ifdef USE_UPS

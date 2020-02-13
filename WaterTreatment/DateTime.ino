@@ -286,12 +286,16 @@ char* NowDateToStr(char *buf)
 	return buf;
 }
 
-// (Длительность инервала в строку) Время в формате день day 12:34 используется для рассчета uptime
+// Длительность инервала (сек) в строку, формате ХХХд ЧЧ:ММ[м][:ССс]
 // Результат ДОБАВЛЯЕТСЯ в ret
 char* TimeIntervalToStr(uint32_t idt, char *ret, uint8_t fSec = 0)
 {
 	uint8_t Hour, Min, Sec;
 	/* decode the interval into days, hours, minutes, seconds */
+	if(idt > (10*365*24*60*60)) {
+		strcat(ret, "-");
+		return ret;
+	}
 	if(fSec) Sec = idt % 60;
 	idt /= 60;
 	Min = idt % 60;
