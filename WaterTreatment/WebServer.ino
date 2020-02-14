@@ -721,7 +721,10 @@ xSaveStats:		if((i = MC.save_WorkStats()) == OK)
 				if((x = strchr(str, '='))) {
 					*x++ = '\0';
 					l_i32 = atoi(x);
+					pm = my_atof(x);
 					i = 1;
+					strcat(strReturn, str);
+					strcat(strReturn, "=");
 				}
 			}
 			str += 6;
@@ -749,7 +752,7 @@ xSaveStats:		if((i = MC.save_WorkStats()) == OK)
 			else if(strcmp(str, webWS_UsedSinceLastRegenSoftening) == 0) _itoa(MC.WorkStats.UsedSinceLastRegenSoftening + MC.RTC_store.UsedToday, strReturn); // get_WSRSS
 			else if(*str == webWS_UsedDrain) _itoa(MC.WorkStats.UsedDrain, strReturn); // get_WSD
 			else if(*str == webWS_UsedTotal) {  // get_WST
-				if(i) MC.WorkStats.UsedTotal = l_i32; // set_WST=x
+				if(i) MC.WorkStats.UsedTotal = pm * 1000 + 0.0005f; // set_WST=x
 				_dtoa(strReturn, MC.WorkStats.UsedTotal + MC.RTC_store.UsedToday, 3);
 			} else if(*str == webWS_UsedAverageDay) _itoa(MC.WorkStats.UsedAverageDay / MC.WorkStats.UsedAverageDayNum, strReturn); // get_WSA
 			else if(*str == webWS_WaterBoosterCountL) {
