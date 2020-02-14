@@ -1393,7 +1393,8 @@ void vService(void *)
 					}
 				} else {
 					// Water did not consumed a long time ago.
-					if(MC.Option.DrainAfterNoConsume && rtcSAM3X8.unixtime() - (MC.WorkStats.LastDrain > MC.WorkStats.UsedLastTime ? MC.WorkStats.LastDrain : MC.WorkStats.UsedLastTime) >= MC.Option.DrainAfterNoConsume && !CriticalErrors) {
+					uint32_t ut;
+					if(MC.Option.DrainAfterNoConsume && (ut = rtcSAM3X8.unixtime()) - (MC.WorkStats.UsedLastTime > MC.WorkStats.LastDrain ? MC.WorkStats.UsedLastTime : MC.WorkStats.LastDrain ? MC.WorkStats.LastDrain : ut) >= MC.Option.DrainAfterNoConsume && !CriticalErrors) {
 						MC.WorkStats.LastDrain = rtcSAM3X8.unixtime();
 						TimerDrainingWater = MC.Option.DrainTime;
 						MC.WorkStats.UsedDrain = 0;

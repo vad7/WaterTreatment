@@ -723,7 +723,7 @@ xSaveStats:		if((i = MC.save_WorkStats()) == OK)
 					l_i32 = atoi(x);
 					i = 1;
 				}
-			} else
+			}
 			str += 6;
 			if(strcmp(str, webWS_UsedToday) == 0) _itoa(MC.RTC_store.UsedToday, strReturn); // get_WSUD
 			else if(strcmp(str, webWS_UsedYesterday) == 0) _itoa(MC.WorkStats.UsedYesterday, strReturn); // get_WSUY
