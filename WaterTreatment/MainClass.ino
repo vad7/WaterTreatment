@@ -76,7 +76,7 @@ void Weight_Clear_Averaging(void)
 void MainClass::init()
 {
 	uint8_t i;
-	eraseError();
+	clear_error();
 
 	for(i = 0; i < TNUMBER; i++) sTemp[i].initTemp(i);            // Инициализация датчиков температуры
 
@@ -102,12 +102,22 @@ void MainClass::init()
 
 	resetSetting();                                           // все переменные
 }
+
 // Стереть последнюю ошибку
-void MainClass::eraseError()
+void MainClass::clear_error()
 {
-	strcpy(note_error, "OK");          // Строка c описанием ошибки
-	strcpy(source_error, "");          // Источник ошибки
+	strcpy(note_error, "OK");			// Строка c описанием ошибки
+	source_error[0] = '\0';				// Источник ошибки
 	error = OK;                         // Код ошибки
+}
+
+// стереть все ошибки
+void MainClass::clear_all_errors()
+{
+	memset(Errors, 0, sizeof(Errors));
+	memset(ErrorsTime, 0, sizeof(ErrorsTime));
+	CriticalErrors = 0;
+	MC.clear_error();
 }
 
 // Получить число ошибок чтения ВСЕХ датчиков темпеартуры
@@ -214,7 +224,7 @@ void MainClass::set_testMode(TEST_MODE b)
 	for(i = 0; i < RNUMBER; i++) dRelay[i].set_testMode(b);        // Реле
 	testMode = b;
 	// новый режим начинаем без ошибок
-	eraseError();
+	clear_error();
 }
 
 // -------------------------------------------------------------------------
@@ -536,32 +546,30 @@ void MainClass::resetSetting()
 	SETBIT1(Option.flags, fBeep);         //  Звук
 	SETBIT1(Option.flags, fHistory);      //  Сброс статистика на карту
 
-	Option.DrainTime = 20;
-	Option.FeedPumpMaxFlow = 4000;
-	Option.BackWashFeedPumpMaxFlow = 8000;
-	Option.FillingTankTimeout = 60;
+	Option.FeedPumpMaxFlow = 2000;
+	Option.BackWashFeedPumpMaxFlow = 1700;
 	Option.FloodingDebounceTime = 10;
 	Option.FloodingTimeout = 600;
-	Option.MinDrainLiters = 10;
-	Option.MinPumpOnTime = 1000;
-	Option.MinRegenLiters = 500;
-	Option.MinWaterBoostOnTime = 2000;
-	Option.MinWaterBoostOffTime = 10000;
+	Option.MinDrainLiters = 4;
+	Option.MinPumpOnTime = 1500;
+	Option.MinRegenLiters = 450;
+	Option.MinWaterBoostOnTime = 4000;
+	Option.MinWaterBoostOffTime = 5000;
 	Option.PWATER_RegMin = 300;
-	Option.PWM_StartingTime = 1000;
-	Option.PWM_DryRun = 800;
-	Option.PWM_Max = 1500;
+	Option.PWM_StartingTime = 2000;
+	Option.PWM_DryRun = 900;
+	Option.PWM_Max = 2000;
 	Option.RegenHour = 3;
-	Option.DaysBeforeRegen = 20;
-	Option.UsedBeforeRegen = 6000;
+	Option.DaysBeforeRegen = 16;
+	Option.UsedBeforeRegen = 3000;
 	Option.UsedBeforeRegenSoftener = 3500;
 	Option.LTANK_Empty = 500;
 	Option.Weight_Empty = 500;
 	Option.DrainAfterNoConsume = 12;
-	Option.DrainTime = 11;
+	Option.DrainTime = 15;
 	Option.FillingTankTimeout = 30;
 	Option.CriticalErrorsTimeout = 300;
-	Option.BackWashFeedPumpDelay = 7*60;
+	Option.BackWashFeedPumpDelay = 8*60;
 }
 
 // --------------------------------------------------------------------

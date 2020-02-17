@@ -874,10 +874,7 @@ xSaveStats:		if((i = MC.save_WorkStats()) == OK)
 				strcat(strReturn, "Настройки сброшены - перезагрузите контроллер.");
 			} else if (strcmp(str,"ERR")==0) // RESET_ERR
 			{
-				memset(Errors, 0, sizeof(Errors));
-				memset(ErrorsTime, 0, sizeof(ErrorsTime));
-				CriticalErrors = 0;
-				MC.eraseError();
+				MC.clear_all_errors();
 			}
 			ADD_WEBDELIM(strReturn); continue;
 		}

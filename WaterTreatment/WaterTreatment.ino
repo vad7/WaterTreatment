@@ -798,7 +798,27 @@ xSetupExit:
 					setup++;
 					DisplayTick = ~DisplayTick;
 				}
-			} else if(MC.get_errcode()) Error_Beep_confirmed = true;
+			} else {
+xErrorsProcessing:
+				if(MC.get_errcode()) {
+					if(!Error_Beep_confirmed) Error_Beep_confirmed = true;
+					else {
+						lcd.setCursor(0, 2);
+						lcd.print(" OK - CLEAR ERRORS? ");
+						setup_timeout = 10000 / KEY_CHECK_PERIOD;
+						while(--setup_timeout) {
+							vTaskDelay(KEY_CHECK_PERIOD);
+							if(!digitalReadDirect(PIN_KEY_UP) || !digitalReadDirect(PIN_KEY_DOWN)) break;
+							if(!digitalReadDirect(PIN_KEY_OK)) {
+								MC.clear_all_errors();
+								break;
+							}
+						}
+						do { vTaskDelay(KEY_DEBOUNCE_TIME); } while(!digitalReadDirect(PIN_KEY_UP) || !digitalReadDirect(PIN_KEY_DOWN) || !digitalReadDirect(PIN_KEY_OK));
+						DisplayTick = ~DisplayTick;
+					}
+				}
+			}
 			setup_timeout = DISPLAY_SETUP_TIMEOUT / KEY_CHECK_PERIOD;
 			//journal.jprintfopt("[UP]\n");
 		} else if(!digitalReadDirect(PIN_KEY_DOWN)) {
@@ -809,7 +829,7 @@ xSetupExit:
 					setup--;
 					DisplayTick = ~DisplayTick;
 				}
-			} else if(MC.get_errcode()) Error_Beep_confirmed = true;
+			} else goto xErrorsProcessing;
 			setup_timeout = DISPLAY_SETUP_TIMEOUT / KEY_CHECK_PERIOD;
 			//journal.jprintfopt("[DWN]\n");
 		}
@@ -950,8 +970,8 @@ void vReadSensor(void *)
 		if(!MC.NO_Power)
 #endif
 		{
-			MC.dPWM.get_readState(0); // Основная группа регистров, включая мощность
-			if(WaterBoosterStatus > 0 && WaterBoosterTimeout > MC.Option.PWM_StartingTime) {
+			// Основная группа регистров, включая мощность
+			if(MC.dPWM.get_readState(0) && WaterBoosterStatus > 0 && WaterBoosterTimeout > MC.Option.PWM_StartingTime) {
 				if(MC.Option.PWM_DryRun && MC.dPWM.get_Power() < MC.Option.PWM_DryRun) { // Сухой ход
 					CriticalErrors |= ERRC_WaterBooster;
 					set_Error(ERR_PWM_DRY_RUN, (char*)__FUNCTION__);
@@ -1393,12 +1413,14 @@ void vService(void *)
 					}
 				} else {
 					// Water did not consumed a long time ago.
-					uint32_t ut;
-					if(MC.Option.DrainAfterNoConsume && (ut = rtcSAM3X8.unixtime()) - (MC.WorkStats.UsedLastTime > MC.WorkStats.LastDrain ? MC.WorkStats.UsedLastTime : MC.WorkStats.LastDrain ? MC.WorkStats.LastDrain : ut) >= MC.Option.DrainAfterNoConsume && !CriticalErrors) {
-						MC.WorkStats.LastDrain = rtcSAM3X8.unixtime();
-						TimerDrainingWater = MC.Option.DrainTime;
-						MC.WorkStats.UsedDrain = 0;
-						MC.dRelay[RDRAIN].set_ON();
+					if(MC.Option.DrainAfterNoConsume) {
+						uint32_t ut = rtcSAM3X8.unixtime();
+						if(ut - (MC.WorkStats.UsedLastTime > MC.WorkStats.LastDrain ? MC.WorkStats.UsedLastTime : MC.WorkStats.LastDrain ? MC.WorkStats.LastDrain : ut) >= MC.Option.DrainAfterNoConsume && !CriticalErrors) {
+							MC.WorkStats.LastDrain = rtcSAM3X8.unixtime();
+							TimerDrainingWater = MC.Option.DrainTime;
+							MC.WorkStats.UsedDrain = 0;
+							MC.dRelay[RDRAIN].set_ON();
+						}
 					}
 				}
 
@@ -1410,7 +1432,7 @@ void vService(void *)
 				}
 				if(!CriticalErrors) {
 					int err = MC.get_errcode();
-					if((err == ERR_FLOODING || err == ERR_TANK_EMPTY) && Errors[1] == 0) MC.eraseError();
+					if((err == ERR_FLOODING || err == ERR_TANK_EMPTY) && Errors[1] == 0) MC.clear_error();
 					if(err != ERR_START_REG && err != ERR_START_REG2
 							&& !(MC.RTC_store.Work & RTC_Work_Regen_MASK) && rtcSAM3X8.get_hours() == MC.Option.RegenHour) {
 						uint32_t need_regen = 0;

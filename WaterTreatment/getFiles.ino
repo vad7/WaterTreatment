@@ -18,103 +18,139 @@
 extern uint16_t sendPacketRTOS(uint8_t thread, const uint8_t * buf, uint16_t len,uint16_t pause);
 
 // Генерация заголовка
-void get_Header(uint8_t thread,char *name_file)
+void get_Header(uint8_t thread, char *name_file)
 {
-  // journal.jprintf("$Generate file %s\n",name_file);
-    strcpy(Socket[thread].outBuf, WEB_HEADER_OK_CT);
-    strcat(Socket[thread].outBuf, WEB_HEADER_TEXT_ATTACH);
-    strcat(Socket[thread].outBuf, name_file);
-    strcat(Socket[thread].outBuf, "\"");
-    strcat(Socket[thread].outBuf, WEB_HEADER_END);
-	sendPacketRTOS(thread, (byte*)Socket[thread].outBuf, strlen(Socket[thread].outBuf), 0);
-	sendPrintfRTOS(thread, " ------ Контроллер водоподготовки ver. %s  сборка %s %s ------\r\nКонфигурация: %s: %s\r\nСоздание файла: %s %s \r\n\r\n", VERSION,__DATE__,__TIME__,CONFIG_NAME,CONFIG_NOTE,NowTimeToStr(),NowDateToStr());
+	// journal.jprintf("$Generate file %s\n",name_file);
+	strcpy(Socket[thread].outBuf, WEB_HEADER_OK_CT);
+	strcat(Socket[thread].outBuf, WEB_HEADER_TEXT_ATTACH);
+	strcat(Socket[thread].outBuf, name_file);
+	strcat(Socket[thread].outBuf, "\"");
+	strcat(Socket[thread].outBuf, WEB_HEADER_END);
+	sendPacketRTOS(thread, (byte*) Socket[thread].outBuf, strlen(Socket[thread].outBuf), 0);
+	sendPrintfRTOS(thread, " ------ Контроллер водоподготовки ver. %s  сборка %s %s ------\r\nКонфигурация: %s: %s\r\nСоздание файла: %s %s \r\n\r\n", VERSION, __DATE__, __TIME__, CONFIG_NAME, CONFIG_NOTE, NowTimeToStr(), NowDateToStr());
 }
 
 // Получить состояние
 // header - заголовок файла ставить или нет
 void get_txtState(uint8_t thread, boolean header)
-{   uint8_t i,j; 
-    int16_t x; 
-     if (header) get_Header(thread,(char*)"state.txt");
-     sendPrintfRTOS(thread, "\n  1. Водоподготовка\r\nПоследняя ошибка: %d - %s\r\n", MC.get_errcode(), MC.get_lastErr());
-     
-     strcat(Socket[thread].outBuf,"\r\n\r\n  2. Датчики температуры\r\n");
+{
+	uint8_t i, j;
+	int16_t x;
+	if(header) get_Header(thread, (char*) "state.txt");
+	sendPrintfRTOS(thread, "\n  1. Водоподготовка\r\nПоследняя ошибка: %d - %s\r\n", MC.get_errcode(), MC.get_lastErr());
+
+	strcat(Socket[thread].outBuf, "\r\n\r\n  2. Датчики температуры\r\n");
 #if	TNUMBER > 0
-     for(i=0;i<TNUMBER;i++)   // Информация по  датчикам температуры
-         {
-              strcat(Socket[thread].outBuf,MC.sTemp[i].get_name()); if((x=8-strlen(MC.sTemp[i].get_name()))>0) { for(j=0;j<x;j++)  strcat(Socket[thread].outBuf," "); }
-              strcat(Socket[thread].outBuf,"["); strcat(Socket[thread].outBuf,addressToHex(MC.sTemp[i].get_address())); strcat(Socket[thread].outBuf,"] ");
-              strcat(Socket[thread].outBuf,MC.sTemp[i].get_note());  strcat(Socket[thread].outBuf,": ");
-              if (MC.sTemp[i].get_present())
-                {
-                  _ftoa(Socket[thread].outBuf,(float)MC.sTemp[i].get_Temp()/100.0f,2);
-                  if (MC.sTemp[i].get_lastErr()!=OK) { strcat(Socket[thread].outBuf," error:"); _itoa(MC.sTemp[i].get_lastErr(),Socket[thread].outBuf); }
-                  STR_END; 
-                }
-                else strcat(Socket[thread].outBuf," absent\r\n"); 
-         }
-      sendBufferRTOS(thread,(byte*)Socket[thread].outBuf,strlen(Socket[thread].outBuf));
+	for(i = 0; i < TNUMBER; i++)   // Информация по  датчикам температуры
+	{
+		strcat(Socket[thread].outBuf, MC.sTemp[i].get_name());
+		if((x = 8 - strlen(MC.sTemp[i].get_name())) > 0) {
+			for(j = 0; j < x; j++)
+				strcat(Socket[thread].outBuf, " ");
+		}
+		strcat(Socket[thread].outBuf, "[");
+		strcat(Socket[thread].outBuf, addressToHex(MC.sTemp[i].get_address()));
+		strcat(Socket[thread].outBuf, "] ");
+		strcat(Socket[thread].outBuf, MC.sTemp[i].get_note());
+		strcat(Socket[thread].outBuf, ": ");
+		if(MC.sTemp[i].get_present()) {
+			_ftoa(Socket[thread].outBuf, (float) MC.sTemp[i].get_Temp() / 100.0f, 2);
+			if(MC.sTemp[i].get_lastErr() != OK) {
+				strcat(Socket[thread].outBuf, " error:");
+				_itoa(MC.sTemp[i].get_lastErr(), Socket[thread].outBuf);
+			}
+			STR_END;
+		} else strcat(Socket[thread].outBuf, " absent\r\n");
+	}
+	sendBufferRTOS(thread, (byte*) Socket[thread].outBuf, strlen(Socket[thread].outBuf));
 #endif
-      
-      strcpy(Socket[thread].outBuf,"\n  3. Аналоговые датчики\r\n"); // Новый пакет
-      for(i=0;i<ANUMBER;i++)   // Информация по  датчикам температуры
-         {   
-            strcat(Socket[thread].outBuf,MC.sADC[i].get_name()); if((x=8-strlen(MC.sADC[i].get_name()))>0) { for(j=0;j<x;j++)  strcat(Socket[thread].outBuf," "); }
-            strcat(Socket[thread].outBuf,MC.sADC[i].get_note());  strcat(Socket[thread].outBuf,": ");
-            if (MC.sADC[i].get_present())
-                { 
-                  _ftoa(Socket[thread].outBuf,(float)MC.sADC[i].get_Value()/100.0f,2); if (MC.sADC[i].get_lastErr()!=OK ) { strcat(Socket[thread].outBuf," error:"); _itoa(MC.sADC[i].get_lastErr(),Socket[thread].outBuf); }
-                  STR_END; 
-      
-                } 
-            else strcat(Socket[thread].outBuf," absent\r\n"); 
-         }
-   
-       strcat(Socket[thread].outBuf,"\n  4. Датчики 'сухой контакт'\r\n");
-       for(i=0;i<INUMBER;i++)  
-           {
-            strcat(Socket[thread].outBuf,MC.sInput[i].get_name()); if((x=8-strlen(MC.sInput[i].get_name()))>0) { for(j=0;j<x;j++)  strcat(Socket[thread].outBuf," "); }
-            strcat(Socket[thread].outBuf,MC.sInput[i].get_note());  strcat(Socket[thread].outBuf,": ");
-      
-            if (MC.sInput[i].get_present())
-                { 
-                  _itoa(MC.sInput[i].get_Input(),Socket[thread].outBuf);
-                  strcat(Socket[thread].outBuf," alarm:"); _itoa(MC.sInput[i].get_alarmInput(),Socket[thread].outBuf); STR_END;
-                }
-                else strcat(Socket[thread].outBuf," absent\r\n");      
-           }
-       
-              
-       strcat(Socket[thread].outBuf,"\n  5. Реле\r\n");
-       for(i=0;i<RNUMBER;i++)  
-           {
-            strcat(Socket[thread].outBuf,MC.dRelay[i].get_name()); if((x=8-strlen(MC.dRelay[i].get_name()))>0) { for(j=0;j<x;j++)  strcat(Socket[thread].outBuf," "); }
-            strcat(Socket[thread].outBuf,MC.dRelay[i].get_note());  strcat(Socket[thread].outBuf,": ");
-      
-            if (MC.dRelay[i].get_present()) _itoa(MC.dRelay[i].get_Relay(),Socket[thread].outBuf);
-            else strcat(Socket[thread].outBuf," absent"); 
-            STR_END;         
-           }
-         
-        strcat(Socket[thread].outBuf,"\n  6. Электросчетчик\r\n");
-           strcat(Socket[thread].outBuf,"Текущее входное напряжение [В]: ");                          MC.dPWM.get_param((char*)pwm_VOLTAGE,Socket[thread].outBuf); STR_END;
-           strcat(Socket[thread].outBuf,"Текущий потребляемый ток [А]: ");                         MC.dPWM.get_param((char*)pwm_CURRENT,Socket[thread].outBuf); STR_END;
-           strcat(Socket[thread].outBuf,"Текущая потребляемая мощность [Вт]: ");        MC.dPWM.get_param((char*)pwm_POWER,Socket[thread].outBuf); STR_END;
-           strcat(Socket[thread].outBuf,"Коэффициент мощности: ");                                    MC.dPWM.get_param((char*)pwm_PFACTOR,Socket[thread].outBuf); STR_END;
-           strcat(Socket[thread].outBuf,"Суммарная активная энергия [кВт/ч]: ");                     MC.dPWM.get_param((char*)pwm_ACENERGY,Socket[thread].outBuf); STR_END;
-   
-   strcat(Socket[thread].outBuf,"\n  7. Частотные датчики потока\r\n");
-     for(i=0;i<FNUMBER;i++)  
-           {
-            strcat(Socket[thread].outBuf,MC.sFrequency[i].get_name()); if((x=8-strlen(MC.sFrequency[i].get_name()))>0) { for(j=0;j<x;j++)  strcat(Socket[thread].outBuf," "); }
-            strcat(Socket[thread].outBuf,MC.sFrequency[i].get_note());  strcat(Socket[thread].outBuf,": ");
-            if (MC.sFrequency[i].get_present()) _ftoa(Socket[thread].outBuf,(float)MC.sFrequency[i].get_Value()/1000.0f,3);
-            else strcat(Socket[thread].outBuf," absent"); 
-            STR_END;         
-           }
-   
-        
-  sendBufferRTOS(thread,(byte*)Socket[thread].outBuf,strlen(Socket[thread].outBuf));   
+
+	strcpy(Socket[thread].outBuf, "\n  3. Аналоговые датчики\r\n"); // Новый пакет
+	for(i = 0; i < ANUMBER; i++)   // Информация по  датчикам температуры
+	{
+		strcat(Socket[thread].outBuf, MC.sADC[i].get_name());
+		if((x = 8 - strlen(MC.sADC[i].get_name())) > 0) {
+			for(j = 0; j < x; j++)
+				strcat(Socket[thread].outBuf, " ");
+		}
+		strcat(Socket[thread].outBuf, MC.sADC[i].get_note());
+		strcat(Socket[thread].outBuf, ": ");
+		if(MC.sADC[i].get_present()) {
+			_ftoa(Socket[thread].outBuf, (float) MC.sADC[i].get_Value() / 100.0f, 2);
+			if(MC.sADC[i].get_lastErr() != OK) {
+				strcat(Socket[thread].outBuf, " error:");
+				_itoa(MC.sADC[i].get_lastErr(), Socket[thread].outBuf);
+			}
+			STR_END;
+
+		} else strcat(Socket[thread].outBuf, " absent\r\n");
+	}
+
+	strcat(Socket[thread].outBuf, "\n  4. Датчики 'сухой контакт'\r\n");
+	for(i = 0; i < INUMBER; i++) {
+		strcat(Socket[thread].outBuf, MC.sInput[i].get_name());
+		if((x = 8 - strlen(MC.sInput[i].get_name())) > 0) {
+			for(j = 0; j < x; j++)
+				strcat(Socket[thread].outBuf, " ");
+		}
+		strcat(Socket[thread].outBuf, MC.sInput[i].get_note());
+		strcat(Socket[thread].outBuf, ": ");
+
+		if(MC.sInput[i].get_present()) {
+			_itoa(MC.sInput[i].get_Input(), Socket[thread].outBuf);
+			strcat(Socket[thread].outBuf, " alarm:");
+			_itoa(MC.sInput[i].get_alarmInput(), Socket[thread].outBuf);
+			STR_END;
+		} else strcat(Socket[thread].outBuf, " absent\r\n");
+	}
+
+	strcat(Socket[thread].outBuf, "\n  5. Реле\r\n");
+	for(i = 0; i < RNUMBER; i++) {
+		strcat(Socket[thread].outBuf, MC.dRelay[i].get_name());
+		if((x = 8 - strlen(MC.dRelay[i].get_name())) > 0) {
+			for(j = 0; j < x; j++)
+				strcat(Socket[thread].outBuf, " ");
+		}
+		strcat(Socket[thread].outBuf, MC.dRelay[i].get_note());
+		strcat(Socket[thread].outBuf, ": ");
+
+		if(MC.dRelay[i].get_present()) _itoa(MC.dRelay[i].get_Relay(), Socket[thread].outBuf);
+		else strcat(Socket[thread].outBuf, " absent");
+		STR_END;
+	}
+
+	strcat(Socket[thread].outBuf, "\n  6. Электросчетчик\r\n");
+	strcat(Socket[thread].outBuf, "Текущее входное напряжение [В]: ");
+	MC.dPWM.get_param((char*) pwm_VOLTAGE, Socket[thread].outBuf);
+	STR_END;
+	strcat(Socket[thread].outBuf, "Текущий потребляемый ток [А]: ");
+	MC.dPWM.get_param((char*) pwm_CURRENT, Socket[thread].outBuf);
+	STR_END;
+	strcat(Socket[thread].outBuf, "Текущая потребляемая мощность [Вт]: ");
+	MC.dPWM.get_param((char*) pwm_POWER, Socket[thread].outBuf);
+	STR_END;
+	strcat(Socket[thread].outBuf, "Коэффициент мощности: ");
+	MC.dPWM.get_param((char*) pwm_PFACTOR, Socket[thread].outBuf);
+	STR_END;
+	strcat(Socket[thread].outBuf, "Суммарная активная энергия [кВт/ч]: ");
+	MC.dPWM.get_param((char*) pwm_ACENERGY, Socket[thread].outBuf);
+	STR_END;
+
+	strcat(Socket[thread].outBuf, "\n  7. Частотные датчики потока\r\n");
+	for(i = 0; i < FNUMBER; i++) {
+		strcat(Socket[thread].outBuf, MC.sFrequency[i].get_name());
+		if((x = 8 - strlen(MC.sFrequency[i].get_name())) > 0) {
+			for(j = 0; j < x; j++)
+				strcat(Socket[thread].outBuf, " ");
+		}
+		strcat(Socket[thread].outBuf, MC.sFrequency[i].get_note());
+		strcat(Socket[thread].outBuf, ": ");
+		if(MC.sFrequency[i].get_present()) _ftoa(Socket[thread].outBuf, (float) MC.sFrequency[i].get_Value() / 1000.0f, 3);
+		else strcat(Socket[thread].outBuf, " absent");
+		STR_END;
+	}
+
+	sendBufferRTOS(thread, (byte*) Socket[thread].outBuf, strlen(Socket[thread].outBuf));
 }
 
 
@@ -124,7 +160,6 @@ void get_txtSettings(uint8_t thread)
      uint8_t i,j;
      int16_t x; 
      
-     sendPrintfRTOS(thread, "Последняя ошибка: %d - %s\r\n", MC.get_errcode(),MC.get_lastErr());
      strcpy(Socket[thread].outBuf,"\n  1. Общие настройки\r\n");
      
      strcpy(Socket[thread].outBuf,"\n  1.1 Опции\r\n");
