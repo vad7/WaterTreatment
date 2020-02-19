@@ -1372,10 +1372,14 @@ void vService(void *)
 			}
 			timer_sec = t;
 			// Drain OFF
-			if(TimerDrainingWater && --TimerDrainingWater == 0) {
-				MC.dRelay[RDRAIN].set_OFF();
-				if(MC.WorkStats.UsedDrain < MC.Option.MinDrainLiters) {
-					set_Error(ERR_FEW_LITERS_DRAIN, (char*)__FUNCTION__);
+			if(TimerDrainingWater) {
+				TimerDrainingWater--;
+				if(TimerDrainingWater <= 2) {
+					MC.dRelay[RDRAIN].set_OFF();
+					if(TimerDrainingWater == 0 && MC.WorkStats.UsedDrain < MC.Option.MinDrainLiters) {
+						journal.jprintf("Not enough water drained: %d!\n", MC.WorkStats.UsedDrain);
+						set_Error(ERR_FEW_LITERS_DRAIN, (char*)__FUNCTION__);
+					}
 				}
 			}
 			uint8_t m = rtcSAM3X8.get_minutes();
