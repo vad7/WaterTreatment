@@ -29,13 +29,9 @@
 
 extern "C" void TaskGetRunTimeStats(void);
 extern void  get_txtSettings(uint8_t thread);
-extern void  get_fileState(uint8_t thread);
-extern void  get_fileSettings(uint8_t thread);
 extern void  get_txtJournal(uint8_t thread);
-extern uint16_t get_csvStatistic(uint8_t thread);
 extern void  get_datTest(uint8_t thread);
 extern void  get_indexNoSD(uint8_t thread);
-extern void  noCsvStatistic(uint8_t thread);
 
 
 // Названия режимов теста

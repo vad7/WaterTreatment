@@ -481,11 +481,14 @@ void get_mailState(EthernetClient client, char *tempBuf)
 	strcat(tempBuf, " - ");
 	strcat(tempBuf, MC.get_lastErr());
 	strcat(tempBuf, cStrEnd);
+	client.write(tempBuf, strlen(tempBuf));
 	if(Errors[0] != OK && Errors[1] != OK) {
-		strcat(tempBuf, "Предыдущие ошибки:");
+		strcpy(tempBuf, "Предыдущие ошибки:");
 		strcat(tempBuf, cStrEnd);
+		client.write(tempBuf, strlen(tempBuf));
 		for(i = 0; i < (int16_t)(sizeof(Errors) / sizeof(Errors[0])); i++) {
 			if(Errors[i] == OK) break;
+			*tempBuf = '\0';
 			DecodeTimeDate(ErrorsTime[i], tempBuf, 3);
 			strcat(tempBuf, " - ");
 			strcat(tempBuf, noteError[abs(Errors[i])]);
@@ -493,10 +496,10 @@ void get_mailState(EthernetClient client, char *tempBuf)
 			_itoa(Errors[i], tempBuf);
 			strcat(tempBuf, ")");
 			strcat(tempBuf, cStrEnd);
+			if(i == (int16_t)(sizeof(Errors) / sizeof(Errors[0])) - 1) strcat(tempBuf, cStrEnd);
+			client.write(tempBuf, strlen(tempBuf));
 		}
-		strcat(tempBuf, cStrEnd);
 	}
-	client.write(tempBuf, strlen(tempBuf));
 
 	strcpy(tempBuf, "Режим работы: ");
 	strcat(tempBuf, MC.TestToStr());
@@ -525,10 +528,10 @@ void get_mailState(EthernetClient client, char *tempBuf)
 	{
 		if(MC.sTemp[i].get_present())  // только присутствующие датчики
 		{
-			strcat(tempBuf, MC.sTemp[i].get_note());
-			strcpy(tempBuf, " (");
-			strcpy(tempBuf, MC.sTemp[i].get_name());
-			strcpy(tempBuf, "): ");
+			strcpy(tempBuf, MC.sTemp[i].get_note());
+			strcat(tempBuf, " (");
+			strcat(tempBuf, MC.sTemp[i].get_name());
+			strcat(tempBuf, "): ");
 			_dtoa(tempBuf, MC.sTemp[i].get_Temp(), 2);
 			if(MC.sTemp[i].get_lastErr() != OK) {
 				strcat(tempBuf, " ERR:");
@@ -545,10 +548,10 @@ void get_mailState(EthernetClient client, char *tempBuf)
 	{
 		if(MC.sADC[i].get_present()) // только присутствующие датчики
 		{
-			strcat(tempBuf, MC.sADC[i].get_note());
-			strcpy(tempBuf, " (");
-			strcpy(tempBuf, MC.sADC[i].get_name());
-			strcpy(tempBuf, "): ");
+			strcpy(tempBuf, MC.sADC[i].get_note());
+			strcat(tempBuf, " (");
+			strcat(tempBuf, MC.sADC[i].get_name());
+			strcat(tempBuf, "): ");
 			_dtoa(tempBuf, MC.sADC[i].get_Value(), 2);
 			if(MC.sADC[i].get_lastErr() != OK) {
 				strcat(tempBuf, " error:");
@@ -565,10 +568,10 @@ void get_mailState(EthernetClient client, char *tempBuf)
 	for(i = 0; i < INUMBER; i++) {
 		if(MC.sInput[i].get_present()) // только присутствующие датчики
 		{
-			strcat(tempBuf, MC.sInput[i].get_note());
-			strcpy(tempBuf, " (");
-			strcpy(tempBuf, MC.sInput[i].get_name());
-			strcpy(tempBuf, "): ");
+			strcpy(tempBuf, MC.sInput[i].get_note());
+			strcat(tempBuf, " (");
+			strcat(tempBuf, MC.sInput[i].get_name());
+			strcat(tempBuf, "): ");
 			_itoa(MC.sInput[i].get_Input(), tempBuf);
 			strcat(tempBuf, " alarm:");
 			_itoa(MC.sInput[i].get_alarmInput(), tempBuf);
@@ -582,10 +585,10 @@ void get_mailState(EthernetClient client, char *tempBuf)
 	client.write(tempBuf, strlen(tempBuf));
 	for(i = 0; i < FNUMBER; i++) {
 		if(MC.sFrequency[i].get_present()) {
-			strcat(tempBuf, MC.sFrequency[i].get_note());
-			strcpy(tempBuf, " (");
-			strcpy(tempBuf, MC.sFrequency[i].get_name());
-			strcpy(tempBuf, "): ");
+			strcpy(tempBuf, MC.sFrequency[i].get_note());
+			strcat(tempBuf, " (");
+			strcat(tempBuf, MC.sFrequency[i].get_name());
+			strcat(tempBuf, "): ");
 			_dtoa(tempBuf, MC.sFrequency[i].get_Value(), 3);
 			strcat(tempBuf, cStrEnd);
 			client.write(tempBuf, strlen(tempBuf));
@@ -598,10 +601,10 @@ void get_mailState(EthernetClient client, char *tempBuf)
 	for(i = 0; i < RNUMBER; i++) {
 		if(MC.dRelay[i].get_present()) // только присутствующие датчики
 		{
-			strcat(tempBuf, MC.dRelay[i].get_note());
-			strcpy(tempBuf, " (");
-			strcpy(tempBuf, MC.dRelay[i].get_name());
-			strcpy(tempBuf, "): ");
+			strcpy(tempBuf, MC.dRelay[i].get_note());
+			strcat(tempBuf, " (");
+			strcat(tempBuf, MC.dRelay[i].get_name());
+			strcat(tempBuf, "): ");
 			_itoa(MC.dRelay[i].get_Relay(), tempBuf);
 			strcat(tempBuf, cStrEnd);
 			client.write(tempBuf, strlen(tempBuf));
