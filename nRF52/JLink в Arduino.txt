@@ -1,0 +1,30 @@
+Добавляем нормальную поддержку JLink в Arduino IDE
+В данный момент (21.02.2020) в Arduino IDE поддержка JLink програаматора реализовано достаточно кривым методом, через Zadig. Да, после этого JLink начинает работать в Arduino IDE, но при этом он отваливается от всего остального (Keil, SEGGER Studio и т.п.) и это не есть хорошо.
+
+Попробуем исправить ситуацию. Для этого нам как всегда понадобиться напильник и:
+
+Скачать и установить с сайта Нордика пакет программ - nRF Command Line Tools.. Добавить в переменную Path - Система->Дополнительные параметры системы->Переменные среды->Path->Изменить, путь к файлу nrfjprog.exe (если это уже не произошло при установке).
+
+Добавить в конец файла platform.txt фреймворка arduino-nRF5 следующий текст:
+
+#jlink upload
+tools.jlink_upload.cmd=jlink_upload
+tools.jlink_upload.cmd.windows=jlink_upload.bat
+tools.jlink_upload.path={runtime.hardware.path}/0.6.0/tools/win
+tools.jlink_upload.upload.params.verbose=-d
+tools.jlink_upload.upload.params.quiet=n
+tools.jlink_upload.upload.pattern="{path}/{cmd}" "{upload.target}" "{build.path}/{build.project_name}.hex"
+В файле boards.txt того же флеймворка, для своей платы внести аналогичные изменения:
+
+Generic_nRF52840.upload.tool=jlink_upload
+Generic_nRF52840.upload.protocol=jlink
+Generic_nRF52840.upload.target=nrf52
+Generic_nRF52840.upload.maximum_size=1048576
+
+В директории фреймворка создаём папки arduino-nRF5/tools/win.
+В директории /win/ создаём файл jlink-upload.bat со следующим содержанием:
+
+nrfjprog -f %1 –program %2 –chiperase -r
+
+Данный пример приведён для Windows.
+Запускаем Arduino IDE и радуемся. :)

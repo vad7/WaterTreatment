@@ -1,4 +1,27 @@
 #include "Arduino.h"
+
+int main(void)
+{
+	init();
+#if defined(USBCON)
+	USBDevice.attach();
+#endif
+	_begin(); // Startup MySensors library
+	for(;;) {
+		_process();  // Process incoming data
+		if (loop) {
+			loop(); // Call sketch loop
+		}
+		if (serialEventRun) {
+			serialEventRun();
+		}
+	}
+	return 0;
+}
+
+
+
+/*
 #include <MySensors.h>
 //#define NRF52
 #define MY_LED 0
@@ -106,13 +129,13 @@ void r_lpComp()
 #else
 #define NRF5_RESET_EVENT(event) event = 0
 #endif
-//В одну строку..
 extern "C" {
-void LPCOMP_IRQHandler(void)
-{
-	detection = 1;
-	NRF5_RESET_EVENT(NRF_LPCOMP->EVENTS_CROSS);
-	NRF_LPCOMP->EVENTS_CROSS = 0;
-	MY_HW_RTC->CC[0] = (MY_HW_RTC->COUNTER + 2);
+	void LPCOMP_IRQHandler(void)
+	{
+		detection = 1;
+		NRF5_RESET_EVENT(NRF_LPCOMP->EVENTS_CROSS);
+		NRF_LPCOMP->EVENTS_CROSS = 0;
+		MY_HW_RTC->CC[0] = (MY_HW_RTC->COUNTER + 2);
+	}
 }
-}
+*/
