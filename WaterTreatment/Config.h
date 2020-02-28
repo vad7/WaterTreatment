@@ -455,7 +455,7 @@ struct History_setup {
 		{ 0, STATS_OBJ_Power, STATS_TYPE_SUM },
 		{ 0, STATS_OBJ_Power, STATS_TYPE_MAX },
 		{ 0, STATS_OBJ_Voltage, STATS_TYPE_MIN },
-		{ 0, STATS_OBJ_Voltage, STATS_TYPE_MAX },
+		{ 0, STATS_OBJ_Voltage, STATS_TYPE_MAX }
 	};
 
 	// История (графики)
@@ -469,6 +469,7 @@ struct History_setup {
 			{ STATS_OBJ_Flow, FLOW, noteFrequency[FLOW] },
 			{ STATS_OBJ_Level, LTANK, "Уровень в баке, %" },
 			{ STATS_OBJ_Power, 0, "Потребление, кВт" },
+			{ STATS_OBJ_Press, PWATER, "Давление, бар" }
 	};
 
 
