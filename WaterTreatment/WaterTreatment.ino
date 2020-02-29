@@ -1126,6 +1126,7 @@ void vReadSensor_delay1ms(int32_t ms)
 				}
 				Weight_adc_median1 = Weight_adc_median2;
 				Weight_adc_median2 = median3;
+				if(GETBIT(MC.Option.flags, fDebugToSerial)) journal.printf("HX711[%u]: %d=%d", GetTickCount(), median3, adc_val);
 				// Усреднение значений
 				Weight_adc_sum = Weight_adc_sum + adc_val - Weight_adc_filter[Weight_adc_idx];
 				Weight_adc_filter[Weight_adc_idx] = adc_val;
@@ -1135,6 +1136,7 @@ void vReadSensor_delay1ms(int32_t ms)
 					Weight_adc_flagFull = true;
 				}
 				if(Weight_adc_flagFull) adc_val = Weight_adc_sum / WEIGHT_AVERAGE_BUFFER; else adc_val = Weight_adc_sum / Weight_adc_idx;
+				if(GETBIT(MC.Option.flags, fDebugToSerial)) journal.printf("=%d\n", adc_val);
 				Weight_value = (adc_val - MC.Option.WeightZero) * 10000 / MC.Option.WeightScale - MC.Option.WeightTare;
 				Weight_Percent = Weight_value * 10000 / MC.Option.WeightFull;
 				if(Weight_Percent < 0) Weight_Percent = 0; else if(Weight_Percent > 10000) Weight_Percent = 10000;

@@ -787,7 +787,8 @@ boolean MainClass::set_option(char *var, float xx)
    if(strcmp(var,option_WebOnSPIFlash)==0)   { Option.flags = (Option.flags & ~(1<<fWebStoreOnSPIFlash)) | ((x!=0)<<fWebStoreOnSPIFlash); return true; } else
    if(strcmp(var,option_LogWirelessSensors)==0){ Option.flags = (Option.flags & ~(1<<fLogWirelessSensors)) | ((x!=0)<<fLogWirelessSensors); return true; } else
    if(strcmp(var,option_fDontRegenOnWeekend)==0){ Option.flags = (Option.flags & ~(1<<fDontRegenOnWeekend)) | ((x!=0)<<fDontRegenOnWeekend); return true; } else
-   if(strcmp(var,option_fDebugToSerialOn)==0) { Option.flags = (Option.flags & ~(1<<fDebugToJournal)) | (((DebugToJournalOn = x)!=0)<<fDebugToJournal); return true; } else
+   if(strcmp(var,option_fDebugToJournal)==0) { Option.flags = (Option.flags & ~(1<<fDebugToJournal)) | (((DebugToJournalOn = x)!=0)<<fDebugToJournal); return true; } else
+   if(strcmp(var,option_fDebugToSerial)==0) { Option.flags = (Option.flags & ~(1<<fDebugToSerial)) | ((x!=0)<<fDebugToSerial); return true; } else
    if(strcmp(var,option_FeedPumpMaxFlow)==0) { Option.FeedPumpMaxFlow = x; return true; } else
    if(strcmp(var,option_BackWashFeedPumpMaxFlow)==0){ Option.BackWashFeedPumpMaxFlow = x; return true; } else
    if(strcmp(var,option_BackWashFeedPumpDelay)==0){ Option.BackWashFeedPumpDelay = x; return true; } else
@@ -832,7 +833,8 @@ char* MainClass::get_option(char *var, char *ret)
    if(strcmp(var,option_WebOnSPIFlash)==0)    { return strcat(ret, (char*)(GETBIT(Option.flags, fWebStoreOnSPIFlash) ? cOne : cZero)); } else
    if(strcmp(var,option_LogWirelessSensors)==0){ return strcat(ret, (char*)(GETBIT(Option.flags, fLogWirelessSensors) ? cOne : cZero)); } else
    if(strcmp(var,option_fDontRegenOnWeekend)==0){ return strcat(ret, (char*)(GETBIT(Option.flags, fDontRegenOnWeekend) ? cOne : cZero)); } else
-   if(strcmp(var,option_fDebugToSerialOn)==0){ return strcat(ret, (char*)(GETBIT(Option.flags, fDebugToJournal) ? cOne : cZero)); } else
+   if(strcmp(var,option_fDebugToJournal)==0){ return strcat(ret, (char*)(GETBIT(Option.flags, fDebugToJournal) ? cOne : cZero)); } else
+   if(strcmp(var,option_fDebugToSerial)==0){ return strcat(ret, (char*)(GETBIT(Option.flags, fDebugToSerial) ? cOne : cZero)); } else
    if(strcmp(var,option_FeedPumpMaxFlow)==0){ return _itoa(Option.FeedPumpMaxFlow, ret); } else
    if(strcmp(var,option_BackWashFeedPumpMaxFlow)==0){ return _itoa(Option.BackWashFeedPumpMaxFlow, ret); } else
    if(strcmp(var,option_BackWashFeedPumpDelay)==0){ return _itoa(Option.BackWashFeedPumpDelay, ret); } else

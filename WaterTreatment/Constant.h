@@ -387,7 +387,8 @@ const char *option_FloodingTimeout		= {"FT"};
 const char *option_PWATER_RegMin		= {"WRM"};
 const char *option_LTANK_Empty			= {"TE"};
 const char *option_Weight_Empty			= {"WE"};
-const char *option_fDebugToSerialOn		= {"DBG"};
+const char *option_fDebugToJournal		= {"DBG"};
+const char *option_fDebugToSerial		= {"DBGS"};
 const char *option_FillingTankTimeout	= {"FTT"};
 const char *option_CriticalErrorsTimeout= {"CET"};
 

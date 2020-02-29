@@ -118,6 +118,7 @@ uint16_t task_updstat_chars = 0;
 #define fPWMLogErrors  		8               // флаг писать в лог ошибки электросчетчика
 #define fDontRegenOnWeekend	9				// Не делать регенерацию в выходные
 #define fDebugToJournal		10				// Расширенная отладка в журнал
+#define fDebugToSerial		11				// Расширенная отладка в Serial
 
 // Структура для хранения опций
 struct type_option {
