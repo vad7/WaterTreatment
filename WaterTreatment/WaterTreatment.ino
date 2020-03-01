@@ -734,8 +734,10 @@ void vWeb2(void *)
 
 //////////////////////////////////////////////////////////////////////////
 #define LCD_SetupFlag 		0x80000000
-#define LCD_SetupMenuItems	2
-const char *LCD_SetupMenu[LCD_SetupMenuItems] = { "1. Exit", "2. Relays" };
+#define LCD_SetupMenuItems	3
+const char *LCD_SetupMenu[LCD_SetupMenuItems] = { "1. Exit", "2. Relays", "3. Flow check" };
+uint32_t LCD_setup = 0; // 0x8000MMII: 8 - Setup active, MМ - Menu item (0..<max LCD_SetupMenuItems-1>) , II - Selecting item (0...)
+
 // Задача Пользовательский интерфейс (MC.xHandleKeysLCD) "KeysLCD"
 void vKeysLCD( void * )
 {
@@ -752,15 +754,15 @@ void vKeysLCD( void * )
 	vTaskDelay(3000);
 	static uint32_t DisplayTick = xTaskGetTickCount();
 	static char buffer[ALIGN(LCD_COLS * 2)];
-	static uint32_t setup = 0; // 0x8000MMII: 8 - Setup active, MМ - Menu item (0..<max LCD_SetupMenuItems-1>) , II - Selecting item (0...)
 	static uint32_t setup_timeout;
+	static uint32_t _FlowPulseCounterRest;
 	//static uint32_t displayed_area = 0; // b1 - Yd,Days Fe,Soft
 	for(;;)
 	{
-		if(setup) if(--setup_timeout == 0) goto xSetupExit;
+		if(LCD_setup) if(--setup_timeout == 0) goto xSetupExit;
 		if(!digitalReadDirect(PIN_KEY_OK)) {
 			vTaskDelay(KEY_DEBOUNCE_TIME);
-			if(setup) {
+			if(LCD_setup) {
 				{
 					uint32_t t = 2000 / KEY_DEBOUNCE_TIME;
 					while(!digitalReadDirect(PIN_KEY_OK)) {
@@ -773,17 +775,26 @@ void vKeysLCD( void * )
 					}
 					if(t == 0) goto xSetupExit;
 				}
-				if((setup & 0xFFFF) == 0) { 			// menu item 1 selected - Exit
+				if((LCD_setup & 0xFFFF) == 0) { 				// menu item 1 selected - Exit
 xSetupExit:
 					lcd.command(LCD_DISPLAYCONTROL | LCD_DISPLAYON);
-					setup = 0;
-				} else if((setup & 0xFF00) == 0x100) {	// menu item 1 selected - Relay
-					MC.dRelay[setup & 0xFF].set_Relay(MC.dRelay[setup & 0xFF].get_Relay() ? fR_StatusAllOff : fR_StatusManual);
-				} else setup = (setup << 8) | LCD_SetupFlag; // select menu item
+					LCD_setup = 0;
+				} else if((LCD_setup & 0xFF00) == 0x100) {		// inside menu item 2 selected - Relay
+					MC.dRelay[LCD_setup & 0xFF].set_Relay(MC.dRelay[LCD_setup & 0xFF].get_Relay() ? fR_StatusAllOff : fR_StatusManual);
+				} else if((LCD_setup & 0xFF00) == 0x200) { 		// inside menu item 3 selected - Flow check
+					goto xSetupExit;
+				} else {									// select menu item
+					LCD_setup = (LCD_setup << 8) | LCD_SetupFlag;
+					if((LCD_setup & 0xFF00) == 0x200) { // Flow check
+						lcd.command(LCD_DISPLAYCONTROL | LCD_DISPLAYON);
+						FlowPulseCounter = FlowPulseCounterRest = 0;
+						_FlowPulseCounterRest = MC.sFrequency[FLOW].PassedRest;
+					}
+				}
 				DisplayTick = ~DisplayTick;
 			} else if(MC.get_errcode() && !Error_Beep_confirmed) Error_Beep_confirmed = true; // Supress beeping
 			else { // Enter Setup
-				setup = LCD_SetupFlag;
+				LCD_setup = LCD_SetupFlag;
 				lcd.command(LCD_DISPLAYCONTROL | LCD_DISPLAYON | LCD_CURSORON | LCD_BLINKON);
 				DisplayTick = ~DisplayTick;
 			}
@@ -793,9 +804,9 @@ xSetupExit:
 		} else if(!digitalReadDirect(PIN_KEY_UP)) {
 			vTaskDelay(KEY_DEBOUNCE_TIME);
 			while(!digitalReadDirect(PIN_KEY_UP)) vTaskDelay(KEY_DEBOUNCE_TIME);
-			if(setup) {
-				if((setup & 0xFF) < ((setup & 0xFF00) == 0x100 ? (RNUMBER > 7 ? 7 : RNUMBER-1) : LCD_SetupMenuItems-1)) {
-					setup++;
+			if(LCD_setup) {
+				if((LCD_setup & 0xFF) < ((LCD_setup & 0xFF00) == 0x100 ? (RNUMBER > 7 ? 7 : RNUMBER-1) : LCD_SetupMenuItems-1)) {
+					LCD_setup++;
 					DisplayTick = ~DisplayTick;
 				}
 			} else {
@@ -824,9 +835,12 @@ xErrorsProcessing:
 		} else if(!digitalReadDirect(PIN_KEY_DOWN)) {
 			vTaskDelay(KEY_DEBOUNCE_TIME);
 			while(!digitalReadDirect(PIN_KEY_DOWN)) vTaskDelay(KEY_DEBOUNCE_TIME);
-			if(setup) {
-				if((setup & 0xFF) > 0) {
-					setup--;
+			if(LCD_setup) {
+				if((LCD_setup & 0xFF00) == 0x200) { // Flow check
+					FlowPulseCounter = FlowPulseCounterRest = 0;
+					_FlowPulseCounterRest = MC.sFrequency[FLOW].PassedRest;
+				} else if((LCD_setup & 0xFF) > 0) {
+					LCD_setup--;
 					DisplayTick = ~DisplayTick;
 				}
 			} else goto xErrorsProcessing;
@@ -841,17 +855,40 @@ xErrorsProcessing:
 			// Days Fe:123 Soft:123
 			// Day: 0.000 Yd: 0.000
 			char *buf = buffer;
-			if(setup) {
+			if(LCD_setup) {
 				lcd.clear();
-				if((setup & 0xFF00) == 0x100) { // Relays
+				if((LCD_setup & 0xFF00) == 0x100) { // Relays
 					for(uint8_t i = 0; i < (RNUMBER > 8 ? 8 : RNUMBER) ; i++) {
 						lcd.setCursor(10 * (i % 2), i / 2);
 						lcd.print(MC.dRelay[i].get_Relay() ? '*' : ' ');
 						lcd.print(MC.dRelay[i].get_name());
 					}
-					lcd.setCursor(10 * ((setup & 0xFF) % 2), (setup & 0xFF) / 2);
+					lcd.setCursor(10 * ((LCD_setup & 0xFF) % 2), (LCD_setup & 0xFF) / 2);
+				} else if((LCD_setup & 0xFF00) == 0x200) { // Flow check
+					lcd.print("Edges: ");
+					uint32_t tmp = (FlowPulseCounter * MC.sFrequency[FLOW].get_kfValue() + FlowPulseCounterRest - _FlowPulseCounterRest) / 100;
+					i10toa(tmp, buf, 0);
+					lcd.print(buf);
+					lcd.setCursor(0, 1);
+					lcd.print("Liters: ");
+					tmp *= 100;
+					i10toa(tmp / MC.sFrequency[FLOW].get_kfValue(), buf, 0);
+					lcd.print(buf);
+					lcd.print(".");
+					i10toa((uint32_t)(tmp % MC.sFrequency[FLOW].get_kfValue()) * 10000 / MC.sFrequency[FLOW].get_kfValue(), buf, 4);
+					lcd.print(buf);
+					lcd.setCursor(0, 2);
+					lcd.print("Flow: ");
+					i10toa(MC.sFrequency[FLOW].get_Value(), buf, 0);
+					lcd.print(buf);
+					lcd.print(" L*h");
+					DisplayTick = xTaskGetTickCount() - (DISPLAY_UPDATE - 1000);
+					vTaskDelay(KEY_CHECK_PERIOD);
+					continue;
 				} else {
-					lcd.print(LCD_SetupMenu[setup & 0xFF]);
+					lcd.print(LCD_SetupMenu[LCD_setup & 0xFF]);
+					lcd.setCursor(0, 2);
+					lcd.print("Long press OK - Exit");
 					lcd.setCursor(0, 0);
 				}
 			} else {
@@ -986,12 +1023,21 @@ void vReadSensor(void *)
 		//for(i = 0; i < INUMBER; i++) MC.sInput[i].Read();                // Прочитать данные сухой контакт
 		for(i = 0; i < FNUMBER; i++) MC.sFrequency[i].Read();			// Получить значения датчиков потока
 		// Flow water
-		uint32_t passed = MC.sFrequency[FLOW].Passed;
-		MC.sFrequency[FLOW].Passed = 0;
+		uint32_t passed;
+		{
+			noInterrupts();
+			passed = MC.sFrequency[FLOW].Passed;
+			MC.sFrequency[FLOW].Passed = 0;
+			interrupts();
+		}
 		if(!MC.sInput[REG_BACKWASH_ACTIVE].get_Input()) {
 			TimeFeedPump +=	(uint32_t)MC.sFrequency[FLOW].get_Value() * TIME_READ_SENSOR / MC.Option.FeedPumpMaxFlow;
 		} else if(++RegBackwashTimer > MC.Option.BackWashFeedPumpDelay) {
 			TimeFeedPump +=	(uint32_t)MC.sFrequency[FLOW].get_Value() * TIME_READ_SENSOR / MC.Option.BackWashFeedPumpMaxFlow;
+		}
+		if(LCD_setup) {
+			FlowPulseCounter += passed;
+			FlowPulseCounterRest = MC.sFrequency[FLOW].PassedRest;
 		}
 		if(passed) {
 			WaterBoosterCountL += passed;

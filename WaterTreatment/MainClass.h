@@ -83,6 +83,8 @@ volatile bool NewRegenStatus = false;
 volatile uint32_t RegBackwashTimer = 0;
 uint32_t ResetDUE_countdown = 0;
 bool	 DebugToJournalOn = false;
+uint32_t FlowPulseCounter;
+uint32_t FlowPulseCounterRest;
 
 // Weight
 //bool Weight_NeedRead = false; // allways

@@ -206,7 +206,7 @@ private:
    struct { // SAVE GROUP, number the first
 	   uint8_t  number;										 // номер
 	   uint16_t testValue;                                   // !save! Состояние датчика в режиме теста
-	   uint16_t kfValue; 								 	 // коэффициент пересчета частоты в значение, сотые
+	   uint16_t kfValue; 								 	 // коэффициент пересчета частоты в значение, изменений уровня на литр, сотые
 	   uint8_t  flags;                                       // флаги  датчика
 	   uint8_t  minValue;							     	 // десятые m3/h (0..25,5)
    } __attribute__((packed));// END SAVE GROUP, minValue the last

@@ -425,11 +425,11 @@ int8_t sensorFrequency::Read()
 			Passed += PassedRest / kfValue;
 			PassedRest %= kfValue;
 			if(ticks == FREQ_BASE_TIME_READ * 1000) {
-				Frequency = cnt * 5;
+				Frequency = cnt * 10;
 			} else if(cnt > 858900) { // will overflow u32
-				Frequency = (cnt * 100) / ticks * 50;
+				Frequency = (cnt * 100) / ticks * 100;
 			} else {
-				Frequency = (cnt * 5 * 1000) / ticks; // ТЫСЯЧНЫЕ ГЦ время в миллисекундах частота в тысячных герца *2 (прерывание по обоим фронтам)!!!!!!!!
+				Frequency = (cnt * 10 * 1000) / ticks; // ТЫСЯЧНЫЕ ГЦ время в миллисекундах частота в тысячных герца
 			}
 			//   Value=60.0*Frequency/kfValue/1000.0;               // Frequency/kfValue  литры в минуту а нужны кубы
 			//       Value=((float)Frequency/1000.0)/((float)kfValue/360000.0);          // ЛИТРЫ В ЧАС (ИЛИ ТЫСЯЧНЫЕ КУБА) частота в тысячных, и коэффициент правим

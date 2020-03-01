@@ -20,7 +20,7 @@
 #include "Util.h"
 
 // ОПЦИИ КОМПИЛЯЦИИ ПРОЕКТА -------------------------------------------------------
-#define VERSION			  "1.01"				// Версия прошивки
+#define VERSION			  "1.02"				// Версия прошивки
 #define VER_SAVE		  1					// Версия формата сохраняемых данных в I2C память
 //#define LOG                               // В последовательный порт шлет лог веб сервера (логируются запросы)
 #define FAST_LIB                            // использование допиленной библиотеки езернета
@@ -114,7 +114,7 @@ const uint16_t  defaultPort=80;
 #define DISPLAY_UPDATE		  2500           // Время обновления информации на дисплее (мсек)
 #define KEY_CHECK_PERIOD	  10             // ms
 #define KEY_DEBOUNCE_TIME	  50             // ms
-#define DISPLAY_SETUP_TIMEOUT 300000         // ms
+#define DISPLAY_SETUP_TIMEOUT 600000         // ms
 
 #define TIMER_TO_SHOW_STATUS 2500			// мсек, Время показа активного состояния (дозирующего насоса, ...)
 
