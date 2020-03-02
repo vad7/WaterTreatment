@@ -155,6 +155,8 @@ struct type_option {
 	uint16_t CriticalErrorsTimeout;	// сек, время восстановления после критических ошибок, кроме протечки
 	uint16_t BackWashFeedPumpDelay; // в TIME_READ_SENSOR, задержка включения дозатора
 	uint32_t BackWashFeedPumpMaxFlow; // лч, Во время обратной промывки - максимальный проток до которого распределяется время включения дозатора
+	uint8_t  FilterTank;			// Диаметр фильтра обезжелезивателя в дюймах
+	uint8_t  FilterTankSoftener;	// Диаметр фильтра умягчителя в дюймах
 } __attribute__((packed));
 
 //  Работа с отдельными флагами type_DateTime
@@ -225,8 +227,10 @@ public:
     void   StateToStr(char * ret);                 // Получить состояние в виде строки
     char  *TestToStr();                  // Получить режим тестирования
 
-	uint32_t get_errorReadDS18B20();    // Получить число ошибок чтения датчиков температуры
+	uint32_t get_errorReadTemp();       // Получить число ошибок чтения датчиков температуры
 	void     Reset_TempErrors();		// Сбросить счетчик ошибок всех датчиков
+	uint32_t CalcFilterSquare(uint8_t diameter);	// d - inch, ret = m2 * 10000
+	uint32_t CalcFilteringSpeed(uint32_t square);	// square = m2 * 10000, ret = m*h * 1000
 
 	int32_t save(void); 		        // Записать настройки в eeprom i2c на входе адрес с какого, на выходе код ошибки (меньше нуля) или количество записанных  байт
 	int32_t load(uint8_t *buffer, uint8_t from_RAM); // Считать настройки из i2c или RAM, на выходе код ошибки (меньше нуля)
@@ -377,6 +381,8 @@ public:
 	type_WorkStats WorkStats;               		// Структура для хранения счетчиков периодическая запись
 	type_WorkStats WorkStats_saved;
 	type_RTC_memory RTC_store;
+	uint32_t FilterTankSquare;
+	uint32_t FilterTankSoftenerSquare;
 
 private:
 

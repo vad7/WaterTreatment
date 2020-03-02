@@ -121,7 +121,7 @@ void MainClass::clear_all_errors()
 }
 
 // Получить число ошибок чтения ВСЕХ датчиков темпеартуры
-uint32_t MainClass::get_errorReadDS18B20()
+uint32_t MainClass::get_errorReadTemp()
 {
 	uint32_t sum = 0;
 	for(uint8_t i = 0; i < TNUMBER; i++) sum += sTemp[i].get_sumErrorRead();     // Суммирование ошибок по всем датчикам
@@ -371,6 +371,10 @@ x_Error:
 xSkip:		load_struct(NULL, &buffer, 0); // skip unknown type
 		}
 	}
+	// Recalc variables
+	FilterTankSquare = CalcFilterSquare(Option.FilterTank);
+	FilterTankSoftenerSquare = CalcFilterSquare(Option.FilterTankSoftener);
+	//
 	journal.jprintfopt("OK\n");
 	return size + sizeof(crc);
 }
@@ -572,6 +576,10 @@ void MainClass::resetSetting()
 	Option.FillingTankTimeout = 30;
 	Option.CriticalErrorsTimeout = 300;
 	Option.BackWashFeedPumpDelay = 8*60;
+	Option.FilterTank = 13;
+	Option.FilterTankSoftener = 10;
+	FilterTankSquare = CalcFilterSquare(Option.FilterTank);
+	FilterTankSoftenerSquare = CalcFilterSquare(Option.FilterTankSoftener);
 }
 
 // --------------------------------------------------------------------
@@ -814,6 +822,8 @@ boolean MainClass::set_option(char *var, float xx)
    if(strcmp(var,option_FloodingTimeout)==0) { Option.FloodingTimeout = x; return true; } else
    if(strcmp(var,option_FillingTankTimeout)==0){ Option.FillingTankTimeout = x; return true; } else
    if(strcmp(var,option_CriticalErrorsTimeout)==0){ Option.CriticalErrorsTimeout = x; return true; } else
+   if(strcmp(var,option_FilterTank)==0){ FilterTankSquare = CalcFilterSquare(Option.FilterTank = x); return true; } else
+   if(strcmp(var,option_FilterTankSoftener)==0){ FilterTankSoftenerSquare = CalcFilterSquare(Option.FilterTankSoftener = x); return true; } else
    if(strncmp(var,option_SGL1W, sizeof(option_SGL1W)-1)==0) {
 	   uint8_t bit = var[sizeof(option_SGL1W)-1] - '0' - 1;
 	   if(bit <= 3) {
@@ -860,6 +870,8 @@ char* MainClass::get_option(char *var, char *ret)
    if(strcmp(var,option_FloodingTimeout)==0){ return _itoa(Option.FloodingTimeout, ret); } else
    if(strcmp(var,option_FillingTankTimeout)==0){ return _itoa(Option.FillingTankTimeout, ret); } else
    if(strcmp(var,option_CriticalErrorsTimeout)==0){ return _itoa(Option.CriticalErrorsTimeout, ret); } else
+   if(strcmp(var,option_FilterTank)==0){ return _itoa(Option.FilterTank, ret); } else
+   if(strcmp(var,option_FilterTankSoftener)==0){ return _itoa(Option.FilterTankSoftener, ret); } else
    if(strncmp(var,option_SGL1W, sizeof(option_SGL1W)-1)==0) {
 	   uint8_t bit = var[sizeof(option_SGL1W)-1] - '0' - 1;
 	   if(bit <= 3) {
@@ -1075,4 +1087,17 @@ int8_t MainClass::Prepare_Temp(uint8_t bus)
 		}
 	}
 	return ret ? (1<<bus) : 0;
+}
+
+// d - inch, ret = m2 * 10000
+uint32_t MainClass::CalcFilterSquare(uint8_t diameter)
+{
+	uint32_t n = (31416UL / 4UL) * diameter * diameter / 100 * 254 / 100 * 254 / 1000;
+	return (n + 5) / 10;
+}
+
+// square = m2 * 10000, ret = m*h * 1000
+uint32_t MainClass::CalcFilteringSpeed(uint32_t square)
+{
+	return 10000UL * sFrequency[FLOW].get_Value() / square;
 }

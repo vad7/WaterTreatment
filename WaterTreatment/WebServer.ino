@@ -965,7 +965,7 @@ xSaveStats:		if((i = MC.save_WorkStats()) == OK)
 #else
 			strcat(strReturn,"RAM memory;");
 #endif
-			strcat(strReturn,"JOURNAL_LEN|Размер кольцевого буфера системного журнала (байт)|");_itoa(JOURNAL_LEN,strReturn);//strcat(strReturn,";");
+			strcat(strReturn,"JOURNAL_LEN|Размер буфера журнала (байт)|");_itoa(JOURNAL_LEN,strReturn);//strcat(strReturn,";");
 			ADD_WEBDELIM(strReturn) ;
 			continue;
 		} // end CONST1
@@ -989,12 +989,14 @@ xSaveStats:		if((i = MC.save_WorkStats()) == OK)
 
 				strcat(strReturn, "Входное напряжение питания контроллера, V:|");
 				strReturn += m_snprintf(strReturn += strlen(strReturn), 256, "если ниже %.1d - сброс;", ((SUPC->SUPC_SMMR & SUPC_SMMR_SMTH_Msk) >> SUPC_SMMR_SMTH_Pos) + 19);
-				strReturn += m_snprintf(strReturn += strlen(strReturn), 256, "Режим safeNetwork (%sадрес:%d.%d.%d.%d шлюз:%d.%d.%d.%d)|%s;", defaultDHCP ?"DHCP, ":"",defaultIP[0],defaultIP[1],defaultIP[2],defaultIP[3],defaultGateway[0],defaultGateway[1],defaultGateway[2],defaultGateway[3],MC.safeNetwork ?cYes:cNo);
+				strReturn += m_snprintf(strReturn += strlen(strReturn), 256, "Режим safeNetwork (%sадрес:%d.%d.%d.%d ", defaultDHCP ?"DHCP, ":"",defaultIP[0],defaultIP[1],defaultIP[2],defaultIP[3]);
+				strReturn += m_snprintf(strReturn += strlen(strReturn), 256, "шлюз:%d.%d.%d.%d)|%s;", defaultGateway[0],defaultGateway[1],defaultGateway[2],defaultGateway[3],MC.safeNetwork ?cYes:cNo);
 				//strcat(strReturn,"Уникальный ID чипа SAM3X8E|");
 				//getIDchip(strReturn); strcat(strReturn,";");
 				//strcat(strReturn,"Значение регистра VERSIONR сетевого чипа WizNet (51-w5100, 3-w5200, 4-w5500)|");_itoa(W5200VERSIONR(),strReturn);strcat(strReturn,";");
 
-				strReturn += m_snprintf(strReturn += strlen(strReturn), 256, "Состояние системы (день недели: %d)|Err:%d(%X) B:%d %s%s Day:%d Reg:%d;", MC.RTC_store.Work & RTC_Work_WeekDay_MASK, MC.get_errcode(), CriticalErrors, WaterBoosterStatus, MC.RTC_store.Work & RTC_Work_Regen_F1 ? "R1 " : "", MC.RTC_store.Work & RTC_Work_Regen_F2 ? "R2 " : "", MC.RTC_store.UsedToday, MC.RTC_store.UsedRegen);
+				strReturn += m_snprintf(strReturn += strlen(strReturn), 256, "Состояние системы (день недели: %d)|Err:%d(%X) B:%d ", MC.RTC_store.Work & RTC_Work_WeekDay_MASK, MC.get_errcode(), CriticalErrors, WaterBoosterStatus);
+				strReturn += m_snprintf(strReturn += strlen(strReturn), 256, "%s%s Day:%d Reg:%d;", MC.RTC_store.Work & RTC_Work_Regen_F1 ? "R1 " : "", MC.RTC_store.Work & RTC_Work_Regen_F2 ? "R2 " : "", MC.RTC_store.UsedToday, MC.RTC_store.UsedRegen);
 				strReturn += m_snprintf(strReturn += strlen(strReturn), 256, "Состояние FreeRTOS при старте (task+err_code) <sup>2</sup>|0x%04X 0x%04X;", lastErrorFreeRtosCode, GPBR->SYS_GPBR[5]);
 
 				startSupcStatusReg |= SUPC->SUPC_SR;                                  // Копим изменения
@@ -1015,7 +1017,7 @@ xSaveStats:		if((i = MC.save_WorkStats()) == OK)
 				strcat(strReturn,"Счетчик числа повторных соединений MQTT клиента|");_itoa(MC.num_resMQTT,strReturn);strcat(strReturn,";");
 	#endif
 				strcat(strReturn,"Счетчик неудачных ping|");_itoa(MC.num_resPing,strReturn);strcat(strReturn,";");
-				strcat(strReturn,"Счетчик числа ошибок чтения датчиков температуры (DS18x20)|");_itoa(MC.get_errorReadDS18B20(),strReturn);strcat(strReturn,";");
+				strcat(strReturn,"Счетчик числа ошибок чтения датчиков температуры|");_itoa(MC.get_errorReadTemp(),strReturn);strcat(strReturn,";");
 
 				strcat(strReturn,"<b> Глобальные счетчики</b>|;");
 				strcat(strReturn,"Время сброса|"); DecodeTimeDate(MC.WorkStats.ResetTime, strReturn, 3); strcat(strReturn,";");

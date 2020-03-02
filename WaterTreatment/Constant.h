@@ -391,6 +391,8 @@ const char *option_fDebugToJournal		= {"DBG"};
 const char *option_fDebugToSerial		= {"DBGS"};
 const char *option_FillingTankTimeout	= {"FTT"};
 const char *option_CriticalErrorsTimeout= {"CET"};
+const char *option_FilterTank           = {"TD"};
+const char *option_FilterTankSoftener   = {"TDS"};
 
 // WorkStats, get_WS..., set_WS...(x)
 const char *webWS_UsedToday 					= { "UD" };

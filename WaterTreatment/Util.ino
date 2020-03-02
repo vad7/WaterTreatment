@@ -1005,7 +1005,7 @@ int32_t round_div_int32(int32_t value, int16_t div)
 	return value;
 }
 
-inline void buffer_space_padding(char * buf, int add)
+void buffer_space_padding(char * buf, int add)
 {
 	if(add > 0) {
 		while(add--) *buf++ = ' ';

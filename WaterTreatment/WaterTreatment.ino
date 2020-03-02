@@ -856,8 +856,8 @@ xErrorsProcessing:
 			// Day: 0.000 Yd: 0.000
 			char *buf = buffer;
 			if(LCD_setup) {
-				lcd.clear();
 				if((LCD_setup & 0xFF00) == 0x100) { // Relays
+					lcd.clear();
 					for(uint8_t i = 0; i < (RNUMBER > 8 ? 8 : RNUMBER) ; i++) {
 						lcd.setCursor(10 * (i % 2), i / 2);
 						lcd.print(MC.dRelay[i].get_Relay() ? '*' : ' ');
@@ -865,27 +865,49 @@ xErrorsProcessing:
 					}
 					lcd.setCursor(10 * ((LCD_setup & 0xFF) % 2), (LCD_setup & 0xFF) / 2);
 				} else if((LCD_setup & 0xFF00) == 0x200) { // Flow check
+					// 12345678901234567890
+					// Edges: 41234
+					// Liters: 112.1234
+					// Flow: 2332
+					// Sp: 24.123 54.123
+					lcd.setCursor(0, 0);
+					lcd.print("Flow: ");
+					dptoa(buf, MC.sFrequency[FLOW].get_Value(), 3);
+					uint32_t l = strlen(buf);
+					buffer_space_padding(buf + l, LCD_COLS - l);
+					lcd.print(buf);
+					lcd.setCursor(0, 1);
 					lcd.print("Edges: ");
 					uint32_t tmp = (FlowPulseCounter * MC.sFrequency[FLOW].get_kfValue() + FlowPulseCounterRest - _FlowPulseCounterRest) / 100;
 					i10toa(tmp, buf, 0);
+					l = strlen(buf);
+					buffer_space_padding(buf + l, LCD_COLS - l);
 					lcd.print(buf);
-					lcd.setCursor(0, 1);
+					lcd.setCursor(0, 2);
 					lcd.print("Liters: ");
 					tmp *= 100;
 					i10toa(tmp / MC.sFrequency[FLOW].get_kfValue(), buf, 0);
 					lcd.print(buf);
 					lcd.print(".");
 					i10toa((uint32_t)(tmp % MC.sFrequency[FLOW].get_kfValue()) * 10000 / MC.sFrequency[FLOW].get_kfValue(), buf, 4);
+					l = strlen(buf);
+					buffer_space_padding(buf + l, LCD_COLS - l);
 					lcd.print(buf);
-					lcd.setCursor(0, 2);
-					lcd.print("Flow: ");
-					i10toa(MC.sFrequency[FLOW].get_Value(), buf, 0);
+					lcd.setCursor(0, 3);
+					lcd.print("Sp: ");
+					dptoa(buf, MC.CalcFilteringSpeed(MC.FilterTankSquare), 3);
 					lcd.print(buf);
-					lcd.print(" L*h");
+					lcd.print(" ");
+					dptoa(buf, MC.CalcFilteringSpeed(MC.FilterTankSoftenerSquare), 3);
+					l = strlen(buf);
+					buffer_space_padding(buf + l, LCD_COLS - l);
+					lcd.print(buf);
+
 					DisplayTick = xTaskGetTickCount() - (DISPLAY_UPDATE - 1000);
 					vTaskDelay(KEY_CHECK_PERIOD);
 					continue;
 				} else {
+					lcd.clear();
 					lcd.print(LCD_SetupMenu[LCD_setup & 0xFF]);
 					lcd.setCursor(0, 2);
 					lcd.print("Long press OK - Exit");

@@ -137,7 +137,7 @@ body.test #get_tblrelay span{display:none}
     content: attr(data-tooltip);/* Часть кода, определяющая содержимое всплывающей подсказки */
     font-size: 14px;
     width: 30%; /* устанавливаем необходимую фиксированную ширину, слова будут переноситься */
-    min-width:400px;
+    min-width:50px;
     right: 0;
     padding: 10px;
     position: absolute;/* обязательно позиционирум абсолютно */
