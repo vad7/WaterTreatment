@@ -753,6 +753,17 @@ xSaveStats:		if((i = MC.save_WorkStats()) == OK)
 			} else if(*str == webWS_UsedAverageDay) _itoa(MC.WorkStats.UsedAverageDay / MC.WorkStats.UsedAverageDayNum, strReturn); // get_WSA
 			else if(*str == webWS_WaterBoosterCountL) {
 				if(WaterBoosterCountL == 0) strcat(strReturn, "-"); else _itoa(-WaterBoosterCountL, strReturn); // get_WSB
+			} else if(*str == webWS_Velocity) { // get_WSV
+				l_i32 = MC.sInput[REG_ACTIVE].get_Input() || MC.sInput[REG_BACKWASH_ACTIVE].get_Input();
+				l_i32 |= MC.sInput[REG2_ACTIVE].get_Input() << 1;
+				if(l_i32) { // regen in process
+					strcat(strReturn, "Скорость фильтрации, мч: ");
+					if(l_i32 & 1) {
+						_dtoa(strReturn, MC.CalcFilteringSpeed(MC.FilterTankSquare), 3); // regen Iron in process
+						if(l_i32 & 2) strcat(strReturn, ", ");
+					}
+					if(l_i32 & 2) _dtoa(strReturn, MC.CalcFilteringSpeed(MC.FilterTankSoftenerSquare), 3); // regen Soft in process
+				}
 			}
 			ADD_WEBDELIM(strReturn); continue;
 		}
@@ -1000,9 +1011,12 @@ xSaveStats:		if((i = MC.save_WorkStats()) == OK)
 				strReturn += m_snprintf(strReturn += strlen(strReturn), 256, "Состояние FreeRTOS при старте (task+err_code) <sup>2</sup>|0x%04X 0x%04X;", lastErrorFreeRtosCode, GPBR->SYS_GPBR[5]);
 
 				startSupcStatusReg |= SUPC->SUPC_SR;                                  // Копим изменения
-				m_snprintf(strReturn += strlen(strReturn), 256, "Регистры контроллера питания (SUPC) SAM3X8E [SMMR MR SR]|0x%08X %08X %08X", SUPC->SUPC_SMMR, SUPC->SUPC_MR, startSupcStatusReg);  // Регистры состояния контроллера питания
+				strReturn += m_snprintf(strReturn += strlen(strReturn), 256, "Регистры контроллера питания (SUPC) SAM3X8E [SMMR MR SR]|0x%08X %08X %08X", SUPC->SUPC_SMMR, SUPC->SUPC_MR, startSupcStatusReg);  // Регистры состояния контроллера питания
 				if((startSupcStatusReg|SUPC_SR_SMS)==SUPC_SR_SMS_PRESENT) strcat(strReturn," bad VDDIN!");
 				strcat(strReturn,";");
+
+				strReturn += m_snprintf(strReturn += strlen(strReturn), 256, "Площадь фильтрации обезжелезивателя, м2|%.4d;", MC.FilterTankSquare);
+				strReturn += m_snprintf(strReturn += strlen(strReturn), 256, "Площадь фильтрации умягчителя, м2|%.4d;", MC.FilterTankSoftenerSquare);
 
 				STORE_DEBUG_INFO(47);
 				strcat(strReturn,"<b> Времена</b>|;");

@@ -381,8 +381,8 @@ public:
 	type_WorkStats WorkStats;               		// Структура для хранения счетчиков периодическая запись
 	type_WorkStats WorkStats_saved;
 	type_RTC_memory RTC_store;
-	uint32_t FilterTankSquare;
-	uint32_t FilterTankSoftenerSquare;
+	uint32_t FilterTankSquare;						// m2 * 10000
+	uint32_t FilterTankSoftenerSquare;				// m2 * 10000
 
 private:
 

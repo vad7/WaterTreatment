@@ -1507,8 +1507,7 @@ void vService(void *)
 				if(!CriticalErrors) {
 					int err = MC.get_errcode();
 					if((err == ERR_FLOODING || err == ERR_TANK_EMPTY) && Errors[1] == 0) MC.clear_error();
-					if(err != ERR_START_REG && err != ERR_START_REG2
-							&& !(MC.RTC_store.Work & RTC_Work_Regen_MASK) && rtcSAM3X8.get_hours() == MC.Option.RegenHour) {
+					if(err != ERR_START_REG && err != ERR_START_REG2 && !(MC.RTC_store.Work & RTC_Work_Regen_MASK) && rtcSAM3X8.get_hours() == MC.Option.RegenHour) {
 						uint32_t need_regen = 0;
 						if((MC.Option.DaysBeforeRegen && MC.WorkStats.DaysFromLastRegen >= MC.Option.DaysBeforeRegen) || (MC.Option.UsedBeforeRegen && MC.WorkStats.UsedSinceLastRegen + MC.RTC_store.UsedToday >= MC.Option.UsedBeforeRegen))
 							need_regen |= RTC_Work_Regen_F1;

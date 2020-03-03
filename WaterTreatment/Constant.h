@@ -410,6 +410,7 @@ const char *webWS_UsedLastRegenSoftening  		= { "RSL" };
 #define		webWS_WaterBoosterCountL				'B'
 #define		webWS_UsedDrain 	 					'D'
 #define		webWS_UsedTotal  						'T'
+#define		webWS_Velocity							'V'
 
 // --------------------------------------------------------------------------------
 // ОШИБКИ едины для всего - сквозной список

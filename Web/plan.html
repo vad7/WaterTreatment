@@ -13,7 +13,7 @@
 	urlupdate = 2000;
 	window.onload = function() {
 		loadParam("get_WSUY,get_WSA,get_WSD,get_WSRC,get_WSRD,get_WSRSC,get_WSRSD");
-		updateParam("get_Relay(RWOFF),get_WDIS,get_Relay(RDRAIN),get_Relay(RBST2),get_Relay(RFILL),get_Relay(RFEEDP),get_ADCLvL(LTANK),get_Wgt(LvL),get_Input(REG),get_Input(REGBW),get_Input(REG2),get_Err(B),get_Flow(FLOW),get_ADC(PWATER),get_MODED,get_PWR,get_Temp(AIR),get_WSRS,get_WSRSS,get_WSUD,get_WST,get_WSRL,get_WSRSL,get_WSB,get_WSDD");
+		updateParam("get_Relay(RWOFF),get_WDIS,get_Relay(RDRAIN),get_Relay(RBST2),get_Relay(RFILL),get_Relay(RFEEDP),get_ADCLvL(LTANK),get_Wgt(LvL),get_Input(REG),get_Input(REGBW),get_Input(REG2),get_Err(B),get_Flow(FLOW),get_ADC(PWATER),get_MODED,get_PWR,get_Temp(AIR),get_WSRS,get_WSRSS,get_WSUD,get_WST,get_WSRL,get_WSRSL,get_WSB,get_WSDD,get_WSV");
 		updateParam("get_tblErr");
 	};
 </script>	
@@ -38,10 +38,11 @@
 	<span id="get_flow-flow" class="blue">-.-</span>
 	<span id="get_adc-pwater" class="red">-.-</span>
 	<span id="get_err-b" class="charsw" title=" ⚠"></span>
+	<a id="get_wsv" style="position:absolute;margin-top:340px;margin-left:540px"></a>
 </div>
 <div class="row1">
 <table>
-	<tr><td width="22%" style="font-weight: bold;" nowrap>Состояние:</td><td width="11%" nowrap><b><span id="get_moded"></span></b></td><td width="22%" style="font-weight: normal;">Электричество, кВт:</td><td width="11%"><span id="get_pwr"></span></td><td width="22%" style="font-weight: normal;">Температура:</td><td width="11%"><span id="get_temp-air">-</span>&deg;</td></tr>
+	<tr><td width="22%" style="font-weight: bold;" nowrap>Состояние:</td><td width="11%" nowrap><b><span id="get_moded"></span></b></td><td width="22%" style="font-weight: normal;" nowrap>Электричество, кВт:</td><td width="11%"><span id="get_pwr"></span></td><td width="22%" style="font-weight: normal;">Температура:</td><td width="11%"><span id="get_temp-air">-</span>&deg;</td></tr>
 	<tr><td style="font-weight:normal;" nowrap>Сегодня, л:</td><td id="get_wsud"></td><td style="font-weight: normal;" nowrap>Вчера, л:</td><td id="get_wsuy"></td><td style="font-weight: normal;" nowrap>Среднее за день, л:</td><td id="get_wsa"></td></tr>
 	<tr><td style="font-weight:normal;" nowrap>Бак НС, л:</td><td id="get_wsb"></td><td style="font-weight:normal;" nowrap>Слито (<span id="get_wsdd">-</span>), л:</td><td id="get_wsd"></td><td style="font-weight: normal;" nowrap>Итого, м³:</td><td id="get_wst"></td><td style="font-weight: normal;"></td></tr>
 	<tr><td style="font-weight:bold;" nowrap>Обезжелезивание, рег:</td><td id="get_wsrc"></td><td></td><td></td><td></td><td></td></tr>
