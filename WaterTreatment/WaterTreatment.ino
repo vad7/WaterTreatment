@@ -1278,6 +1278,7 @@ void vPumps( void * )
 			if(!(CriticalErrors & ERRC_TankEmpty)) vPumpsNewError = ERR_TANK_EMPTY;
 			CriticalErrors |= ERRC_TankEmpty;
 		}
+		uint8_t reg_active = (MC.sInput[REG_ACTIVE].get_Input() || MC.sInput[REG_BACKWASH_ACTIVE].get_Input()) | (MC.sInput[REG2_ACTIVE].get_Input() << 1);
 
 		// Check Errors
 		int16_t press = MC.sADC[PWATER].get_Value();
@@ -1305,18 +1306,17 @@ void vPumps( void * )
 				}
 			} else FloodingTime = 0;
 		}
-
 		// Water Booster
 		if(WaterBoosterStatus == 0 && !CriticalErrors && press != ERROR_PRESS
 				&& WaterBoosterTimeout >= MC.Option.MinWaterBoostOffTime
-				&& press <= (MC.sInput[REG_ACTIVE].get_Input() || MC.sInput[REG_BACKWASH_ACTIVE].get_Input() || MC.sInput[REG2_ACTIVE].get_Input() ? MC.Option.PWATER_RegMin : MC.sADC[PWATER].get_minValue())) { // Starting
+				&& press <= (reg_active ? MC.Option.PWATER_RegMin : MC.sADC[PWATER].get_minValue())) { // Starting
 			MC.dRelay[RBOOSTER1].set_ON();
 			WaterBoosterTimeout = 0;
 			WaterBoosterStatus = 1;
 			MC.ChartWaterBoosterCount.addPoint(WaterBoosterCountL);
 		} else if(WaterBoosterStatus > 0) {
 			if(CriticalErrors || (WaterBoosterTimeout >= MC.Option.MinWaterBoostOnTime && press >= MC.sADC[PWATER].get_maxValue())) { // Stopping
-xWaterBooster_GO_OFF:
+				xWaterBooster_GO_OFF:
 				if(WaterBoosterStatus == 1) {
 					goto xWaterBooster_OFF;
 				} else {// Off full cycle
@@ -1328,7 +1328,7 @@ xWaterBooster_GO_OFF:
 				WaterBoosterStatus = 2;
 			}
 		} else if(WaterBoosterStatus == -1) {
-xWaterBooster_OFF:
+			xWaterBooster_OFF:
 			MC.dRelay[RBOOSTER1].set_OFF();
 			WaterBoosterCountL = 0;
 			WaterBoosterTimeout = 0;
@@ -1353,11 +1353,23 @@ xWaterBooster_OFF:
 #ifndef TANK_ANALOG_LEVEL
 		if(MC.sInput[TANK_LOW].get_Input()) {
 			if(MC.dRelay[RFILL].get_Relay()) {
+				taskENTER_CRITICAL();
+				Charts_FillTank_work += TIME_SLICE_PUMPS * 100 / 1000; // in percent
+				taskEXIT_CRITICAL();
+			} else if(!(CriticalErrors & ~ERRC_TankEmpty)) {
+				MC.dRelay[RFILL].set_ON();	// Start filling tank
+				FillingTankLastLevel = MC.sADC[LTANK].get_Value();
+				FillingTankTimer = GetTickCount();
+			}
+		}
+		if(MC.sInput[TANK_FULL].get_Input()) {
+			if(MC.dRelay[RFILL].get_Relay()) MC.dRelay[RFILL].set_OFF();	// Stop filling tank
+		}
 #else
-		if(MC.sADC[LTANK].get_Value() <= MC.sADC[LTANK].get_minValue()) {
+		if(MC.sADC[LTANK].get_Value() <= (reg_active ? MC.sADC[LTANK].get_maxValue() - FILL_TANK_REGEN_DELTA : MC.sADC[LTANK].get_minValue())) {
 			if(MC.dRelay[RFILL].get_Relay()) {
 				if(MC.Option.FillingTankTimeout) {
-					if(WaterBoosterStatus == 0 && TimerDrainingWater == 0 && !MC.sInput[REG_ACTIVE].get_Input() && !MC.sInput[REG_BACKWASH_ACTIVE].get_Input() && !MC.sInput[REG2_ACTIVE].get_Input()) { // No water consuming
+					if(WaterBoosterStatus == 0 && TimerDrainingWater == 0) { // No water consuming
 						if(GetTickCount() - FillingTankTimer >= (uint32_t) MC.Option.FillingTankTimeout * 1000) {
 							if(FillingTankLastLevel + FILLING_TANK_STEP > MC.sADC[LTANK].get_Value()) vPumpsNewError = ERR_TANK_NO_FILLING;
 							FillingTankLastLevel = MC.sADC[LTANK].get_Value();
@@ -1368,7 +1380,6 @@ xWaterBooster_OFF:
 						FillingTankTimer = GetTickCount();
 					}
 				}
-#endif
 				taskENTER_CRITICAL();
 				Charts_FillTank_work += TIME_SLICE_PUMPS * 100 / 1000; // in percent
 				taskEXIT_CRITICAL();
@@ -1377,17 +1388,13 @@ xWaterBooster_OFF:
 				FillingTankLastLevel = MC.sADC[LTANK].get_Value();
 				FillingTankTimer = GetTickCount();
 			}
-#ifdef TANK_ANALOG_LEVEL
 		} else if(MC.sADC[LTANK].get_Value() >= MC.sADC[LTANK].get_maxValue()) {
-#else
-		}
-		if(MC.sInput[TANK_FULL].get_Input()) {
-#endif
 			if(MC.dRelay[RFILL].get_Relay()) MC.dRelay[RFILL].set_OFF();	// Stop filling tank
 		}
+#endif // TANK_ANALOG_LEVEL
 
 		// Regenerating
-		if(MC.sInput[REG_ACTIVE].get_Input() || MC.sInput[REG_BACKWASH_ACTIVE].get_Input()) { // Regen Iron removing filter
+		if(reg_active & 1) { // Regen Iron removing filter
 			if(MC.dRelay[RSTARTREG].get_Relay()) MC.dRelay[RSTARTREG].set_OFF();
 			if(!(MC.RTC_store.Work & RTC_Work_Regen_F1)) { // Started?
 				MC.RTC_store.Work |= RTC_Work_Regen_F1;
@@ -1397,7 +1404,7 @@ xWaterBooster_OFF:
 				MC.RTC_store.UsedRegen = 0;
 				NeedSaveRTC = RTC_SaveAll;
 			}
-		} else if(MC.sInput[REG2_ACTIVE].get_Input()) {	// Regen Softening filter
+		} else if(reg_active & 2) {	// Regen Softening filter
 			if(MC.dRelay[RSTARTREG2].get_Relay()) MC.dRelay[RSTARTREG2].set_OFF();
 			if(!(MC.RTC_store.Work & RTC_Work_Regen_F2)) { // Started?
 				MC.RTC_store.Work |= RTC_Work_Regen_F2;
@@ -1420,7 +1427,8 @@ void vService(void *)
 	static uint8_t  task_every_min = task_updstat_countm;
 	static TickType_t timer_sec = GetTickCount(), timer_idle = 0, timer_total = 0;
 
-	for(;;) {
+	for(;;)
+	{
 		if(vPumpsNewError != 0) {
 			set_Error(vPumpsNewError, (char*)"vPumps");
 			vPumpsNewError = 0;
@@ -1515,10 +1523,11 @@ void vService(void *)
 							need_regen |= RTC_Work_Regen_F2;
 						if(need_regen) {
 #ifdef TANK_ANALOG_LEVEL
-							if(MC.sADC[LTANK].get_Value() >= MC.sADC[LTANK].get_maxValue()) {
+							if(MC.sADC[LTANK].get_Value() >= MC.sADC[LTANK].get_maxValue())
 #else
-							if(MC.sInput[TANK_FULL].get_Input()) {
+							if(MC.sInput[TANK_FULL].get_Input())
 #endif
+							{
 								if((need_regen & RTC_Work_Regen_F1) && !MC.dRelay[RSTARTREG].get_Relay()) {
 									journal.jprintf_date("Regen F1 start\n");
 									MC.dRelay[RWATEROFF].set_ON();

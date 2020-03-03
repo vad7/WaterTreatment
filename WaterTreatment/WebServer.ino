@@ -835,8 +835,8 @@ xSaveStats:		if((i = MC.save_WorkStats()) == OK)
 				journal.jprintf("Reset RAM journal.\n");
 #else                      // Журнал в ЕЕПРОМ
 				journal.Format();
-				strcat(strReturn, "OK");
 #endif
+				strcat(strReturn, "OK");
 			} else if (strcmp(str,"DUE")==0)   // RESET_DUE, Команда сброса контроллера
 			{
 				//strcat(strReturn,"Сброс контроллера, подождите 10 секунд . . .");
@@ -846,7 +846,8 @@ xSaveStats:		if((i = MC.save_WorkStats()) == OK)
 				Stats.SaveHistory(0);
 				NeedSaveRTC = RTC_SaveAll;
 				update_RTC_store_memory();
-				ResetDUE_countdown = 3;
+				ResetDUE_countdown = 4;
+				strcat(strReturn, "OK");
 			} else if(strncmp(str, "CNT", 3) == 0) { // Команда RESET_CNT
 				str += 3;
 				if(strncmp(str, "_VAR_", 5) == 0) {	// RESET_CNT_VAR_xx=n
