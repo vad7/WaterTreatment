@@ -891,9 +891,9 @@ uint8_t update_RTC_store_memory(void)
 		return 7;
 	}
 	type_RTC_memory store;
-	TaskSuspendAll(); // Запрет других задач
+	taskENTER_CRITICAL();
 	memcpy(&store, &MC.RTC_store, sizeof(store));
-	xTaskResumeAll(); // Разрешение других задач
+	taskEXIT_CRITICAL();
 	uint32_t addr = 255;
 	uint32_t len = 0;
 	uint8_t what_to_save = NeedSaveRTC;

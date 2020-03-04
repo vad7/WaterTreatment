@@ -1602,7 +1602,7 @@ void vService(void *)
 			}
 			Stats.CheckCreateNewFile();
 			if(ResetDUE_countdown && --ResetDUE_countdown == 0) Software_Reset();      // Сброс
-		}
+		} // 1 sec
 		vTaskDelay(1); // задержка чтения уменьшаем загрузку процессора
 	}
 	vTaskSuspend(NULL);

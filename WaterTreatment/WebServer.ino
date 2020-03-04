@@ -616,11 +616,9 @@ void parserGET(uint8_t thread)
 		}
 		if ((strcmp(str,"set_updateNet")==0)||(strcmp(str,"RESET_NET")==0))  // Функция Сброс w5200 и применение сетевых настроек, подождите 5 сек . . .
 		{
-			//strcat(strReturn,"Сброс Wiznet w5XXX и применение сетевых настроек, подождите 5 сек . . .");
-			//ADD_WEBDELIM(strReturn);
 			initW5200(true);                                  // Инициализация сети с выводом инфы в консоль
-			for(uint8_t i = 0; i < W5200_THREAD; i++) SETBIT1(Socket[i].flags,fABORT_SOCK);                                 // Признак инициализации сокета, надо прерывать передачу в сервере
-			MC.num_resW5200++;                                                       // Добавить счетчик инициализаций
+			for(uint8_t i = 0; i < W5200_THREAD; i++) SETBIT1(Socket[i].flags,fABORT_SOCK);  // Признак инициализации сокета, надо прерывать передачу в сервере
+			MC.num_resW5200++;                                // Добавить счетчик инициализаций
 			continue;
 		}
 		if(strncmp(str, "get_MODE", 8)==0) { // Функция get_MODE в каком состояниии
@@ -830,7 +828,7 @@ xSaveStats:		if((i = MC.save_WorkStats()) == OK)
 			} else if (strcmp(str,"JOURNAL")==0)   // RESET_JOURNAL,  Команда очистки журнала (в зависимости от типа)
 			{
 #ifdef I2C_JOURNAL_IN_RAM     // журнал в памяти
-				strcat(strReturn,"Сброс журнала в RAM");
+				strcat(strReturn,"Сброс журнала в RAM ");
 				journal.Clear();       // Послать команду на очистку журнала в памяти
 				journal.jprintf("Reset RAM journal.\n");
 #else                      // Журнал в ЕЕПРОМ
@@ -839,14 +837,13 @@ xSaveStats:		if((i = MC.save_WorkStats()) == OK)
 				strcat(strReturn, "OK");
 			} else if (strcmp(str,"DUE")==0)   // RESET_DUE, Команда сброса контроллера
 			{
-				//strcat(strReturn,"Сброс контроллера, подождите 10 секунд . . .");
 				journal.jprintf("CPU RESETING...\n\n");
 				MC.save_WorkStats();
-				Stats.SaveStats(0);
-				Stats.SaveHistory(0);
+				Stats.SaveStats(1);
+				Stats.SaveHistory(1);
 				NeedSaveRTC = RTC_SaveAll;
 				update_RTC_store_memory();
-				ResetDUE_countdown = 4;
+				ResetDUE_countdown = 3;
 				strcat(strReturn, "OK");
 			} else if(strncmp(str, "CNT", 3) == 0) { // Команда RESET_CNT
 				str += 3;
@@ -866,7 +863,7 @@ xSaveStats:		if((i = MC.save_WorkStats()) == OK)
 					}
 				} else {
 					journal.jprintf("Clear All Counters!\n");
-					strcat(strReturn,"Сброс счетчиков");
+					//strcat(strReturn,"Сброс счетчиков ");
 					memset(&MC.RTC_store, 0, sizeof(MC.RTC_store));
 					MC.RTC_store.Work = (MC.RTC_store.Work & ~RTC_Work_WeekDay_MASK) | rtcSAM3X8.get_day_of_week();
 					NeedSaveRTC = RTC_SaveAll;
