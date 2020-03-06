@@ -15,9 +15,9 @@
 
 #include "NRF5\MyConfig.h"
 #include "NRF5\MyHwHAL.h"
-#include "NRF5\Radio.h"
-#include "NRF5\Radio.cpp"
 //#include "NRF5\MyHwHAL.cpp"
+#include "NRF5\Radio.h"
+//#include "NRF5\Radio.cpp"
 #include "NRF5\MyHwNRF5.h"
 #include "NRF5\MyHwNRF5.cpp"
 #include "NRF5\Radio_ESB.h"
