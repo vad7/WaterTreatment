@@ -871,37 +871,34 @@ xErrorsProcessing:
 					// Flow: 2332
 					// Sp: 24.123 54.123
 					lcd.setCursor(0, 0);
-					lcd.print("Flow: ");
-					dptoa(buf, MC.sFrequency[FLOW].get_Value(), 3);
-					uint32_t l = strlen(buf);
-					buffer_space_padding(buf + l, LCD_COLS - l);
-					lcd.print(buf);
+					strcpy(buf, "Flow: "); buf += 6;
+					buf = dptoa(buf, MC.sFrequency[FLOW].get_Value(), 3);
+					buffer_space_padding(buf, LCD_COLS - (buf - buffer));
+					lcd.print(buffer);
+
 					lcd.setCursor(0, 1);
-					lcd.print("Edges: ");
+					strcpy(buf = buffer, "Edges: "); buf += 7;
 					uint32_t tmp = (FlowPulseCounter * MC.sFrequency[FLOW].get_kfValue() + FlowPulseCounterRest - _FlowPulseCounterRest) / 100;
-					i10toa(tmp, buf, 0);
-					l = strlen(buf);
-					buffer_space_padding(buf + l, LCD_COLS - l);
-					lcd.print(buf);
+					buf += i10toa(tmp, buf, 0);
+					buffer_space_padding(buf, LCD_COLS - (buf - buffer));
+					lcd.print(buffer);
+
 					lcd.setCursor(0, 2);
-					lcd.print("Liters: ");
+					strcpy(buf = buffer, "Liters: "); buf += 8;
 					tmp *= 100;
-					i10toa(tmp / MC.sFrequency[FLOW].get_kfValue(), buf, 0);
-					lcd.print(buf);
-					lcd.print(".");
-					i10toa((uint32_t)(tmp % MC.sFrequency[FLOW].get_kfValue()) * 10000 / MC.sFrequency[FLOW].get_kfValue(), buf, 4);
-					l = strlen(buf);
-					buffer_space_padding(buf + l, LCD_COLS - l);
-					lcd.print(buf);
+					buf += i10toa(tmp / MC.sFrequency[FLOW].get_kfValue(), buf, 0);
+					*buf++ = '.';
+					buf += i10toa((uint32_t)(tmp % MC.sFrequency[FLOW].get_kfValue()) * 10000 / MC.sFrequency[FLOW].get_kfValue(), buf, 4);
+					buffer_space_padding(buf, LCD_COLS - (buf - buffer));
+					lcd.print(buffer);
+
 					lcd.setCursor(0, 3);
-					lcd.print("Sp: ");
-					dptoa(buf, MC.CalcFilteringSpeed(MC.FilterTankSquare), 3);
-					lcd.print(buf);
-					lcd.print(" ");
-					dptoa(buf, MC.CalcFilteringSpeed(MC.FilterTankSoftenerSquare), 3);
-					l = strlen(buf);
-					buffer_space_padding(buf + l, LCD_COLS - l);
-					lcd.print(buf);
+					strcpy(buf = buffer, "Sp: "); buf += 4;
+					buf = dptoa(buf, MC.CalcFilteringSpeed(MC.FilterTankSquare), 3);
+					*buf++ = '.';
+					buf = dptoa(buf, MC.CalcFilteringSpeed(MC.FilterTankSoftenerSquare), 3);
+					buffer_space_padding(buf, LCD_COLS - (buf - buffer));
+					lcd.print(buffer);
 
 					DisplayTick = xTaskGetTickCount() - (DISPLAY_UPDATE - 1000);
 					vTaskDelay(KEY_CHECK_PERIOD);
