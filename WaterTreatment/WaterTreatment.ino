@@ -850,7 +850,7 @@ xErrorsProcessing:
 		if(xTaskGetTickCount() - DisplayTick > DISPLAY_UPDATE) { // Update display
 			// Display:
 			// 12345678901234567890
-			// F: 0.000 m3h > 0.000
+			// 0.000 m3h > 0.000
 			// P: 0.00 Tank: 100 %
 			// Days Fe:123 Soft:123
 			// Day: 0.000 Yd: 0.000
@@ -913,11 +913,15 @@ xErrorsProcessing:
 			} else {
 				lcd.setCursor(0, 0);
 				int32_t tmp = MC.sFrequency[FLOW].get_Value();
-				strcpy(buf, "F:"); buf += 2;
-				if(tmp < 10000) *buf++ = ' ';
 				buf = dptoa(buf, tmp, 3);
-				strcpy(buf, " m3h \x7E"); buf += 6;
-				tmp = MC.WorkStats.UsedSinceLastRegen + MC.RTC_store.UsedToday;
+				strcpy(buf, " m3h "); buf += 5;
+				if(MC.sInput[REG_ACTIVE].get_Input() || MC.sInput[REG_BACKWASH_ACTIVE].get_Input() || MC.sInput[REG2_ACTIVE].get_Input()) {
+					*buf++ = 'R';
+					tmp = MC.RTC_store.UsedRegen;
+				} else {
+					*buf++ = '\x7E';
+					tmp = MC.WorkStats.UsedSinceLastRegen + MC.RTC_store.UsedToday;
+				}
 				if(tmp < 10000) *buf++ = ' ';
 				buf = dptoa(buf, tmp, 3);
 				buffer_space_padding(buf, LCD_COLS - (buf - buffer));
