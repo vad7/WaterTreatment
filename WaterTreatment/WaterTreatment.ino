@@ -787,8 +787,8 @@ xSetupExit:
 					LCD_setup = (LCD_setup << 8) | LCD_SetupFlag;
 					if((LCD_setup & 0xFF00) == 0x200) { // Flow check
 						lcd.command(LCD_DISPLAYCONTROL | LCD_DISPLAYON);
-						FlowPulseCounter = FlowPulseCounterRest = 0;
-						_FlowPulseCounterRest = MC.sFrequency[FLOW].PassedRest;
+						FlowPulseCounter = 0;
+						FlowPulseCounterRest = _FlowPulseCounterRest = MC.sFrequency[FLOW].PassedRest;
 					}
 				}
 				DisplayTick = ~DisplayTick;
@@ -837,8 +837,8 @@ xErrorsProcessing:
 			while(!digitalReadDirect(PIN_KEY_DOWN)) vTaskDelay(KEY_DEBOUNCE_TIME);
 			if(LCD_setup) {
 				if((LCD_setup & 0xFF00) == 0x200) { // Flow check
-					FlowPulseCounter = FlowPulseCounterRest = 0;
-					_FlowPulseCounterRest = MC.sFrequency[FLOW].PassedRest;
+					FlowPulseCounter = 0;
+					FlowPulseCounterRest = _FlowPulseCounterRest = MC.sFrequency[FLOW].PassedRest;
 				} else if((LCD_setup & 0xFF) > 0) {
 					LCD_setup--;
 					DisplayTick = ~DisplayTick;
@@ -869,7 +869,7 @@ xErrorsProcessing:
 					// Edges: 41234
 					// Liters: 112.1234
 					// Flow: 2332
-					// Sp: 24.123 54.123
+					// Sp: 124.123  154.123
 					lcd.setCursor(0, 0);
 					strcpy(buf, "Flow: "); buf += 6;
 					buf = dptoa(buf, MC.sFrequency[FLOW].get_Value(), 3);
@@ -895,7 +895,7 @@ xErrorsProcessing:
 					lcd.setCursor(0, 3);
 					strcpy(buf = buffer, "Sp: "); buf += 4;
 					buf = dptoa(buf, MC.CalcFilteringSpeed(MC.FilterTankSquare), 3);
-					*buf++ = '.';
+					*buf++ = ' '; *buf++ = ' ';
 					buf = dptoa(buf, MC.CalcFilteringSpeed(MC.FilterTankSoftenerSquare), 3);
 					buffer_space_padding(buf, LCD_COLS - (buf - buffer));
 					lcd.print(buffer);
@@ -1310,7 +1310,10 @@ void vPumps( void * )
 			MC.dRelay[RBOOSTER1].set_ON();
 			WaterBoosterTimeout = 0;
 			WaterBoosterStatus = 1;
-			MC.ChartWaterBoosterCount.addPoint(WaterBoosterCountL);
+			int32_t i = WaterBoosterCountL * 100 + (MC.sFrequency[FLOW].PassedRest - WaterBoosterCountLrest) * 100 / MC.sFrequency[FLOW].get_kfValue();
+			if(History_BoosterCountL == -1) History_BoosterCountL = i; else History_BoosterCountL += i;
+			MC.ChartWaterBoosterCount.addPoint(i);
+			WaterBoosterCountLrest = MC.sFrequency[FLOW].PassedRest;
 		} else if(WaterBoosterStatus > 0) {
 			if(CriticalErrors || (WaterBoosterTimeout >= MC.Option.MinWaterBoostOnTime && press >= MC.sADC[PWATER].get_maxValue())) { // Stopping
 				xWaterBooster_GO_OFF:

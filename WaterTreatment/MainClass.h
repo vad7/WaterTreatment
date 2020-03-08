@@ -70,6 +70,7 @@ volatile bool ADC_has_been_read = false;
 int		 WaterBoosterStatus = 0; // 0 - все выключены, 1 - вкл твердотельное, 2 - вкл оба, -1 - выкл обычное
 uint32_t WaterBoosterTimeout = 0;
 uint32_t WaterBoosterCountL = 0;
+uint32_t WaterBoosterCountLrest = 0;
 //bool 	WaterBoosterError = false;
 //volatile bool FloodingError = false;
 //bool	 TankEmpty = false;

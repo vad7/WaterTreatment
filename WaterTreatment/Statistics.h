@@ -51,9 +51,10 @@ volatile int32_t History_WaterUsed_work = 0;	// L
 volatile int32_t History_WaterRegen_work = 0;	// L
 volatile int32_t History_FeedPump_work = 0;		// ms
 volatile int32_t History_WaterBooster_work = 0;	// ms
+int32_t History_BoosterCountL = -1;				// L*100
 volatile int32_t Charts_WaterBooster_work = 0;
 volatile int32_t Charts_FeedPump_work = 0;
-volatile int32_t Charts_FillTank_work = 0; // %
+volatile int32_t Charts_FillTank_work = 0; 		// %
 
 const char stats_file_start[] = "stats_";
 const char stats_file_header[] = "head";

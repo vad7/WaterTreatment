@@ -4,12 +4,11 @@
 
 -include ..\makefile.init
 
-RM := -del 
+RM := del 
 
 # All of the sources participating in the build are defined here
 -include sources.mk
 -include subdir.mk
--include libraries\SPI\subdir.mk
 -include core\variant\subdir.mk
 -include core\core\utility\subdir.mk
 -include core\core\sysview\SEGGER\subdir.mk
@@ -38,6 +37,7 @@ RM := -del
 -include core\core\TinyUSB\Adafruit_TinyUSB_ArduinoCore\subdir.mk
 -include core\core\TinyUSB\subdir.mk
 -include core\core\subdir.mk
+-include NRF5\subdir.mk
 -include objects.mk
 
 ifneq ($(MAKECMDGOALS),clean)
@@ -77,7 +77,7 @@ endif
 
 # Add inputs and outputs from these tool invocations to the build variables 
 AR += \
-G:\Electric\WaterTreatment\nRF52\Boards\nRF52840_MDK_USB_Dongle\WaterSensorHost\Release\arduino.ar \
+D:\Electric\WaterTreatment\nRF52\Boards\nRF52840_MDK_USB_Dongle\WaterSensorHost\Release\arduino.ar \
 
 ELF += \
 WaterSensorHost.elf \
@@ -93,19 +93,19 @@ all: WaterSensorHost
 WaterSensorHost: $(HEX)
 	@echo 'Building target: $@'
 	@echo 'Printing size:'
-	"C:\eclipse\arduinoPlugin\packages\arduino\tools\arm-none-eabi-gcc\7-2017q4/bin/arm-none-eabi-size" -A "G:\Electric\WaterTreatment\nRF52\Boards\nRF52840_MDK_USB_Dongle\WaterSensorHost\Release/WaterSensorHost.elf"
+	"C:\eclipse\eclipse\arduinoPlugin\packages\arduino\tools\arm-none-eabi-gcc\7-2017q4/bin/arm-none-eabi-size" -A "D:/Electric/WaterTreatment/nRF52/Boards/nRF52840_MDK_USB_Dongle/WaterSensorHost/Release/WaterSensorHost.elf"
 	@echo 'Finished building target: $@'
 	@echo ' '
 
-G:\Electric\WaterTreatment\nRF52\Boards\nRF52840_MDK_USB_Dongle\WaterSensorHost\Release\arduino.ar: $(AR_OBJ)
+D:\Electric\WaterTreatment\nRF52\Boards\nRF52840_MDK_USB_Dongle\WaterSensorHost\Release\arduino.ar: $(AR_OBJ)
 	@echo 'Starting archiver'
-	"C:\eclipse\arduinoPlugin\packages\arduino\tools\arm-none-eabi-gcc\7-2017q4/bin/arm-none-eabi-ar" rcs     G:\Electric\WaterTreatment\nRF52\Boards\nRF52840_MDK_USB_Dongle\WaterSensorHost\Release/arduino.ar $(AR_OBJ)
+	"C:\eclipse\eclipse\arduinoPlugin\packages\arduino\tools\arm-none-eabi-gcc\7-2017q4/bin/arm-none-eabi-ar" rcs     D:/Electric/WaterTreatment/nRF52/Boards/nRF52840_MDK_USB_Dongle/WaterSensorHost/Release/arduino.ar $(AR_OBJ)
 	@echo 'Finished building: $@'
 	@echo ' '
 
 WaterSensorHost.elf: $(LINK_OBJ) $(AR)
 	@echo 'Starting combiner'
-	"C:\eclipse\arduinoPlugin\packages\arduino\tools\arm-none-eabi-gcc\7-2017q4/bin/arm-none-eabi-gcc"  "-LG:\Electric\WaterTreatment\nRF52\Boards\nRF52840_MDK_USB_Dongle\WaterSensorHost\Release" -Ofast -Wl,--gc-sections -save-temps  "-LC:\eclipse\arduinoPlugin\packages\adafruit\hardware\nrf52\0.18.5\cores\nRF5/linker" "-Tnrf52840_s140_v6.ld" "-Wl,-Map,G:\Electric\WaterTreatment\nRF52\Boards\nRF52840_MDK_USB_Dongle\WaterSensorHost\Release/WaterSensorHost.map" -mcpu=cortex-m4 -mthumb -mfloat-abi=hard -mfpu=fpv4-sp-d16 -u _printf_float -Wl,--cref -Wl,--check-sections -Wl,--gc-sections -Wl,--unresolved-symbols=report-all -Wl,--warn-common -Wl,--warn-section-align --specs=nano.specs --specs=nosys.specs -o "G:\Electric\WaterTreatment\nRF52\Boards\nRF52840_MDK_USB_Dongle\WaterSensorHost\Release/WaterSensorHost.elf"   $(LINK_OBJ)  -Wl,--start-group -lm  G:\Electric\WaterTreatment\nRF52\Boards\nRF52840_MDK_USB_Dongle\WaterSensorHost\Release/arduino.ar  -Wl,--end-group
+	"C:\eclipse\eclipse\arduinoPlugin\packages\arduino\tools\arm-none-eabi-gcc\7-2017q4/bin/arm-none-eabi-gcc"  "-LD:/Electric/WaterTreatment/nRF52/Boards/nRF52840_MDK_USB_Dongle/WaterSensorHost/Release" -Ofast -Wl,--gc-sections -save-temps  "-LC:\Users\Vadim\AppData\Local\Arduino15\packages\adafruit\hardware\nrf52\0.18.5\cores\nRF5/linker" "-Tnrf52840_s140_v6.ld" "-Wl,-Map,D:/Electric/WaterTreatment/nRF52/Boards/nRF52840_MDK_USB_Dongle/WaterSensorHost/Release/WaterSensorHost.map" -mcpu=cortex-m4 -mthumb -mfloat-abi=hard -mfpu=fpv4-sp-d16 -u _printf_float -Wl,--cref -Wl,--check-sections -Wl,--gc-sections -Wl,--unresolved-symbols=report-all -Wl,--warn-common -Wl,--warn-section-align --specs=nano.specs --specs=nosys.specs -o "D:/Electric/WaterTreatment/nRF52/Boards/nRF52840_MDK_USB_Dongle/WaterSensorHost/Release/WaterSensorHost.elf"   $(LINK_OBJ)  -Wl,--start-group -lm  D:/Electric/WaterTreatment/nRF52/Boards/nRF52840_MDK_USB_Dongle/WaterSensorHost/Release/arduino.ar  -Wl,--end-group
 	@echo 'Finished building: $@'
 	@echo ' '
 

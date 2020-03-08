@@ -34,6 +34,7 @@ CPP_DEPS :=
 
 # Every subdirectory with source files must be described here
 SUBDIRS := \
+NRF5 \
 . \
 core\core \
 core\core\TinyUSB\Adafruit_TinyUSB_ArduinoCore \
@@ -63,5 +64,4 @@ core\core\sysview\SEGGER \
 core\core\sysview \
 core\core\utility \
 core\variant \
-libraries\SPI \
 

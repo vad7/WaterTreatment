@@ -48,12 +48,13 @@ enum {
 	STATS_OBJ_Flow,			// м³ч
 	STATS_OBJ_Voltage,		// V
 	STATS_OBJ_Power,		// кВт*ч
-	STATS_OBJ_WaterUsed,	// м³
-	STATS_OBJ_WaterRegen,	// м³
+	STATS_OBJ_WaterUsed,	// л
+	STATS_OBJ_WaterRegen,	// л
 	STATS_OBJ_BrineWeight,	// кг
 	STATS_OBJ_WaterBooster,	// сек
 	STATS_OBJ_FeedPump,		// сек
-	STATS_OBJ_Level			// %
+	STATS_OBJ_Level,		// %
+	STATS_OBJ_WaterBoosterLiters // л
 };
 struct History_setup {
 	uint8_t		object;			// STATS_OBJ_*
@@ -470,7 +471,8 @@ struct History_setup {
 			{ STATS_OBJ_Flow, FLOW, noteFrequency[FLOW] },
 			{ STATS_OBJ_Level, LTANK, "Уровень в баке, %" },
 			{ STATS_OBJ_Power, 0, "Потребление, кВт" },
-			{ STATS_OBJ_Press, PWATER, "Давление, бар" }
+			{ STATS_OBJ_Press, PWATER, "Давление, бар" },
+			{ STATS_OBJ_WaterBoosterLiters, 0, "Гидроаккумулятор, л" }
 	};
 
 

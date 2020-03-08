@@ -915,8 +915,8 @@ char * MainClass::get_listChart(char* str)
 	for(i=0;i<ANUMBER;i++) if(sADC[i].Chart.get_present()) { strcat(str,sADC[i].get_name()); strcat(str,":0;");}
 	for(i=0;i<FNUMBER;i++) if(sFrequency[i].Chart.get_present()) { strcat(str,sFrequency[i].get_name()); strcat(str,":0;");}
 	strcat(str, chart_BrineWeight); strcat(str,":0;");
-	strcat(str, chart_WaterBoostCount); strcat(str,":0;");
 	strcat(str, chart_WaterBoost); strcat(str,":0;");
+	strcat(str, chart_WaterBoostCount); strcat(str,":0;");
 	strcat(str, chart_FeedPump); strcat(str,":0;");
 	strcat(str, chart_FillTank); strcat(str,":0;");
 	if(dPWM.ChartVoltage.get_present()) {   strcat(str,chart_VOLTAGE); strcat(str,":0;"); }
@@ -957,9 +957,10 @@ void MainClass::startChart()
  for(i=0;i<ANUMBER;i++) sADC[i].Chart.clear();
  for(i=0;i<FNUMBER;i++) sFrequency[i].Chart.clear();
  ChartWaterBoost.clear();
+ ChartWaterBoosterCount.clear();
  ChartFeedPump.clear();
  ChartFillTank.clear();
- ChartFillTank.clear();
+ ChartBrineWeight.clear();
  dPWM.ChartVoltage.clear();                              // Статистика по напряжению
  dPWM.ChartPower.clear();                                // Статистика по Полная мощность
 }
@@ -996,7 +997,7 @@ void MainClass::get_Chart(char *var, char* str)
 	} else if(strcmp(var, chart_fullPOWER) == 0) {
 		dPWM.ChartPower.get_PointsStrDiv100(str);
 	} else if(strcmp(var, chart_WaterBoostCount) == 0) {
-		ChartWaterBoosterCount.get_PointsStr(str);
+		ChartWaterBoosterCount.get_PointsStrDiv100(str);
 	} else if(strcmp(var, chart_WaterBoost) == 0) {
 		ChartWaterBoost.get_PointsStrDiv100(str);
 	} else if(strcmp(var, chart_FeedPump) == 0) {

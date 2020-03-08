@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <?fileVersion 4.0.0?><cproject storage_type_id="org.eclipse.cdt.core.XmlProjectDescriptionStorage">
 	<storageModule moduleId="org.eclipse.cdt.core.settings">
-		<cconfiguration id="io.sloeber.core.toolChain.release.173425811">
-			<storageModule buildSystemId="org.eclipse.cdt.managedbuilder.core.configurationDataProvider" id="io.sloeber.core.toolChain.release.173425811" moduleId="org.eclipse.cdt.core.settings" name="Release">
+		<cconfiguration id="io.sloeber.core.toolChain.release.1158082459">
+			<storageModule buildSystemId="org.eclipse.cdt.managedbuilder.core.configurationDataProvider" id="io.sloeber.core.toolChain.release.1158082459" moduleId="org.eclipse.cdt.core.settings" name="Release">
 				<externalSettings/>
 				<extensions>
 					<extension id="org.eclipse.cdt.core.ELF" point="org.eclipse.cdt.core.BinaryParser"/>
@@ -12,42 +12,39 @@
 				</extensions>
 			</storageModule>
 			<storageModule moduleId="cdtBuildSystem" version="4.0.0">
-				<configuration artifactName="${ProjName}" buildProperties="" description="" id="io.sloeber.core.toolChain.release.173425811" name="Release" parent="org.eclipse.cdt.build.core.emptycfg">
-					<folderInfo id="io.sloeber.core.toolChain.release.173425811.1028705508" name="/" resourcePath="">
-						<toolChain id="io.sloeber.core.toolChain.release.1608646856" name="Arduino Toolchain (Sloeber edition)" superClass="io.sloeber.core.toolChain.release">
-							<targetPlatform archList="all" binaryParser="org.eclipse.cdt.core.ELF" id="io.sloeber.targetplatform.836660915" name="Arduino Target" osList="all" superClass="io.sloeber.targetplatform"/>
-							<builder buildPath="${workspace_loc:/WaterSensorHost}/Release" id="io.sloeber.sketch.builder.1636096052" keepEnvironmentInBuildfile="false" managedBuildOn="true" name="Arduino sketch builder" superClass="io.sloeber.sketch.builder"/>
-							<tool id="io.sloeber.tool.sketch.compiler.cpp.1371993273" name="Arduino C++ Compiler" superClass="io.sloeber.tool.sketch.compiler.cpp">
-								<option IS_BUILTIN_EMPTY="false" IS_VALUE_EMPTY="false" id="io.sloeber.compiler.cpp.sketch.option.incpath.202365015" name="Include Paths (-I)" superClass="io.sloeber.compiler.cpp.sketch.option.incpath" valueType="includePath">
+				<configuration artifactName="${ProjName}" buildProperties="" description="" id="io.sloeber.core.toolChain.release.1158082459" name="Release" optionalBuildProperties="" parent="org.eclipse.cdt.build.core.emptycfg">
+					<folderInfo id="io.sloeber.core.toolChain.release.1158082459.1307581912" name="/" resourcePath="">
+						<toolChain id="io.sloeber.core.toolChain.release.1480926833" name="Arduino Toolchain (Sloeber edition)" superClass="io.sloeber.core.toolChain.release">
+							<targetPlatform archList="all" binaryParser="org.eclipse.cdt.core.ELF" id="io.sloeber.targetplatform.1165174251" name="Arduino Target" osList="all" superClass="io.sloeber.targetplatform"/>
+							<builder buildPath="${workspace_loc:/WaterSensorHost}/Release" id="io.sloeber.sketch.builder.1781207943" keepEnvironmentInBuildfile="false" managedBuildOn="true" name="Arduino sketch builder" superClass="io.sloeber.sketch.builder"/>
+							<tool id="io.sloeber.tool.sketch.compiler.cpp.1783753691" name="Arduino C++ Compiler" superClass="io.sloeber.tool.sketch.compiler.cpp">
+								<option IS_BUILTIN_EMPTY="false" IS_VALUE_EMPTY="false" id="io.sloeber.compiler.cpp.sketch.option.incpath.890649115" name="Include Paths (-I)" superClass="io.sloeber.compiler.cpp.sketch.option.incpath" valueType="includePath">
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/WaterSensorHost/core/core/utility}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/WaterSensorHost/core/core}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/WaterSensorHost/core/variant}&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/WaterSensorHost/libraries/SPI}&quot;"/>
 								</option>
-								<inputType id="io.sloeber.compiler.cpp.sketch.input.1590300315" name="CPP source files" superClass="io.sloeber.compiler.cpp.sketch.input"/>
+								<inputType id="io.sloeber.compiler.cpp.sketch.input.1691356813" name="CPP source files" superClass="io.sloeber.compiler.cpp.sketch.input"/>
 							</tool>
-							<tool id="io.sloeber.tool.compiler.c.1271112921" name="Arduino C Compiler" superClass="io.sloeber.tool.compiler.c">
-								<option IS_BUILTIN_EMPTY="false" IS_VALUE_EMPTY="false" id="io.sloeber.compiler.c.sketch.option.incpath.1739014902" name="Include Paths (-I)" superClass="io.sloeber.compiler.c.sketch.option.incpath" valueType="includePath">
+							<tool id="io.sloeber.tool.compiler.c.1486312643" name="Arduino C Compiler" superClass="io.sloeber.tool.compiler.c">
+								<option IS_BUILTIN_EMPTY="false" IS_VALUE_EMPTY="false" id="io.sloeber.compiler.c.sketch.option.incpath.1406130596" name="Include Paths (-I)" superClass="io.sloeber.compiler.c.sketch.option.incpath" valueType="includePath">
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/WaterSensorHost/core/core/utility}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/WaterSensorHost/core/core}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/WaterSensorHost/core/variant}&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/WaterSensorHost/libraries/SPI}&quot;"/>
 								</option>
-								<inputType id="io.sloeber.compiler.c.sketch.input.1561068840" name="C Source Files" superClass="io.sloeber.compiler.c.sketch.input"/>
+								<inputType id="io.sloeber.compiler.c.sketch.input.294620086" name="C Source Files" superClass="io.sloeber.compiler.c.sketch.input"/>
 							</tool>
-							<tool id="io.sloeber.tool.sketch.compiler.s.1029435401" name="Arduino Assembler" superClass="io.sloeber.tool.sketch.compiler.s">
-								<option IS_BUILTIN_EMPTY="false" IS_VALUE_EMPTY="false" id="io.sloeber.compiler.asm.sketch.option.incpath.1363216003" name="Include Paths (-I)" superClass="io.sloeber.compiler.asm.sketch.option.incpath" valueType="includePath">
+							<tool id="io.sloeber.tool.sketch.compiler.s.1953991268" name="Arduino Assembler" superClass="io.sloeber.tool.sketch.compiler.s">
+								<option IS_BUILTIN_EMPTY="false" IS_VALUE_EMPTY="false" id="io.sloeber.compiler.asm.sketch.option.incpath.1833434726" name="Include Paths (-I)" superClass="io.sloeber.compiler.asm.sketch.option.incpath" valueType="includePath">
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/WaterSensorHost/core/core/utility}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/WaterSensorHost/core/core}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/WaterSensorHost/core/variant}&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/WaterSensorHost/libraries/SPI}&quot;"/>
 								</option>
-								<inputType id="io.sloeber.compiler.S.sketch.input.774155968" name="Assembly source files" superClass="io.sloeber.compiler.S.sketch.input"/>
+								<inputType id="io.sloeber.compiler.S.sketch.input.362314985" name="Assembly source files" superClass="io.sloeber.compiler.S.sketch.input"/>
 							</tool>
-							<tool id="io.sloeber.tool.ar.158531311" name="Arduino archiver" superClass="io.sloeber.tool.ar"/>
-							<tool id="io.sloeber.tool.combine.934758306" name="Arduino combiner" superClass="io.sloeber.tool.combine"/>
-							<tool id="io.sloeber.tool.objcopy.eep.1356783700" name="Arduino tool objcopy command" superClass="io.sloeber.tool.objcopy.eep"/>
-							<tool id="io.sloeber.tool.size.759302917" name="Arduino tool Print Size" superClass="io.sloeber.tool.size"/>
+							<tool id="io.sloeber.tool.ar.1651114448" name="Arduino archiver" superClass="io.sloeber.tool.ar"/>
+							<tool id="io.sloeber.tool.combine.1814716491" name="Arduino combiner" superClass="io.sloeber.tool.combine"/>
+							<tool id="io.sloeber.tool.objcopy.eep.666126567" name="Arduino tool objcopy command" superClass="io.sloeber.tool.objcopy.eep"/>
+							<tool id="io.sloeber.tool.size.543450453" name="Arduino tool Print Size" superClass="io.sloeber.tool.size"/>
 						</toolChain>
 					</folderInfo>
 					<sourceEntries>
@@ -59,7 +56,7 @@
 		</cconfiguration>
 	</storageModule>
 	<storageModule moduleId="cdtBuildSystem" version="4.0.0">
-		<project id="WaterSensorHost.null.1011804372" name="WaterSensorHost"/>
+		<project id="WaterSensorHost.null.2099279143" name="WaterSensorHost"/>
 	</storageModule>
 	<storageModule moduleId="scannerConfiguration">
 		<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId=""/>
@@ -71,5 +68,4 @@
 			<resource resourceType="PROJECT" workspacePath="/WaterSensorHost"/>
 		</configuration>
 	</storageModule>
-	<storageModule moduleId="org.eclipse.cdt.internal.ui.text.commentOwnerProjectMappings"/>
 </cproject>
