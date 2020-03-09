@@ -751,7 +751,7 @@ xSaveStats:		if((i = MC.save_WorkStats()) == OK)
 			} else if(*str == webWS_UsedAverageDay) _itoa(MC.WorkStats.UsedAverageDay / MC.WorkStats.UsedAverageDayNum, strReturn); // get_WSA
 			else if(*str == webWS_WaterBoosterCountL) {
 				strcat(strReturn, "-");
-				l_i32 = MC.sFrequency[FLOW].PassedRest - WaterBoosterCountLrest;
+				l_i32 = WaterBoosterCountLrest - _WaterBoosterCountLrest;
 				if(l_i32 || WaterBoosterCountL) _dtoa(strReturn, WaterBoosterCountL * 100 + l_i32 * 100 / MC.sFrequency[FLOW].get_kfValue(), 2); // get_WSB
 			} else if(*str == webWS_Velocity) { // get_WSV
 				l_i32 = MC.sInput[REG_ACTIVE].get_Input() || MC.sInput[REG_BACKWASH_ACTIVE].get_Input();

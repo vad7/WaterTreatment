@@ -1058,12 +1058,13 @@ void vReadSensor(void *)
 		} else if(++RegBackwashTimer > MC.Option.BackWashFeedPumpDelay) {
 			TimeFeedPump +=	(uint32_t)MC.sFrequency[FLOW].get_Value() * TIME_READ_SENSOR / MC.Option.BackWashFeedPumpMaxFlow;
 		}
+		WaterBoosterCountL += passed;
+		WaterBoosterCountLrest = MC.sFrequency[FLOW].PassedRest;
 		if(LCD_setup) {
 			FlowPulseCounter += passed;
 			FlowPulseCounterRest = MC.sFrequency[FLOW].PassedRest;
 		}
 		if(passed) {
-			WaterBoosterCountL += passed;
 			uint32_t utm = rtcSAM3X8.unixtime();
 			if(MC.sInput[REG_ACTIVE].get_Input() || MC.sInput[REG_BACKWASH_ACTIVE].get_Input() || MC.sInput[REG2_ACTIVE].get_Input()) {
 				MC.RTC_store.UsedRegen += passed;
@@ -1314,10 +1315,10 @@ void vPumps( void * )
 			MC.dRelay[RBOOSTER1].set_ON();
 			WaterBoosterTimeout = 0;
 			WaterBoosterStatus = 1;
-			int32_t i = WaterBoosterCountL * 100 + (MC.sFrequency[FLOW].PassedRest - WaterBoosterCountLrest) * 100 / MC.sFrequency[FLOW].get_kfValue();
+			int32_t i = WaterBoosterCountL * 100 + (WaterBoosterCountLrest - _WaterBoosterCountLrest) * 100 / MC.sFrequency[FLOW].get_kfValue();
 			if(History_BoosterCountL == -1) History_BoosterCountL = i; else History_BoosterCountL += i;
 			MC.ChartWaterBoosterCount.addPoint(i);
-			WaterBoosterCountLrest = MC.sFrequency[FLOW].PassedRest;
+			_WaterBoosterCountLrest = WaterBoosterCountLrest;
 		} else if(WaterBoosterStatus > 0) {
 			if(CriticalErrors || (WaterBoosterTimeout >= MC.Option.MinWaterBoostOnTime && press >= MC.sADC[PWATER].get_maxValue())) { // Stopping
 				xWaterBooster_GO_OFF:
