@@ -1316,9 +1316,10 @@ void vPumps( void * )
 			WaterBoosterTimeout = 0;
 			WaterBoosterStatus = 1;
 			int32_t i = WaterBoosterCountL * 100 + (WaterBoosterCountLrest - _WaterBoosterCountLrest) * 100 / MC.sFrequency[FLOW].get_kfValue();
+			WaterBoosterCountL = 0;
+			_WaterBoosterCountLrest = WaterBoosterCountLrest;
 			if(History_BoosterCountL == -1) History_BoosterCountL = i; else History_BoosterCountL += i;
 			MC.ChartWaterBoosterCount.addPoint(i);
-			_WaterBoosterCountLrest = WaterBoosterCountLrest;
 		} else if(WaterBoosterStatus > 0) {
 			if(CriticalErrors || (WaterBoosterTimeout >= MC.Option.MinWaterBoostOnTime && press >= MC.sADC[PWATER].get_maxValue())) { // Stopping
 				xWaterBooster_GO_OFF:
@@ -1335,7 +1336,6 @@ void vPumps( void * )
 		} else if(WaterBoosterStatus == -1) {
 			xWaterBooster_OFF:
 			MC.dRelay[RBOOSTER1].set_OFF();
-			WaterBoosterCountL = 0;
 			WaterBoosterTimeout = 0;
 			WaterBoosterStatus = 0;
 		}
