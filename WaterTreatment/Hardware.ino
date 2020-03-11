@@ -414,26 +414,27 @@ int8_t sensorFrequency::Read()
 		sTime = tickCount;
 		if(testMode != NORMAL) {    // В режиме теста
 			Value = testValue;
-			Frequency = Value * kfValue / 360;
-			cnt = 3600 * 1000 / ticks;
-			PassedRest += Value;
-			Passed = PassedRest / cnt;
-			PassedRest %= cnt;
+			cnt = Value * kfValue / 360;
+			Frequency = cnt / 2;
+			PassedRest += cnt / 10 * ticks / 1000;
+			Passed = PassedRest / kfValue;
+			PassedRest %= kfValue;
 		} else {
 			cnt *= 100;
 			PassedRest += cnt;
 			Passed += PassedRest / kfValue;
 			PassedRest %= kfValue;
 			if(ticks == FREQ_BASE_TIME_READ * 1000) {
-				Frequency = cnt * 10;
+				cnt *= 10;
 			} else if(cnt > 858900) { // will overflow u32
-				Frequency = (cnt * 100) / ticks * 100;
+				cnt = (cnt * 100) / ticks * 100;
 			} else {
-				Frequency = (cnt * 10 * 1000) / ticks; // ТЫСЯЧНЫЕ ГЦ время в миллисекундах частота в тысячных герца
+				cnt = (cnt * 10 * 1000) / ticks; // ТЫСЯЧНЫЕ ГЦ время в миллисекундах частота в тысячных герца
 			}
+			Frequency = cnt / 2;
 			//   Value=60.0*Frequency/kfValue/1000.0;               // Frequency/kfValue  литры в минуту а нужны кубы
 			//       Value=((float)Frequency/1000.0)/((float)kfValue/360000.0);          // ЛИТРЫ В ЧАС (ИЛИ ТЫСЯЧНЫЕ КУБА) частота в тысячных, и коэффициент правим
-			Value = Frequency * 360 / kfValue; // ЛИТРЫ В ЧАС (ИЛИ ТЫСЯЧНЫЕ КУБА) частота в тысячных, и коэффициент правим
+			Value = cnt * 360 / kfValue; // ЛИТРЫ В ЧАС (ИЛИ ТЫСЯЧНЫЕ КУБА) частота в тысячных, и коэффициент правим
 		}
 		//journal.jprintfopt("Flow(%d): %d = %d (%d, %d) f: %d\n", ticks, cnt / 100, Value, Passed, PassedRest / 100, Frequency);
 		return 1;

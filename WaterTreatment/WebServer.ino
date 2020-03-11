@@ -744,7 +744,7 @@ xSaveStats:		if((i = MC.save_WorkStats()) == OK)
 				} else _itoa(MC.WorkStats.UsedLastRegenSoftening, strReturn);
 			} else if(strcmp(str, webWS_DaysFromLastRegenSoftening) == 0) _itoa(MC.WorkStats.DaysFromLastRegenSoftening, strReturn); // get_WSRSD
 			else if(strcmp(str, webWS_UsedSinceLastRegenSoftening) == 0) _itoa(MC.WorkStats.UsedSinceLastRegenSoftening + MC.RTC_store.UsedToday, strReturn); // get_WSRSS
-			else if(*str == webWS_UsedDrain) _itoa(MC.WorkStats.UsedDrain, strReturn); // get_WSD
+			else if(*str == webWS_UsedDrain) _dtoa(strReturn, MC.WorkStats.UsedDrain, 1); // get_WSD
 			else if(*str == webWS_UsedTotal) {  // get_WST
 				if(i) MC.WorkStats.UsedTotal = pm * 1000 + 0.0005f; // set_WST=x
 				_dtoa(strReturn, MC.WorkStats.UsedTotal + MC.RTC_store.UsedToday, 3);

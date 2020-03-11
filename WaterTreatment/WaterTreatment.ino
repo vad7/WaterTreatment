@@ -1074,7 +1074,7 @@ void vReadSensor(void *)
 				MC.WorkStats.UsedLastTime = utm;
 			} else {
 				if(MC.dRelay[RDRAIN].get_Relay() || MC.WorkStats.LastDrain + MC.Option.DrainTime + (TIME_READ_SENSOR/1000) >= utm) {
-					MC.WorkStats.UsedDrain += passed;
+					MC.WorkStats.UsedDrain += passed * 10;
 				} else {
 					MC.RTC_store.UsedToday += passed;
 					MC.WorkStats.UsedLastTime = utm;
@@ -1459,9 +1459,12 @@ void vService(void *)
 				TimerDrainingWater--;
 				if(TimerDrainingWater <= 2) {
 					MC.dRelay[RDRAIN].set_OFF();
-					if(TimerDrainingWater == 0 && MC.WorkStats.UsedDrain < MC.Option.MinDrainLiters) {
-						journal.jprintf("Not enough water drained: %d!\n", MC.WorkStats.UsedDrain);
-						set_Error(ERR_FEW_LITERS_DRAIN, (char*)__FUNCTION__);
+					if(TimerDrainingWater == 0) {
+						MC.WorkStats.UsedDrain = (int32_t)MC.WorkStats.UsedDrain - ((int32_t)MC.sFrequency[FLOW].PassedRest - UsedDrainRest) * 10 / MC.sFrequency[FLOW].get_kfValue();
+						if(MC.WorkStats.UsedDrain < MC.Option.MinDrainLiters) {
+							journal.jprintf("Not enough water drained: %.1d!\n", MC.WorkStats.UsedDrain);
+							set_Error(ERR_FEW_LITERS_DRAIN, (char*)__FUNCTION__);
+						}
 					}
 				}
 			}
@@ -1506,6 +1509,7 @@ void vService(void *)
 							MC.WorkStats.LastDrain = rtcSAM3X8.unixtime();
 							TimerDrainingWater = MC.Option.DrainTime;
 							MC.WorkStats.UsedDrain = 0;
+							UsedDrainRest = MC.sFrequency[FLOW].PassedRest;
 							MC.dRelay[RDRAIN].set_ON();
 						}
 					}

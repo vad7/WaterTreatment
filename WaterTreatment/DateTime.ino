@@ -26,11 +26,12 @@ byte packetBuffer[NTP_PACKET_SIZE+1];       // буфер, в котором б�
 // Возвращает код ошибки
 int8_t set_time(void)
 {
-	journal.jprintfopt(" I2C RTC DS3232: %s\n", DecodeTimeDate(TimeToUnixTime(getTime_RtcI2C()),(char*) packetBuffer,3));   // Показать что i2c часы работают - показав текущее время
+	tmElements_t *tm = getTime_RtcI2C();
+	uint32_t t = TimeToUnixTime(tm);
+	journal.jprintfopt(" I2C RTC DS3232: %s\n", DecodeTimeDate(t, (char*)packetBuffer, 3));   // Показать что i2c часы работают - показав текущее время
 	journal.jprintfopt(" Init SAM3x8e RTC\n");
 	rtcSAM3X8.init();                             // Запуск внутренних часов
-	uint32_t t = TimeToUnixTime(getTime_RtcI2C());
-	if(!(MC.get_updateNTP() && set_time_NTP())) { // Обновить время по NTP
+	if(!(MC.get_updateNTP() && tm->Year < 2020 && set_time_NTP())) { // Обновить время по NTP при неверном времени
 		if(t) {
 			rtcSAM3X8.set_clock(t);                // Установить внутренние часы по i2c
 			journal.jprintfopt(" Time updated from I2C RTC: %s %s\n", NowDateToStr(), NowTimeToStr());
@@ -177,10 +178,10 @@ boolean sendNTPpacket(IPAddress &ip)
 boolean set_time_NTP(void)
 {
 	unsigned long secs;
-	boolean flag = false;
+	boolean flag = strlen(MC.get_serverNTP()) == 0;
 	IPAddress ip(0, 0, 0, 0);
-
-	journal.jprintfopt_time("Update time from NTP server: %s\n", MC.get_serverNTP());
+	journal.jprintfopt_time("Update time from NTP server: %s\n", flag ? "NONE" : MC.get_serverNTP());
+	if(flag) return false;
 	//1. Установить адрес  не забываем работаетм через один сокет, опреации строго последовательные,иначе настройки сбиваются
 	WDT_Restart(WDT);                                        // Сбросить вачдог  при ошибке долго ждем
 

@@ -27,7 +27,7 @@ struct type_WorkStats {
 	uint8_t  Header;
 	uint32_t ResetTime;
 	uint32_t LastDrain;				// time
-	uint16_t UsedDrain;				// Liters
+	uint16_t UsedDrain;				// Liters*10
 	uint32_t UsedLastTime;			// time
 	uint32_t UsedTotal;				// Liters
 	uint32_t UsedAverageDay;		// Liters, sum of UsedAverageDayNum
@@ -81,6 +81,7 @@ int16_t  FillingTankLastLevel = 0;	// in 0.01%
 uint32_t TimeFeedPump = 0;	// ms
 uint8_t  NeedSaveWorkStats = 0;
 uint32_t TimerDrainingWater = 0;
+int32_t UsedDrainRest = 0;
 volatile bool NewRegenStatus = false;
 volatile uint32_t RegBackwashTimer = 0;
 uint32_t ResetDUE_countdown = 0;
@@ -138,7 +139,7 @@ struct type_option {
 	uint16_t MinWaterBoostOffTime;	// Минимальное перерыва работы насосной станции,
 	uint16_t MinPumpOnTime;			// мсек, Минимальное время работы дозатора
 	uint16_t MinRegenLiters;		// Тревога, если за регенерацию израсходовано меньше литров
-	uint16_t MinDrainLiters;		// Тревога, если слито (Drain) при сбросе меньше литров
+	uint16_t MinDrainLiters;		// Тревога, если слито (Drain) при сбросе меньше литров*10
 	uint16_t PWM_DryRun;			// Вт, Мощность сухого хода, если ниже во время работы - то стоп
 	uint16_t PWM_Max;				// Вт, Максимальная мощность, если больше во время работы - то стоп
 	uint16_t PWM_StartingTime;		// мсек, Время пуска

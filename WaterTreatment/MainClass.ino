@@ -556,7 +556,7 @@ void MainClass::resetSetting()
 	Option.BackWashFeedPumpMaxFlow = 1700;
 	Option.FloodingDebounceTime = 10;
 	Option.FloodingTimeout = 600;
-	Option.MinDrainLiters = 4;
+	Option.MinDrainLiters = 30;
 	Option.MinPumpOnTime = 1500;
 	Option.MinRegenLiters = 450;
 	Option.MinWaterBoostOnTime = 4000;
@@ -737,7 +737,6 @@ boolean MainClass::set_datetime(char *var, char *c)
 		setDate_RtcI2C(rtcSAM3X8.get_days(), rtcSAM3X8.get_months(), rtcSAM3X8.get_years()); // внешние
 		dTime = rtcSAM3X8.unixtime() - oldTime; // получить изменение времени
 	} else if(strcmp(var, time_NTP) == 0) {
-		if(strlen(c) == 0) return false;                                                 // пустая строка
 		if(strlen(c) > NTP_SERVER_LEN) return false;                                     // слишком длиная строка
 		else {
 			strcpy(DateTime.serverNTP, c);
@@ -808,7 +807,7 @@ boolean MainClass::set_option(char *var, float xx)
    if(strcmp(var,option_MinWaterBoostOnTime)==0){ Option.MinWaterBoostOnTime = x; return true; } else
    if(strcmp(var,option_MinWaterBoostOffTime)==0){ Option.MinWaterBoostOffTime = x; return true; } else
    if(strcmp(var,option_MinRegen)==0)        { Option.MinRegenLiters = x; return true; } else
-   if(strcmp(var,option_MinDrain)==0)        { Option.MinDrainLiters = x; return true; } else
+   if(strcmp(var,option_MinDrain)==0)        { Option.MinDrainLiters = rd(xx, 10); return true; } else
    if(strcmp(var,option_DrainAfterNoConsume)==0){ Option.DrainAfterNoConsume = x * 60 * 60; return true; } else
    if(strcmp(var,option_DrainTime)==0)       { Option.DrainTime = x; return true; } else
    if(strcmp(var,option_PWM_LOG_ERR)==0)     { Option.flags = (Option.flags & ~(1<<fPWMLogErrors)) | ((x!=0)<<fPWMLogErrors); return true; } else
@@ -856,7 +855,7 @@ char* MainClass::get_option(char *var, char *ret)
    if(strcmp(var,option_MinWaterBoostOnTime)==0){ return _itoa((uint32_t)Option.MinWaterBoostOnTime, ret); } else
    if(strcmp(var,option_MinWaterBoostOffTime)==0){ return _itoa((uint32_t)Option.MinWaterBoostOffTime, ret); } else
    if(strcmp(var,option_MinRegen)==0){ return _itoa(Option.MinRegenLiters, ret); } else
-   if(strcmp(var,option_MinDrain)==0){ return _itoa(Option.MinDrainLiters, ret); } else
+   if(strcmp(var,option_MinDrain)==0){ _dtoa(ret, Option.MinDrainLiters, 1); return ret; } else
    if(strcmp(var,option_DrainAfterNoConsume)==0){ return _itoa(Option.DrainAfterNoConsume / (60 * 60), ret); } else
    if(strcmp(var,option_DrainTime)==0){ return _itoa(Option.DrainTime, ret); } else
    if(strcmp(var,option_PWM_LOG_ERR)==0){ return strcat(ret, (char*)(GETBIT(Option.flags, fPWMLogErrors) ? cOne : cZero)); } else
