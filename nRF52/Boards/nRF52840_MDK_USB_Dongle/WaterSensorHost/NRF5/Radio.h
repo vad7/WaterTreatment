@@ -22,6 +22,8 @@
 #ifndef __NRF_RADIO_H__
 #define __NRF_RADIO_H__
 
+#include "defines.h"
+
 #if !defined(ARDUINO_ARCH_NRF5)
 #error "NRF5 Radio is not supported for this platform."
 #endif

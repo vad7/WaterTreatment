@@ -16,6 +16,11 @@
   License along with this library; if not, write to the Free Software
   Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
+
+// vad7
+#ifndef Flash_h
+#define Flash_h
+
 #include "Flash.h"
 #include <nrf.h>
 
@@ -163,3 +168,5 @@ void FlashClass::wait_for_ready()
 	while (NRF_NVMC->READY == NVMC_READY_READY_Busy) {
 	};
 }
+
+#endif

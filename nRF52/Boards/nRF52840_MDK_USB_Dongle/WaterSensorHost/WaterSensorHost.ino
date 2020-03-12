@@ -1,31 +1,25 @@
 #include "Arduino.h"
-#define NRF5
-#define NRF52840
-#include "nrf.h"
-#include "nrf_radio.h"
+
+//#include "nrf.h"
+//#include "nrf_radio.h"
 //#ifdef ARDUINO_ARCH_NRF52
 //#define ARDUINO_ARCH_NRF52
 //#endif
-#define MY_WAKE_UP_BY_TIMER			((int8_t)-1)		//!< Sleeping wake up by timer
-#define MY_SLEEP_NOT_POSSIBLE		((int8_t)-2)		//!< Sleeping not possible
-#define INTERRUPT_NOT_DEFINED		((uint8_t)255)	//!< _sleep() param: no interrupt defined
-#define MODE_NOT_DEFINED				((uint8_t)255)	//!< _sleep() param: no mode defined
-#define VALUE_NOT_DEFINED				((uint8_t)255)	//!< Value not defined
-#define FUNCTION_NOT_SUPPORTED	((uint16_t)0)		//!< Function not supported
-
+//
+#include "defines.h"
 #include "NRF5\MyConfig.h"
-#include "NRF5\MyHwHAL.h"
-//#include "NRF5\MyHwHAL.cpp"
-#include "NRF5\Radio.h"
-//#include "NRF5\Radio.cpp"
 #include "NRF5\MyHwNRF5.h"
-#include "NRF5\MyHwNRF5.cpp"
-#include "NRF5\Radio_ESB.h"
+#include "NRF5\MyHwHAL.h"
+//#include "NRF5\NVRAM.h"
+//#include "NRF5\MyHwHAL.cpp"
+//#include "NRF5\Radio.h"
+//#include "NRF5\Radio.cpp"
+//#include "NRF5\MyHwNRF5.cpp"
+//#include "NRF5\Radio_ESB.h"
 //#include "NRF5\Radio_ESB.cpp"
-#include "NRF5\MyTransportNRF5_ESB.cpp"
-#include "NRF5\MyMainNRF5.cpp"
+//#include "NRF5\MyTransportNRF5_ESB.cpp"
 
-
+/*
 int main(void)
 {
 	init();
@@ -44,7 +38,7 @@ int main(void)
 	}
 	return 0;
 }
-
+*/
 
 
 /*

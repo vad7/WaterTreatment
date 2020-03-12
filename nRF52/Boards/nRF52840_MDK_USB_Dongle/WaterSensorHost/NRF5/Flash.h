@@ -29,6 +29,7 @@
 
 #include <Arduino.h>
 #include <stdio.h> // for size_t
+#include "..\defines.h"
 
 /*
  * Define characteristics of Flash
@@ -59,6 +60,13 @@
 #define FLASH_SUPPORTS_RANDOM_WRITE true
 #define FLASH_WRITES_PER_WORD 2
 #define FLASH_WRITES_PER_PAGE 512
+#elif defined(NRF52840) // [vad7] move up
+#define FLASH_ERASE_CYCLES 10000
+#define FLASH_PAGE_SIZE 4096
+#define FLASH_ERASE_PAGE_TIME 90
+#define FLASH_SUPPORTS_RANDOM_WRITE true
+#define FLASH_WRITES_PER_WORD 2
+#define FLASH_WRITES_PER_PAGE 403
 #elif defined(NRF52)
 #define FLASH_ERASE_CYCLES 10000
 #define FLASH_PAGE_SIZE 4096
@@ -66,13 +74,6 @@
 #define FLASH_SUPPORTS_RANDOM_WRITE true
 #define FLASH_WRITES_PER_WORD 32
 #define FLASH_WRITES_PER_PAGE 181
-#elif defined(NRF52840)
-#define FLASH_ERASE_CYCLES 10000
-#define FLASH_PAGE_SIZE 4096
-#define FLASH_ERASE_PAGE_TIME 90
-#define FLASH_SUPPORTS_RANDOM_WRITE true
-#define FLASH_WRITES_PER_WORD 2
-#define FLASH_WRITES_PER_PAGE 403
 #else
 #define FLASH_ERASE_CYCLES 10000 //!< FLASH_ERASE_CYCLES
 #define FLASH_PAGE_SIZE 4096 //!< FLASH_PAGE_SIZE

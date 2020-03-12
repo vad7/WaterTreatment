@@ -26,6 +26,12 @@
 #ifndef MyHwHAL_h
 #define MyHwHAL_h
 
+//#include "stdint.h"
+#include "stdio.h"
+#include "stdarg.h"
+#include "..\defines.h"
+#include "MyHwNRF5.h"
+
 /**
 * @def INVALID_INTERRUPT_NUM
 * @brief Invalid interrupt
