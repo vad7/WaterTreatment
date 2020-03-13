@@ -26,6 +26,7 @@
 
 #ifndef CircularBuffer_h
 #define CircularBuffer_h
+#include "..\defines.h"
 
 /**
  * The circular buffer class.

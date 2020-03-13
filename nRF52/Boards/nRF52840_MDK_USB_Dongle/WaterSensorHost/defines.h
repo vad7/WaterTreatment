@@ -1,9 +1,12 @@
 #define NRF5
 #define NRF52840
+#define ARDUINO_ARCH_NRF5
 
 #define RADIO_MODE_MODE_Nrf_250Kbit (2UL) /*!< Deprecated enumerator -  250 kbit/s Nordic proprietary radio mode */
 #define MY_SERIAL_OUTPUT_SIZE (120u)
+#define MY_BAUD_RATE (115200ul)
 
+#include "NRF5\MyHwNRF5.h"
 
 // From MySensorsCore.h
 #define MY_WAKE_UP_BY_TIMER			((int8_t)-1)		//!< Sleeping wake up by timer
@@ -47,5 +50,7 @@
 #define INVALID_RSSI        ((int16_t)-256)	//!< INVALID_RSSI
 #define INVALID_PERCENT     ((int16_t)-100)	//!< INVALID_PERCENT
 #define INVALID_LEVEL       ((int16_t)-256)	//!< INVALID_LEVEL
+
+#define BROADCAST_ADDRESS			(255u)			//!< broadcasts are addressed to ID 255
 
 // ------------------------

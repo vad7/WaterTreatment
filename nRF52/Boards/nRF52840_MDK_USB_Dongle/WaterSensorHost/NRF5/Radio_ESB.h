@@ -24,6 +24,7 @@
 
 #include "Radio.h"
 #include <Arduino.h>
+#include "MyConfig.h"
 
 // Check maximum message length
 #if MAX_MESSAGE_SIZE > (32)

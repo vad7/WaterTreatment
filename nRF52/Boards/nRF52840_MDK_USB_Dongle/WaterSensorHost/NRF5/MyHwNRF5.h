@@ -48,11 +48,11 @@
 #define ARDUINO_ARCH_NRF5
 #endif
 
-#include "nrf5_wiring_digital.c"
+//#include "nrf5_wiring_digital.c"
 #include "wdt.h"
 #include "nrf_temp.h"
-#include "NVRAM.cpp"
-#include "VirtualPage.cpp"
+//#include "NVRAM.cpp"
+//#include "VirtualPage.cpp"
 #include <avr/dtostrf.h>
 #include <nrf.h>
 #include <SPI.h>
@@ -204,5 +204,176 @@ typedef struct {
 #else
 #define MY_CRITICAL_SECTION
 #endif /* DOXYGEN || CPPCHECK */
+
+
+
+
+// MyHwHAL.h
+
+/**
+* @def INVALID_INTERRUPT_NUM
+* @brief Invalid interrupt
+*/
+#define INVALID_INTERRUPT_NUM	(0xFFu)
+
+/**
+* @def MY_HWID_PADDING_BYTE
+* @brief HwID padding byte
+*/
+#define MY_HWID_PADDING_BYTE	(0xAAu)
+
+/**
+* @def IRQ_HANDLER_ATTR
+* @brief ESP8266/ESP32 IRQ handlers need to be stored in IRAM
+*/
+#if defined(ARDUINO_ARCH_ESP8266) || defined(ARDUINO_ARCH_ESP32)
+#define IRQ_HANDLER_ATTR ICACHE_RAM_ATTR
+#else
+#define IRQ_HANDLER_ATTR
+#endif
+
+// Implement these as functions or macros
+/*
+#define hwInit() MY_SERIALDEVICE.begin(BAUD_RATE)
+#define hwWatchdogReset() wdt_reset()
+#define hwReboot() wdt_enable(WDTO_15MS); while (1)
+#define hwMillis() millis()
+
+#define hwDigitalWrite(__pin, __value)
+#define hwDigitalRead(__pin)
+#define hwPinMode(__pin, __value)
+
+void hwReadConfigBlock(void *buf, void *addr, size_t length);
+void hwWriteConfigBlock(void *buf, void *addr, size_t length);
+void hwWriteConfig(const int addr, uint8_t value);
+uint8_t hwReadConfig(const int addr);
+*/
+
+/**
+ * @def MY_HW_HAS_GETENTROPY
+ * @brief Define this, if hwGetentropy is implemented
+ *
+ * ssize_t hwGetentropy(void *__buffer, size_t __length);
+ */
+//#define MY_HW_HAS_GETENTROPY
+
+/// @brief unique ID
+typedef uint8_t unique_id_t[16];
+
+void hwSleep(void); // vad7
+
+/**
+ * Sleep for a defined time, using minimum power.
+ * @param ms         Time to sleep, in [ms].
+ * @return MY_WAKE_UP_BY_TIMER.
+ */
+int8_t hwSleep(uint32_t ms);
+
+/**
+ * Sleep for a defined time, using minimum power, or until woken by interrupt.
+ * @param interrupt  Interrupt number, which can wake the mcu from sleep.
+ * @param mode       Interrupt mode, as passed to attachInterrupt.
+ * @param ms         Time to sleep, in [ms].
+ * @return MY_WAKE_UP_BY_TIMER when woken by timer, or interrupt number when woken by interrupt.
+ */
+int8_t hwSleep(const uint8_t interrupt, const uint8_t mode, uint32_t ms);
+
+/**
+ * Sleep for a defined time, using minimum power, or until woken by one of the interrupts.
+ * @param interrupt1  Interrupt1 number, which can wake the mcu from sleep.
+ * @param mode1       Interrupt1 mode, as passed to attachInterrupt.
+ * @param interrupt2  Interrupt2 number, which can wake the mcu from sleep.
+ * @param mode2       Interrupt2 mode, as passed to attachInterrupt.
+ * @param ms          Time to sleep, in [ms].
+ * @return MY_WAKE_UP_BY_TIMER when woken by timer, or interrupt number when woken by interrupt.
+ */
+int8_t hwSleep(const uint8_t interrupt1, const uint8_t mode1, const uint8_t interrupt2,
+               const  uint8_t mode2,
+               uint32_t ms);
+
+/**
+* Retrieve unique hardware ID
+* @param uniqueID unique ID
+* @return True if unique ID successfully retrieved
+*/
+bool hwUniqueID(unique_id_t *uniqueID);
+
+/**
+ * CPU voltage
+ * @return CPU voltage in mV
+ */
+uint16_t hwCPUVoltage(void);
+
+/**
+ * CPU frequency
+ * @return CPU frequency in 1/10Mhz
+ */
+uint16_t hwCPUFrequency(void);
+
+/**
+ * CPU temperature (if available)
+ * Adjust calibration parameters via MY_<ARCH>_TEMPERATURE_OFFSET and MY_<ARCH>_TEMPERATURE_GAIN
+ * @return CPU temperature in °C, -127 if not available
+ */
+int8_t hwCPUTemperature(void);
+
+/**
+ * Report free memory (if function available)
+ * @return free memory in bytes
+ */
+uint16_t hwFreeMem(void);
+
+#if defined(DEBUG_OUTPUT_ENABLED)
+/**
+ * Debug print
+ * @param fmt
+ */
+void hwDebugPrint(const char *fmt, ...);
+/**
+ * Convert buffer to hex string
+ * @param buf
+ * @param sz
+ */
+static void hwDebugBuf2Str(const uint8_t *buf, size_t sz) __attribute__((unused));
+#endif
+
+/**
+ * @def MY_CRITICAL_SECTION
+ * @brief Creates a block of code that is guaranteed to be executed atomically.
+ * Upon entering the block all interrupts are disabled, and re-enabled upon
+ * exiting the block from any exit path.
+ * A typical example that requires atomic access is a 16 (or more) bit variable
+ * that is shared between the main execution path and an ISR, on an 8-bit
+ * platform (e.g AVR):
+ * @code
+ * volatile uint16_t val = 0;
+ *
+ * void interrupHandler()
+ * {
+ *   val = ~val;
+ * }
+ *
+ * void loop()
+ * {
+ *   uint16_t copy_val;
+ *   MY_CRITICAL_SECTION
+ *   {
+ *     copy_val = val;
+ *   }
+ * }
+ * @endcode
+ * All code within the MY_CRITICAL_SECTION block will be protected from being
+ * interrupted during execution.
+ */
+#ifdef DOXYGEN
+#define MY_CRITICAL_SECTION
+#define MY_HW_HAS_GETENTROPY
+#endif  /* DOXYGEN */
+
+
+
+
+void hwSleep(void); // vad7
+
 
 #endif // #ifndef MyHwNRF5_h

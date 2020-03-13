@@ -20,7 +20,10 @@
  * version 2 as published by the Free Software Foundation.
  */
 
+
+#include "..\defines.h"
 #include "MyHwNRF5.h"
+#include "NVRAM.h"
 
 volatile uint8_t _wokeUpByInterrupt = INVALID_INTERRUPT_NUM; // Interrupt number that woke the mcu.
 volatile uint8_t _wakeUp1Interrupt =
@@ -255,13 +258,13 @@ void hwSleepPrepare(uint32_t ms)
 			// Set compare register to 1/30.517 µs to guarantee event triggering
 			// A minimum of 2 ticks must be guaranteed
 			// (1000/32768)<<12 == 125
-			MY_HW_RTC->CC[0] = max(((ms << 12) / 125), 2);
+			MY_HW_RTC->CC[0] = max(((ms << 12) / 125), 2UL);
 		} else {
 			// 8 Hz -> max 582.542 hours sleep.
 			MY_HW_RTC->PRESCALER = 4095;
 			// Set compare register to 1/125ms
 			// A minimum of 2 ticks must be guaranteed
-			MY_HW_RTC->CC[0] = max((ms / 125), 2);
+			MY_HW_RTC->CC[0] = max((ms / 125), 2UL);
 		}
 
 		MY_HW_RTC->INTENSET = RTC_INTENSET_COMPARE0_Msk;
@@ -470,7 +473,7 @@ uint16_t hwCPUVoltage(void)
 #elif defined(NRF_SAADC)
 	// NRF52:
 	// Sampling time 3uS@700uA
-	int32_t sample;
+	int32_t sample = 0;
 	NRF_SAADC->ENABLE = SAADC_ENABLE_ENABLE_Enabled << SAADC_ENABLE_ENABLE_Pos;
 	NRF_SAADC->RESOLUTION = SAADC_RESOLUTION_VAL_8bit << SAADC_RESOLUTION_VAL_Pos;
 	NRF_SAADC->CH[0].PSELP = SAADC_CH_PSELP_PSELP_VDD << SAADC_CH_PSELP_PSELP_Pos;
@@ -531,3 +534,57 @@ uint16_t hwFreeMem(void)
 	// TODO: Not supported!
 	return FUNCTION_NOT_SUPPORTED;
 }
+
+// MyHwHAL.cpp
+
+void hwDebugPrint(const char *fmt, ...)
+{
+#ifndef MY_DISABLED_SERIAL
+#if !defined(__linux__)
+	char fmtBuffer[MY_SERIAL_OUTPUT_SIZE];
+#ifdef MY_GATEWAY_SERIAL
+	// prepend debug message to be handled correctly by controller (C_INTERNAL, I_LOG_MESSAGE)
+	snprintf_P(fmtBuffer, sizeof(fmtBuffer), PSTR("0;255;%" PRIu8 ";0;%" PRIu8 ";"), C_INTERNAL,
+	           I_LOG_MESSAGE);
+	MY_DEBUGDEVICE.print(fmtBuffer);
+#endif
+	// prepend timestamp
+	MY_DEBUGDEVICE.print(hwMillis());
+	MY_DEBUGDEVICE.print(" ");
+	va_list args;
+	va_start(args, fmt);
+	vsnprintf_P(fmtBuffer, sizeof(fmtBuffer), fmt, args);
+#ifdef MY_GATEWAY_SERIAL
+	// Truncate message if this is gateway node
+	fmtBuffer[sizeof(fmtBuffer) - 2] = '\n';
+	fmtBuffer[sizeof(fmtBuffer) - 1] = '\0';
+#endif
+	va_end(args);
+	MY_DEBUGDEVICE.print(fmtBuffer);
+	MY_DEBUGDEVICE.flush();
+#else
+	va_list args;
+	va_start(args, fmt);
+	vlogDebug(fmt, args);
+	va_end(args);
+#endif
+#else
+	(void)fmt;
+#endif
+}
+
+#if defined(DEBUG_OUTPUT_ENABLED)
+static char hwDebugPrintStr[65];
+static void hwDebugBuf2Str(const uint8_t *buf, size_t sz)
+{
+	if (sz > 32) {
+		sz = 32; //clamp to 32 bytes
+	}
+	for (uint8_t i = 0; i < sz; i++) {
+		hwDebugPrintStr[i * 2] = convertI2H(buf[i] >> 4);
+		hwDebugPrintStr[(i * 2) + 1] = convertI2H(buf[i]);
+	}
+	hwDebugPrintStr[sz * 2] = '\0';
+}
+#endif
+

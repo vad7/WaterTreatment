@@ -170,10 +170,10 @@ private:
 extern FlashClass Flash; //!< extern FlashClass
 
 /** Load Hardwarespecific files */
-#ifdef NRF5
-#include "Flash.cpp"
-#else
-#error "Unsupported platform."
-#endif
+//#ifdef NRF5
+//#include "Flash.cpp"
+//#else
+//#error "Unsupported platform."
+//#endif
 
 /** @} */

@@ -17,6 +17,7 @@
   Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 #include "NVRAM.h"
+#include "Flash.h"
 
 // VirtualPage magic
 #define NVRAM_MAGIC (0x7710fdb9)

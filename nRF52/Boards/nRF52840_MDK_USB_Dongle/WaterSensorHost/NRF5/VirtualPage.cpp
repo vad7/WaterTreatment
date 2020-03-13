@@ -18,6 +18,8 @@
 */
 
 #include "VirtualPage.h"
+#include "Flash.h"
+
 
 VirtualPageClass VirtualPage;
 

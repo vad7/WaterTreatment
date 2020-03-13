@@ -8,9 +8,10 @@
 //
 #include "defines.h"
 #include "NRF5\MyConfig.h"
-#include "NRF5\MyHwNRF5.h"
-#include "NRF5\MyHwHAL.h"
+
 //#include "NRF5\NVRAM.h"
+//#include "NRF5\NVRAM.cpp"
+
 //#include "NRF5\MyHwHAL.cpp"
 //#include "NRF5\Radio.h"
 //#include "NRF5\Radio.cpp"
@@ -18,6 +19,18 @@
 //#include "NRF5\Radio_ESB.h"
 //#include "NRF5\Radio_ESB.cpp"
 //#include "NRF5\MyTransportNRF5_ESB.cpp"
+
+void setup()
+{
+
+}
+
+void loop()
+{
+
+
+}
+
 
 /*
 int main(void)
