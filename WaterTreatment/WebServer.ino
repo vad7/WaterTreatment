@@ -33,16 +33,6 @@ extern void  get_txtJournal(uint8_t thread);
 extern void  get_datTest(uint8_t thread);
 extern void  get_indexNoSD(uint8_t thread);
 
-
-// Названия режимов теста
-const char *noteTestMode[] =   {"NORMAL","SAFE_TEST","TEST","HARD_TEST"};
-// Описание режима теста
-static const char *noteRemarkTest[] = {"Тестирование отключено, основной режим работы.",
-                                       "Значения датчиков берутся из полей 'Тест', работа исполнительных устройств эмулируется - Безопасно.",
-                                       "Значения датчиков берутся из полей 'Тест', исполнительные устройства работают за исключением компрессора (FC и RCOMP) - Почти безопасно.",
-                                       "Значения датчиков берутся из полей 'Тест', все исполнительные устройства работают. Внимание! Может быть поврежден компрессор!"};
-                               
-                               
 const char* file_types[] = {"text/html", "image/x-icon", "text/css", "application/javascript", "image/jpeg", "image/png", "image/gif", "text/plain", "text/ajax"};
 
 const char header_Authorization_1[] = "Authorization: Basic ";
@@ -655,7 +645,7 @@ void parserGET(uint8_t thread)
 			{
 			case NORMAL:    strcat(strReturn,noteRemarkTest[0]);     break; //  Режим работа не тст, все включаем
 			case SAFE_TEST: strcat(strReturn,noteRemarkTest[1]);     break; //  Ничего не включаем
-			case TEST:      strcat(strReturn,noteRemarkTest[2]);     break; //  Включаем все кроме компрессора
+			case STAT_TEST:      strcat(strReturn,noteRemarkTest[2]);     break; //  Включаем все кроме компрессора
 			case HARD_TEST: strcat(strReturn,noteRemarkTest[3]);     break; //  Все включаем и компрессор тоже
 			}
 			ADD_WEBDELIM(strReturn) ;    continue;

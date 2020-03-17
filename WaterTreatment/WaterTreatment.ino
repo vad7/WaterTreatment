@@ -199,6 +199,7 @@ void setup() {
 	//
 	// Борьба с зависшими устройствами на шине  I2C (в первую очередь часы) неудачный сброс
 	Recover_I2C_bus();
+	delay(1);
 
 	// 2. Инициализация журнала и в нем последовательный порт
 	journal.Init();
@@ -1376,7 +1377,10 @@ void vPumps( void * )
 				if(MC.Option.FillingTankTimeout) {
 					if(WaterBoosterStatus == 0 && TimerDrainingWater == 0) { // No water consuming
 						if(GetTickCount() - FillingTankTimer >= (uint32_t) MC.Option.FillingTankTimeout * 1000) {
-							if(FillingTankLastLevel + FILLING_TANK_STEP > MC.sADC[LTANK].get_Value()) vPumpsNewError = ERR_TANK_NO_FILLING;
+							if(MC.sADC[LTANK].get_Value() - FillingTankLastLevel < FILLING_TANK_STEP) {
+								vPumpsNewErrorData = MC.sADC[LTANK].get_Value() - FillingTankLastLevel;
+								vPumpsNewError = ERR_TANK_NO_FILLING;
+							}
 							FillingTankLastLevel = MC.sADC[LTANK].get_Value();
 							FillingTankTimer = GetTickCount();
 						}
@@ -1436,6 +1440,7 @@ void vService(void *)
 	{
 		if(vPumpsNewError != 0) {
 			set_Error(vPumpsNewError, (char*)"vPumps");
+			if(vPumpsNewError == ERR_TANK_NO_FILLING) journal.jprintf_time(" FILLING %d sec = +%.2d%%!\n", MC.Option.FillingTankTimeout, vPumpsNewErrorData);
 			vPumpsNewError = 0;
 		}
 		register TickType_t t = xTaskGetTickCount();

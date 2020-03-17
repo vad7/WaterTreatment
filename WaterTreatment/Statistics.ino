@@ -314,7 +314,7 @@ void Statistics::CheckCreateNewFile()
 void Statistics::Reset()
 {
 #ifndef TEST_BOARD
-	if(MC.get_testMode() != NORMAL) return;
+	if(MC.get_testMode() > STAT_TEST) return;
 #endif
 	for(uint8_t i = 0; i < sizeof(Stats_data) / sizeof(Stats_data[0]); i++) {
 		switch(Stats_data[i].type){
@@ -337,10 +337,10 @@ void Statistics::Reset()
 // Обновить статистику, вызывается часто, раз в TIME_READ_SENSOR
 void Statistics::Update()
 {
-	if(NewYearFlag) return; // waiting to switch a next year
 #ifndef TEST_BOARD
-	if(MC.get_testMode() != NORMAL) return;
+	if(MC.get_testMode() > STAT_TEST) return;
 #endif
+	if(NewYearFlag) return; // waiting to switch a next year
 	uint32_t tm = GetTickCount() - previous;
 	previous = GetTickCount();
 	if(rtcSAM3X8.get_days() != day) {
@@ -418,7 +418,7 @@ void Statistics::History()
 {
 	if(!GETBIT(MC.Option.flags, fHistory)
 #ifndef TEST_BOARD
-//			|| MC.get_testMode() != NORMAL
+			|| MC.get_testMode() > STAT_TEST
 #endif
 		) return;
 	uint16_t y = rtcSAM3X8.get_years();
@@ -906,6 +906,9 @@ int8_t Statistics::SaveStats(uint8_t newday)
 #ifdef STATS_DO_NOT_SAVE
 	return OK;
 #endif
+#ifndef TEST_BOARD
+	if(MC.get_testMode() > STAT_TEST) return OK;
+#endif
 	if(!MC.get_fSD() || CurrentBlock == 0) return OK;
 	char *rbuf = (char*) malloc(STATS_MAX_RECORD_LEN);
 	if(rbuf == NULL) {
@@ -971,6 +974,9 @@ int8_t Statistics::SaveHistory(uint8_t from_web)
 {
 #ifdef STATS_DO_NOT_SAVE
 	return OK;
+#endif
+#ifndef TEST_BOARD
+	if(MC.get_testMode() > STAT_TEST) return OK;
 #endif
 	if(!GETBIT(MC.Option.flags, fHistory) || !MC.get_fSD() || HistoryCurrentBlock == 0) return OK;
 	//journal.jprintfopt("SaveHistory(%d)\n", from_web);

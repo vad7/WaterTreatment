@@ -886,6 +886,9 @@ __attribute__((always_inline)) inline void setDate_RtcI2C(uint8_t date, uint8_t 
 // Return 0 - when success
 uint8_t update_RTC_store_memory(void)
 {
+#ifndef TEST_BOARD
+	if(MC.get_testMode() > STAT_TEST) return 0;
+#endif
 	if(SemaphoreTake(xI2CSemaphore, I2C_TIME_WAIT / portTICK_PERIOD_MS) == pdFALSE) {  // Если шедулер запущен то захватываем семафор
 		journal.jprintfopt((char*) cErrorMutex, __FUNCTION__, MutexI2CBuzy);
 		return 7;

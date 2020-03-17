@@ -408,23 +408,17 @@ void Journal::_write(char *dataPtr)
 // ---------------------------------------------------------------------------------
 
  // Инициализация
-void statChart::init(boolean pres)
+void statChart::init()
 {
-	err = OK;
-	present = pres;                                 // наличие статистики - зависит от конфигурации
 	pos = 0;                                        // текущая позиция для записи
 	num = 0;                                        // число накопленных точек
 	flagFULL = false;                               // false в буфере менее CHART_POINT точек
-	if(pres)                                     // отводим память если используем статистику
-	{
-		data = (int16_t*) malloc(sizeof(int16_t) * CHART_POINT);
-		if(data == NULL) {
-			err = ERR_OUT_OF_MEMORY;
-			set_Error(err, (char*) __FUNCTION__);
-			return;
-		}
-		memset(data, 0, sizeof(int16_t) * CHART_POINT);
+	data = (int16_t*) malloc(sizeof(int16_t) * CHART_POINT);
+	if(data == NULL) {
+		set_Error(ERR_OUT_OF_MEMORY, (char*) __FUNCTION__);
+		return;
 	}
+	memset(data, 0, sizeof(int16_t) * CHART_POINT);
 }
 
 // Очистить статистику
@@ -439,7 +433,6 @@ void statChart::clear()
 // добавить точку в массиве
 void statChart::addPoint(int16_t y)
 {
-	if(!present) return;
 	data[pos] = y;
 	if(pos < CHART_POINT - 1) pos++;
 	else {
@@ -452,18 +445,15 @@ void statChart::addPoint(int16_t y)
 // получить точку нумерация 0-самая новая CHART_POINT-1 - самая старая, (работает кольцевой буфер)
 inline int16_t statChart::get_Point(uint16_t x)
 {
- if (!present) return 0; 
- if (!flagFULL) return data[x];
- else 
- {
-    if ((pos+x)<CHART_POINT) return data[pos+x];else return data[pos+x-CHART_POINT];
- }
+	if(!flagFULL) return data[x];
+	else {
+		if((pos + x) < CHART_POINT) return data[pos + x]; else return data[pos + x - CHART_POINT];
+	}
 }
 
 // БИНАРНЫЕ данные по маске: получить точку нумерация 0-самая старая CHART_POINT - самая новая, (работает кольцевой буфер)
 boolean statChart::get_boolPoint(uint16_t x,uint16_t mask)  
 { 
- if (!present) return 0; 
  if (!flagFULL) return data[x]&mask?true:false;
  else 
  {
@@ -476,7 +466,7 @@ boolean statChart::get_boolPoint(uint16_t x,uint16_t mask)
 // строка не обнуляется перед записью
 void statChart::get_PointsStrDiv100(char *&b)
 {
-	if((!present) || (num == 0)) {
+	if((num == 0)) {
 		//strcat(b, ";");
 		return;
 	}
@@ -488,11 +478,28 @@ void statChart::get_PointsStrDiv100(char *&b)
 	}
 }
 
+// получить строку в которой перечислены все точки в строковом виде через; при этом значения делятся на 100
+// строка не обнуляется перед записью
+void statChart::get_PointsStrUintDiv100(char *&b)
+{
+	if((num == 0)) {
+		//strcat(b, ";");
+		return;
+	}
+	b += m_strlen(b);
+	for(uint16_t i = 0; i < num; i++) {
+		b = dptoa(b, (uint16_t)get_Point(i), 2);
+		*b++ = ';';
+		*b = '\0';
+	}
+}
+
+
 // получить строку в которой перечислены все точки в строковом виде через;
 // строка не обнуляется перед записью
 void statChart::get_PointsStr(char *&b)
 {
-	if((!present) || (num == 0)) {
+	if((num == 0)) {
 		//strcat(b, ";");
 		return;
 	}
@@ -506,7 +513,7 @@ void statChart::get_PointsStr(char *&b)
 
 void statChart::get_PointsStrSubDiv100(char *&b, statChart *sChart)
 {
-	if(!present || num == 0 || !sChart->get_present() || sChart->get_num() == 0) {
+	if(num == 0 || sChart->get_num() == 0) {
 		//strcat(b, ";");
 		return;
 	}
@@ -520,7 +527,7 @@ void statChart::get_PointsStrSubDiv100(char *&b, statChart *sChart)
 // Расчитать мощность на лету используется для графика потока, передаются указатели на графики температуры + теплоемкость
 void statChart::get_PointsStrPower(char *&b, statChart *inChart, statChart *outChart, uint16_t Capacity)
 {
-	if(!present || num == 0 || !inChart->get_present() || inChart->get_num() == 0 || !outChart->get_present() || outChart->get_num() == 0) {
+	if(num == 0 || inChart->get_num() == 0 || outChart->get_num() == 0) {
 		//strcat(b, ";");
 		return;
 	}

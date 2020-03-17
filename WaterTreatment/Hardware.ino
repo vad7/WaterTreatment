@@ -166,7 +166,7 @@ void sensorADC::initSensorADC(uint8_t sensor, uint8_t pinA, uint16_t filter_size
 #ifdef ANALOG_MODBUS
 	flags |= (ANALOG_MODBUS_ADDR[sensor] != 0)<<fsensModbus;  // Дистанционный датчик по модбас
 #endif
-	Chart.init(SENSORPRESS[sensor]);  			// инициалазация статистики
+	Chart.init();  			// инициалазация статистики
 	err = OK;                                     // ошибка датчика (работа)
 	Value = ERROR_PRESS;                      // давление датчика (обработанное)
 	//Temp = ERROR_TEMPERATURE;
@@ -373,7 +373,7 @@ void sensorFrequency::initFrequency(int sensor)
    pin=pinsFrequency[sensor];                     // Ножка куда прицеплен датчик
    note=(char*)noteFrequency[sensor];             // наименование датчика
    name=(char*)nameFrequency[sensor];             // Имя датчика
-   Chart.init(true);                              // инициалазация статистики
+   Chart.init();                              // инициалазация статистики
    reset();
    // Привязывание обработчика преваний к методу конкретного класса
    //   LOW вызывает прерывание, когда на порту LOW
@@ -551,8 +551,8 @@ int8_t devPWM::initPWM()
 
 	SETBIT1(flags, fPWM);                           // счетчик представлен
 	// инициализация статистики
-	ChartVoltage.init(GETBIT(flags,fPWM));               // Статистика по напряжению
-	ChartPower.init(GETBIT(flags, fPWM));                 // Статистика по Полная мощность
+	ChartVoltage.init();               // Статистика по напряжению
+	ChartPower.init();                 // Статистика по Полная мощность
 	return err;
 }
 

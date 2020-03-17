@@ -62,6 +62,7 @@ struct type_RTC_memory { // DS3231/DS3232 used alarm memory, starts from 0x07, m
 #define	ERRC_TankEmpty		0x04
 #define	ERRC_WeightLow		0x08
 volatile uint32_t CriticalErrors = 0;	// Stop any work when these errors have occurred
+int32_t  vPumpsNewErrorData = 0;
 int8_t   vPumpsNewError = 0;
 int8_t   Errors[16] = { 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0 };// Active Errors array
 uint32_t ErrorsTime[16];
@@ -351,7 +352,7 @@ public:
 	// функции для работой с графикками
 	uint16_t get_tChart(){return Option.tChart;}           // Получить время накопления ститистики в секундах
 	void updateChart();                                    // обновить графики
-	void startChart();                                     // Запустить графики
+	void clearChart();                                     // Запустить графики
 	char * get_listChart(char* str);				       // получить список доступных графиков
 	void get_Chart(char *var,char* str);   				   // получить данные графика
 

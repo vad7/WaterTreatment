@@ -413,9 +413,9 @@ struct History_setup {
 											 1	// A6(D60), INA4-20_1.2 - (+12V)-красный, INA4-20_1.1 - (-12V)-черный.
 										};
 	// Коэффициент преобразования отсчеты АЦП-давление, тысячные
-	const uint16_t TRANsADC[ANUMBER]  = { 354, 4212 };
+	const uint16_t TRANsADC[ANUMBER]  = { 446, 4212 };
 	// напряжение (отсчеты АЦП) соответсвующее cZero
-	const uint16_t ZEROPRESS[ANUMBER] = { 287, 4128 };
+	const uint16_t ZEROPRESS[ANUMBER] = { 410, 4128 };
 	// Усиление на шине (0,1 = x1, 2 = x2, 3 = x4)
 	const uint8_t  ADC_GAIN[ANUMBER]  = {   1,    4 };
 
@@ -442,6 +442,7 @@ struct History_setup {
 	#define FILL_TANK_REGEN_DELTA		200		// сотые %, дельта минимального уровня бака от максимума для заполнения его во время регенерации
 	#define DELAY_AFTER_SWITCH_RELAY	250		// Задержка после переключения реле, для сглаживания потребления и уменьшения помех(мс)
 
+	#define CHART_POINT					500		// Максимальное число точек графика, одна точка это 2 байта * число графиков
 	// Статистика по дням
 	#define STATS_ID_Temp	TAIR
 	#define STATS_ID_Press	PWATER

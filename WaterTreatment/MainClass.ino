@@ -48,7 +48,7 @@ int8_t set_Error(int8_t _err, char *nam)
 			for(i = 0; i < INUMBER; i++) if(MC.sInput[i].get_present()) journal.jprintf(" %s:%d", MC.sInput[i].get_name(), MC.sInput[i].get_Input());
 			journal.jprintf("\n Power:%d", MC.dPWM.get_Power());
 			for(i = 0; i < ANUMBER; i++) if(MC.sADC[i].get_present()) journal.jprintf(" %s:%.2d", MC.sADC[i].get_name(), MC.sADC[i].get_Value());
-			for(i = 0; i < TNUMBER; i++) if(MC.sTemp[i].get_present() && MC.sTemp[i].Chart.get_present()) journal.jprintf(" %s:%.2d", MC.sTemp[i].get_name(), MC.sTemp[i].get_Temp());
+			for(i = 0; i < TNUMBER; i++) if(MC.sTemp[i].get_present()) journal.jprintf(" %s:%.2d", MC.sTemp[i].get_name(), MC.sTemp[i].get_Temp());
 			journal.jprintf(" Weight:%.2d%%", Weight_Percent);
 			if(_err == ERR_WEIGHT_LOW) {
 				journal.jprintf("(%.1d=%d) [", Weight_value, Weight_adc_sum / (Weight_adc_flagFull ? WEIGHT_AVERAGE_BUFFER : Weight_adc_idx));
@@ -94,11 +94,11 @@ void MainClass::init()
 	clMQTT.initMQTT(MAIN_WEB_TASK);                           // Инициализация MQTT, параметр - номер потока сервера в котором идет отправка
 #endif
 
-	ChartWaterBoost.init(true);
-	ChartFeedPump.init(true);
-	ChartFillTank.init(true);
-	ChartBrineWeight.init(true);
-	ChartWaterBoosterCount.init(true);
+	ChartWaterBoost.init();
+	ChartFeedPump.init();
+	ChartFillTank.init();
+	ChartBrineWeight.init();
+	ChartWaterBoosterCount.init();
 
 	resetSetting();                                           // все переменные
 }
@@ -222,6 +222,27 @@ void MainClass::set_testMode(TEST_MODE b)
 	for(i = 0; i < INUMBER; i++) sInput[i].set_testMode(b);        // Датчики сухой контакт
 	for(i = 0; i < FNUMBER; i++) sFrequency[i].set_testMode(b);    // Частотные датчики
 	for(i = 0; i < RNUMBER; i++) dRelay[i].set_testMode(b);        // Реле
+#ifndef TEST_BOARD
+	if(testMode > STAT_TEST && b <= STAT_TEST) {
+		MC.load_WorkStats();
+		if(rtcI2C.readRTC(RTC_STORE_ADDR, (uint8_t*)&MC.RTC_store, sizeof(MC.RTC_store))) {
+			memset(&MC.RTC_store, 0, sizeof(MC.RTC_store));
+			journal.jprintf(" Error read RTC store!\n");
+		}
+		Stats_Power_work = 0;
+		Stats_WaterRegen_work = 0;
+		Stats_FeedPump_work = 0;
+		Stats_WaterBooster_work = 0;
+		History_WaterUsed_work = 0;
+		History_WaterRegen_work = 0;
+		History_FeedPump_work = 0;
+		History_WaterBooster_work = 0;
+		History_BoosterCountL = -1;
+		Charts_WaterBooster_work = 0;
+		Charts_FeedPump_work = 0;
+		Charts_FillTank_work = 0;
+	}
+#endif
 	testMode = b;
 	// новый режим начинаем без ошибок
 	clear_error();
@@ -241,7 +262,7 @@ int32_t MainClass::save(void)
 	uint8_t tasks_suspended = TaskSuspendAll(); // Запрет других задач
 	if(error == ERR_SAVE_EEPROM || error == ERR_LOAD_EEPROM || error == ERR_CRC16_EEPROM) error = OK;
 	DateTime.saveTime = rtcSAM3X8.unixtime();   // запомнить время сохранения настроек
-	journal.jprintfopt(" Save settings ");
+	journal.jprintfopt("Save settings ");
 	while(1) {
 		// Сохранить параметры и опции отопления и бойлер, уведомления
 		Option.ver = VER_SAVE;
@@ -397,6 +418,9 @@ int8_t MainClass::check_crc16_eeprom(int32_t addr, uint16_t size)
 // Write only changed bytes, between changed blocks more than 4 bytes.
 int8_t MainClass::save_WorkStats()
 {
+#ifndef TEST_BOARD
+	if(MC.get_testMode() > STAT_TEST) return 0;
+#endif
 	WorkStats.Header = I2C_COUNT_EEPROM_HEADER;
 	uint32_t ptr = 0;
 	do {
@@ -547,7 +571,7 @@ void MainClass::resetSetting()
 
 	// Временные задержки
 	Option.ver = VER_SAVE;
-	Option.tChart = 60;                  //  период накопления статистики по умолчанию 60 секунд
+	Option.tChart = 5;
 	Option.flags = (1<<fDebugToJournal);
 	SETBIT1(Option.flags, fBeep);         //  Звук
 	SETBIT1(Option.flags, fHistory);      //  Сброс статистика на карту
@@ -788,7 +812,7 @@ void MainClass::get_datetime(char *var, char *ret)
 boolean MainClass::set_option(char *var, float xx)
 {
    int32_t x = (int32_t) xx;
-   if(strcmp(var,option_TIME_CHART)==0)      { if(x>0) { startChart(); Option.tChart = x; return true; } else return false; } else // Сбросить статистистику, начать отсчет заново
+   if(strcmp(var,option_TIME_CHART)==0)      { if(x>0) { clearChart(); Option.tChart = x; return true; } else return false; } else // Сбросить статистистику, начать отсчет заново
    if(strcmp(var,option_BEEP)==0)            {if (x==0) {SETBIT0(Option.flags,fBeep); return true;} else if (x==1) {SETBIT1(Option.flags,fBeep); return true;} else return false;  }else            // Подача звукового сигнала
    if(strcmp(var,option_History)==0)         {if (x==0) {SETBIT0(Option.flags,fHistory); return true;} else if (x==1) {SETBIT1(Option.flags,fHistory); return true;} else return false;       }else       // Сбрасывать статистику на карту
    if(strcmp(var,option_WebOnSPIFlash)==0)   { Option.flags = (Option.flags & ~(1<<fWebStoreOnSPIFlash)) | ((x!=0)<<fWebStoreOnSPIFlash); return true; } else
@@ -891,14 +915,14 @@ void MainClass::StateToStr(char * ret)
 // получить режим тестирования
 char * MainClass::TestToStr()
 {
- switch ((int)get_testMode())
-             {
-              case NORMAL:    return (char*)"NORMAL";    break;
-              case SAFE_TEST: return (char*)"SAFE_TEST"; break;
-              case TEST:      return (char*)"TEST";      break;
-              case HARD_TEST: return (char*)"HARD_TEST"; break;
-              default:        return (char*)cError;     break;
-             }
+	switch ((int)get_testMode())
+	{
+	case NORMAL:    return (char*)"NORMAL";    break;
+	case SAFE_TEST: return (char*)"SAFE_TEST"; break;
+	case STAT_TEST:      return (char*)"TEST";      break;
+	case HARD_TEST: return (char*)"HARD_TEST"; break;
+	default:        return (char*)cError;     break;
+	}
 }
 
 // --------------------------------------------------------------------
@@ -909,17 +933,17 @@ char * MainClass::TestToStr()
 char * MainClass::get_listChart(char* str)
 {
 	uint8_t i;
-	strcat(str,"none:1;");
-	for(i=0;i<TNUMBER;i++) if(sTemp[i].Chart.get_present()) {strcat(str,sTemp[i].get_name()); strcat(str,":0;");}
-	for(i=0;i<ANUMBER;i++) if(sADC[i].Chart.get_present()) { strcat(str,sADC[i].get_name()); strcat(str,":0;");}
-	for(i=0;i<FNUMBER;i++) if(sFrequency[i].Chart.get_present()) { strcat(str,sFrequency[i].get_name()); strcat(str,":0;");}
+	strcat(str,"---:1;");
+	for(i=0;i<TNUMBER;i++) { strcat(str,sTemp[i].get_name()); strcat(str,":0;"); }
+	for(i=0;i<ANUMBER;i++) { strcat(str,sADC[i].get_name()); strcat(str,":0;"); }
+	for(i=0;i<FNUMBER;i++) { strcat(str,sFrequency[i].get_name()); strcat(str,":0;"); }
 	strcat(str, chart_BrineWeight); strcat(str,":0;");
 	strcat(str, chart_WaterBoost); strcat(str,":0;");
 	strcat(str, chart_WaterBoostCount); strcat(str,":0;");
 	strcat(str, chart_FeedPump); strcat(str,":0;");
 	strcat(str, chart_FillTank); strcat(str,":0;");
-	if(dPWM.ChartVoltage.get_present()) {   strcat(str,chart_VOLTAGE); strcat(str,":0;"); }
-	if(dPWM.ChartPower.get_present())   {   strcat(str,chart_fullPOWER); strcat(str,":0;"); }
+	strcat(str,chart_VOLTAGE); strcat(str,":0;");
+	strcat(str,chart_fullPOWER); strcat(str,":0;");
 	return str;
 }
 
@@ -927,9 +951,9 @@ char * MainClass::get_listChart(char* str)
 // Все значения в графиках целочислены (сотые), выводятся в формате 0.01
 void  MainClass::updateChart()
 {
-	for(uint8_t i=0;i<TNUMBER;i++) if(sTemp[i].Chart.get_present())  sTemp[i].Chart.addPoint(sTemp[i].get_Temp());
-	for(uint8_t i=0;i<ANUMBER;i++) if(sADC[i].Chart.get_present()) sADC[i].Chart.addPoint(sADC[i].get_Value());
-	for(uint8_t i=0;i<FNUMBER;i++) if(sFrequency[i].Chart.get_present()) sFrequency[i].Chart.addPoint(sFrequency[i].get_Value() / 10); // Частотные датчики
+	for(uint8_t i=0;i<TNUMBER;i++) sTemp[i].Chart.addPoint(sTemp[i].get_Temp());
+	for(uint8_t i=0;i<ANUMBER;i++) sADC[i].Chart.addPoint(sADC[i].get_Value());
+	for(uint8_t i=0;i<FNUMBER;i++) sFrequency[i].Chart.addPoint(sFrequency[i].get_Value() / 10); // Частотные датчики
 
 	int32_t tmp1, tmp2, tmp3;
 	taskENTER_CRITICAL();
@@ -944,19 +968,19 @@ void  MainClass::updateChart()
 	ChartFeedPump.addPoint(tmp2 / 10);
 	ChartFillTank.addPoint(tmp3 / 10);
 	ChartBrineWeight.addPoint(Weight_Percent);
-	if(dPWM.ChartVoltage.get_present())   dPWM.ChartVoltage.addPoint(dPWM.get_Voltage() / 10);
-	if(dPWM.ChartPower.get_present())     dPWM.ChartPower.addPoint(dPWM.get_Power() / 10);
+	dPWM.ChartVoltage.addPoint(dPWM.get_Voltage() / 10);
+	dPWM.ChartPower.addPoint(dPWM.get_Power() / 10);
 }
 
 // сбросить графики в ОЗУ
-void MainClass::startChart()
+void MainClass::clearChart()
 {
  uint8_t i; 
  for(i=0;i<TNUMBER;i++) sTemp[i].Chart.clear();
  for(i=0;i<ANUMBER;i++) sADC[i].Chart.clear();
  for(i=0;i<FNUMBER;i++) sFrequency[i].Chart.clear();
  ChartWaterBoost.clear();
- ChartWaterBoosterCount.clear();
+ //ChartWaterBoosterCount.clear();
  ChartFeedPump.clear();
  ChartFillTank.clear();
  ChartBrineWeight.clear();
@@ -974,19 +998,19 @@ void MainClass::get_Chart(char *var, char* str)
 	}
 	// В начале имена совпадающие с именами объектов
 	for(i = 0; i < TNUMBER; i++) {
-		if((strcmp(var, sTemp[i].get_name()) == 0) && (sTemp[i].Chart.get_present())) {
+		if((strcmp(var, sTemp[i].get_name()) == 0)) {
 			sTemp[i].Chart.get_PointsStrDiv100(str);
 			return;
 		}
 	}
 	for(i = 0; i < ANUMBER; i++) {
-		if((strcmp(var, sADC[i].get_name()) == 0) && (sADC[i].Chart.get_present())) {
+		if((strcmp(var, sADC[i].get_name()) == 0)) {
 			sADC[i].Chart.get_PointsStrDiv100(str);
 			return;
 		}
 	}
 	for(i = 0; i < FNUMBER; i++) {
-		if((strcmp(var, sFrequency[i].get_name()) == 0) && (sFrequency[i].Chart.get_present())) {
+		if((strcmp(var, sFrequency[i].get_name()) == 0)) {
 			sFrequency[i].Chart.get_PointsStrDiv100(str);
 			return;
 		}
