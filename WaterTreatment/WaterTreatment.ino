@@ -1372,7 +1372,7 @@ void vPumps( void * )
 			if(MC.dRelay[RFILL].get_Relay()) MC.dRelay[RFILL].set_OFF();	// Stop filling tank
 		}
 #else
-		if(MC.sADC[LTANK].get_Value() <= (reg_active ? MC.sADC[LTANK].get_maxValue() - FILL_TANK_REGEN_DELTA : MC.sADC[LTANK].get_minValue())) {
+		if(MC.sADC[LTANK].get_Value() <= (MC.sInput[REG_BACKWASH_ACTIVE].get_Input() ? MC.sADC[LTANK].get_maxValue() - FILL_TANK_REGEN_DELTA : MC.sADC[LTANK].get_minValue())) {
 			if(MC.dRelay[RFILL].get_Relay()) {
 				if(MC.Option.FillingTankTimeout) {
 					if(WaterBoosterStatus == 0 && TimerDrainingWater == 0) { // No water consuming
