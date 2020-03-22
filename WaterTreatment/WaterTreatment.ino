@@ -561,8 +561,8 @@ extern "C" void vApplicationIdleHook(void)  // FreeRTOS expects C linkage
 			digitalWriteDirect(PIN_LED_OK, !digitalReadDirect(PIN_LED_OK));
 			countLED = ticks;
 		}
-		if(MC.get_Beep() && !Error_Beep_confirmed && ticks - countBeep > TIME_BEEP_ERR) {
-			digitalWriteDirect(PIN_BEEP, !digitalReadDirect(PIN_BEEP)); // звуковой сигнал
+		if(MC.get_Beep() && ticks - countBeep > TIME_BEEP_ERR) {
+			digitalWriteDirect(PIN_BEEP, Error_Beep_confirmed ? LOW : !digitalReadDirect(PIN_BEEP)); // звуковой сигнал
 			countBeep = ticks;
 		}
 	} else if(ticks - countLED > TIME_LED_OK) {   // Ошибок нет и время пришло
