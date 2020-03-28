@@ -22,7 +22,7 @@
 #define CONFIG_1             // vad7
 
 #define ERR_TANK_EMPTY		-58			// Пустой бак
-#define ERR_LEAK			-64			// Протечка
+#define ERR_LEAK			-65			// Протечка
 
 struct CORRECT_POWER220_STRUCT {
 	uint8_t  num;	// номер реле

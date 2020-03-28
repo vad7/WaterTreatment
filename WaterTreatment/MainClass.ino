@@ -594,7 +594,7 @@ void MainClass::resetSetting()
 	Option.UsedBeforeRegen = 3000;
 	Option.UsedBeforeRegenSoftener = 3500;
 	Option.LTANK_Empty = 500;
-	Option.Weight_Empty = 500;
+	Option.Weight_Low = 500;
 	Option.DrainAfterNoConsume = 12;
 	Option.DrainTime = 15;
 	Option.FillingTankTimeout = 30;
@@ -840,7 +840,7 @@ boolean MainClass::set_option(char *var, float xx)
    if(strcmp(var,option_PWM_StartingTime)==0){ Option.PWM_StartingTime = x; return true; } else
    if(strcmp(var,option_PWATER_RegMin)==0)   { Option.PWATER_RegMin = rd(xx, 100); return true; } else
    if(strcmp(var,option_LTANK_Empty)==0)     { Option.LTANK_Empty = rd(xx, 100); return true; } else
-   if(strcmp(var,option_Weight_Empty)==0)    { Option.Weight_Empty = rd(xx, 100); return true; } else
+   if(strcmp(var,option_Weight_Low)==0)    { Option.Weight_Low = rd(xx, 100); return true; } else
    if(strcmp(var,option_FloodingDebounceTime)==0){ Option.FloodingDebounceTime = x; return true; } else
    if(strcmp(var,option_FloodingTimeout)==0) { Option.FloodingTimeout = x; return true; } else
    if(strcmp(var,option_FillingTankTimeout)==0){ Option.FillingTankTimeout = x; return true; } else
@@ -889,7 +889,7 @@ char* MainClass::get_option(char *var, char *ret)
    if(strcmp(var,option_PWM_StartingTime)==0){ return _itoa(Option.PWM_StartingTime, ret); } else
    if(strcmp(var,option_PWATER_RegMin)==0){ _dtoa(ret, Option.PWATER_RegMin, 2); return ret; } else
    if(strcmp(var,option_LTANK_Empty)==0){ _dtoa(ret, Option.LTANK_Empty, 2); return ret; } else
-   if(strcmp(var,option_Weight_Empty)==0){ _dtoa(ret, Option.Weight_Empty, 2); return ret; } else
+   if(strcmp(var,option_Weight_Low)==0){ _dtoa(ret, Option.Weight_Low, 2); return ret; } else
    if(strcmp(var,option_FloodingDebounceTime)==0){ return _itoa(Option.FloodingDebounceTime, ret); } else
    if(strcmp(var,option_FloodingTimeout)==0){ return _itoa(Option.FloodingTimeout, ret); } else
    if(strcmp(var,option_FillingTankTimeout)==0){ return _itoa(Option.FillingTankTimeout, ret); } else

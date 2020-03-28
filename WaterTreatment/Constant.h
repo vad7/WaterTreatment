@@ -386,7 +386,7 @@ const char *option_FloodingDebounceTime	= {"FDT"};
 const char *option_FloodingTimeout		= {"FT"};
 const char *option_PWATER_RegMin		= {"WRM"};
 const char *option_LTANK_Empty			= {"TE"};
-const char *option_Weight_Empty			= {"WE"};
+const char *option_Weight_Low			= {"WE"};
 const char *option_fDebugToJournal		= {"DBG"};
 const char *option_fDebugToSerial		= {"DBGS"};
 const char *option_FillingTankTimeout	= {"FTT"};
@@ -481,9 +481,10 @@ const char *webWS_UsedLastRegenSoftening  		= { "RSL" };
 #define ERR_START_REG		-61			// Не запускается регенерация обезжелезивателя
 #define ERR_START_REG2		-62			// Не запускается регенерация умягчителя
 #define ERR_WEIGHT_LOW		-63			// Маленький вес реагента
-//#define ERR_LEAK			-64			// Протечка (defined in config.h)
+#define ERR_WEIGHT_EMPTY	-64			// Пустой бак с реагентом
+//#define ERR_LEAK			-65			// Протечка (defined in config.h)
 
-#define ERR_ERRMAX			-64			// Последняя ошибка
+#define ERR_ERRMAX			-65			// Последняя ошибка
 
 // Предупреждения
 #define WARNING_VALUE        1         // Попытка установить значение за границами диапазона запрос типа SET
@@ -554,7 +555,8 @@ const char *noteError[] = {
 		"Не запускается регенерация обезжелезивателя",										//-61
 		"Не запускается регенерация умягчителя",											//-62
 		"Низкий уровень реагента",															//-63
-		"Протечка!",																		//-64
+		"Реагент закончился!",																//-64
+		"Протечка!",																		//-65
 
 		"NULL"
 		};

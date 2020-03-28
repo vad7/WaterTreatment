@@ -60,7 +60,7 @@ struct type_RTC_memory { // DS3231/DS3232 used alarm memory, starts from 0x07, m
 #define	ERRC_WaterBooster	0x01
 #define	ERRC_Flooding		0x02
 #define	ERRC_TankEmpty		0x04
-#define	ERRC_WeightLow		0x08
+#define	ERRC_WeightEmpty	0x08
 volatile uint32_t CriticalErrors = 0;	// Stop any work when these errors have occurred
 int32_t  vPumpsNewErrorData = 0;
 int8_t   vPumpsNewError = 0;
@@ -156,7 +156,7 @@ struct type_option {
 	uint32_t DrainAfterNoConsume;	// Через сколько секунд сливать воду при отсутствии потребления
 	uint16_t DrainTime;				// Время слива воды, сек
 	uint16_t FillingTankTimeout;	// сек, Время заполнения бака на FILLING_TANK_STEP % при отсутствии потребления
-	int16_t  Weight_Empty;			// сотые %, Низкий уровень реагента, для тревоги
+	int16_t  Weight_Low;			// сотые %, Низкий уровень реагента, для тревоги
 	uint16_t CriticalErrorsTimeout;	// сек, время восстановления после критических ошибок, кроме протечки
 	uint16_t BackWashFeedPumpDelay; // в TIME_READ_SENSOR, задержка включения дозатора
 	uint32_t BackWashFeedPumpMaxFlow; // лч, Во время обратной промывки - максимальный проток до которого распределяется время включения дозатора

@@ -956,7 +956,7 @@ xErrorsProcessing:
 				if(CriticalErrors & ERRC_Flooding) {
 					strcpy(buf, "FLOOD! "); buf += 7;
 				}
-				if(CriticalErrors & (ERRC_TankEmpty | ERRC_WeightLow)) {
+				if(CriticalErrors & (ERRC_TankEmpty | ERRC_WeightEmpty)) {
 					strcpy(buf, "EMPTY! "); buf += 7;
 				}
 				if(MC.get_errcode()) {
@@ -1211,10 +1211,14 @@ void vReadSensor_delay1ms(int32_t ms)
 				Weight_value = (adc_val - MC.Option.WeightZero) * 10000 / MC.Option.WeightScale - MC.Option.WeightTare;
 				Weight_Percent = Weight_value * 10000 / MC.Option.WeightFull;
 				if(Weight_Percent < 0) Weight_Percent = 0; else if(Weight_Percent > 10000) Weight_Percent = 10000;
-				if(Weight_Percent < MC.Option.Weight_Empty) {
-					if(!(CriticalErrors & ERRC_WeightLow)) set_Error(ERR_WEIGHT_LOW, (char*)__FUNCTION__);
-					CriticalErrors |= ERRC_WeightLow;
-				} else if(CriticalErrors & ERRC_WeightLow) CriticalErrors &= ~ERRC_WeightLow;
+				if(Weight_Percent < MC.Option.Weight_Low) {
+					if(!(CriticalErrors & ERRC_WeightEmpty)) {
+						if(Weight_Percent <= 10) {
+							CriticalErrors |= ERRC_WeightEmpty;
+							set_Error(ERR_WEIGHT_EMPTY, (char*)__FUNCTION__);
+						} else set_Error(ERR_WEIGHT_LOW, (char*)__FUNCTION__);
+					}
+				} else if(CriticalErrors & ERRC_WeightEmpty) CriticalErrors &= ~ERRC_WeightEmpty;
 			}
 //		}
 
