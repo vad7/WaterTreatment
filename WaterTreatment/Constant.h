@@ -20,8 +20,8 @@
 #include "Util.h"
 
 // ОПЦИИ КОМПИЛЯЦИИ ПРОЕКТА -------------------------------------------------------
-#define VERSION			  "1.04"				// Версия прошивки
-#define VER_SAVE		  1					// Версия формата сохраняемых данных в I2C память
+#define VERSION			  "1.05"				// Версия прошивки
+#define VER_SAVE		  2					// Версия формата сохраняемых данных в I2C память
 //#define LOG                               // В последовательный порт шлет лог веб сервера (логируются запросы)
 #define FAST_LIB                            // использование допиленной библиотеки езернета
 #define TIME_ZONE         3                 // поправка на часовой пояс по ДЕФОЛТУ
@@ -393,6 +393,7 @@ const char *option_FillingTankTimeout	= {"FTT"};
 const char *option_CriticalErrorsTimeout= {"CET"};
 const char *option_FilterTank           = {"TD"};
 const char *option_FilterTankSoftener   = {"TDS"};
+const char *option_DrainingWaterAfterRegen={"DAR"};
 
 // WorkStats, get_WS..., set_WS...(x)
 const char *webWS_UsedToday 					= { "UD" };
@@ -474,14 +475,15 @@ const char *webWS_UsedLastRegenSoftening  		= { "RSL" };
 #define ERR_PWM_MAX			-55			// Перегрузка двигателя насоса
 #define ERR_PRESS			-56			// Ошибка давления
 #define ERR_FLOODING		-57			// Затопление
-//#define ERR_TANK_EMPTY	-58			// Пустой бак! (defined in config.h)
+//#define ERR_TANK_EMPTY	-58				// Пустой бак! (defined in config.h)
 #define ERR_TANK_NO_FILLING	-59			// Бак не заполняется
 #define ERR_RTC_WRITE		-60			// Ошибка записи в RTC память
 #define ERR_START_REG		-61			// Не запускается регенерация обезжелезивателя
 #define ERR_START_REG2		-62			// Не запускается регенерация умягчителя
 #define ERR_WEIGHT_LOW		-63			// Маленький вес реагента
+//#define ERR_LEAK			-64			// Протечка (defined in config.h)
 
-#define ERR_ERRMAX			-63 	   // Последняя ошибка
+#define ERR_ERRMAX			-64			// Последняя ошибка
 
 // Предупреждения
 #define WARNING_VALUE        1         // Попытка установить значение за границами диапазона запрос типа SET
@@ -545,13 +547,14 @@ const char *noteError[] = {
 		"Суход ход двигателя насоса",														//-54
 		"Перегрузка двигателя насоса",														//-55
 		"Ошибка давления",																	//-56
-		"Затопление",																		//-57
+		"Затопление!",																		//-57
 		"Пустой бак",																		//-58
 		"Бак не заполняется",																//-59
 		"Ошибка записи в RTC",																//-60
 		"Не запускается регенерация обезжелезивателя",										//-61
 		"Не запускается регенерация умягчителя",											//-62
 		"Низкий уровень реагента",															//-63
+		"Протечка!",																		//-64
 
 		"NULL"
 		};

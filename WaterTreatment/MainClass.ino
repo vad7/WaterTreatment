@@ -847,6 +847,7 @@ boolean MainClass::set_option(char *var, float xx)
    if(strcmp(var,option_CriticalErrorsTimeout)==0){ Option.CriticalErrorsTimeout = x; return true; } else
    if(strcmp(var,option_FilterTank)==0){ FilterTankSquare = CalcFilterSquare(Option.FilterTank = x); return true; } else
    if(strcmp(var,option_FilterTankSoftener)==0){ FilterTankSoftenerSquare = CalcFilterSquare(Option.FilterTankSoftener = x); return true; } else
+   if(strcmp(var,option_DrainingWaterAfterRegen)==0){ Option.DrainingWaterAfterRegen = x; return true; } else
    if(strncmp(var,option_SGL1W, sizeof(option_SGL1W)-1)==0) {
 	   uint8_t bit = var[sizeof(option_SGL1W)-1] - '0' - 1;
 	   if(bit <= 3) {
@@ -895,6 +896,7 @@ char* MainClass::get_option(char *var, char *ret)
    if(strcmp(var,option_CriticalErrorsTimeout)==0){ return _itoa(Option.CriticalErrorsTimeout, ret); } else
    if(strcmp(var,option_FilterTank)==0){ return _itoa(Option.FilterTank, ret); } else
    if(strcmp(var,option_FilterTankSoftener)==0){ return _itoa(Option.FilterTankSoftener, ret); } else
+   if(strcmp(var,option_DrainingWaterAfterRegen)==0){ return _itoa(Option.DrainingWaterAfterRegen, ret); } else
    if(strncmp(var,option_SGL1W, sizeof(option_SGL1W)-1)==0) {
 	   uint8_t bit = var[sizeof(option_SGL1W)-1] - '0' - 1;
 	   if(bit <= 3) {

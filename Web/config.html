@@ -8,7 +8,7 @@
 <script type="text/javascript">
 window.onload = function() {
 	loadParam("get_Opt(FPMF),get_Opt(UBR),get_Opt(RH),get_Opt(NRW),get_Opt(DT),get_Opt(MR),get_Opt(MD),get_Opt(HIST),get_Opt(BEEP),get_Opt(WSPIF),get_Opt(LOGWS),get_Opt(TIME_CHART),get_Opt(PWMLOG),get_Opt(SGL1W_1),get_Opt(SGL1W_2),get_Opt(SGL1W_3),get_Opt(SGL1W_4),get_Opt(TD),get_Opt(TDS)");
-	loadParam("get_Opt(MWBT),get_Opt(MWBTF),get_Opt(MPOT),get_Opt(DR),get_Opt(PM),get_Opt(PST),get_WSRC,get_WSRSC,get_WST,get_Opt(WRM),get_Opt(TE),get_Opt(FDT),get_Opt(FT),get_Opt(FTT),get_Opt(UBRS),get_Opt(DBR),get_Opt(WE),get_Opt(CET),get_Opt(DA),get_Opt(BWFD),get_Opt(BWMF)");
+	loadParam("get_Opt(MWBT),get_Opt(MWBTF),get_Opt(MPOT),get_Opt(DR),get_Opt(PM),get_Opt(PST),get_WSRC,get_WSRSC,get_WST,get_Opt(WRM),get_Opt(TE),get_Opt(FDT),get_Opt(FT),get_Opt(FTT),get_Opt(UBRS),get_Opt(DBR),get_Opt(WE),get_Opt(CET),get_Opt(DA),get_Opt(BWFD),get_Opt(BWMF),get_Opt(DAR)");
 }; 
 function show_all() {
 	var elements = document.getElementsByTagName('input');
@@ -86,6 +86,10 @@ function show_all() {
 		<tr>
 			<td>Во время обратной промывки - максимальный проток дозатора, лч</td>
 			<td nowrap><input id="get_opt-bwmf" type="number"> <input type="submit" value=">" onclick="setParam('get_Opt(BWMF)');"></td>
+		</tr>
+		<tr>
+			<td>Время сброса воды после регенерации обезжелезивателя, сек</td>
+			<td nowrap><input id="get_opt-dar" type="number"> <input type="submit" value=">" onclick="setParam('get_Opt(DAR)');"></td>
 		</tr>
 		<tr>
 			<td><b>Аналоговые датчики</b></td><td></td>

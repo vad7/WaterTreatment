@@ -1294,6 +1294,7 @@ void vPumps( void * )
 				if(MC.dRelay[RDRAIN].get_Relay()) {
 					MC.dRelay[RDRAIN].set_OFF();
 					TimerDrainingWater = 0;
+					TimerDrainingWaterAfterRegen = 0;
 				}
 				MC.dRelay[RFEEDPUMP].set_OFF();
 				MC.dRelay[RWATEROFF].set_ON();
@@ -1317,10 +1318,12 @@ void vPumps( void * )
 			WaterBoosterTimeout = 0;
 			WaterBoosterStatus = 1;
 			int32_t i = WaterBoosterCountL * 100 + (WaterBoosterCountLrest - _WaterBoosterCountLrest) * 100 / MC.sFrequency[FLOW].get_kfValue();
-			WaterBoosterCountL = 0;
-			_WaterBoosterCountLrest = WaterBoosterCountLrest;
-			if(History_BoosterCountL == -1) History_BoosterCountL = i; else History_BoosterCountL += i;
-			MC.ChartWaterBoosterCount.addPoint(i);
+			if(History_BoosterCountL == -1) History_BoosterCountL = i;
+			else {
+				History_BoosterCountL += i;
+				MC.ChartWaterBoosterCount.addPoint(i);
+			}
+
 		} else if(WaterBoosterStatus > 0) {
 			if(CriticalErrors || (WaterBoosterTimeout >= MC.Option.MinWaterBoostOnTime && press >= MC.sADC[PWATER].get_maxValue())) { // Stopping
 				xWaterBooster_GO_OFF:
@@ -1335,10 +1338,12 @@ void vPumps( void * )
 				WaterBoosterStatus = 2;
 			}
 		} else if(WaterBoosterStatus == -1) {
-			xWaterBooster_OFF:
+xWaterBooster_OFF:
 			MC.dRelay[RBOOSTER1].set_OFF();
 			WaterBoosterTimeout = 0;
 			WaterBoosterStatus = 0;
+			WaterBoosterCountL = 0;
+			_WaterBoosterCountLrest = WaterBoosterCountLrest;
 		}
 
 		// Feed Pump
@@ -1472,7 +1477,7 @@ void vService(void *)
 						}
 					}
 				}
-			}
+			} else if(TimerDrainingWaterAfterRegen && --TimerDrainingWaterAfterRegen == 0) MC.dRelay[RDRAIN].set_OFF();
 			uint8_t m = rtcSAM3X8.get_minutes();
 			if(m != task_updstat_countm) { 								// Через 1 минуту
 				task_updstat_countm = m;
@@ -1582,10 +1587,11 @@ void vService(void *)
 							taskEXIT_CRITICAL();
 							NeedSaveWorkStats = 1;
 							MC.dRelay[RWATEROFF].set_OFF();
-							journal.jprintf_date("Regen F1 finished\n");
+							journal.jprintf_date("Regen F1 finished, used: %d\n", MC.WorkStats.UsedLastRegen);
 							if(MC.WorkStats.UsedLastRegen < MC.Option.MinRegenLiters) {
 								set_Error(ERR_FEW_LITERS_REG, (char*)__FUNCTION__);
 							}
+							if((TimerDrainingWaterAfterRegen = MC.Option.DrainingWaterAfterRegen)) MC.dRelay[RDRAIN].set_ON();
 						} else if(NewRegenStatus) {
 							journal.jprintf_date("Regen F1 begin\n");
 							NewRegenStatus = false;
@@ -1602,7 +1608,7 @@ void vService(void *)
 							NeedSaveRTC |= (1<<bRTC_Work) | (1<<bRTC_UsedRegen) | (1<<bRTC_Urgently);
 							taskEXIT_CRITICAL();
 							NeedSaveWorkStats = 1;
-							journal.jprintf_date("Regen F2 finished\n");
+							journal.jprintf_date("Regen F2 finished, used: %d\n", MC.WorkStats.UsedLastRegenSoftening);
 						} else if(NewRegenStatus) {
 							journal.jprintf_date("Regen F2 begin\n");
 							NewRegenStatus = false;

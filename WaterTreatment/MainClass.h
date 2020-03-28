@@ -82,6 +82,7 @@ int16_t  FillingTankLastLevel = 0;	// in 0.01%
 uint32_t TimeFeedPump = 0;	// ms
 uint8_t  NeedSaveWorkStats = 0;
 uint32_t TimerDrainingWater = 0;
+uint32_t TimerDrainingWaterAfterRegen = 0;
 int32_t UsedDrainRest = 0;
 volatile bool NewRegenStatus = false;
 volatile uint32_t RegBackwashTimer = 0;
@@ -161,6 +162,7 @@ struct type_option {
 	uint32_t BackWashFeedPumpMaxFlow; // лч, Во время обратной промывки - максимальный проток до которого распределяется время включения дозатора
 	uint8_t  FilterTank;			// Диаметр фильтра обезжелезивателя в дюймах
 	uint8_t  FilterTankSoftener;	// Диаметр фильтра умягчителя в дюймах
+	uint8_t  DrainingWaterAfterRegen;// сек, Слив после промывки обезжелезивателя
 } __attribute__((packed));
 
 //  Работа с отдельными флагами type_DateTime
