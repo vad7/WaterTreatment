@@ -22,7 +22,6 @@
 #define CONFIG_1             // vad7
 
 #define ERR_TANK_EMPTY		-58			// Пустой бак
-#define ERR_LEAK			-65			// Протечка
 
 struct CORRECT_POWER220_STRUCT {
 	uint8_t  num;	// номер реле
@@ -207,8 +206,9 @@ struct History_setup {
 	#define REG_ACTIVE			0        // Активна регенерация (INP2) (белый+/коричневый)
 	#define REG_BACKWASH_ACTIVE 1        // Активна обратная промывка (INP3) (белый+/синий)
 	#define REG2_ACTIVE			2        // Активна регенерация умягчителя (INP4)
-	#define FLOODING			3        // Протечка (INP5)
-	#define TANK_EMPTY			4        // Емкость пуста (INP6)
+	#define FLOODING			3        // Затопление (INP5)
+	#define LEAK				4        // Протечка (INP6)
+//	#define TANK_EMPTY			4        // Емкость пуста (INP6)
 #ifndef TANK_ANALOG_LEVEL
     #define TANK_LOW			5        // Нужен долив бака 500л (DAC0 [D66])
 	#define TANK_FULL			6        // Емкость полна (REL8 [D5])
@@ -253,7 +253,7 @@ struct History_setup {
       const bool TESTINPUT[INUMBER]        = { 0, 0, 0, 0, 0 };    // Значения датчиков при тестировании  опция TEST
       const bool LEVELINPUT[INUMBER]       = { 0, 0, 0, 1, 0 };    // Значение датчика, когда сработал
       const bool PULLUPINPUT[INUMBER]      = { 0, 0, 0, 0, 0 };    // если 1 - то на порту выставляется подтяжка к VCC.
-      const int8_t SENSOR_ERROR[INUMBER]   = { 0, 0, 0, 0, ERR_LEAK };  // При срабатывании генерить ошибку с заданным кодом, если не 0
+      const int8_t SENSOR_ERROR[INUMBER]   = { 0, 0, 0, 0, 0 };  // При срабатывании генерить ошибку с заданным кодом, если не 0
 #endif
     // ---------------------------------------------------------------------------------------------------------------------------------------
     // Частотные датчики ------------------------------------------------------------------

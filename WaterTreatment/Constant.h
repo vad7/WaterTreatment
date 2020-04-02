@@ -482,7 +482,7 @@ const char *webWS_UsedLastRegenSoftening  		= { "RSL" };
 #define ERR_START_REG2		-62			// Не запускается регенерация умягчителя
 #define ERR_WEIGHT_LOW		-63			// Маленький вес реагента
 #define ERR_WEIGHT_EMPTY	-64			// Пустой бак с реагентом
-//#define ERR_LEAK			-65			// Протечка (defined in config.h)
+#define ERR_LEAK			-65			// Протечка
 
 #define ERR_ERRMAX			-65			// Последняя ошибка
 

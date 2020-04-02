@@ -1274,7 +1274,10 @@ void vPumps( void * )
 
 		// Read sensors
 		for(uint8_t i = 0; i < INUMBER; i++) MC.sInput[i].Read(true);		// Прочитать данные сухой контакт (FAST mode)
-		bool tank_empty = MC.sInput[TANK_EMPTY].get_Input();
+		bool tank_empty = false;
+#ifdef TANK_EMPTY
+		tank_empty = MC.sInput[TANK_EMPTY].get_Input();
+#endif
 		if(ADC_has_been_read) {		// Не чаще, чем ADC
 			ADC_has_been_read = false;
 			for(uint8_t i = 0; i < ANUMBER; i++) MC.sADC[i].Read();			// Прочитать данные с датчиков давления
@@ -1289,11 +1292,19 @@ void vPumps( void * )
 
 		// Check Errors
 		int16_t press = MC.sADC[PWATER].get_Value();
-		if(MC.sInput[FLOODING].get_Input()) {
+		if(MC.sInput[FLOODING].get_Input()
+#ifdef LEAK
+				|| MC.sInput[LEAK].get_Input()
+#endif
+		){
 			if(FloodingTime == 0) FloodingTime = GetTickCount();
 			else if(GetTickCount() - FloodingTime > (uint32_t) MC.Option.FloodingDebounceTime * 1000) {
 				FloodingTime = GetTickCount() | 1;
+#ifdef LEAK
+				vPumpsNewError = MC.sInput[FLOODING].get_Input() ? ERR_FLOODING : ERR_LEAK;
+#else
 				vPumpsNewError = ERR_FLOODING;
+#endif
 				if(MC.dRelay[RFILL].get_Relay()) MC.dRelay[RFILL].set_OFF();
 				if(MC.dRelay[RDRAIN].get_Relay()) {
 					MC.dRelay[RDRAIN].set_OFF();
