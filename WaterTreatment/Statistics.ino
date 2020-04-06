@@ -353,7 +353,8 @@ void Statistics::Update()
 	for(uint8_t i = 0; i < sizeof(Stats_data) / sizeof(Stats_data[0]); i++) {
 		switch(Stats_data[i].object) {
 		case STATS_OBJ_WaterUsed:
-			newval = MC.RTC_store.UsedToday;
+			newval = Stats_WaterUsed_work;
+			Stats_WaterUsed_work = 0;
 			break;
 		case STATS_OBJ_WaterRegen:
 			newval = Stats_WaterRegen_work;

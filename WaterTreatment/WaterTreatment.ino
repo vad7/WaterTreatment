@@ -561,8 +561,8 @@ extern "C" void vApplicationIdleHook(void)  // FreeRTOS expects C linkage
 			digitalWriteDirect(PIN_LED_OK, !digitalReadDirect(PIN_LED_OK));
 			countLED = ticks;
 		}
-		if(MC.get_Beep() && ticks - countBeep > TIME_BEEP_ERR) {
-			digitalWriteDirect(PIN_BEEP, Error_Beep_confirmed ? LOW : !digitalReadDirect(PIN_BEEP)); // звуковой сигнал
+		if(ticks - countBeep > TIME_BEEP_ERR) {
+			digitalWriteDirect(PIN_BEEP, !MC.get_Beep() || Error_Beep_confirmed ? LOW : !digitalReadDirect(PIN_BEEP)); // звуковой сигнал
 			countBeep = ticks;
 		}
 	} else if(ticks - countLED > TIME_LED_OK) {   // Ошибок нет и время пришло
@@ -1077,6 +1077,7 @@ void vReadSensor(void *)
 				if(MC.dRelay[RDRAIN].get_Relay() || MC.WorkStats.LastDrain + MC.Option.DrainTime + (TIME_READ_SENSOR/1000) >= utm) {
 					MC.WorkStats.UsedDrain += passed * 10;
 				} else {
+					Stats_WaterUsed_work += passed;
 					MC.RTC_store.UsedToday += passed;
 					MC.WorkStats.UsedLastTime = utm;
 				}

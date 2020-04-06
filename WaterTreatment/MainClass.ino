@@ -118,6 +118,8 @@ void MainClass::clear_all_errors()
 	memset(ErrorsTime, 0, sizeof(ErrorsTime));
 	CriticalErrors = 0;
 	MC.clear_error();
+	// Water ON
+	MC.dRelay[RWATEROFF].set_OFF();
 }
 
 // Получить число ошибок чтения ВСЕХ датчиков темпеартуры
@@ -230,6 +232,7 @@ void MainClass::set_testMode(TEST_MODE b)
 			journal.jprintf(" Error read RTC store!\n");
 		}
 		Stats_Power_work = 0;
+		Stats_WaterUsed_work = 0;
 		Stats_WaterRegen_work = 0;
 		Stats_FeedPump_work = 0;
 		Stats_WaterBooster_work = 0;
@@ -481,6 +484,7 @@ void MainClass::resetCount()
 	Stats_Power_work = 0;
 	Stats_FeedPump_work = 0;
 	Stats_WaterBooster_work = 0;
+	Stats_WaterUsed_work = 0;
 	Stats_WaterRegen_work = 0;
 }
 
