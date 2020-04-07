@@ -1801,7 +1801,7 @@ x_get_GADC:						i = MC.sADC[p].get_ADC_Gain();
 
 							if(strncmp(str, "alarm", 5)==0)           // Функция get_alarmInput
 							{
-								if (MC.sInput[p].get_alarmInput()==true)  strcat(strReturn,cOne); else  strcat(strReturn,cZero);
+								if (MC.sInput[p].get_InputLevel()==true)  strcat(strReturn,cOne); else  strcat(strReturn,cZero);
 								ADD_WEBDELIM(strReturn) ;    continue;
 							}
 							if(strncmp(str, "eI", 2)==0)           // Функция get_eInput (errorcode)
@@ -1812,7 +1812,7 @@ x_get_GADC:						i = MC.sADC[p].get_ADC_Gain();
 								ADD_WEBDELIM(strReturn); continue; }
 							if(strncmp(str, "type", 4)==0)           // Функция get_typeInput
 							{
-								if(MC.sInput[p].get_present()) {  // датчик есть в кнфигурации
+								if(MC.sInput[p].get_present()) {  // датчик есть в конфигурации
 									strcat(strReturn, MC.sInput[i].get_alarm_error() == 0 ? "" : "Тревога");
 								} else strcat(strReturn,"none");                                 // датчик отсутвует
 								ADD_WEBDELIM(strReturn); continue;
@@ -1826,15 +1826,29 @@ x_get_GADC:						i = MC.sADC[p].get_ADC_Gain();
 								ADD_WEBDELIM(strReturn);
 								continue;
 							}
-							if(strncmp(str, "test", 4)==0)           // Функция set_testInput
-							{ if (MC.sInput[p].set_testInput((int16_t)pm)==OK)    // Установить значение
-								{ if (MC.sInput[p].get_testInput()==true)  strcat(strReturn,cOne); else  strcat(strReturn,cZero); ADD_WEBDELIM(strReturn); continue; }
-								else { strcat(strReturn,"E05" WEBDELIM);  continue;}         // выход за диапазон ПРЕДУПРЕЖДЕНИЕ значение не установлено
+							if(strncmp(str, "test", 4) == 0)           // Функция set_testInput
+							{
+								if(MC.sInput[p].set_testInput((int16_t) pm) == OK)    // Установить значение
+								{
+									if(MC.sInput[p].get_testInput()) strcat(strReturn, cOne); else strcat(strReturn, cZero);
+									ADD_WEBDELIM(strReturn);
+									continue;
+								} else { // выход за диапазон ПРЕДУПРЕЖДЕНИЕ значение не установлено
+									strcat(strReturn, "E05" WEBDELIM);
+									continue;
+								}
 							}
-							if(strncmp(str, "alarm", 5)==0)           // Функция set_alarmInput
-							{ if (MC.sInput[p].set_alarmInput((int16_t)pm)==OK)    // Установить значение
-								{ if (MC.sInput[p].get_alarmInput()==true)  strcat(strReturn,cOne); else  strcat(strReturn,cZero); ADD_WEBDELIM(strReturn); continue; }
-								else { strcat(strReturn,"E05" WEBDELIM); continue;}         // выход за диапазон ПРЕДУПРЕЖДЕНИЕ значение не установлено
+							if(strncmp(str, "alarm", 5) == 0)           // Функция set_alarmInput
+							{
+								if(MC.sInput[p].set_InputLevel((int16_t) pm) == OK)    // Установить значение
+								{
+									if(MC.sInput[p].get_InputLevel()) strcat(strReturn, cOne); else strcat(strReturn, cZero);
+									ADD_WEBDELIM(strReturn);
+									continue;
+								} else { // выход за диапазон ПРЕДУПРЕЖДЕНИЕ значение не установлено
+									strcat(strReturn, "E05" WEBDELIM);
+									continue;
+								}
 							}
 						}
 						strcat(strReturn,"E08"); // выход за диапазон, значение не установлено

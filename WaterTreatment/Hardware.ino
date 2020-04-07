@@ -316,19 +316,27 @@ int8_t sensorDiditalInput::Read(boolean fast)
 }
     
 // Установить Состояние датчика в режиме теста
-int8_t sensorDiditalInput::set_testInput( int16_t i)         
+int8_t sensorDiditalInput::set_testInput(int16_t i)
 {
-   if(i==1)  { testInput=true; return OK;} 
-    else  if (i==0)  { testInput=false; return OK;} 
-     else return WARNING_VALUE;
+	if(i == 1) {
+		testInput = true;
+		return OK;
+	} else if(i == 0) {
+		testInput = false;
+		return OK;
+	} else return WARNING_VALUE;
 }
- 
-// Установить Состояние датчика в режиме аварии
-int8_t sensorDiditalInput::set_alarmInput( int16_t i)         
+
+// Установить уровень сработавшего датчика
+int8_t sensorDiditalInput::set_InputLevel(int16_t i)
 {
-  if(i==1)  { InputLevel=true; return OK;} 
-    else  if(i==0)  { InputLevel=false; return OK;} 
-     else return WARNING_VALUE;
+	if(i == 1) {
+		InputLevel = true;
+		return OK;
+	} else if(i == 0) {
+		InputLevel = false;
+		return OK;
+	} else return WARNING_VALUE;
 }
 
 // ------------------------------------------------------------------------------------------
@@ -600,7 +608,7 @@ int8_t devPWM::get_readState(uint8_t group)
 xErr:
 #ifdef SPOWER
 		MC.sInput[SPOWER].Read(true);
-        if(MC.sInput[SPOWER].is_alarm()) return err;
+        if(MC.sInput[SPOWER].get_Input()) return err;
 #endif
 		numErr++;                  // число ошибок чтение по модбасу
 		if(GETBIT(MC.Option.flags, fPWMLogErrors)) {

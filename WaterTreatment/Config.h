@@ -236,7 +236,7 @@ struct History_setup {
     const char *nameInput[INUMBER] = {	"REG",
 										"REGBW",
 										"REG2",
-										"FLOODING",
+										"FLOOD",
 										"LEAK"
 #ifndef TANK_ANALOG_LEVEL
 										,"LOW",
@@ -449,7 +449,7 @@ struct History_setup {
 	#define STATS_ID_Press	PWATER
 	#define STATS_ID_Flow	FLOW
 	Stats_Data Stats_data[] = {
-		{ 0, STATS_OBJ_WaterUsed, STATS_TYPE_MAX },
+		{ 0, STATS_OBJ_WaterUsed, STATS_TYPE_SUM },
 		{ 0, STATS_OBJ_WaterRegen, STATS_TYPE_SUM },
 		{ 0, STATS_OBJ_Flow, STATS_TYPE_MAX },
 		{ 0, STATS_OBJ_WaterBooster, STATS_TYPE_SUM },

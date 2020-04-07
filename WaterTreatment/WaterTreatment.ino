@@ -734,9 +734,12 @@ void vWeb2(void *)
 }
 
 //////////////////////////////////////////////////////////////////////////
-#define LCD_SetupFlag 		0x80000000
-#define LCD_SetupMenuItems	3
-const char *LCD_SetupMenu[LCD_SetupMenuItems] = { "1. Exit", "2. Relays", "3. Flow check" };
+#define LCD_SetupFlag 			0x80000000
+#define LCD_SetupMenuItems		4
+#define LCD_SetupMenu_Relays	0x100
+#define LCD_SetupMenu_Sensors	0x200
+#define LCD_SetupMenu_FlowCheck	0x300
+const char *LCD_SetupMenu[LCD_SetupMenuItems] = { "1. Exit", "2. Relays", "3. Sensors", "4. Flow check" };
 uint32_t LCD_setup = 0; // 0x8000MMII: 8 - Setup active, MМ - Menu item (0..<max LCD_SetupMenuItems-1>) , II - Selecting item (0...)
 
 // Задача Пользовательский интерфейс (MC.xHandleKeysLCD) "KeysLCD"
@@ -776,21 +779,21 @@ void vKeysLCD( void * )
 					}
 					if(t == 0) goto xSetupExit;
 				}
-				if((LCD_setup & 0xFFFF) == 0) { 				// menu item 1 selected - Exit
+				if((LCD_setup & 0xFFFF) == 0) { // menu item 1 selected - Exit
 xSetupExit:
 					lcd.command(LCD_DISPLAYCONTROL | LCD_DISPLAYON);
 					LCD_setup = 0;
-				} else if((LCD_setup & 0xFF00) == 0x100) {		// inside menu item 2 selected - Relay
+				} else if((LCD_setup & 0xFF00) == LCD_SetupMenu_Relays) { // inside menu item selected - Relay
 					MC.dRelay[LCD_setup & 0xFF].set_Relay(MC.dRelay[LCD_setup & 0xFF].get_Relay() ? fR_StatusAllOff : fR_StatusManual);
-				} else if((LCD_setup & 0xFF00) == 0x200) { 		// inside menu item 3 selected - Flow check
-					goto xSetupExit;
-				} else {									// select menu item
+				} else if((LCD_setup & 0xFF00) == 0) {	// select menu item
 					LCD_setup = (LCD_setup << 8) | LCD_SetupFlag;
-					if((LCD_setup & 0xFF00) == 0x200) { // Flow check
+					if((LCD_setup & 0xFF00) == LCD_SetupMenu_FlowCheck) { // Flow check
 						lcd.command(LCD_DISPLAYCONTROL | LCD_DISPLAYON);
 						FlowPulseCounter = 0;
 						FlowPulseCounterRest = _FlowPulseCounterRest = MC.sFrequency[FLOW].PassedRest;
 					}
+				} else { // inside menu item selected
+					goto xSetupExit;
 				}
 				DisplayTick = ~DisplayTick;
 			} else if(MC.get_errcode() && !Error_Beep_confirmed) Error_Beep_confirmed = true; // Supress beeping
@@ -806,7 +809,7 @@ xSetupExit:
 			vTaskDelay(KEY_DEBOUNCE_TIME);
 			while(!digitalReadDirect(PIN_KEY_UP)) vTaskDelay(KEY_DEBOUNCE_TIME);
 			if(LCD_setup) {
-				if((LCD_setup & 0xFF) < ((LCD_setup & 0xFF00) == 0x100 ? (RNUMBER > 7 ? 7 : RNUMBER-1) : LCD_SetupMenuItems-1)) {
+				if((LCD_setup & 0xFF) < ((LCD_setup & 0xFF00) == LCD_SetupMenu_Relays ? (RNUMBER > 7 ? 7 : RNUMBER-1) : LCD_SetupMenuItems-1)) {
 					LCD_setup++;
 					DisplayTick = ~DisplayTick;
 				}
@@ -837,7 +840,7 @@ xErrorsProcessing:
 			vTaskDelay(KEY_DEBOUNCE_TIME);
 			while(!digitalReadDirect(PIN_KEY_DOWN)) vTaskDelay(KEY_DEBOUNCE_TIME);
 			if(LCD_setup) {
-				if((LCD_setup & 0xFF00) == 0x200) { // Flow check
+				if((LCD_setup & 0xFF00) == LCD_SetupMenu_FlowCheck) { // Flow check
 					FlowPulseCounter = 0;
 					FlowPulseCounterRest = _FlowPulseCounterRest = MC.sFrequency[FLOW].PassedRest;
 				} else if((LCD_setup & 0xFF) > 0) {
@@ -857,7 +860,7 @@ xErrorsProcessing:
 			// Day: 0.000 Yd: 0.000
 			char *buf = buffer;
 			if(LCD_setup) {
-				if((LCD_setup & 0xFF00) == 0x100) { // Relays
+				if((LCD_setup & 0xFF00) == LCD_SetupMenu_Relays) { // Relays
 					lcd.clear();
 					for(uint8_t i = 0; i < (RNUMBER > 8 ? 8 : RNUMBER) ; i++) {
 						lcd.setCursor(10 * (i % 2), i / 2);
@@ -865,7 +868,15 @@ xErrorsProcessing:
 						lcd.print(MC.dRelay[i].get_name());
 					}
 					lcd.setCursor(10 * ((LCD_setup & 0xFF) % 2), (LCD_setup & 0xFF) / 2);
-				} else if((LCD_setup & 0xFF00) == 0x200) { // Flow check
+				} else if((LCD_setup & 0xFF00) == LCD_SetupMenu_Sensors) { // Sensors
+					lcd.clear();
+					for(uint8_t i = 0; i < (INUMBER > 8 ? 8 : INUMBER) ; i++) {
+						lcd.setCursor(10 * (i % 2), i / 2);
+						lcd.print(MC.sInput[i].get_Input() ? '*' : ' ');
+						lcd.print(MC.sInput[i].get_name());
+					}
+					lcd.setCursor(10 * ((LCD_setup & 0xFF) % 2), (LCD_setup & 0xFF) / 2);
+				} else if((LCD_setup & 0xFF00) == LCD_SetupMenu_FlowCheck) { // Flow check
 					// 12345678901234567890
 					// Edges: 41234
 					// Liters: 112.1234
@@ -954,10 +965,17 @@ xErrorsProcessing:
 				// 12345678901234567890
 				// FLOOD! EMPTY! ERR-21
 				if(CriticalErrors & ERRC_Flooding) {
-					strcpy(buf, "FLOOD! "); buf += 7;
+					if(MC.sInput[FLOODING].get_Input()) {
+						strcpy(buf, "FLOOD! "); buf += 7;
+					} else {
+						strcpy(buf, "LEAK! "); buf += 6;
+					}
 				}
-				if(CriticalErrors & (ERRC_TankEmpty | ERRC_WeightEmpty)) {
+				if(CriticalErrors & ERRC_TankEmpty) {
 					strcpy(buf, "EMPTY! "); buf += 7;
+				}
+				if(CriticalErrors & ERRC_WeightEmpty) {
+					strcpy(buf, "BRINE! "); buf += 7;
 				}
 				if(MC.get_errcode()) {
 					strcpy(buf, "ERR"); buf += 3;
@@ -978,7 +996,8 @@ xErrorsProcessing:
 						buf = dptoa(buf, tmp, 0);
 					}
 				}
-				buffer_space_padding(buf, LCD_COLS - (buf - buffer));
+				tmp = LCD_COLS - (buf - buffer);
+				if(tmp > 0)	buffer_space_padding(buf, tmp); else buffer[LCD_COLS] = '\0';
 				lcd.print(buffer);
 			}
 
@@ -1225,7 +1244,7 @@ void vReadSensor_delay1ms(int32_t ms)
 
 #ifdef USE_UPS
 		MC.sInput[SPOWER].Read(true);
-		if(MC.sInput[SPOWER].is_alarm()) { // Электричество кончилось
+		if(MC.sInput[SPOWER].get_Input()) { // Электричество кончилось
 			if(!MC.NO_Power) {
 				MC.save_WorkStats();
 				Stats.SaveStats(0);

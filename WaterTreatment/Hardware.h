@@ -140,9 +140,8 @@ public:
   boolean get_testInput(){return testInput;}             // Получить Состояние датчика в режиме теста
   int8_t  set_testInput(int16_t i);                      // Установить Состояние датчика в режиме теста
   void    set_testMode(TEST_MODE t){testMode=t;}       // Установить значение текущий режим работы
-  boolean get_alarmInput(){return InputLevel;}           // Состояние аварии датчика
-  boolean is_alarm() { return Input == InputLevel; }	// Датчик сработал?
-  int8_t  set_alarmInput(int16_t i);                     // Установить Состояние аварии датчика
+  boolean get_InputLevel(){return InputLevel;}           // Уровень сработавшего датчика
+  int8_t  set_InputLevel(int16_t i);                     // Установить уровень сработавшего датчика
   inline int8_t  get_pinD(){return pin;}                 // Получить ногу куда прицеплен датчик
   int8_t  get_alarm_error(){return alarm_error;}
   uint8_t *get_save_addr(void) { return (uint8_t *)&number; } // Адрес структуры сохранения
