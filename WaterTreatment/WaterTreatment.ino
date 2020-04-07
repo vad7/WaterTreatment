@@ -788,9 +788,11 @@ xSetupExit:
 				} else if((LCD_setup & 0xFF00) == 0) {	// select menu item
 					LCD_setup = (LCD_setup << 8) | LCD_SetupFlag;
 					if((LCD_setup & 0xFF00) == LCD_SetupMenu_FlowCheck) { // Flow check
-						lcd.command(LCD_DISPLAYCONTROL | LCD_DISPLAYON);
 						FlowPulseCounter = 0;
 						FlowPulseCounterRest = _FlowPulseCounterRest = MC.sFrequency[FLOW].PassedRest;
+						lcd.command(LCD_DISPLAYCONTROL | LCD_DISPLAYON);
+					} else if((LCD_setup & 0xFF00) == LCD_SetupMenu_Sensors) {
+						lcd.command(LCD_DISPLAYCONTROL | LCD_DISPLAYON);
 					}
 				} else { // inside menu item selected
 					goto xSetupExit;
@@ -809,10 +811,17 @@ xSetupExit:
 			vTaskDelay(KEY_DEBOUNCE_TIME);
 			while(!digitalReadDirect(PIN_KEY_UP)) vTaskDelay(KEY_DEBOUNCE_TIME);
 			if(LCD_setup) {
-				if((LCD_setup & 0xFF) < ((LCD_setup & 0xFF00) == LCD_SetupMenu_Relays ? (RNUMBER > 7 ? 7 : RNUMBER-1) : LCD_SetupMenuItems-1)) {
-					LCD_setup++;
-					DisplayTick = ~DisplayTick;
-				}
+				if((LCD_setup & 0xFF00) == 0) { // select menu item
+					if((LCD_setup & 0xFF) < LCD_SetupMenuItems-1) {
+						LCD_setup++;
+						DisplayTick = ~DisplayTick;
+					}
+				} else if((LCD_setup & 0xFF00) == LCD_SetupMenu_Relays) {
+					if((LCD_setup & 0xFF) < (RNUMBER > 7 ? 7 : RNUMBER-1)) {
+						LCD_setup++;
+						DisplayTick = ~DisplayTick;
+					}
+				} else if((LCD_setup & 0xFF00) == LCD_SetupMenu_Sensors) DisplayTick = ~DisplayTick;
 			} else {
 xErrorsProcessing:
 				if(MC.get_errcode()) {
@@ -843,7 +852,7 @@ xErrorsProcessing:
 				if((LCD_setup & 0xFF00) == LCD_SetupMenu_FlowCheck) { // Flow check
 					FlowPulseCounter = 0;
 					FlowPulseCounterRest = _FlowPulseCounterRest = MC.sFrequency[FLOW].PassedRest;
-				} else if((LCD_setup & 0xFF) > 0) {
+				} else if(((LCD_setup & 0xFF00) == 0 || (LCD_setup & 0xFF00) == LCD_SetupMenu_Relays) && (LCD_setup & 0xFF) > 0) {
 					LCD_setup--;
 					DisplayTick = ~DisplayTick;
 				}
