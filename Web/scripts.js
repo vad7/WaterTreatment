@@ -367,7 +367,7 @@ function loadParam(paramid, noretry, resultdiv) {
 												if((relay = count[j].toLowerCase()) == "") continue;
 												loadsens = loadsens + "get_pinRelay(" + count[j] + "),get_isRelay(" + count[j] + "),get_nRelay(" + count[j] + "),";
 												upsens = upsens + "get_Relay(" + count[j] + "),";
-												content = content + '<tr id="get_isrelay-' + relay + '"><td>' + count[j] + '</td><td id="get_nrelay-' + relay + '"></td><td id="get_pinrelay-' + relay + '"></td><td><span id="get_relay-' + relay + '-ONOFF"></span><input type="checkbox" name="relay" id="get_relay-' + relay + '" onchange="setParam(\'get_Relay(' + count[j] + ')\');"></td>';
+												content = content + '<tr id="get_isrelay-' + relay + '"><td>' + count[j] + '</td><td id="get_nrelay-' + relay + '"></td><td><span id="get_relay-' + relay + '-ONOFF"></span><input type="checkbox" name="relay" id="get_relay-' + relay + '" onchange="setParam(\'get_Relay(' + count[j] + ')\');"></td><td id="get_pinrelay-' + relay + '"></td>';
 												content = content + '</tr>';
 											}
 											document.getElementById(valueid).innerHTML = content;
@@ -376,10 +376,15 @@ function loadParam(paramid, noretry, resultdiv) {
 										} else if(values[0] == 'get_tblPwrC') {
 											var content = "";
 											var count = values[1].split(';');
-											for(var j = 0; j < count.length - 1; j++) {
-												content = content + '<tr><td>' + count[j] + '</td><td nowrap><input id="get_pwrc-' + count[j].toLowerCase() + '" type="number" value="' + count[j+1] + '"><input type="submit" value=">" onclick="setParam(\'get_PwrC(' + count[j++] + ')\');"></td></tr>';
+											if(count.length <= 1) {
+												element = document.getElementById(valueid + "_head");
+												if(element) element.innerHTML = content;
+											} else {
+												for(var j = 0; j < count.length - 1; j++) {
+													content = content + '<tr><td>' + count[j] + '</td><td nowrap><input id="get_pwrc-' + count[j].toLowerCase() + '" type="number" value="' + count[j+1] + '"><input type="submit" value=">" onclick="setParam(\'get_PwrC(' + count[j++] + ')\');"></td></tr>';
+												}
+												document.getElementById(valueid).innerHTML = content;
 											}
-											document.getElementById(valueid).innerHTML = content;
 										} else {
 											var content = values[1].replace(/</g, "&lt;").replace(/\|$/g, "").replace(/\|/g, "</td><td>").replace(/\n/g, "</td></tr><tr><td>");
 											var element = document.getElementById(valueid);

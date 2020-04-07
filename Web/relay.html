@@ -1,6 +1,6 @@
 <html>
 <head> 
-	<title>Реле. Водоподготовка.</title>
+	<title>Датчики, Реле. Водоподготовка.</title>
 	<meta charset="utf-8" />
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 	<link rel="stylesheet" type="text/css" href="style.css">
@@ -9,40 +9,61 @@
 		urlupdate = 2000;
 		window.onload = function() {
 		loadParam("get_tblRelay,get_tblPwrC");
+		loadParam("get_tblInput");
 	};
 	</script>
 </head>
 <body class="actuators relay">
 <div id="menu" class="menu"><script src="menu.js"></script></div>
 <div class="content">
-	<h1>Реле <input type="submit" value="Записать в EEPROM"  onclick='loadParam("set_SAVE")'></h1>
+<div class="row1">
+	<h2>Реле <input type="submit" value="Записать в EEPROM" onclick='loadParam("set_SAVE")' style="float:right;"></h2>
 	<div class="row1">
 		<table>
 		<thead>
 		<tr>
-			<th>Имя</th>
-			<th>Описание</th>
-			<th>Pin</th>
+			<th width="15%">Имя</th>
+			<th width="25%">Описание</th>
 			<th>Состояние</th>
+			<th>Pin</th>
 		</tr>
 		</thead>
 		<tbody id="get_tblrelay">
 		</tbody>
 	</table>		
 	</div>		
-	<div class="row1">
+	<div id="get_tblpwrc_head">
 		<h2>Корректировка электрической мощности</h2>
 		<table>
 		<thead>
 		<tr>
-			<th>Имя</th>
+			<th width="15%">Имя</th>
 			<th>Добавить, Вт</th>
 		</tr>
 		</thead>
 		<tbody id="get_tblpwrc">
 		</tbody>
 	</table>		
-	</div>		
+	</div>
+ <br>
+ <h2>Датчики сухой контакт</h2>
+  <table>
+    <thead>
+    <tr>
+      <th width="15%">Имя</th>
+      <th>Описание</th>
+      <th>Состояние</th>
+      <th>Активный уровень</th>
+      <th>Тест</th>
+      <th>Pin</th>
+      <th>Тип</th>
+      <th>Код ошибки</th>
+    </tr>
+    </thead>
+    <tbody id="get_tblinput">
+    </tbody>
+  </table>            
+</div>
 </div>
 </body>
 </html>

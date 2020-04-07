@@ -14,13 +14,12 @@ document.write('\
 		<li class="history"><a href="history.html">Детально</a></li>\
 	</ul>\
 </li>\
-<li class="setsensors sensorst sensorin sensorsp relay has-children">\
+<li class="setsensors sensorst sensorsp relay has-children">\
 	<input type="checkbox" name="group-3" id="group-3">\
 	<label for="group-3"><i></i>Конфигурация</label>\
 	<ul>\
 		<li class="sensorsp"><a href="sensorsp.html">Датчики</a></li>\
-		<li class="sensorin"><a href="sensorin.html">Датчики контактные</a></li>\
-		<li class="relay"><a href="relay.html">Реле</a></li>\
+		<li class="relay"><a href="relay.html">Датчики, Реле</a></li>\
 		<li class="sensorst"><a href="sensorst.html">Датчики температуры</a></li>\
 		<li class="setsensors"><a href="setsensors.html">Привязка датчиков</a></li>\
 	</ul>\
