@@ -30,7 +30,7 @@ void get_Header(uint8_t thread, char *name_file)
 	sendPrintfRTOS(thread, " ------ Контроллер водоподготовки ver. %s  сборка %s %s ------\r\nКонфигурация: %s: %s\r\nСоздание файла: %s %s \r\n\r\n", VERSION, __DATE__, __TIME__, CONFIG_NAME, CONFIG_NOTE, NowTimeToStr(), NowDateToStr());
 }
 
-// Получить состояние
+// Получить состояние через web в виде файла
 // header - заголовок файла ставить или нет
 void get_txtState(uint8_t thread, boolean header)
 {
@@ -458,7 +458,7 @@ void get_datTest(uint8_t thread)
 }
 
 // Получить состояние для отсылки по почте
-// посылается в клиента используя tempBuf
+// посылается в клиента используя tempBuf[LEN_TEMPBUF]
 void get_mailState(EthernetClient client, char *tempBuf)
 {
 	uint8_t i;
@@ -467,7 +467,7 @@ void get_mailState(EthernetClient client, char *tempBuf)
 	strcat(tempBuf, cStrEnd);
 	client.write(tempBuf, strlen(tempBuf));
 
-	strcpy(tempBuf, "Состояние: ");
+	strcpy(tempBuf, "1. Состояние: ");
 	MC.StateToStr(tempBuf);
 	strcat(tempBuf, cStrEnd);
 	client.write(tempBuf, strlen(tempBuf));
@@ -558,7 +558,18 @@ void get_mailState(EthernetClient client, char *tempBuf)
 		}
 	}
 
-	strcpy(tempBuf, "\n 4. Контактные датчики");
+	strcpy(tempBuf, "\n 4. Реагент");
+	strcat(tempBuf, cStrEnd);
+	strcat(tempBuf, "Вес, г: ");
+	_dtoa(tempBuf, Weight_value, 1);
+	strcat(tempBuf, " (");
+	_dtoa(tempBuf, Weight_Percent, 2);
+	strcat(tempBuf, "%)");
+	strcat(tempBuf, cStrEnd);
+	client.write(tempBuf, strlen(tempBuf));
+
+
+	strcpy(tempBuf, "\n 5. Контактные датчики");
 	strcat(tempBuf, cStrEnd);
 	client.write(tempBuf, strlen(tempBuf));
 	for(i = 0; i < INUMBER; i++) {
@@ -574,7 +585,7 @@ void get_mailState(EthernetClient client, char *tempBuf)
 		}
 	}
 
-	strcpy(tempBuf, "\n 5. Частотные датчики");
+	strcpy(tempBuf, "\n 6. Частотные датчики");
 	strcat(tempBuf, cStrEnd);
 	client.write(tempBuf, strlen(tempBuf));
 	for(i = 0; i < FNUMBER; i++) {
@@ -589,7 +600,7 @@ void get_mailState(EthernetClient client, char *tempBuf)
 		}
 	}
 
-	strcpy(tempBuf, "\n 6. Реле");
+	strcpy(tempBuf, "\n 7. Реле");
 	strcat(tempBuf, cStrEnd);
 	client.write(tempBuf, strlen(tempBuf));
 	for(i = 0; i < RNUMBER; i++) {
@@ -605,14 +616,14 @@ void get_mailState(EthernetClient client, char *tempBuf)
 		}
 	}
 
-	strcpy(tempBuf, "\n 7. Электросчетчик");
+	strcpy(tempBuf, "\n 8. Электросчетчик");
 	strcat(tempBuf, cStrEnd);
 	client.write(tempBuf, strlen(tempBuf));
-	strcpy(tempBuf, "Текущее входное напряжение [В]: ");
+	strcpy(tempBuf, "Текущее входное напряжение, В: ");
 	MC.dPWM.get_param((char*) pwm_VOLTAGE, tempBuf);
 	strcat(tempBuf, cStrEnd);
 	client.write(tempBuf, strlen(tempBuf));
-	strcpy(tempBuf, "Текущая потребляемая мощность [Вт]: ");
+	strcpy(tempBuf, "Текущая потребляемая мощность, Вт: ");
 	MC.dPWM.get_param((char*) pwm_POWER, tempBuf);
 	strcat(tempBuf, cStrEnd);
 	client.write(tempBuf, strlen(tempBuf));

@@ -595,6 +595,7 @@ boolean Message::sendMessage()  // запуск из 0 потока
 // Отправить почту --------------------------------------------------------------------
 boolean Message::sendMail()
 {
+	// sizeof(tempBuf) = LEN_TEMPBUF
 	strcpy(retMail, ""); // Обнулить ошибку
 	// Подготовка
 	if(SemaphoreTake(xWebThreadSemaphore, (W5200_TIME_WAIT / portTICK_PERIOD_MS)) == pdFALSE) {
