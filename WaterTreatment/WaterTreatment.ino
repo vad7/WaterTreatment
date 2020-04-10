@@ -758,7 +758,7 @@ void vKeysLCD( void * )
 	vTaskDelay(3000);
 	static uint32_t DisplayTick = xTaskGetTickCount();
 	static char buffer[ALIGN(LCD_COLS * 2)];
-	static uint32_t setup_timeout;
+	static uint32_t setup_timeout = 0;
 	static uint32_t _FlowPulseCounterRest;
 	//static uint32_t displayed_area = 0; // b1 - Yd,Days Fe,Soft
 	for(;;)
@@ -783,6 +783,7 @@ void vKeysLCD( void * )
 xSetupExit:
 					lcd.command(LCD_DISPLAYCONTROL | LCD_DISPLAYON);
 					LCD_setup = 0;
+					setup_timeout = 0;
 				} else if((LCD_setup & 0xFF00) == LCD_SetupMenu_Relays) { // inside menu item selected - Relay
 					MC.dRelay[LCD_setup & 0xFF].set_Relay(MC.dRelay[LCD_setup & 0xFF].get_Relay() ? fR_StatusAllOff : fR_StatusManual);
 				} else if((LCD_setup & 0xFF00) == 0) {	// select menu item
@@ -798,14 +799,15 @@ xSetupExit:
 					goto xSetupExit;
 				}
 				DisplayTick = ~DisplayTick;
+				setup_timeout = DISPLAY_SETUP_TIMEOUT / KEY_CHECK_PERIOD;
 			} else if(MC.get_errcode() && !Error_Beep_confirmed) Error_Beep_confirmed = true; // Supress beeping
 			else { // Enter Setup
 				LCD_setup = LCD_SetupFlag;
 				lcd.command(LCD_DISPLAYCONTROL | LCD_DISPLAYON | LCD_CURSORON | LCD_BLINKON);
 				DisplayTick = ~DisplayTick;
+				setup_timeout = DISPLAY_SETUP_TIMEOUT / KEY_CHECK_PERIOD;
 			}
 			while(!digitalReadDirect(PIN_KEY_OK)) vTaskDelay(KEY_DEBOUNCE_TIME);
-			setup_timeout = DISPLAY_SETUP_TIMEOUT / KEY_CHECK_PERIOD;
 			//journal.jprintfopt("[OK]\n");
 		} else if(!digitalReadDirect(PIN_KEY_UP)) {
 			vTaskDelay(KEY_DEBOUNCE_TIME);
@@ -822,6 +824,7 @@ xSetupExit:
 						DisplayTick = ~DisplayTick;
 					}
 				} else if((LCD_setup & 0xFF00) == LCD_SetupMenu_Sensors) DisplayTick = ~DisplayTick;
+				setup_timeout = DISPLAY_SETUP_TIMEOUT / KEY_CHECK_PERIOD;
 			} else {
 xErrorsProcessing:
 				if(MC.get_errcode()) {
@@ -843,7 +846,6 @@ xErrorsProcessing:
 					}
 				}
 			}
-			setup_timeout = DISPLAY_SETUP_TIMEOUT / KEY_CHECK_PERIOD;
 			//journal.jprintfopt("[UP]\n");
 		} else if(!digitalReadDirect(PIN_KEY_DOWN)) {
 			vTaskDelay(KEY_DEBOUNCE_TIME);
@@ -856,8 +858,8 @@ xErrorsProcessing:
 					LCD_setup--;
 					DisplayTick = ~DisplayTick;
 				}
+				setup_timeout = DISPLAY_SETUP_TIMEOUT / KEY_CHECK_PERIOD;
 			} else goto xErrorsProcessing;
-			setup_timeout = DISPLAY_SETUP_TIMEOUT / KEY_CHECK_PERIOD;
 			//journal.jprintfopt("[DWN]\n");
 		}
 		if(xTaskGetTickCount() - DisplayTick > DISPLAY_UPDATE) { // Update display
@@ -940,7 +942,7 @@ xErrorsProcessing:
 					*buf++ = 'R';
 					tmp = MC.RTC_store.UsedRegen;
 				} else {
-					*buf++ = '\x7E';
+					*buf++ = '\x7E'; // '->'
 					tmp = MC.WorkStats.UsedSinceLastRegen + MC.RTC_store.UsedToday;
 				}
 				if(tmp < 10000) *buf++ = ' ';
@@ -985,24 +987,39 @@ xErrorsProcessing:
 				}
 				if(CriticalErrors & ERRC_WeightEmpty) {
 					strcpy(buf, "BRINE! "); buf += 7;
+					goto xShowWeight;
 				}
 				if(MC.get_errcode()) {
 					strcpy(buf, "ERR"); buf += 3;
 					buf = dptoa(buf, MC.get_errcode(), 0);
+					if(MC.get_errcode() == ERR_WEIGHT_LOW || MC.get_errcode() == ERR_WEIGHT_EMPTY) {
+						strcpy(buf, " W:"); buf += 3;
+						goto xShowWeight;
+					}
 				}
 				if(buf == buffer) {
 					if((tmp = MC.dPWM.get_Power()) != 0) {
-						strcpy(buf = buffer, "Power,W: "); buf += 9;
+						strcpy(buf, "Power,W: "); buf += 9;
 						buf = dptoa(buf, tmp, 0);
 					} else {
-						strcpy(buf = buffer, "Days,Fe:"); buf += 8;
-						tmp = MC.WorkStats.DaysFromLastRegen;
-						if(tmp < 100) *buf++ = ' ';
-						buf = dptoa(buf, tmp, 0);
-						strcpy(buf, " Soft:"); buf += 6;
-						tmp = MC.WorkStats.DaysFromLastRegenSoftening;
-						if(tmp < 100) *buf++ = ' ';
-						buf = dptoa(buf, tmp, 0);
+						if((setup_timeout = !setup_timeout)) {
+							strcpy(buf, "Weight:"); buf += 7;
+							if(Weight_Percent < 10000) *buf++ = ' ';
+xShowWeight:
+							buf = dptoa(buf, Weight_value / 10, 0);
+							*buf++ = '\x7E'; // '->'
+							buf = dptoa(buf, Weight_Percent / 10, 1);
+							*buf++ = '%';
+						} else {
+							strcpy(buf, "Days,Fe:"); buf += 8;
+							tmp = MC.WorkStats.DaysFromLastRegen;
+							if(tmp < 100) *buf++ = ' ';
+							buf = dptoa(buf, tmp, 0);
+							strcpy(buf, " Soft:"); buf += 6;
+							tmp = MC.WorkStats.DaysFromLastRegenSoftening;
+							if(tmp < 100) *buf++ = ' ';
+							buf = dptoa(buf, tmp, 0);
+						}
 					}
 				}
 				tmp = LCD_COLS - (buf - buffer);
