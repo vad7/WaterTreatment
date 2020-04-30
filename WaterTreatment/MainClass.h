@@ -163,6 +163,7 @@ struct type_option {
 	uint8_t  FilterTank;			// Диаметр фильтра обезжелезивателя в дюймах
 	uint8_t  FilterTankSoftener;	// Диаметр фильтра умягчителя в дюймах
 	uint8_t  DrainingWaterAfterRegen;// сек, Слив после промывки обезжелезивателя
+	uint16_t DaysBeforeRegenSoftening;// Дней до регенерации умягчителя, 0 - не проверять
 } __attribute__((packed));
 
 //  Работа с отдельными флагами type_DateTime

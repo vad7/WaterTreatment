@@ -20,7 +20,7 @@
 #include "Util.h"
 
 // ОПЦИИ КОМПИЛЯЦИИ ПРОЕКТА -------------------------------------------------------
-#define VERSION			  "1.06"				// Версия прошивки
+#define VERSION			  "1.07"				// Версия прошивки
 #define VER_SAVE		  2					// Версия формата сохраняемых данных в I2C память
 //#define LOG                               // В последовательный порт шлет лог веб сервера (логируются запросы)
 #define FAST_LIB                            // использование допиленной библиотеки езернета
@@ -394,6 +394,7 @@ const char *option_CriticalErrorsTimeout= {"CET"};
 const char *option_FilterTank           = {"TD"};
 const char *option_FilterTankSoftener   = {"TDS"};
 const char *option_DrainingWaterAfterRegen={"DAR"};
+const char *option_RegenStart			= {"R"};
 
 // WorkStats, get_WS..., set_WS...(x)
 const char *webWS_UsedToday 					= { "UD" };

@@ -1595,7 +1595,7 @@ void vService(void *)
 						uint32_t need_regen = 0;
 						if((MC.Option.DaysBeforeRegen && MC.WorkStats.DaysFromLastRegen >= MC.Option.DaysBeforeRegen) || (MC.Option.UsedBeforeRegen && MC.WorkStats.UsedSinceLastRegen + MC.RTC_store.UsedToday >= MC.Option.UsedBeforeRegen))
 							need_regen |= RTC_Work_Regen_F1;
-						else if(MC.Option.UsedBeforeRegenSoftener && MC.WorkStats.UsedSinceLastRegenSoftening + MC.RTC_store.UsedToday >= MC.Option.UsedBeforeRegenSoftener)
+						else if((MC.Option.DaysBeforeRegenSoftening && MC.WorkStats.DaysFromLastRegenSoftening >= MC.Option.DaysBeforeRegenSoftening) || (MC.Option.UsedBeforeRegenSoftener && MC.WorkStats.UsedSinceLastRegenSoftening + MC.RTC_store.UsedToday >= MC.Option.UsedBeforeRegenSoftener))
 							need_regen |= RTC_Work_Regen_F2;
 						if(need_regen) {
 #ifdef TANK_ANALOG_LEVEL

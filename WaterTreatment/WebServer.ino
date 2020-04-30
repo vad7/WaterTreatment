@@ -722,8 +722,10 @@ xSaveStats:		if((i = MC.save_WorkStats()) == OK)
 			} else if(strcmp(str, webWS_RegCntSoftening) == 0) {  // get_WSRSC
 				if(i) MC.WorkStats.RegCntSoftening = l_i32; // set_WSRSC=x
 				_itoa(MC.WorkStats.RegCntSoftening, strReturn);
-			} else if(strcmp(str, webWS_DaysFromLastRegen) == 0) _itoa(MC.WorkStats.DaysFromLastRegen, strReturn); // get_WSRD
-			else if(strcmp(str, webWS_UsedSinceLastRegen) == 0) _itoa(MC.WorkStats.UsedSinceLastRegen + MC.RTC_store.UsedToday, strReturn); // get_WSRS
+			} else if(strcmp(str, webWS_DaysFromLastRegen) == 0) {
+				if(i) MC.WorkStats.DaysFromLastRegen = l_i32; // set_WSRD=x
+				_itoa((int16_t)MC.WorkStats.DaysFromLastRegen, strReturn); // get_WSRD
+			} else if(strcmp(str, webWS_UsedSinceLastRegen) == 0) _itoa(MC.WorkStats.UsedSinceLastRegen + MC.RTC_store.UsedToday, strReturn); // get_WSRS
 			else if(strcmp(str, webWS_UsedLastRegen) == 0) { // get_WSRL
 				if(MC.sInput[REG_ACTIVE].get_Input() || MC.sInput[REG_BACKWASH_ACTIVE].get_Input()) {
 					strReturn += m_snprintf(strReturn += m_strlen(strReturn), 64, "%d (%d)", MC.RTC_store.UsedRegen, MC.WorkStats.UsedLastRegen);
@@ -732,8 +734,10 @@ xSaveStats:		if((i = MC.save_WorkStats()) == OK)
 				if(MC.sInput[REG2_ACTIVE].get_Input()) {
 					strReturn += m_snprintf(strReturn += m_strlen(strReturn), 64, "%d (%d)", MC.RTC_store.UsedRegen, MC.WorkStats.UsedLastRegenSoftening);
 				} else _itoa(MC.WorkStats.UsedLastRegenSoftening, strReturn);
-			} else if(strcmp(str, webWS_DaysFromLastRegenSoftening) == 0) _itoa(MC.WorkStats.DaysFromLastRegenSoftening, strReturn); // get_WSRSD
-			else if(strcmp(str, webWS_UsedSinceLastRegenSoftening) == 0) _itoa(MC.WorkStats.UsedSinceLastRegenSoftening + MC.RTC_store.UsedToday, strReturn); // get_WSRSS
+			} else if(strcmp(str, webWS_DaysFromLastRegenSoftening) == 0) {
+				if(i) MC.WorkStats.DaysFromLastRegenSoftening = l_i32; // set_WSRSD=x
+				_itoa((int16_t)MC.WorkStats.DaysFromLastRegenSoftening, strReturn); // get_WSRSD
+			} else if(strcmp(str, webWS_UsedSinceLastRegenSoftening) == 0) _itoa(MC.WorkStats.UsedSinceLastRegenSoftening + MC.RTC_store.UsedToday, strReturn); // get_WSRSS
 			else if(*str == webWS_UsedDrain) _dtoa(strReturn, MC.WorkStats.UsedDrain, 1); // get_WSD
 			else if(*str == webWS_UsedTotal) {  // get_WST
 				if(i) MC.WorkStats.UsedTotal = pm * 1000 + 0.0005f; // set_WST=x
