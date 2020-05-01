@@ -724,7 +724,7 @@ xSaveStats:		if((i = MC.save_WorkStats()) == OK)
 				_itoa(MC.WorkStats.RegCntSoftening, strReturn);
 			} else if(strcmp(str, webWS_DaysFromLastRegen) == 0) {
 				if(i) MC.WorkStats.DaysFromLastRegen = l_i32; // set_WSRD=x
-				_itoa((int16_t)MC.WorkStats.DaysFromLastRegen, strReturn); // get_WSRD
+				_itoa(MC.WorkStats.DaysFromLastRegen, strReturn); // get_WSRD
 			} else if(strcmp(str, webWS_UsedSinceLastRegen) == 0) _itoa(MC.WorkStats.UsedSinceLastRegen + MC.RTC_store.UsedToday, strReturn); // get_WSRS
 			else if(strcmp(str, webWS_UsedLastRegen) == 0) { // get_WSRL
 				if(MC.sInput[REG_ACTIVE].get_Input() || MC.sInput[REG_BACKWASH_ACTIVE].get_Input()) {
@@ -736,7 +736,7 @@ xSaveStats:		if((i = MC.save_WorkStats()) == OK)
 				} else _itoa(MC.WorkStats.UsedLastRegenSoftening, strReturn);
 			} else if(strcmp(str, webWS_DaysFromLastRegenSoftening) == 0) {
 				if(i) MC.WorkStats.DaysFromLastRegenSoftening = l_i32; // set_WSRSD=x
-				_itoa((int16_t)MC.WorkStats.DaysFromLastRegenSoftening, strReturn); // get_WSRSD
+				_itoa(MC.WorkStats.DaysFromLastRegenSoftening, strReturn); // get_WSRSD
 			} else if(strcmp(str, webWS_UsedSinceLastRegenSoftening) == 0) _itoa(MC.WorkStats.UsedSinceLastRegenSoftening + MC.RTC_store.UsedToday, strReturn); // get_WSRSS
 			else if(*str == webWS_UsedDrain) _dtoa(strReturn, MC.WorkStats.UsedDrain, 1); // get_WSD
 			else if(*str == webWS_UsedTotal) {  // get_WST
@@ -758,6 +758,12 @@ xSaveStats:		if((i = MC.save_WorkStats()) == OK)
 					}
 					if(l_i32 & 2) _dtoa(strReturn, MC.CalcFilteringSpeed(MC.FilterTankSoftenerSquare), 3); // regen Soft in process
 				}
+			} else if(*str == webWS_Velocity) {
+				if(i) {
+					MC.WorkStats.Flags ^= l_i32; 		// set_WSF=x (XOR x)
+					NeedSaveWorkStats = 1;
+				}
+				_itoa(MC.WorkStats.Flags, strReturn);	// get_WSF
 			}
 			ADD_WEBDELIM(strReturn); continue;
 		}

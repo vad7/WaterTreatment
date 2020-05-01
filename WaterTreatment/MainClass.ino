@@ -596,7 +596,7 @@ void MainClass::resetSetting()
 	Option.RegenHour = 3;
 	Option.DaysBeforeRegen = 16;
 	Option.UsedBeforeRegen = 3000;
-	Option.UsedBeforeRegenSoftener = 3500;
+	Option.UsedBeforeRegenSoftening = 3500;
 	Option.LTANK_Empty = 500;
 	Option.Weight_Low = 500;
 	Option.DrainAfterNoConsume = 12;
@@ -829,8 +829,9 @@ boolean MainClass::set_option(char *var, float xx)
    if(strcmp(var,option_BackWashFeedPumpDelay)==0){ Option.BackWashFeedPumpDelay = x; return true; } else
    if(strcmp(var,option_RegenHour)==0)       { Option.RegenHour = x; return true; } else
    if(strcmp(var,option_DaysBeforeRegen)==0) { Option.DaysBeforeRegen = x; return true; } else
+   if(strcmp(var,option_DaysBeforeRegenSoftening)==0) { Option.DaysBeforeRegenSoftening = x; return true; } else
    if(strcmp(var,option_UsedBeforeRegen)==0) { Option.UsedBeforeRegen = x; return true; } else
-   if(strcmp(var,option_UsedBeforeRegenSoftener)==0) { Option.UsedBeforeRegenSoftener = x; return true; } else
+   if(strcmp(var,option_UsedBeforeRegenSoftening)==0) { Option.UsedBeforeRegenSoftening = x; return true; } else
    if(strcmp(var,option_MinPumpOnTime)==0)   { Option.MinPumpOnTime = x; return true; } else
    if(strcmp(var,option_MinWaterBoostOnTime)==0){ Option.MinWaterBoostOnTime = x; return true; } else
    if(strcmp(var,option_MinWaterBoostOffTime)==0){ Option.MinWaterBoostOffTime = x; return true; } else
@@ -879,8 +880,9 @@ char* MainClass::get_option(char *var, char *ret)
    if(strcmp(var,option_BackWashFeedPumpDelay)==0){ return _itoa(Option.BackWashFeedPumpDelay, ret); } else
    if(strcmp(var,option_RegenHour)==0){ return _itoa(Option.RegenHour, ret); } else
    if(strcmp(var,option_DaysBeforeRegen)==0){ return _itoa(Option.DaysBeforeRegen, ret); } else
+   if(strcmp(var,option_DaysBeforeRegenSoftening)==0){ return _itoa(Option.DaysBeforeRegenSoftening, ret); } else
    if(strcmp(var,option_UsedBeforeRegen)==0){ return _itoa(Option.UsedBeforeRegen, ret); } else
-   if(strcmp(var,option_UsedBeforeRegenSoftener)==0){ return _itoa(Option.UsedBeforeRegenSoftener, ret); } else
+   if(strcmp(var,option_UsedBeforeRegenSoftening)==0){ return _itoa(Option.UsedBeforeRegenSoftening, ret); } else
    if(strcmp(var,option_MinPumpOnTime)==0){ return _itoa((uint32_t)Option.MinPumpOnTime, ret); } else
    if(strcmp(var,option_MinWaterBoostOnTime)==0){ return _itoa((uint32_t)Option.MinWaterBoostOnTime, ret); } else
    if(strcmp(var,option_MinWaterBoostOffTime)==0){ return _itoa((uint32_t)Option.MinWaterBoostOffTime, ret); } else

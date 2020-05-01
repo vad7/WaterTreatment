@@ -41,8 +41,11 @@ struct type_WorkStats {
 	uint16_t UsedLastRegen;			// Liters
 	uint16_t RegCntSoftening;
 	uint16_t UsedLastRegenSoftening;// Liters
+	uint8_t  Flags;
 } __attribute__((packed));
 
+#define WS_F_StartRegen				0x01
+#define WS_F_StartRegenSoft			0x02
 #define WS_AVERAGE_DAYS				100		// После этого начнется новый отсчет, предыдущее среднее значение будет взято как первое значение.
 
 #define RTC_Work_WeekDay_MASK		0x07	// Active weekday (1-7)
@@ -136,7 +139,7 @@ struct type_option {
 	uint8_t  RegenHour;				// Час регенерации (0..23)
 	uint16_t DaysBeforeRegen;		// Дней до регенерации обезжелезивателя, 0 - не проверять
 	uint16_t UsedBeforeRegen;		// Количество литров до регенерации обезжелезивателя, 0 - нет
-	uint16_t UsedBeforeRegenSoftener;// Количество литров до регенерации умягчителя, 0 - нет
+	uint16_t UsedBeforeRegenSoftening;// Количество литров до регенерации умягчителя, 0 - нет
 	uint16_t MinWaterBoostOnTime;	// Минимальное время работы насосной станции,
 	uint16_t MinWaterBoostOffTime;	// Минимальное перерыва работы насосной станции,
 	uint16_t MinPumpOnTime;			// мсек, Минимальное время работы дозатора

@@ -370,8 +370,9 @@ const char *option_BackWashFeedPumpMaxFlow= {"BWMF"};
 const char *option_BackWashFeedPumpDelay = {"BWFD"};
 const char *option_RegenHour			= {"RH"};
 const char *option_DaysBeforeRegen		= {"DBR"};
+const char *option_DaysBeforeRegenSoftening={"DBRS"};
 const char *option_UsedBeforeRegen		= {"UBR"};
-const char *option_UsedBeforeRegenSoftener = {"UBRS"};
+const char *option_UsedBeforeRegenSoftening={"UBRS"};
 const char *option_MinPumpOnTime		= {"MPOT"};
 const char *option_MinWaterBoostOnTime	= {"MWBT"};
 const char *option_MinWaterBoostOffTime	= {"MWBTF"};
@@ -413,6 +414,7 @@ const char *webWS_UsedLastRegenSoftening  		= { "RSL" };
 #define		webWS_UsedDrain 	 					'D'
 #define		webWS_UsedTotal  						'T'
 #define		webWS_Velocity							'V'
+#define		webWS_Flags  						    'F'
 
 // --------------------------------------------------------------------------------
 // ОШИБКИ едины для всего - сквозной список
