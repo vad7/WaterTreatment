@@ -1124,6 +1124,7 @@ xSaveStats:		if((i = MC.save_WorkStats()) == OK)
 			ADD_WEBDELIM(strReturn);	continue;
 		}
 #endif
+
 		// -----------------------------------------------------------------------------------------------------
 		// 2. Функции с параметром ------------------------------------------------------------------------------
 		// Ищем скобки ------------------------------------------------------------------------------------------
@@ -1162,7 +1163,15 @@ xSaveStats:		if((i = MC.save_WorkStats()) == OK)
 				ADD_WEBDELIM(strReturn);
 				continue;
 			}
-
+			if(strncmp(str, "LowConsume", 10) == 0) {
+				str += 10;
+				if(strcmp(str, "_set") == 0) {  // Функция LowConsume_set(x), x = 0, 1
+					LowConsumeMode = atoi(x);
+				}
+				_itoa(LowConsumeMode, strReturn); // Функция LowConsume...
+				ADD_WEBDELIM(strReturn);
+				continue;
+			}
 
 			// -----------------------------------------------------------------------------
 			// ПРОФИЛИ функции с одним параметром

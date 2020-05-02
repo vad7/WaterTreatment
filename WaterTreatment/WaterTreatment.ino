@@ -1372,18 +1372,22 @@ void vPumps( void * )
 			} else FloodingTime = 0;
 		}
 		// Water Booster
-		if(WaterBoosterStatus == 0 && !CriticalErrors && press != ERROR_PRESS
-				&& WaterBoosterTimeout >= MC.Option.MinWaterBoostOffTime
-				&& press <= (reg_active ? MC.Option.PWATER_RegMin : MC.sADC[PWATER].get_minValue())) { // Starting
-			MC.dRelay[RBOOSTER1].set_ON();
-			WaterBoosterTimeout = 0;
-			WaterBoosterStatus = 1;
-			int32_t i = WaterBoosterCountL * 100 + (WaterBoosterCountLrest - _WaterBoosterCountLrest) * 100 / MC.sFrequency[FLOW].get_kfValue();
-			if(History_BoosterCountL == -1) History_BoosterCountL = i; else History_BoosterCountL += i;
-			MC.ChartWaterBoosterCount.addPoint(i);
+		if(WaterBoosterStatus == 0) {
+			if(!CriticalErrors && press != ERROR_PRESS
+					&& WaterBoosterTimeout >= MC.Option.MinWaterBoostOffTime
+					&& press <= (reg_active ? MC.Option.PWATER_RegMin : MC.sADC[PWATER].get_minValue())) { // Starting
+				if(LowConsumeMode && !MC.dRelay[RFEEDPUMP].get_Relay()) {
+					MC.dRelay[RBOOSTER1].set_ON();
+					WaterBoosterTimeout = 0;
+					WaterBoosterStatus = 1;
+					int32_t i = WaterBoosterCountL * 100 + (WaterBoosterCountLrest - _WaterBoosterCountLrest) * 100 / MC.sFrequency[FLOW].get_kfValue();
+					if(History_BoosterCountL == -1) History_BoosterCountL = i; else History_BoosterCountL += i;
+					MC.ChartWaterBoosterCount.addPoint(i);
+				}
+			}
 		} else if(WaterBoosterStatus > 0) {
 			if(CriticalErrors || (WaterBoosterTimeout >= MC.Option.MinWaterBoostOnTime && press >= MC.sADC[PWATER].get_maxValue())) { // Stopping
-				xWaterBooster_GO_OFF:
+xWaterBooster_GO_OFF:
 				if(WaterBoosterStatus == 1) {
 					goto xWaterBooster_OFF;
 				} else {// Off full cycle
@@ -1392,7 +1396,7 @@ void vPumps( void * )
 				}
 			} else if(WaterBoosterStatus == 1) {
 				MC.dRelay[RBOOSTER2].set_ON();
-				WaterBoosterStatus = 2;
+				WaterBoosterStatus = 2; // Now - ON
 			}
 		} else if(WaterBoosterStatus == -1) {
 xWaterBooster_OFF:
@@ -1415,7 +1419,11 @@ xWaterBooster_OFF:
 			taskEXIT_CRITICAL();
 			if(TimeFeedPump < TIME_SLICE_PUMPS) MC.dRelay[RFEEDPUMP].set_OFF();
 		} else if(TimeFeedPump >= MC.Option.MinPumpOnTime) {
-			MC.dRelay[RFEEDPUMP].set_ON();
+			if(LowConsumeMode && WaterBoosterStatus && WaterBoosterTimeout > WB_LOW_CONSUME_MAX_TIME) {
+				if(WaterBoosterTimeout == 2) goto xWaterBooster_GO_OFF;
+			} else {
+				MC.dRelay[RFEEDPUMP].set_ON();
+			}
 		}
 		// Fill tank
 #ifndef TANK_ANALOG_LEVEL
@@ -1591,7 +1599,7 @@ void vService(void *)
 				if(!CriticalErrors) {
 					int err = MC.get_errcode();
 					if((err == ERR_FLOODING || err == ERR_TANK_EMPTY) && Errors[1] == 0) MC.clear_error();
-					if(err != ERR_START_REG && err != ERR_START_REG2 && !(MC.RTC_store.Work & RTC_Work_Regen_MASK) && rtcSAM3X8.get_hours() == MC.Option.RegenHour) {
+					if(err != ERR_START_REG && err != ERR_START_REG2 && !(MC.RTC_store.Work & RTC_Work_Regen_MASK) && !LowConsumeMode && rtcSAM3X8.get_hours() == MC.Option.RegenHour) {
 						uint32_t need_regen = 0;
 						if((MC.Option.DaysBeforeRegen && MC.WorkStats.DaysFromLastRegen >= MC.Option.DaysBeforeRegen)
 								|| (MC.Option.UsedBeforeRegen && MC.WorkStats.UsedSinceLastRegen + MC.RTC_store.UsedToday >= MC.Option.UsedBeforeRegen)

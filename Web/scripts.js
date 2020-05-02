@@ -1,5 +1,5 @@
 // Copyright by Vadim Kulakov vad7@yahoo.com, vad711
-var VER_WEB = "1.07";
+var VER_WEB = "1.08";
 var urlcontrol = ''; //  автоопределение (если адрес сервера совпадает с адресом контроллера)
 // адрес и порт контроллера, если адрес сервера отличен от адреса контроллера (не рекомендуется)
 //var urlcontrol = 'http://192.168.0.199';
@@ -15,14 +15,11 @@ function setParam(paramid, resultid) {
 	var elval, clear = true, equate = true;
 	var element;
 	if((clear = equate = elid.indexOf("=")==-1)) { // Не (x=n)
-		if((element = document.getElementById(elid.toLowerCase()))) {
-			if(element.getAttribute('type') == 'checkbox') {
-				if(element.checked) elval = 1; else elval = 0;
-			} else elval = element.value;
-		} else { // not found, try resultid
-			element = document.getElementById(resultid);
-			elval = element.value;
-		}
+		if((element = document.getElementById(elid.toLowerCase()))) ;
+		else element = document.getElementById(resultid);
+		if(element.getAttribute('type') == 'checkbox') {
+			if(element.checked) elval = 1; else elval = 0;
+		} else elval = element.value;
 		//if(typeof elval == 'string') elval = elval.replace(/[,=&]+/g, "");
 	}
 	if(res.test(paramid)) {

@@ -8,7 +8,7 @@
 	<script type="text/javascript">
 		urlupdate = 2000;
 		window.onload = function() {
-		loadParam("get_tblRelay,get_tblPwrC");
+		loadParam("get_tblRelay,get_tblPwrC,LowConsume");
 		loadParam("get_tblInput");
 	};
 	</script>
@@ -63,6 +63,11 @@
     <tbody id="get_tblinput">
     </tbody>
   </table>            
+</div>
+<div class="row1">
+<h2>HTTP датчики</h2>
+<br>
+Режим минимальной нагрузки (питание от резерва): <input type="checkbox" id="low_consume" onChange="setParam('LowConsume_set','low_consume');">
 </div>
 </div>
 </body>

@@ -72,7 +72,7 @@ uint32_t ErrorsTime[16];
 
 volatile bool ADC_has_been_read = false;
 int		 WaterBoosterStatus = 0; // 0 - все выключены, 1 - вкл твердотельное, 2 - вкл оба, -1 - выкл обычное
-uint32_t WaterBoosterTimeout = 0;
+uint32_t WaterBoosterTimeout = 0;  // ms
 uint32_t WaterBoosterCountL = 0;
 int32_t WaterBoosterCountLrest = 0;
 int32_t _WaterBoosterCountLrest = 0;
@@ -93,6 +93,7 @@ uint32_t ResetDUE_countdown = 0;
 bool	 DebugToJournalOn = false;
 uint32_t FlowPulseCounter;
 uint32_t FlowPulseCounterRest;
+bool     LowConsumeMode = false; //
 
 // Weight
 //bool Weight_NeedRead = false; // allways
@@ -140,8 +141,8 @@ struct type_option {
 	uint16_t DaysBeforeRegen;		// Дней до регенерации обезжелезивателя, 0 - не проверять
 	uint16_t UsedBeforeRegen;		// Количество литров до регенерации обезжелезивателя, 0 - нет
 	uint16_t UsedBeforeRegenSoftening;// Количество литров до регенерации умягчителя, 0 - нет
-	uint16_t MinWaterBoostOnTime;	// Минимальное время работы насосной станции,
-	uint16_t MinWaterBoostOffTime;	// Минимальное перерыва работы насосной станции,
+	uint16_t MinWaterBoostOnTime;	// Минимальное время работы насосной станции, ms
+	uint16_t MinWaterBoostOffTime;	// Минимальное перерыва работы насосной станции, ms
 	uint16_t MinPumpOnTime;			// мсек, Минимальное время работы дозатора
 	uint16_t MinRegenLiters;		// Тревога, если за регенерацию израсходовано меньше литров
 	uint16_t MinDrainLiters;		// Тревога, если слито (Drain) при сбросе меньше литров*10
