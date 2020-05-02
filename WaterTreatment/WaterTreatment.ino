@@ -1376,7 +1376,7 @@ void vPumps( void * )
 			if(!CriticalErrors && press != ERROR_PRESS
 					&& WaterBoosterTimeout >= MC.Option.MinWaterBoostOffTime
 					&& press <= (reg_active ? MC.Option.PWATER_RegMin : MC.sADC[PWATER].get_minValue())) { // Starting
-				if(LowConsumeMode && !MC.dRelay[RFEEDPUMP].get_Relay()) {
+				if(!LowConsumeMode || !MC.dRelay[RFEEDPUMP].get_Relay()) {
 					MC.dRelay[RBOOSTER1].set_ON();
 					WaterBoosterTimeout = 0;
 					WaterBoosterStatus = 1;
