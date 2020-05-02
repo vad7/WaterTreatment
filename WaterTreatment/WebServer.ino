@@ -1124,6 +1124,16 @@ xSaveStats:		if((i = MC.save_WorkStats()) == OK)
 			ADD_WEBDELIM(strReturn);	continue;
 		}
 #endif
+		if(strncmp(str, "LowConsume", 10) == 0) {
+			str += 10;
+			if(strncmp(str, "_set=", 5) == 0) {  // Функция "LowConsume_set=x", x = 0, 1
+				str += 5;
+				LowConsumeMode = atoi(str);
+			}
+			_itoa(LowConsumeMode, strReturn); // Функция LowConsume...
+			ADD_WEBDELIM(strReturn);
+			continue;
+		}
 
 		// -----------------------------------------------------------------------------------------------------
 		// 2. Функции с параметром ------------------------------------------------------------------------------
@@ -1160,15 +1170,6 @@ xSaveStats:		if((i = MC.save_WorkStats()) == OK)
 				} else if(*x == 'F') {  // get_ErrF - FloodingError
 					strcat(strReturn, CriticalErrors & ERRC_Flooding ? "1" : "0");
 				}
-				ADD_WEBDELIM(strReturn);
-				continue;
-			}
-			if(strncmp(str, "LowConsume", 10) == 0) {
-				str += 10;
-				if(strcmp(str, "_set") == 0) {  // Функция LowConsume_set(x), x = 0, 1
-					LowConsumeMode = atoi(x);
-				}
-				_itoa(LowConsumeMode, strReturn); // Функция LowConsume...
 				ADD_WEBDELIM(strReturn);
 				continue;
 			}
