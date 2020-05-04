@@ -56,8 +56,8 @@ HX711 Weight;
 // Глобальные переменные
 extern boolean set_time_NTP(void);   
 EthernetServer server1(80);                         // сервер
-EthernetUDP Udp;                                    // Для NTP сервера
-EthernetClient ethClient(W5200_SOCK_SYS);           // для MQTT
+//EthernetClient ethClient(W5200_SOCK_SYS);           // для MQTT
+// для set_time_NTP() и Send_HTTP_Request()
 
 #ifdef RADIO_SENSORS
 void check_radio_sensors(void);
@@ -1316,6 +1316,7 @@ void vPumps( void * )
 			Charts_WaterBooster_work += TIME_SLICE_PUMPS;
 		}
 		if((WaterBoosterTimeout += TIME_SLICE_PUMPS) < TIME_SLICE_PUMPS) WaterBoosterTimeout = 0xFFFFFFFF;
+		if(AfterFilledTimer) if((AfterFilledTimer -= TIME_SLICE_PUMPS) < 0) AfterFilledTimer = 0;
 		for(uint8_t i = 0; i < RNUMBER; i++) MC.dRelay[i].NextTimerOn();
 
 		// Read sensors
@@ -1376,7 +1377,7 @@ void vPumps( void * )
 			if(!CriticalErrors && press != ERROR_PRESS
 					&& WaterBoosterTimeout >= MC.Option.MinWaterBoostOffTime
 					&& press <= (reg_active ? MC.Option.PWATER_RegMin : MC.sADC[PWATER].get_minValue())) { // Starting
-				if(!LowConsumeMode || !MC.dRelay[RFEEDPUMP].get_Relay()) {
+				if(!LowConsumeMode || (!MC.dRelay[RFEEDPUMP].get_Relay() && AfterFilledTimer == 0)) {
 					MC.dRelay[RBOOSTER1].set_ON();
 					WaterBoosterTimeout = 0;
 					WaterBoosterStatus = 1;
@@ -1419,8 +1420,8 @@ xWaterBooster_OFF:
 			taskEXIT_CRITICAL();
 			if(TimeFeedPump < TIME_SLICE_PUMPS) MC.dRelay[RFEEDPUMP].set_OFF();
 		} else if(TimeFeedPump >= MC.Option.MinPumpOnTime) {
-			if(LowConsumeMode && WaterBoosterStatus && WaterBoosterTimeout > WB_LOW_CONSUME_MAX_TIME) {
-				if(WaterBoosterTimeout == 2) goto xWaterBooster_GO_OFF;
+			if(LowConsumeMode && (WaterBoosterStatus || AfterFilledTimer)) {
+				if(WaterBoosterStatus == 2 && WaterBoosterTimeout > WB_LOW_CONSUME_MAX_TIME) goto xWaterBooster_GO_OFF;
 			} else {
 				MC.dRelay[RFEEDPUMP].set_ON();
 			}
@@ -1442,7 +1443,7 @@ xWaterBooster_OFF:
 			if(MC.dRelay[RFILL].get_Relay()) MC.dRelay[RFILL].set_OFF();	// Stop filling tank
 		}
 #else
-		if(MC.sADC[LTANK].get_Value() <= (MC.sInput[REG_BACKWASH_ACTIVE].get_Input() ? MC.sADC[LTANK].get_maxValue() - FILL_TANK_REGEN_DELTA : MC.sADC[LTANK].get_minValue())) {
+		if(MC.sADC[LTANK].get_Value() <= (MC.sInput[REG_BACKWASH_ACTIVE].get_Input() ? MC.sADC[LTANK].get_maxValue() - FILL_TANK_REGEN_DELTA : LowConsumeMode ? MC.Option.LTank_LowConsumeMin : MC.sADC[LTANK].get_minValue())) {
 			if(MC.dRelay[RFILL].get_Relay()) {
 				if(MC.Option.FillingTankTimeout) {
 					if(WaterBoosterStatus == 0 && TimerDrainingWater == 0) { // No water consuming
@@ -1463,12 +1464,17 @@ xWaterBooster_OFF:
 				Charts_FillTank_work += TIME_SLICE_PUMPS * 100 / 1000; // in percent
 				taskEXIT_CRITICAL();
 			} else if(!(CriticalErrors & ~ERRC_TankEmpty)) {
+				if(LowConsumeMode && !MC.dRelay[RFEEDPUMP].get_Relay() && WaterBoosterStatus == 0)
 				MC.dRelay[RFILL].set_ON();	// Start filling tank
 				FillingTankLastLevel = MC.sADC[LTANK].get_Value();
 				FillingTankTimer = GetTickCount();
 			}
-		} else if(MC.sADC[LTANK].get_Value() >= MC.sADC[LTANK].get_maxValue()) {
-			if(MC.dRelay[RFILL].get_Relay()) MC.dRelay[RFILL].set_OFF();	// Stop filling tank
+			if(LowConsumeMode) AfterFilledTimer = MC.Option.LTank_AfterFilledTimer * 1000;
+		} else {
+			if(MC.dRelay[RFILL].get_Relay()) {
+				if(MC.sADC[LTANK].get_Value() >= MC.sADC[LTANK].get_maxValue()) MC.dRelay[RFILL].set_OFF();	// Stop filling tank
+				if(LowConsumeMode) AfterFilledTimer = MC.Option.LTank_AfterFilledTimer * 1000;
+			}
 		}
 #endif // TANK_ANALOG_LEVEL
 

@@ -74,9 +74,9 @@ volatile bool ADC_has_been_read = false;
 int		 WaterBoosterStatus = 0; // 0 - все выключены, 1 - вкл твердотельное, 2 - вкл оба, -1 - выкл обычное
 uint32_t WaterBoosterTimeout = 0;  // ms
 uint32_t WaterBoosterCountL = 0;
-int32_t WaterBoosterCountLrest = 0;
+int32_t  WaterBoosterCountLrest = 0;
 int32_t _WaterBoosterCountLrest = 0;
-//bool 	WaterBoosterError = false;
+//bool 	 WaterBoosterError = false;
 //volatile bool FloodingError = false;
 //bool	 TankEmpty = false;
 uint32_t FloodingTime = 0;	// unixtime
@@ -86,7 +86,7 @@ uint32_t TimeFeedPump = 0;	// ms
 uint8_t  NeedSaveWorkStats = 0;
 uint32_t TimerDrainingWater = 0;
 uint32_t TimerDrainingWaterAfterRegen = 0;
-int32_t UsedDrainRest = 0;
+int32_t  UsedDrainRest = 0;
 volatile bool NewRegenStatus = false;
 volatile uint32_t RegBackwashTimer = 0;
 uint32_t ResetDUE_countdown = 0;
@@ -94,6 +94,7 @@ bool	 DebugToJournalOn = false;
 uint32_t FlowPulseCounter;
 uint32_t FlowPulseCounterRest;
 bool     LowConsumeMode = false; //
+int32_t  AfterFilledTimer = 0;
 
 // Weight
 //bool Weight_NeedRead = false; // allways
@@ -131,7 +132,7 @@ uint16_t task_updstat_chars = 0;
 #define fDebugToJournal		10				// Расширенная отладка в журнал
 #define fDebugToSerial		11				// Расширенная отладка в Serial
 
-// Структура для хранения опций
+// Структура для хранения настроек
 struct type_option {
 	uint8_t ver;					// номер версии для сохранения
 	uint16_t flags;					// Флаги опций до 16 флагов
@@ -168,6 +169,8 @@ struct type_option {
 	uint8_t  FilterTankSoftener;	// Диаметр фильтра умягчителя в дюймах
 	uint8_t  DrainingWaterAfterRegen;// сек, Слив после промывки обезжелезивателя
 	uint16_t DaysBeforeRegenSoftening;// Дней до регенерации умягчителя, 0 - не проверять
+	uint16_t LTank_LowConsumeMin;	// Низкий уровень бака при низком потреблении ( от резервного источника), сотые %
+	uint16_t LTank_AfterFilledTimer;// Время после отключения реле заполнения бака до останова глубинного насоса, сек
 } __attribute__((packed));
 
 //  Работа с отдельными флагами type_DateTime

@@ -47,10 +47,10 @@ int8_t set_time(void)
 #ifdef HTTP_TIME_REQUEST
 // Формат HTTP 1.0 GET запроса: "http://server:port/curr_time.csv"
 // Ответ: "UTC time sec;"
-EthernetClient tTCP; // For get time
-char NTP_buffer[20];
 boolean set_time_NTP(void)
 {
+	EthernetClient tTCP;
+	char NTP_buffer[20];
 	unsigned long secs = 0;
 	int8_t flag = 0;
 	IPAddress ip(0, 0, 0, 0);
@@ -58,7 +58,7 @@ boolean set_time_NTP(void)
 	if(SemaphoreTake(xWebThreadSemaphore, (W5200_TIME_WAIT / portTICK_PERIOD_MS)) == pdFALSE) {
 		return false;
 	}  // Захват семафора потока или ОЖИДАНИЕ W5200_TIME_WAIT, если семафор не получен то выходим
-	journal.jprintf("Update time from: %s\n", MC.get_serverNTP());
+	journal.jprintfopt("Update time from: %s\n", MC.get_serverNTP());
 	if(check_address(MC.get_serverNTP(), ip) == 0) {
 		SemaphoreGive(xWebThreadSemaphore);
 		return false;
@@ -71,10 +71,10 @@ boolean set_time_NTP(void)
 	for(uint8_t i = 0; i < NTP_REPEAT; i++)                                       // Делам 5 попыток получить время
 	{
 		WDT_Restart(WDT);                                            // Сбросить вачдог
-		journal.jprintf(" Send request, wait...");
+		journal.jprintfopt(" Send request, wait...");
 		flag = tTCP.connect(ip, port, W5200_SOCK_SYS);
 		if(!flag) {
-			journal.jprintf(" connect fail\n");
+			journal.jprintfopt(" connect fail\n");
 		} else {
 			tTCP.write_buffer_flash((uint8_t *) &http_get_str1, sizeof(http_get_str1)-1);
 			tTCP.write_buffer_flash((uint8_t *) HTTP_TIME_REQ, sizeof(HTTP_TIME_REQ)-1);
@@ -82,7 +82,7 @@ boolean set_time_NTP(void)
 			tTCP.write_buffer((uint8_t *) MC.get_serverNTP(), strlen(MC.get_serverNTP()));
 			tTCP.write_buffer_flash((uint8_t *) &http_get_str3, sizeof(http_get_str3)-1);
 			if(tTCP.write((const uint8_t *)NULL, (size_t)0) == 0) {
-				journal.jprintf(" send error\n");
+				journal.jprintfopt(" send error\n");
 			} else {
 				uint8_t wait = 20;
 				flag = 0;
@@ -121,7 +121,7 @@ boolean set_time_NTP(void)
 				} else flag = -1;
 			}
 			tTCP.stop();
-			if(flag > 0) break; else journal.jprintf(" Error %d\n", flag);
+			if(flag > 0) break; else journal.jprintfopt(" Error %d\n", flag);
 		}
 	}
 	if(flag > 0) {  // Обновление времени если оно получено
@@ -132,8 +132,8 @@ boolean set_time_NTP(void)
 		// обновились, можно и часы i2c обновить
 		setTime_RtcI2C(rtcSAM3X8.get_hours(), rtcSAM3X8.get_minutes(), rtcSAM3X8.get_seconds());
 		setDate_RtcI2C(rtcSAM3X8.get_days(), rtcSAM3X8.get_months(), rtcSAM3X8.get_years());
-		journal.jprintf("OK\n Set time from server: %s %s, ", NowDateToStr(), NowTimeToStr());
-		journal.jprintf("was: %02d:%02d:%02d\n", lt % 86400L / 3600, lt % 3600 / 60, lt % 60);
+		journal.jprintfopt("OK\n Set time from server: %s %s, ", NowDateToStr(), NowTimeToStr());
+		journal.jprintfopt("was: %02d:%02d:%02d\n", lt % 86400L / 3600, lt % 3600 / 60, lt % 60);
 
 	}
 	SemaphoreGive(xWebThreadSemaphore);
@@ -146,6 +146,8 @@ boolean set_time_NTP(void)
 // true если нет ошибок
 boolean sendNTPpacket(IPAddress &ip)
 {
+	EthernetUDP Udp;                     // Для NTP сервера
+
 	memset(packetBuffer, 0, NTP_PACKET_SIZE);
 	// Initialize values needed to form NTP request
 	// (see URL above for details on the packets)

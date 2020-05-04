@@ -35,7 +35,7 @@ static unsigned long connectTime[MAX_SOCK_NUM];    // время соедине�
   digitalWriteDirect(PIN_SPI_CS_FLASH,HIGH);  
   #endif
   digitalWriteDirect(PIN_SPI_CS_W5XXX,LOW);
-   }
+}
 
  __attribute__((always_inline)) inline void SPI_switchSD()     // Переключение на карту памяти
 {
@@ -626,393 +626,97 @@ void pingW5200(boolean f)
 	W5100.writeMR(x);
 }
 
-// =============================== M Q T T ==================================================
-#ifdef MQTT    // признак использования MQTT
-static char root[60],topic[140], temp[16];
-const char* MQTTpublish={">> %s "};
-const char* MQTTPublishOK={"OK\n"};
-const char* MQTTDebugStr={" %s %s,"};  // вывод информации при отладке
-
-// Посылка данных на народный мониторинг
-// debug  true - выводить в консоль информацию о посылаемых данных false - нет вывода
-boolean sendNarodMon(boolean debug)
+// Запрос на сервер с ожиданием ответа, веб блокируется
+// Формат HTTP 1.0 GET запроса: "http://server[:port]/&str"
+// Ответ: "str=x", Возврат: int(x)
+int Send_HTTP_Request(char *server, char *str)
 {
- uint8_t i;
-     
-     if (memcmp(defaultMAC,MC.get_mac(),sizeof(defaultMAC))==0) {journal.jprintf("sendNarodMon ignore: Wrong MAC address, change MAC from default.\n"); return false;}
-     journal.jprintf((char*)MQTTpublish,MC.clMQTT.get_narodMon_server());
+	if(SemaphoreTake(xWebThreadSemaphore, (W5200_TIME_WAIT / portTICK_PERIOD_MS)) == pdFALSE) {   // Захват семафора потока или ОЖИДАНИЕ W5200_TIME_WAIT, если семафор не получен то выходим
+		return INT_MIN;
+	}
+	EthernetClient tTCP;
+	char buffer[20];
+	unsigned long secs = 0;
+	int8_t flag = 0;
+	IPAddress ip(0, 0, 0, 0);
+	journal.jprintfopt("Send request to %s\n", server);
+	if(check_address(server, ip) == 0) {
+		SemaphoreGive(xWebThreadSemaphore);
+		return INT_MIN;
+	}
+	char *p = strchr(server, ':');
+	uint16_t port = 80;
+	if(p != NULL) port = atoi(p + 1);
 
-     strcpy(root,"");  // Формирование строки корня, куда потом пишутся топики
-     MC.clMQTT.get_paramMQTT((char*)mqtt_LOGIN_NARMON,root);
-     strcat(root,"/");
-     MC.clMQTT.get_paramMQTT((char*)mqtt_ID_NARMON,root);
-     strcat(root,"/");
-     
-     // посылка отдельных топиков
-     strcpy(topic,root);
-     strcat(topic,MC.sTemp[TOUT].get_name());
-     ftoa(temp,(float)MC.sTemp[TOUT].get_Temp()/100.0f,1);
-     if (MC.clMQTT.sendTopic(topic,temp,true,debug,false)) {if (debug) journal.jprintf((char*)MQTTDebugStr, topic,temp);} else return false;
-    
-     strcpy(topic,root);
-     strcat(topic,MC.sTemp[TIN].get_name());
-     ftoa(temp,(float)MC.sTemp[TIN].get_Temp()/100.0f,1);
-     if (MC.clMQTT.sendTopic(topic,temp,true,debug,false)) {if (debug) journal.jprintf((char*)MQTTDebugStr, topic,temp);} else return false;
-     
-     strcpy(topic,root);
-     strcat(topic,MC.sTemp[TBOILER].get_name());
-     ftoa(temp,(float)MC.sTemp[TBOILER].get_Temp()/100.0f,1);
-     if (MC.clMQTT.sendTopic(topic,temp,true,debug,false)) {if (debug) journal.jprintf((char*)MQTTDebugStr, topic,temp);} else return false;
+	// 2. Посылка пакета
+	{
+		WDT_Restart(WDT);                                            // Сбросить вачдог
+		journal.jprintfopt(" Send request, wait...");
+		flag = tTCP.connect(ip, port, W5200_SOCK_SYS);
+		if(!flag) {
+			journal.jprintfopt(" connect fail\n");
+		} else {
+			tTCP.write_buffer_flash((uint8_t *) &http_get_str1, sizeof(http_get_str1)-1);
+			tTCP.write_buffer_flash((uint8_t *) &http_get_str4, sizeof(http_get_str4)-1);
+			tTCP.write_buffer_flash((uint8_t *) str, strlen(str));
+			tTCP.write_buffer_flash((uint8_t *) &http_get_str2, sizeof(http_get_str2)-1);
+			tTCP.write_buffer((uint8_t *) server, strlen(server));
+			tTCP.write_buffer_flash((uint8_t *) &http_get_str3, sizeof(http_get_str3)-1);
+			if(tTCP.write((const uint8_t *)NULL, (size_t)0) == 0) {
+				journal.jprintfopt(" send error\n");
+			} else {
+				uint8_t wait = 20;
+				flag = 0;
+				while(wait--) { // ожидание ответа
+					SemaphoreGive(xWebThreadSemaphore);
+					_delay(100);
+					if(SemaphoreTake(xWebThreadSemaphore,(W5200_TIME_WAIT/portTICK_PERIOD_MS))==pdFALSE) break; // Захват семафора потока или ОЖИДАНИЕ W5200_TIME_WAIT, если семафор не получен то выходим
+					if(tTCP.available()) {
+						flag = 1;
+						break;
+					}
+				}
+				if(flag > 0) { // Ответ получен, формат: "<время UTC>;"
+					if(tTCP.read((uint8_t *)&NTP_buffer, sizeof(http_key_ok1)-1) == sizeof(http_key_ok1)-1) {
+						if(memcmp(&NTP_buffer, &http_key_ok1, sizeof(http_key_ok1)-1) == 0) {
+							if(tTCP.read((uint8_t *)&NTP_buffer, 3 + sizeof(http_key_ok2)-1) == 3 + sizeof(http_key_ok2)-1) { // HTTP/
+								if(memcmp((uint8_t *)&NTP_buffer + 3, &http_key_ok2, sizeof(http_key_ok2)-1) == 0) {	// 200 OK
+									flag = -6;
+									while(tTCP.available()) {
+										if(tTCP.read() == '\r' && tTCP.read() == '\n' && tTCP.read() == '\r' && tTCP.read() == '\n') { // тело
+											memset(&NTP_buffer, 0, sizeof(NTP_buffer));
+											tTCP.read((uint8_t *)&NTP_buffer, sizeof(NTP_buffer));
+											char *p = strchr(NTP_buffer, ';');
+											if(p != NULL) {
+												*p = '\0';
+												secs = atoi(NTP_buffer);
+												if(secs) flag = 1;
+											} else flag = -7;
+											break;
+										}
+									}
+								} else flag = -5;
+							} else flag = -4;
+						} else flag = -3;
+					} else flag = -2;
+				} else flag = -1;
+			}
+			tTCP.stop();
+			if(flag > 0) break; else journal.jprintf(" Error %d\n", flag);
+		}
+	}
+	if(flag > 0) {  // Обновление времени если оно получено
+		unsigned long lt = rtcSAM3X8.unixtime();
+		if(lt != secs) {
+			rtcSAM3X8.set_clock(secs, TIME_ZONE);    // обновить внутренние часы
+		}
+		// обновились, можно и часы i2c обновить
+		setTime_RtcI2C(rtcSAM3X8.get_hours(), rtcSAM3X8.get_minutes(), rtcSAM3X8.get_seconds());
+		setDate_RtcI2C(rtcSAM3X8.get_days(), rtcSAM3X8.get_months(), rtcSAM3X8.get_years());
+		journal.jprintf("OK\n Set time from server: %s %s, ", NowDateToStr(), NowTimeToStr());
+		journal.jprintf("was: %02d:%02d:%02d\n", lt % 86400L / 3600, lt % 3600 / 60, lt % 60);
 
-     strcpy(topic,root);
-     if(MC.dFC.get_present())
-         {
-          strcat(topic,"FC");
-          ftoa(temp,(float)MC.dFC.get_frequency()/100.0f,2);
-          if (MC.clMQTT.sendTopic(topic,temp,true,debug,false)) {if (debug) journal.jprintf((char*)MQTTDebugStr, topic,temp);} else return false;
-         }
-     else
-         {
-         strcat(topic,MC.dRelay[RCOMP].get_name());
-         if (MC.dRelay[RCOMP].get_Relay()){ if (MC.clMQTT.sendTopic(topic,(char*)cOne,true,debug,false)) {if (debug) journal.jprintf(" %s 1\n", topic);}  else return false;  }
-         else                             { if (MC.clMQTT.sendTopic(topic,(char*)cZero,true,debug,false)) {if (debug) journal.jprintf(" %s 0\n", topic);}  else return false;  }
-         } 
-         
-         strcpy(topic,root);
-         strcat(topic,"ERROR");
-         itoa(MC.get_errcode(),temp,10);
-         if (MC.clMQTT.sendTopic(topic,temp,true,debug,true)) {if (debug) journal.jprintf((char*)MQTTDebugStr, topic,temp);} else return false;
-         
-        if (debug) journal.jprintf(cStrEnd);   
-         
-      // Послать расширенный набор данных TCOMP OWERHEAT мощность выходная коп полный, положение ЭРВ, два давления,
-      if (MC.clMQTT.get_NarodMonBig())
-         {
-         _delay(100);// пауза перед отправкой следующего пакета - разгружаем сервер и балансируем загрузку у себя
-         if (debug) journal.jprintf("Additional data:");  
-         strcpy(topic,root);
-         strcat(topic,MC.sTemp[TCOMP].get_name());
-         ftoa(temp,(float)MC.sTemp[TCOMP].get_Temp()/100.0,1);
-         if (MC.clMQTT.sendTopic(topic,temp,true,debug,false)) {if (debug) journal.jprintf((char*)MQTTDebugStr, topic,temp);} else return false;
-
-         strcpy(topic,root);
-         #ifdef EEV_DEF
-         strcat(topic,"OWERHEAT");
-         ftoa(temp,(float)MC.dEEV.get_Overheat()/100.0,1);
-         #else
-          strcat(topic,MC.sTemp[TEVAOUTG].get_name());
-          if(MC.sTemp[TEVAOUTG].get_present()) ftoa(temp,(float)MC.sTemp[TEVAOUTG].get_Temp()/100.0,1);
-          else   strcat(topic,"skip1 0");
-         #endif
-         if (MC.clMQTT.sendTopic(topic,temp,true,debug,false)) {if (debug) journal.jprintf((char*)MQTTDebugStr, topic,temp);} else return false;
-
-         for(i=0;i<ANUMBER;i++)
-             if(MC.sADC[i].get_present())
-             {
-                 strcpy(topic,root);
-                 strcat(topic,MC.sADC[i].get_name());
-                 ftoa(temp,(float)MC.sADC[i].get_Press()/100.0,2);
-                 if (MC.clMQTT.sendTopic(topic,temp,true,debug,false)) {if (debug) journal.jprintf((char*)MQTTDebugStr, topic,temp);} else return false;
-             }
-         
-             strcpy(topic,root);
-           #ifdef EEV_DEF   
-             strcat(topic,MC.dEEV.get_name());
-             itoa(MC.dEEV.get_EEV(),temp,10);
-           #else
-             strcat(topic,MC.sTemp[TEVAING].get_name());
-             if(MC.sTemp[TEVAING].get_present()) ftoa(temp,(float)MC.sTemp[TEVAING].get_Temp()/100.0,1);
-             else   strcat(topic,"skip2 0");
-           #endif  
-             if (MC.clMQTT.sendTopic(topic,temp,true,debug,false)) {if (debug) journal.jprintf((char*)MQTTDebugStr, topic,temp);} else return false;
-            
-           strcpy(topic,root);
-           strcat(topic,"powerCO");
-           ftoa(temp,MC.powerCO,1);
-           if (MC.clMQTT.sendTopic(topic,temp,true,debug,true)) {if (debug) journal.jprintf((char*)MQTTDebugStr, topic,temp);} else return false;
-           if (debug) journal.jprintf(cStrEnd);   
-         }//  if (MC.clMQTT.get_NarodMonBig())
-         if (!debug) journal.jprintf((char*)MQTTPublishOK);
-           
-  return true;
+	}
+	SemaphoreGive(xWebThreadSemaphore);
+	return flag > 0;
 }
-
-// Посылка данных на брокер MQTT
-// debug  true - выводить в консоль информацию о посылаемых данных false - нет вывода
-boolean sendMQTT(boolean debug)
-{
- uint8_t i; 
-     strcpy(root,"");  // Формирование строки корня, куда потом пишутся топики
-     journal.jprintf((char*)MQTTpublish,MC.clMQTT.get_mqtt_server()); //if (!debug) journal.jprintf(" OK\n");
-     MC.clMQTT.get_paramMQTT((char*)mqtt_ID_MQTT,root);
-     strcat(root,"/");
-     
-     strcpy(topic,root);
-     strcat(topic,MC.sTemp[TOUT].get_name());
-     ftoa(temp,(float)MC.sTemp[TOUT].get_Temp()/100.0,1);
-     if (MC.clMQTT.sendTopic(topic,temp,false,debug,false)) {if (debug) journal.jprintf((char*)MQTTDebugStr, topic,temp);} else return false;
-     
-     strcpy(topic,root);
-     strcat(topic,MC.sTemp[TIN].get_name());
-     ftoa(temp,(float)MC.sTemp[TIN].get_Temp()/100.0,1);
-     if (MC.clMQTT.sendTopic(topic,temp,false,debug,false)) {if (debug) journal.jprintf((char*)MQTTDebugStr, topic,temp);} else return false;
-     
-     strcpy(topic,root);
-     strcat(topic,MC.sTemp[TBOILER].get_name());
-     ftoa(temp,(float)MC.sTemp[TBOILER].get_Temp()/100.0,1);
-     if (MC.clMQTT.sendTopic(topic,temp,false,debug,false)) {if (debug) journal.jprintf((char*)MQTTDebugStr, topic,temp);} else return false;
-
-     strcpy(topic,root);
-     if(MC.dFC.get_present())
-         {
-          strcat(topic,"FC");
-          ftoa(temp,(float)MC.dFC.get_frequency()/100.0,1);
-          if (MC.clMQTT.sendTopic(topic,temp,false,debug,false)) {if (debug) journal.jprintf((char*)MQTTDebugStr, topic,temp);} else return false;
-         }
-     else
-         {
-         strcat(topic,MC.dRelay[RCOMP].get_name());
-         if (MC.dRelay[RCOMP].get_Relay()){if (MC.clMQTT.sendTopic(topic,(char*)cOne,true,debug,false)) {if (debug) journal.jprintf(" %s 1\n", topic);}  else return false;  }
-         else                             {if (MC.clMQTT.sendTopic(topic,(char*)cZero,true,debug,false)) {if (debug) journal.jprintf(" %s 0\n", topic);}  else return false;  }
-         } 
-         
-       strcpy(topic,root);
-       strcat(topic,"ERROR");
-       itoa(MC.get_errcode(),temp,10);
-       if (MC.clMQTT.sendTopic(topic,temp,false,debug,true)) {if (debug) journal.jprintf((char*)MQTTDebugStr, topic,temp);} else return false;
-       if (debug) journal.jprintf(cStrEnd);
-         
-     
-      if (MC.clMQTT.get_MqttBig())   // Послать расширенный набор данных TCOMP OWERHEAT мощность выходная коп полный, положение ЭРВ, два давления,
-         {
-         _delay(100);// пауза перед отправкой следующего пакета - разгружаем сервер и балансируем загрузку у себя
-         if (debug) journal.jprintf("Additional data:");  
-
-        if(MC.sTemp[TCOMP].get_present())
-          {
-	         strcpy(topic,root);
-	         strcat(topic,MC.sTemp[TCOMP].get_name());
-	         ftoa(temp,(float)MC.sTemp[TCOMP].get_Temp()/100.0,1);
-	         if (MC.clMQTT.sendTopic(topic,temp,false,debug,false)) {if (debug) journal.jprintf((char*)MQTTDebugStr, topic,temp);} else return false;
-          }        
-
-         if(MC.sTemp[TCONING].get_present())
-          {
-             strcpy(topic,root);
-             strcat(topic,MC.sTemp[TCONING].get_name());
-             ftoa(temp,(float)MC.sTemp[TCONING].get_Temp()/100.0,1);
-             if (MC.clMQTT.sendTopic(topic,temp,false,debug,false)) {if (debug) journal.jprintf((char*)MQTTDebugStr, topic,temp);} else return false;
-          }
-
-          if(MC.sTemp[TCONOUTG].get_present())
-          {
-             strcpy(topic,root);
-             strcat(topic,MC.sTemp[TCONOUTG].get_name());
-             ftoa(temp,(float)MC.sTemp[TCONOUTG].get_Temp()/100.0,1);
-             if (MC.clMQTT.sendTopic(topic,temp,false,debug,false)) {if (debug) journal.jprintf((char*)MQTTDebugStr, topic,temp);} else return false;
-          }
-          
-          if(MC.sTemp[TEVAOUTG].get_present())
-          {
-             strcpy(topic,root);
-             strcat(topic,MC.sTemp[TEVAOUTG].get_name());
-             ftoa(temp,(float)MC.sTemp[TEVAOUTG].get_Temp()/100.0,1);
-             if (MC.clMQTT.sendTopic(topic,temp,false,debug,false)) {if (debug) journal.jprintf((char*)MQTTDebugStr, topic,temp);} else return false;
-          }
-          if(MC.sTemp[TEVAING].get_present())
-          {
-             strcpy(topic,root);
-             strcat(topic,MC.sTemp[TEVAING].get_name());
-             ftoa(temp,(float)MC.sTemp[TEVAING].get_Temp()/100.0,1);
-             if (MC.clMQTT.sendTopic(topic,temp,false,debug,false)) {if (debug) journal.jprintf((char*)MQTTDebugStr, topic,temp);} else return false;
-          }      
-         strcpy(topic,root);
-         strcat(topic,"OVERHEAT");
-         #ifdef EEV_DEF
-         ftoa(temp,(float)MC.dEEV.get_Overheat()/100.0,1);
-         #else
-         strcpy(temp,cZero);
-         #endif
-         if (MC.clMQTT.sendTopic(topic,temp,false,debug,false)) {if (debug) journal.jprintf((char*)MQTTDebugStr, topic,temp);} else return false;
-
-         for(i=0;i<ANUMBER;i++)
-             if(MC.sADC[i].get_present())
-             {
-                 strcpy(topic,root);
-                 strcat(topic,MC.sADC[i].get_name());
-                 ftoa(temp,(float)MC.sADC[i].get_Press()/100.0,2);
-                 if (MC.clMQTT.sendTopic(topic,temp,false,debug,false)) {if (debug) journal.jprintf((char*)MQTTDebugStr, topic,temp);} else return false;
-             }
-             
-             #ifdef EEV_DEF 
-             strcpy(topic,root);
-             strcat(topic,MC.dEEV.get_name());
-             itoa(MC.dEEV.get_EEV(),temp,10);
-             if (MC.clMQTT.sendTopic(topic,temp,false,debug,false)) {if (debug) journal.jprintf((char*)MQTTDebugStr, topic,temp);} else return false;
-             #endif
-             
-             strcpy(topic,root);
-             strcat(topic,"powerCO");
-             ftoa(temp,MC.powerCO,1);
-             if (MC.clMQTT.sendTopic(topic,temp,false,debug,true)) {if (debug) journal.jprintf((char*)MQTTDebugStr, topic,temp);} else return false;
-             if (debug) journal.jprintf(cStrEnd);        
-         }//  if (MC.clMQTT.get_MqttBig())
-      
-        #ifdef USE_ELECTROMETER_SDM    // Послать данные электросчетчика на сервер MQTT
-        if (MC.clMQTT.get_MqttSDM120())
-        {
-         _delay(100);// пауза перед отправкой следующего пакета - разгружаем сервер и балансируем загрузку у себя
-         if (debug) journal.jprintf("SDM120 data:");   
-         strcpy(topic,root);
-         strcat(topic,"ACPOWER");
-         strcpy(temp,"");
-         MC.dSDM.get_paramSDM((char*)sdm_ACPOWER,temp);
-         if (MC.clMQTT.sendTopic(topic,temp,false,debug,false)) {if (debug) journal.jprintf((char*)MQTTDebugStr, topic,temp);} else return false;
-
-         strcpy(topic,root);
-         strcat(topic,"CURRENT");
-         strcpy(temp,"");
-         MC.dSDM.get_paramSDM((char*)sdm_CURRENT,temp);
-         if (MC.clMQTT.sendTopic(topic,temp,false,debug,false)) {if (debug) journal.jprintf((char*)MQTTDebugStr, topic,temp);} else return false;
-
-         strcpy(topic,root);
-         strcat(topic,"VOLTAGE");
-         strcpy(temp,"");
-         MC.dSDM.get_paramSDM((char*)sdm_VOLTAGE,temp);
-         if (MC.clMQTT.sendTopic(topic,temp,false,debug,true)) {if (debug) journal.jprintf((char*)MQTTDebugStr, topic,temp);} else return false;
-         if (debug) journal.jprintf(cStrEnd);  
-        }
-        #endif
-        
-       if ((MC.clMQTT.get_MqttFC())&&(MC.dFC.get_present()))   // Отправка данных об инверторе,если он есть
-        {
-         _delay(100);// пауза перед отправкой следующего пакета - разгружаем сервер и балансируем загрузку у себя
-         if (debug) journal.jprintf("FC data:");  
-         strcpy(topic,root);
-         strcat(topic,"powerFC");
-         strcpy(temp,"");
-         MC.dFC.get_paramFC((char*)fc_cPOWER,temp);
-         if (MC.clMQTT.sendTopic(topic,temp,false,debug,false)) {if (debug) journal.jprintf((char*)MQTTDebugStr, topic,temp);} else return false;
-         
-         strcpy(topic,root);
-         strcat(topic,"freqFC");
-         strcpy(temp,"");
-         MC.dFC.get_paramFC((char*)fc_cFC,temp);
-         if (MC.clMQTT.sendTopic(topic,temp,false,debug,false)) {if (debug) journal.jprintf((char*)MQTTDebugStr, topic,temp);} else return false;
-
-         strcpy(topic,root);
-         strcat(topic,"currentFC");
-         ftoa(temp,(float)MC.dFC.get_current()/100.0,1);
-         if (MC.clMQTT.sendTopic(topic,temp,false,debug,true)) {if (debug) journal.jprintf((char*)MQTTDebugStr, topic,temp);} else return false;
-         if (debug) journal.jprintf(cStrEnd); 
-        }
-          
-        if (MC.clMQTT.get_MqttCOP())   // Отправка данных об СОР
-          {
-          _delay(100);// пауза перед отправкой следующего пакета - разгружаем сервер и балансируем загрузку у себя
-          if (debug) journal.jprintf("COP data:");     
-          #ifdef USE_ELECTROMETER_SDM
-           strcpy(topic,root);
-           strcat(topic,"fullCOP");
-           ftoa(temp,(float)MC.fullCOP/100.0,2);
-           if (MC.clMQTT.sendTopic(topic,temp,false,debug,false)) {if (debug) journal.jprintf((char*)MQTTDebugStr, topic,temp);} else return false;
-          #endif 
-           if (MC.dFC.get_present())
-           {
-           strcpy(topic,root);
-           strcat(topic,"COP");
-           ftoa(temp,(float)MC.COP/100.0,2);
-           if (MC.clMQTT.sendTopic(topic,temp,false,debug,true)) {if (debug) journal.jprintf((char*)MQTTDebugStr, topic,temp);} else return false;
-           }        
-           if (debug) journal.jprintf(cStrEnd);   
-          }  
-        if (!debug) journal.jprintf((char*)MQTTPublishOK);   
-  return true;
-}
- 
-// Отослать данные на ThingSpeak отсылка идет одним пакетом
-// debug  true - выводить в консоль информацию о посылаемых данных false - нет вывода
-// возвращает true если удачно
-// При удачной отправке Socket# 7 Sn_MR:1 Sn_CR:0 Sn_IR:7 Sn_SR:0 Sn_PORT:401 Sn_DPORT:75b Sn_TOS:0 Sn_TTL:80 Sn_IMR:ff Sn_FRAG:4000 Sn_KPALVTR:0
-// При неудачной
-boolean  sendThingSpeak(boolean debug)
-{
- //uint8_t i;
-      // Готовим данные
-     strcpy(root,"channels/");  // Название топика едино посылаем одним запросом
-     MC.clMQTT.get_paramMQTT((char*)mqtt_LOGIN_MQTT,root);
-     strcat(root,"/publish/");
-     MC.clMQTT.get_paramMQTT((char*)mqtt_PASSWORD_MQTT,root);
-    
-     // Формируем данные и посылаем данные  сразу на много полей
-     strcpy(topic,"field1=");
-     strcat(topic,ftoa(temp,(float)MC.sTemp[TOUT].get_Temp()/100.0,1));
- 
-     strcat(topic,"&field2=");
-     strcat(topic,ftoa(temp,(float)MC.sTemp[TIN].get_Temp()/100.0,1));
- 
-     strcat(topic,"&field3=");
-     strcat(topic,ftoa(temp,(float)MC.sTemp[TBOILER].get_Temp()/100.0,1));
-
-     strcat(topic,"&field4=");
-     if(MC.dFC.get_present())
-         {
-          strcat(topic,ftoa(temp,(float)MC.dFC.get_frequency()/100.0,1));
-         }
-     else
-         {
-         if (MC.dRelay[RCOMP].get_Relay()) strcat(topic,cOne);
-         else                              strcat(topic,cZero);  
-         }
-          
-     strcat(topic,"&field5=");
-     strcat(topic,ftoa(temp,(float)MC.sTemp[TCOMP].get_Temp()/100.0,1));
-         
-     strcat(topic,"&field6=");
-     #ifdef EEV_DEF 
-     strcat(topic,ftoa(temp,(float)MC.dEEV.get_Overheat()/100.0,1));
-     #else
-     if(MC.sTemp[TEVAOUTG].get_present()) strcat(topic,ftoa(temp,(float)MC.sTemp[TEVAOUTG].get_Temp()/100.0,1));
-     else   strcat(topic,cZero);
-     #endif
-      
-     strcat(topic,"&field7=");
-     #ifdef EEV_DEF
-     _itoa(MC.dEEV.get_EEV(),topic);
-     #else  // Вместо положения ЭРВ посылаем тепературу гликоля
-     if(MC.sTemp[TEVAING].get_present()) strcat(topic,ftoa(temp,(float)MC.sTemp[TEVAING].get_Temp()/100.0,1));
-     else   strcat(topic,cZero);
-     #endif
-     
-     strcat(topic,"&field8=");
-     _itoa(MC.get_errcode(),topic);
-     strcat(topic,(char*)"&status=MQTTPUBLISH");
-     // Проверка на длины
-     if((strlen(root)>=sizeof(root)-2)||(strlen(topic)>sizeof(topic)-2)) { journal.jprintf("$WARNING: Long topic or data string, is problem.\n"); return false;}
-     // Отправка
-     journal.jprintf((char*)MQTTpublish,MC.clMQTT.get_mqtt_server());
-     
-     if (MC.clMQTT.sendTopic(root,topic,false,debug,true)) { if (debug) journal.jprintf(" %s %s\n", root,topic);else journal.jprintf((char*)MQTTPublishOK);return true;} else return false;
-     return true;
-}
-  
-// получить  состояние MQTT клиента в виде строки
-char *get_stateMQTT()
-{
-    switch (w5200_MQTT.state())
-        {
-        case MQTT_CONNECTION_TIMEOUT      : return (char*)"MQTT_CONNECTION_TIMEOUT";       break;
-        case MQTT_CONNECTION_LOST         : return (char*)"MQTT_CONNECTION_LOST";          break;
-        case MQTT_CONNECT_FAILED          : return (char*)"MQTT_CONNECT_FAILED";           break;
-        case MQTT_DISCONNECTED            : return (char*)"MQTT_DISCONNECTED";             break;
-        case MQTT_CONNECTED               : return (char*)"MQTT_CONNECTED";                break;
-        case MQTT_CONNECT_BAD_PROTOCOL    : return (char*)"MQTT_CONNECT_BAD_PROTOCOL";     break;
-        case MQTT_CONNECT_BAD_CLIENT_ID   : return (char*)"MQTT_CONNECT_BAD_CLIENT_ID";    break;
-        case MQTT_CONNECT_UNAVAILABLE     : return (char*)"MQTT_CONNECT_UNAVAILABLE";      break;
-        case MQTT_CONNECT_BAD_NAME_OR_PASS: return (char*)"MQTT_CONNECT_BAD_NAME_OR_PASS"; break;
-        case MQTT_CONNECT_UNAUTHORIZED    : return (char*)"MQTT_CONNECT_UNAUTHORIZED";     break;
-        default                           : return (char*)"MQTT_UNKNOW_ERROR";             break;
-        }
-return (char*)cError;  
-}
-#endif
