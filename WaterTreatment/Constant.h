@@ -117,7 +117,9 @@ const uint16_t  defaultPort=80;
 #define KEY_DEBOUNCE_TIME	  50             // ms
 #define DISPLAY_SETUP_TIMEOUT 600000         // ms
 
-#define TIMER_TO_SHOW_STATUS 2500			// мсек, Время показа активного состояния (дозирующего насоса, ...)
+#define TIMER_TO_SHOW_STATUS  2500			// мсек, Время показа активного состояния (дозирующего насоса, ...)
+
+#define HTTP_REQ_LowConsume   60*1000		// ms, Период запроса о работе от резервного источника
 
 // ------------------- ОБЩИЕ НАСТРОЙКИ ----------------------------------
 #define LCD_COLS			20			// Колонок на LCD экране

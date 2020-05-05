@@ -594,6 +594,7 @@ void vWeb0(void *)
 	static unsigned long resW5200 = 0;
 	static unsigned long iniW5200 = 0;
 	static unsigned long pingt = 0;
+	static unsigned long Request_LowConsume = 0;
 #ifdef MQTT
 	static unsigned long narmont=0;
 	static unsigned long mqttt=0;
@@ -689,6 +690,13 @@ void vWeb0(void *)
 				active = false;
 			}
 
+			if(active && thisTime - Request_LowConsume > HTTP_REQ_LowConsume) {
+				Request_LowConsume = thisTime;
+				Send_HTTP_Request()
+
+				active = false;
+			}
+
 #ifdef MQTT                                     // признак использования MQTT
 			// 7. Отправка нанародный мониторинг
 			if ((MC.clMQTT.get_NarodMonUse())&&(thisTime-narmont>TIME_NARMON*1000UL)&&(active))// если нужно & время отправки пришло
@@ -707,6 +715,8 @@ void vWeb0(void *)
 				active=false;
 			}
 #endif   // MQTT
+
+
 			taskYIELD();
 		} // if (xTaskGetTickCount()-thisTime>10000)
 

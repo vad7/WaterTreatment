@@ -626,23 +626,23 @@ void pingW5200(boolean f)
 	W5100.writeMR(x);
 }
 
-// Запрос на сервер с ожиданием ответа, веб блокируется
-// Формат HTTP 1.0 GET запроса: "http://server[:port]/&str"
-// Ответ: "str=x", Возврат: int(x)
-int Send_HTTP_Request(char *server, char *str)
+// Запрос на сервер с ожиданием ответа, веб блокируется, вызов из MAIN_WEB_TASK
+// Формат HTTP 1.0 GET запроса: "http://server[:port]/&str", timeout - ms
+// Ответ: "str=x", Возврат: int(x). Ошибка x <= -2000000000;
+int Send_HTTP_Request(char *server, char *str, int timeout)
 {
 	if(SemaphoreTake(xWebThreadSemaphore, (W5200_TIME_WAIT / portTICK_PERIOD_MS)) == pdFALSE) {   // Захват семафора потока или ОЖИДАНИЕ W5200_TIME_WAIT, если семафор не получен то выходим
-		return INT_MIN;
+		return -2000000000;
 	}
+	char *buffer = Socket[MAIN_WEB_TASK].outBuf;
+	#define BUFFER_SIZE 128
 	EthernetClient tTCP;
-	char buffer[20];
-	unsigned long secs = 0;
-	int8_t flag = 0;
+	int ret = 0;
 	IPAddress ip(0, 0, 0, 0);
 	journal.jprintfopt("Send request to %s\n", server);
 	if(check_address(server, ip) == 0) {
 		SemaphoreGive(xWebThreadSemaphore);
-		return INT_MIN;
+		return -2000000001;
 	}
 	char *p = strchr(server, ':');
 	uint16_t port = 80;
@@ -652,8 +652,8 @@ int Send_HTTP_Request(char *server, char *str)
 	{
 		WDT_Restart(WDT);                                            // Сбросить вачдог
 		journal.jprintfopt(" Send request, wait...");
-		flag = tTCP.connect(ip, port, W5200_SOCK_SYS);
-		if(!flag) {
+		if(!tTCP.connect(ip, port, W5200_SOCK_SYS)) {
+			ret = -2000000002;
 			journal.jprintfopt(" connect fail\n");
 		} else {
 			tTCP.write_buffer_flash((uint8_t *) &http_get_str1, sizeof(http_get_str1)-1);
@@ -665,58 +665,43 @@ int Send_HTTP_Request(char *server, char *str)
 			if(tTCP.write((const uint8_t *)NULL, (size_t)0) == 0) {
 				journal.jprintfopt(" send error\n");
 			} else {
-				uint8_t wait = 20;
-				flag = 0;
-				while(wait--) { // ожидание ответа
+				ret = -2000000003;
+				while((timeout -= 10) > 0) { // ожидание ответа
 					SemaphoreGive(xWebThreadSemaphore);
-					_delay(100);
+					_delay(10);
 					if(SemaphoreTake(xWebThreadSemaphore,(W5200_TIME_WAIT/portTICK_PERIOD_MS))==pdFALSE) break; // Захват семафора потока или ОЖИДАНИЕ W5200_TIME_WAIT, если семафор не получен то выходим
 					if(tTCP.available()) {
-						flag = 1;
+						ret = 0;
 						break;
 					}
 				}
-				if(flag > 0) { // Ответ получен, формат: "<время UTC>;"
-					if(tTCP.read((uint8_t *)&NTP_buffer, sizeof(http_key_ok1)-1) == sizeof(http_key_ok1)-1) {
-						if(memcmp(&NTP_buffer, &http_key_ok1, sizeof(http_key_ok1)-1) == 0) {
-							if(tTCP.read((uint8_t *)&NTP_buffer, 3 + sizeof(http_key_ok2)-1) == 3 + sizeof(http_key_ok2)-1) { // HTTP/
-								if(memcmp((uint8_t *)&NTP_buffer + 3, &http_key_ok2, sizeof(http_key_ok2)-1) == 0) {	// 200 OK
-									flag = -6;
+				if(ret == 0) { // Ответ получен, формат: "str=x"
+					if(tTCP.read((uint8_t *)&buffer, sizeof(http_key_ok1)-1) == sizeof(http_key_ok1)-1) {
+						if(memcmp(&buffer, &http_key_ok1, sizeof(http_key_ok1)-1) == 0) {
+							if(tTCP.read((uint8_t *)&buffer, 3 + sizeof(http_key_ok2)-1) == 3 + sizeof(http_key_ok2)-1) { // HTTP/
+								if(memcmp((uint8_t *)&buffer + 3, &http_key_ok2, sizeof(http_key_ok2)-1) == 0) {	// 200 OK
+									ret = -2000000009;
 									while(tTCP.available()) {
 										if(tTCP.read() == '\r' && tTCP.read() == '\n' && tTCP.read() == '\r' && tTCP.read() == '\n') { // тело
-											memset(&NTP_buffer, 0, sizeof(NTP_buffer));
-											tTCP.read((uint8_t *)&NTP_buffer, sizeof(NTP_buffer));
-											char *p = strchr(NTP_buffer, ';');
+											memset(&buffer, 0, BUFFER_SIZE);
+											tTCP.read((uint8_t *)&buffer, BUFFER_SIZE);
+											char *p = strchr(buffer, '=');
 											if(p != NULL) {
-												*p = '\0';
-												secs = atoi(NTP_buffer);
-												if(secs) flag = 1;
-											} else flag = -7;
+												ret = atoi(p + 1);
+											} else ret = -2000000008;
 											break;
 										}
 									}
-								} else flag = -5;
-							} else flag = -4;
-						} else flag = -3;
-					} else flag = -2;
-				} else flag = -1;
+								} else ret = -2000000007;
+							} else ret = -2000000006;
+						} else ret = -2000000005;
+					} else ret = -2000000004;
+				}
 			}
 			tTCP.stop();
-			if(flag > 0) break; else journal.jprintf(" Error %d\n", flag);
 		}
-	}
-	if(flag > 0) {  // Обновление времени если оно получено
-		unsigned long lt = rtcSAM3X8.unixtime();
-		if(lt != secs) {
-			rtcSAM3X8.set_clock(secs, TIME_ZONE);    // обновить внутренние часы
-		}
-		// обновились, можно и часы i2c обновить
-		setTime_RtcI2C(rtcSAM3X8.get_hours(), rtcSAM3X8.get_minutes(), rtcSAM3X8.get_seconds());
-		setDate_RtcI2C(rtcSAM3X8.get_days(), rtcSAM3X8.get_months(), rtcSAM3X8.get_years());
-		journal.jprintf("OK\n Set time from server: %s %s, ", NowDateToStr(), NowTimeToStr());
-		journal.jprintf("was: %02d:%02d:%02d\n", lt % 86400L / 3600, lt % 3600 / 60, lt % 60);
-
 	}
 	SemaphoreGive(xWebThreadSemaphore);
-	return flag > 0;
+	journal.jprintfopt(" Ret = %d\n", ret);
+	return ret;
 }
