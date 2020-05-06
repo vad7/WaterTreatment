@@ -142,43 +142,11 @@ boolean set_time_NTP(void)
 
 #else
 
-// send an NTP request to the time server at the given address
-// true если нет ошибок
-boolean sendNTPpacket(IPAddress &ip)
-{
-	EthernetUDP Udp;                     // Для NTP сервера
-
-	memset(packetBuffer, 0, NTP_PACKET_SIZE);
-	// Initialize values needed to form NTP request
-	// (see URL above for details on the packets)
-	packetBuffer[0] = 0b11100011;   // LI, Version, Mode
-	packetBuffer[1] = 0;            // Stratum, or type of clock
-	packetBuffer[2] = 6;            // Polling Interval
-	packetBuffer[3] = 0xEC;         // Peer Clock Precision
-	// 8 bytes of zero for Root Delay & Root Dispersion
-	packetBuffer[12] = 49;
-	packetBuffer[13] = 0x4E;
-	packetBuffer[14] = 49;
-	packetBuffer[15] = 52;
-	// all NTP fields have been given values, now
-	// you can send a packet requesting a timestamp:
-	if(Udp.beginPacket(ip, NTP_PORT, W5200_SOCK_SYS) == 1) {
-		Udp.write(packetBuffer, NTP_PACKET_SIZE);
-		if(Udp.endPacket() != 1) {
-			journal.jprintf("Send packet NTP error\n");
-			return false;
-		}
-	} else {
-		journal.jprintf("Socket error\n");
-		return false;
-	}
-	return true;
-}
-
 // Функция обновления времени по ntp вызывается из задачи или кнопкой. true - если время обновлено
 // Запрос времени от NTP сервера, возвращает время как long
 boolean set_time_NTP(void)
 {
+	EthernetUDP Udp;                     // Для NTP сервера
 	unsigned long secs;
 	boolean flag = strlen(MC.get_serverNTP()) == 0;
 	IPAddress ip(0, 0, 0, 0);
@@ -208,7 +176,32 @@ boolean set_time_NTP(void)
 	{
 		WDT_Restart(WDT);                                            // Сбросить вачдог
 		journal.jprintfopt(" Send packet NTP, wait . . .\n");
-		flag = sendNTPpacket(ip);
+		// Send packet
+		flag = true;
+		memset(packetBuffer, 0, NTP_PACKET_SIZE);
+		// Initialize values needed to form NTP request
+		// (see URL above for details on the packets)
+		packetBuffer[0] = 0b11100011;   // LI, Version, Mode
+		packetBuffer[1] = 0;            // Stratum, or type of clock
+		packetBuffer[2] = 6;            // Polling Interval
+		packetBuffer[3] = 0xEC;         // Peer Clock Precision
+		// 8 bytes of zero for Root Delay & Root Dispersion
+		packetBuffer[12] = 49;
+		packetBuffer[13] = 0x4E;
+		packetBuffer[14] = 49;
+		packetBuffer[15] = 52;
+		// all NTP fields have been given values, now
+		// you can send a packet requesting a timestamp:
+		if(Udp.beginPacket(ip, NTP_PORT, W5200_SOCK_SYS) == 1) {
+			Udp.write(packetBuffer, NTP_PACKET_SIZE);
+			if(Udp.endPacket() != 1) {
+				journal.jprintfopt("Send packet NTP error\n");
+				flag = false;
+			}
+		} else {
+			journal.jprintfopt("Socket error\n");
+			return false;
+		}
 		_delay(NTP_REPEAT_TIME);                                             // Ждем, чтобы увидеть, доступен ли ответ:
 		if(flag) {
 			flag = false;

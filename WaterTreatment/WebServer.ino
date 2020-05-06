@@ -625,6 +625,8 @@ void parserGET(uint8_t thread)
 				} else if(MC.get_errcode()) {
 					strcat(strReturn, "Ошибка: ");
 					_itoa(MC.get_errcode(), strReturn);
+				} else if(LowConsumeMode) {
+					strcat(strReturn, "От резерва");
 				} else {
 					strcat(strReturn, "Ok");
 				}

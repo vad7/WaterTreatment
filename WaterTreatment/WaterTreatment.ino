@@ -692,8 +692,9 @@ void vWeb0(void *)
 
 			if(active && thisTime - Request_LowConsume > HTTP_REQ_LowConsume) {
 				Request_LowConsume = thisTime;
-				Send_HTTP_Request()
-
+				int tmp = Send_HTTP_Request(MC.Option.LowConsumeRequest);
+				if(tmp >= 0) LowConsumeMode = tmp;
+				else if(tmp >= -2000000001) Request_LowConsume -= HTTP_REQ_LowConsume - 5000;
 				active = false;
 			}
 

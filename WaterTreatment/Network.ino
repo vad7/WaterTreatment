@@ -627,10 +627,13 @@ void pingW5200(boolean f)
 }
 
 // Запрос на сервер с ожиданием ответа, веб блокируется, вызов из MAIN_WEB_TASK
-// Формат HTTP 1.0 GET запроса: "http://server[:port]/&str", timeout - ms
+// HTTP 1.0 GET, timeout - ms
 // Ответ: "str=x", Возврат: int(x). Ошибка x <= -2000000000;
-int Send_HTTP_Request(char *server, char *str, int timeout)
+int Send_HTTP_Request(char *request)
 {
+	char *req = strchr(request, '\\');
+	if(req == NULL) return -2000000004;
+	*req++ = '\0';
 	if(SemaphoreTake(xWebThreadSemaphore, (W5200_TIME_WAIT / portTICK_PERIOD_MS)) == pdFALSE) {   // Захват семафора потока или ОЖИДАНИЕ W5200_TIME_WAIT, если семафор не получен то выходим
 		return -2000000000;
 	}
@@ -638,37 +641,41 @@ int Send_HTTP_Request(char *server, char *str, int timeout)
 	#define BUFFER_SIZE 128
 	EthernetClient tTCP;
 	int ret = 0;
-	IPAddress ip(0, 0, 0, 0);
-	journal.jprintfopt("Send request to %s\n", server);
-	if(check_address(server, ip) == 0) {
-		SemaphoreGive(xWebThreadSemaphore);
-		return -2000000001;
-	}
-	char *p = strchr(server, ':');
+//	char *p = strchr(request, ':');
 	uint16_t port = 80;
-	if(p != NULL) port = atoi(p + 1);
+//	if(p != NULL) {
+//		*p = '\0';
+//		port = atoi(p + 1);
+//	}
+	IPAddress ip(0, 0, 0, 0);
+	journal.jprintfopt("Send request %s\n", request);
+	if(req == NULL || check_address(request, ip) == 0) {
+		SemaphoreGive(xWebThreadSemaphore);
+		return -2000000002;
+	}
 
 	// 2. Посылка пакета
 	{
 		WDT_Restart(WDT);                                            // Сбросить вачдог
 		journal.jprintfopt(" Send request, wait...");
 		if(!tTCP.connect(ip, port, W5200_SOCK_SYS)) {
-			ret = -2000000002;
+			ret = -2000000003;
 			journal.jprintfopt(" connect fail\n");
 		} else {
 			tTCP.write_buffer_flash((uint8_t *) &http_get_str1, sizeof(http_get_str1)-1);
 			tTCP.write_buffer_flash((uint8_t *) &http_get_str4, sizeof(http_get_str4)-1);
-			tTCP.write_buffer_flash((uint8_t *) str, strlen(str));
+			tTCP.write_buffer_flash((uint8_t *) req, strlen(req));
 			tTCP.write_buffer_flash((uint8_t *) &http_get_str2, sizeof(http_get_str2)-1);
-			tTCP.write_buffer((uint8_t *) server, strlen(server));
+			tTCP.write_buffer((uint8_t *) request, strlen(request));
 			tTCP.write_buffer_flash((uint8_t *) &http_get_str3, sizeof(http_get_str3)-1);
 			if(tTCP.write((const uint8_t *)NULL, (size_t)0) == 0) {
 				journal.jprintfopt(" send error\n");
 			} else {
-				ret = -2000000003;
-				while((timeout -= 10) > 0) { // ожидание ответа
+				ret = -2000000001;
+				int timeout = HTTP_REQ_TIMEOUT / 20;
+				while(timeout-- > 0) { // ожидание ответа
 					SemaphoreGive(xWebThreadSemaphore);
-					_delay(10);
+					_delay(20);
 					if(SemaphoreTake(xWebThreadSemaphore,(W5200_TIME_WAIT/portTICK_PERIOD_MS))==pdFALSE) break; // Захват семафора потока или ОЖИДАНИЕ W5200_TIME_WAIT, если семафор не получен то выходим
 					if(tTCP.available()) {
 						ret = 0;
@@ -680,7 +687,7 @@ int Send_HTTP_Request(char *server, char *str, int timeout)
 						if(memcmp(&buffer, &http_key_ok1, sizeof(http_key_ok1)-1) == 0) {
 							if(tTCP.read((uint8_t *)&buffer, 3 + sizeof(http_key_ok2)-1) == 3 + sizeof(http_key_ok2)-1) { // HTTP/
 								if(memcmp((uint8_t *)&buffer + 3, &http_key_ok2, sizeof(http_key_ok2)-1) == 0) {	// 200 OK
-									ret = -2000000009;
+									ret = -2000000010;
 									while(tTCP.available()) {
 										if(tTCP.read() == '\r' && tTCP.read() == '\n' && tTCP.read() == '\r' && tTCP.read() == '\n') { // тело
 											memset(&buffer, 0, BUFFER_SIZE);
@@ -688,14 +695,14 @@ int Send_HTTP_Request(char *server, char *str, int timeout)
 											char *p = strchr(buffer, '=');
 											if(p != NULL) {
 												ret = atoi(p + 1);
-											} else ret = -2000000008;
+											} else ret = -2000000009;
 											break;
 										}
 									}
-								} else ret = -2000000007;
-							} else ret = -2000000006;
-						} else ret = -2000000005;
-					} else ret = -2000000004;
+								} else ret = -2000000008;
+							} else ret = -2000000007;
+						} else ret = -2000000006;
+					} else ret = -2000000005;
 				}
 			}
 			tTCP.stop();
