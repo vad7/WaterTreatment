@@ -1475,10 +1475,11 @@ xWaterBooster_OFF:
 				Charts_FillTank_work += TIME_SLICE_PUMPS * 100 / 1000; // in percent
 				taskEXIT_CRITICAL();
 			} else if(!(CriticalErrors & ~ERRC_TankEmpty)) {
-				if(LowConsumeMode && !MC.dRelay[RFEEDPUMP].get_Relay() && WaterBoosterStatus == 0)
-				MC.dRelay[RFILL].set_ON();	// Start filling tank
-				FillingTankLastLevel = MC.sADC[LTANK].get_Value();
-				FillingTankTimer = GetTickCount();
+				if(LowConsumeMode && !MC.dRelay[RFEEDPUMP].get_Relay() && WaterBoosterStatus == 0) {
+					MC.dRelay[RFILL].set_ON();	// Start filling tank
+					FillingTankLastLevel = MC.sADC[LTANK].get_Value();
+					FillingTankTimer = GetTickCount();
+				}
 			}
 			if(LowConsumeMode) AfterFilledTimer = MC.Option.LTank_AfterFilledTimer * 1000;
 		} else {

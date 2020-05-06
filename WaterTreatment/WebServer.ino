@@ -1277,6 +1277,8 @@ xSaveStats:		if((i = MC.save_WorkStats()) == OK)
 				if (pm!=ATOF_ERROR) {   // нет ошибки преобразования
 					if (MC.set_option(x,pm)) MC.get_option(x,strReturn);  // преобразование удачно,
 					else strcat(strReturn,"E17") ; // выход за диапазон значений
+				} else if(strcmp(x, option_LowConsumeRequest) == 0) {
+					strncpy(MC.Option.LowConsumeRequest, z, sizeof(MC.Option.LowConsumeRequest) - 1);
 				} else strcat(strReturn,"E11");   // ошибка преобразования во флоат
 				ADD_WEBDELIM(strReturn); continue;
 			}
