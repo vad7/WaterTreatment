@@ -401,7 +401,6 @@ const char *option_FilterTank           = {"TD"};
 const char *option_FilterTankSoftener   = {"TDS"};
 const char *option_DrainingWaterAfterRegen={"DAR"};
 const char *option_RegenStart			= {"R"};
-const char *option_LowConsumeRequest	= {"LR"};
 const char *option_LTank_LowConsumeMin	= {"LLM"};
 const char *option_LTank_AfterFilledTimer={"TAF"};
 

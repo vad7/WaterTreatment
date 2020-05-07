@@ -1131,8 +1131,18 @@ xSaveStats:		if((i = MC.save_WorkStats()) == OK)
 			if(strncmp(str, "_set=", 5) == 0) {  // Функция "LowConsume_set=x", x = 0, 1
 				str += 5;
 				LowConsumeMode = atoi(str);
-			}
-			_itoa(LowConsumeMode, strReturn); // Функция LowConsume...
+			} else if(strncmp(str, "_Req", 4) == 0) { // LowConsume_Req=... Заменить: & на $
+				str += 4;
+				if(*str++ == '=') {
+					str_replace(str, '$', '&');
+					strncpy(MC.Option.LowConsumeRequest, str, sizeof(MC.Option.LowConsumeRequest) - 1);
+					*str = '\0';
+					strcat(strReturn, str - 1 - 4 - 10);
+				}
+			    strcat(strReturn, MC.Option.LowConsumeRequest); // LowConsume_Req
+				ADD_WEBDELIM(strReturn);
+				continue;
+			} else _itoa(LowConsumeMode, strReturn); // Функция LowConsume...
 			ADD_WEBDELIM(strReturn);
 			continue;
 		}
@@ -1277,8 +1287,6 @@ xSaveStats:		if((i = MC.save_WorkStats()) == OK)
 				if (pm!=ATOF_ERROR) {   // нет ошибки преобразования
 					if (MC.set_option(x,pm)) MC.get_option(x,strReturn);  // преобразование удачно,
 					else strcat(strReturn,"E17") ; // выход за диапазон значений
-				} else if(strcmp(x, option_LowConsumeRequest) == 0) {
-					strncpy(MC.Option.LowConsumeRequest, z, sizeof(MC.Option.LowConsumeRequest) - 1);
 				} else strcat(strReturn,"E11");   // ошибка преобразования во флоат
 				ADD_WEBDELIM(strReturn); continue;
 			}

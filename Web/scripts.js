@@ -41,7 +41,7 @@ function setParam(paramid, resultid) {
 			element.placeholder = "";
 		}
 	}
-	loadParam(encodeURIComponent(elsend), true, resultid);
+	loadParam(encodeURIComponent(elsend.replace(/&/g,'$')), true, resultid);
 }
 
 var NeedLogin = sessionStorage.getItem("NeedLogin");

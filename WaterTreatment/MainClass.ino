@@ -907,7 +907,6 @@ char* MainClass::get_option(char *var, char *ret)
    if(strcmp(var,option_FilterTank)==0){ return _itoa(Option.FilterTank, ret); } else
    if(strcmp(var,option_FilterTankSoftener)==0){ return _itoa(Option.FilterTankSoftener, ret); } else
    if(strcmp(var,option_DrainingWaterAfterRegen)==0){ return _itoa(Option.DrainingWaterAfterRegen, ret); } else
-   if(strcmp(var,option_LowConsumeRequest)==0){ return strcat(ret, Option.LowConsumeRequest); } else
    if(strcmp(var,option_LTank_AfterFilledTimer)==0){ return _itoa(Option.LTank_AfterFilledTimer, ret); } else
    if(strncmp(var,option_SGL1W, sizeof(option_SGL1W)-1)==0) {
 	   uint8_t bit = var[sizeof(option_SGL1W)-1] - '0' - 1;

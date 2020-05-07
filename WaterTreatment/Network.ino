@@ -631,13 +631,12 @@ void pingW5200(boolean f)
 // Ответ: "str=x", Возврат: int(x). Ошибка x <= -2000000000;
 int Send_HTTP_Request(char *request)
 {
-	char *req = strchr(request, '\\');
+	char *req = strchr(request, '/');
 	if(req == NULL) return -2000000004;
-	*req++ = '\0';
 	if(SemaphoreTake(xWebThreadSemaphore, (W5200_TIME_WAIT / portTICK_PERIOD_MS)) == pdFALSE) {   // Захват семафора потока или ОЖИДАНИЕ W5200_TIME_WAIT, если семафор не получен то выходим
 		return -2000000000;
 	}
-	char *buffer = Socket[MAIN_WEB_TASK].outBuf;
+	uint8_t *buffer = (uint8_t *) Socket[MAIN_WEB_TASK].outBuf;
 	#define BUFFER_SIZE 128
 	EthernetClient tTCP;
 	int ret = 0;
@@ -647,26 +646,22 @@ int Send_HTTP_Request(char *request)
 //		*p = '\0';
 //		port = atoi(p + 1);
 //	}
+	memcpy(buffer, request, req - request);
+	buffer[req - request] = '\0';
+	journal.jprintfopt("Send request to %s\n", buffer);
 	IPAddress ip(0, 0, 0, 0);
-	journal.jprintfopt("Send request %s\n", request);
-	if(req == NULL || check_address(request, ip) == 0) {
-		SemaphoreGive(xWebThreadSemaphore);
-		return -2000000002;
-	}
-
-	// 2. Посылка пакета
-	{
-		WDT_Restart(WDT);                                            // Сбросить вачдог
-		journal.jprintfopt(" Send request, wait...");
+	if(req == NULL || check_address((char*) buffer, ip) == 0) {
+		ret = -2000000002;
+	} else {
+		journal.jprintfopt(" Wait...");
 		if(!tTCP.connect(ip, port, W5200_SOCK_SYS)) {
 			ret = -2000000003;
 			journal.jprintfopt(" connect fail\n");
 		} else {
 			tTCP.write_buffer_flash((uint8_t *) &http_get_str1, sizeof(http_get_str1)-1);
-			tTCP.write_buffer_flash((uint8_t *) &http_get_str4, sizeof(http_get_str4)-1);
 			tTCP.write_buffer_flash((uint8_t *) req, strlen(req));
 			tTCP.write_buffer_flash((uint8_t *) &http_get_str2, sizeof(http_get_str2)-1);
-			tTCP.write_buffer((uint8_t *) request, strlen(request));
+			tTCP.write_buffer((uint8_t *) buffer, strlen((char*)buffer));
 			tTCP.write_buffer_flash((uint8_t *) &http_get_str3, sizeof(http_get_str3)-1);
 			if(tTCP.write((const uint8_t *)NULL, (size_t)0) == 0) {
 				journal.jprintfopt(" send error\n");
@@ -683,23 +678,28 @@ int Send_HTTP_Request(char *request)
 					}
 				}
 				if(ret == 0) { // Ответ получен, формат: "str=x"
-					if(tTCP.read((uint8_t *)&buffer, sizeof(http_key_ok1)-1) == sizeof(http_key_ok1)-1) {
-						if(memcmp(&buffer, &http_key_ok1, sizeof(http_key_ok1)-1) == 0) {
-							if(tTCP.read((uint8_t *)&buffer, 3 + sizeof(http_key_ok2)-1) == 3 + sizeof(http_key_ok2)-1) { // HTTP/
-								if(memcmp((uint8_t *)&buffer + 3, &http_key_ok2, sizeof(http_key_ok2)-1) == 0) {	// 200 OK
+					if(tTCP.read(buffer, sizeof(http_key_ok1)-1) == sizeof(http_key_ok1)-1) {
+						if(memcmp(buffer, &http_key_ok1, sizeof(http_key_ok1)-1) == 0) {
+							if(tTCP.read(buffer, 3 + sizeof(http_key_ok2)-1) == 3 + sizeof(http_key_ok2)-1) { // HTTP/
+								if(memcmp(buffer + 3, &http_key_ok2, sizeof(http_key_ok2)-1) == 0) {	// 200 OK
 									ret = -2000000010;
 									while(tTCP.available()) {
 										if(tTCP.read() == '\r' && tTCP.read() == '\n' && tTCP.read() == '\r' && tTCP.read() == '\n') { // тело
-											memset(&buffer, 0, BUFFER_SIZE);
-											tTCP.read((uint8_t *)&buffer, BUFFER_SIZE);
-											char *p = strchr(buffer, '=');
+											memset(buffer, 0, BUFFER_SIZE);
+											tTCP.read(buffer, BUFFER_SIZE - 1);
+											char *p = strchr((char*)buffer, '=');
 											if(p != NULL) {
 												ret = atoi(p + 1);
 											} else ret = -2000000009;
+											journal.jprintfopt(" Response: %s,", buffer);
 											break;
 										}
 									}
-								} else ret = -2000000008;
+								} else {
+									buffer[sizeof(http_key_ok2) + 3] = '\0';
+									journal.jprintfopt(" ERR %s,", buffer);
+									ret = -2000000008;
+								}
 							} else ret = -2000000007;
 						} else ret = -2000000006;
 					} else ret = -2000000005;
