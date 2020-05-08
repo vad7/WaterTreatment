@@ -648,7 +648,7 @@ int Send_HTTP_Request(char *request)
 //	}
 	memcpy(buffer, request, req - request);
 	buffer[req - request] = '\0';
-	journal.jprintfopt("Send request to %s\n", buffer);
+	journal.jprintfopt_time("Send request to %s\n", buffer);
 	IPAddress ip(0, 0, 0, 0);
 	if(req == NULL || check_address((char*) buffer, ip) == 0) {
 		ret = -2000000002;
