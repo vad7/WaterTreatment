@@ -594,7 +594,7 @@ void vWeb0(void *)
 	static unsigned long resW5200 = 0;
 	static unsigned long iniW5200 = 0;
 	static unsigned long pingt = 0;
-	static unsigned long Request_LowConsume = 0;
+	static unsigned long Request_LowConsume = -HTTP_REQ_LowConsume;
 #ifdef MQTT
 	static unsigned long narmont=0;
 	static unsigned long mqttt=0;
@@ -953,7 +953,7 @@ xErrorsProcessing:
 					*buf++ = 'R';
 					tmp = MC.RTC_store.UsedRegen;
 				} else {
-					*buf++ = '\x7E'; // '->'
+					*buf++ = LowConsumeMode ? 'G' : '\x7E'; // '->'
 					tmp = MC.WorkStats.UsedSinceLastRegen + MC.RTC_store.UsedToday;
 				}
 				if(tmp < 10000) *buf++ = ' ';
@@ -1475,7 +1475,7 @@ xWaterBooster_OFF:
 				Charts_FillTank_work += TIME_SLICE_PUMPS * 100 / 1000; // in percent
 				taskEXIT_CRITICAL();
 			} else if(!(CriticalErrors & ~ERRC_TankEmpty)) {
-				if(LowConsumeMode && !MC.dRelay[RFEEDPUMP].get_Relay() && WaterBoosterStatus == 0) {
+				if(!LowConsumeMode || (!MC.dRelay[RFEEDPUMP].get_Relay() && WaterBoosterStatus == 0)) {
 					MC.dRelay[RFILL].set_ON();	// Start filling tank
 					FillingTankLastLevel = MC.sADC[LTANK].get_Value();
 					FillingTankTimer = GetTickCount();
@@ -1484,8 +1484,12 @@ xWaterBooster_OFF:
 			if(LowConsumeMode) AfterFilledTimer = MC.Option.LTank_AfterFilledTimer * 1000;
 		} else {
 			if(MC.dRelay[RFILL].get_Relay()) {
-				if(MC.sADC[LTANK].get_Value() >= MC.sADC[LTANK].get_maxValue()) MC.dRelay[RFILL].set_OFF();	// Stop filling tank
-				if(LowConsumeMode) AfterFilledTimer = MC.Option.LTank_AfterFilledTimer * 1000;
+				if(LowConsumeMode) {
+					if((int32_t)MC.sADC[LTANK].get_Value() >= (int32_t)MC.Option.LTank_LowConsumeMin + FILLING_TANK_LOW_CONSUME_TIME * FILLING_TANK_STEP / MC.Option.FillingTankTimeout) MC.dRelay[RFILL].set_OFF();	// Stop filling tank
+					AfterFilledTimer = MC.Option.LTank_AfterFilledTimer * 1000;
+				} else {
+					if(MC.sADC[LTANK].get_Value() >= MC.sADC[LTANK].get_maxValue()) MC.dRelay[RFILL].set_OFF();	// Stop filling tank
+				}
 			}
 		}
 #endif // TANK_ANALOG_LEVEL

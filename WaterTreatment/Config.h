@@ -441,6 +441,7 @@ struct History_setup {
 	#define ADC_FREQ					10		// период опроса аналоговых датчиков в секунду
 
 	#define FILLING_TANK_STEP			200		// сотые %, На сколько должен заполняться бак за время Option.FillingTankTimeout (2% - 40s, 3% - 60s)
+	#define FILLING_TANK_LOW_CONSUME_TIME 300   // время заполнения бака в режиме работы от резерва, сек
 	#define FILL_TANK_REGEN_DELTA		300		// сотые %, дельта минимального уровня бака от максимума для заполнения его во время обратной промывки
 	#define DELAY_AFTER_SWITCH_RELAY	250		// Задержка после переключения реле, для сглаживания потребления и уменьшения помех(мс)
 
