@@ -760,7 +760,7 @@ xSaveStats:		if((i = MC.save_WorkStats()) == OK)
 					}
 					if(l_i32 & 2) _dtoa(strReturn, MC.CalcFilteringSpeed(MC.FilterTankSoftenerSquare), 3); // regen Soft in process
 				}
-			} else if(*str == webWS_Velocity) {
+			} else if(*str == webWS_Flags) {
 				if(i) {
 					MC.WorkStats.Flags ^= l_i32; 		// set_WSF=x (XOR x)
 					NeedSaveWorkStats = 1;
