@@ -1131,6 +1131,7 @@ xSaveStats:		if((i = MC.save_WorkStats()) == OK)
 			if(strncmp(str, "_set=", 5) == 0) {  // Функция "LowConsume_set=x", x = 0, 1
 				str += 5;
 				LowConsumeMode = atoi(str);
+				if(!LowConsumeMode) AfterFilledTimer = 0;
 			} else if(strncmp(str, "_Req", 4) == 0) { // LowConsume_Req=... Заменить: & на $
 				str += 4;
 				if(*str++ == '=') {
