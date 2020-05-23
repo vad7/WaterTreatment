@@ -664,6 +664,7 @@ int Send_HTTP_Request(char *request)
 			tTCP.write_buffer((uint8_t *) buffer, strlen((char*)buffer));
 			tTCP.write_buffer_flash((uint8_t *) &http_get_str3, sizeof(http_get_str3)-1);
 			if(tTCP.write((const uint8_t *)NULL, (size_t)0) == 0) {
+				ret = -2000000011;
 				journal.jprintfopt(" send error\n");
 			} else {
 				ret = -2000000001;
