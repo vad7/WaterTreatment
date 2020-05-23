@@ -1339,16 +1339,37 @@ void vPumps( void * )
 		bool tank_empty = false;
 #ifdef TANK_EMPTY
 		tank_empty = MC.sInput[TANK_EMPTY].get_Input();
-#endif
-		if(ADC_has_been_read) {		// Не чаще, чем ADC
-			ADC_has_been_read = false;
-			for(uint8_t i = 0; i < ANUMBER; i++) MC.sADC[i].Read();			// Прочитать данные с датчиков давления
-			tank_empty = tank_empty || (MC.sADC[LTANK].get_Value() < MC.Option.LTANK_Empty);
-			if(!tank_empty && !CriticalErrors_timeout) CriticalErrors &= ~ERRC_TankEmpty;
-		}
 		if(tank_empty) {
 			if(!(CriticalErrors & ERRC_TankEmpty)) vPumpsNewError = ERR_TANK_EMPTY;
 			CriticalErrors |= ERRC_TankEmpty;
+		} else if(!CriticalErrors_timeout) CriticalErrors &= ~ERRC_TankEmpty;
+#endif
+		if(ADC_has_been_read) {		// Не чаще, чем ADC
+			ADC_has_been_read = false;
+			for(uint8_t i = 0; i < ANUMBER; i++) MC.sADC[i].Read();			// Прочитать данные с аналоговых давления
+			tank_empty = tank_empty || (MC.sADC[LTANK].get_Value() < MC.Option.LTANK_Empty);
+			if(tank_empty) {
+				if(!(CriticalErrors & ERRC_TankEmpty)) vPumpsNewError = ERR_TANK_EMPTY;
+				CriticalErrors |= ERRC_TankEmpty;
+			} else if(!CriticalErrors_timeout) CriticalErrors &= ~ERRC_TankEmpty;
+			else if(MC.dRelay[RFILL].get_Relay()) {
+				if(MC.Option.FillingTankTimeout) { // Check tank filling speed
+					// FillingTankLastLevel == 0 - Start watching
+					if(FillingTankLastLevel && WaterBoosterStatus == 0) { // No water consuming from tank
+						if(GetTickCount() - FillingTankTimer >= (uint32_t) MC.Option.FillingTankTimeout * 1000 && !vPumpsNewError) {
+							if(MC.sADC[LTANK].get_Value() - FillingTankLastLevel < FILLING_TANK_STEP) {
+								vPumpsNewErrorData = MC.sADC[LTANK].get_Value() - FillingTankLastLevel;
+								vPumpsNewError = ERR_TANK_NO_FILLING;
+							}
+							FillingTankLastLevel = MC.sADC[LTANK].get_Value();
+							FillingTankTimer = GetTickCount();
+						}
+					} else {
+						FillingTankLastLevel = MC.sADC[LTANK].get_Value();
+						FillingTankTimer = GetTickCount();
+					}
+				}
+			}
 		}
 		uint8_t reg_active = (MC.sInput[REG_ACTIVE].get_Input() || MC.sInput[REG_BACKWASH_ACTIVE].get_Input()) | (MC.sInput[REG2_ACTIVE].get_Input() << 1);
 
@@ -1460,40 +1481,24 @@ xWaterBooster_OFF:
 			if(LowConsumeMode) {
 				if((int32_t)MC.sADC[LTANK].get_Value() >= (int32_t)MC.Option.LTank_LowConsumeMin + FILLING_TANK_LOW_CONSUME_TIME * FILLING_TANK_STEP / MC.Option.FillingTankTimeout)
 					MC.dRelay[RFILL].set_OFF();	// Stop filling tank
-				FillingTankLastLevel = 0;
 				AfterFilledTimer = MC.Option.LTank_AfterFilledTimer * 1000;
+				FillingTankLastLevel = 0;
 			} else {
 				if(MC.sADC[LTANK].get_Value() >= MC.sADC[LTANK].get_maxValue()) {
 					MC.dRelay[RFILL].set_OFF();	// Stop filling tank
-				} else {
-					if(MC.Option.FillingTankTimeout) {
-						// FillingTankLastLevel == 0 - Start watching
-						if(FillingTankLastLevel && WaterBoosterStatus == 0 && TimerDrainingWater == 0) { // No water consuming
-							if(GetTickCount() - FillingTankTimer >= (uint32_t) MC.Option.FillingTankTimeout * 1000) {
-								if(MC.sADC[LTANK].get_Value() - FillingTankLastLevel < FILLING_TANK_STEP) {
-									vPumpsNewErrorData = MC.sADC[LTANK].get_Value() - FillingTankLastLevel;
-									vPumpsNewError = ERR_TANK_NO_FILLING;
-								}
-								FillingTankLastLevel = MC.sADC[LTANK].get_Value();
-								FillingTankTimer = GetTickCount();
-							}
-						} else {
-							FillingTankLastLevel = MC.sADC[LTANK].get_Value();
-							FillingTankTimer = GetTickCount();
-						}
-					}
+					FillingTankLastLevel = 0;
 				}
 			}
-			taskENTER_CRITICAL();
+			//taskENTER_CRITICAL();
 			Charts_FillTank_work += TIME_SLICE_PUMPS * 100 / 1000; // in percent
-			taskEXIT_CRITICAL();
+			//taskEXIT_CRITICAL();
 		} else {
 			if(MC.sADC[LTANK].get_Value() <= (MC.sInput[REG_BACKWASH_ACTIVE].get_Input() ? MC.sADC[LTANK].get_maxValue() - FILL_TANK_REGEN_DELTA : LowConsumeMode ? MC.Option.LTank_LowConsumeMin : MC.sADC[LTANK].get_minValue())) {
 				if(!(CriticalErrors & ~ERRC_TankEmpty)) {
 					if(!LowConsumeMode || (!MC.dRelay[RFEEDPUMP].get_Relay() && WaterBoosterStatus == 0)) {
 						if(LowConsumeMode) AfterFilledTimer = MC.Option.LTank_AfterFilledTimer * 1000;
-						FillingTankLastLevel = 0;
 						MC.dRelay[RFILL].set_ON();	// Start filling tank
+						FillingTankLastLevel = 0;
 					}
 				}
 			}
