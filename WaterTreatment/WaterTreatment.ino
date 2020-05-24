@@ -595,7 +595,7 @@ void vWeb0(void *)
 	static unsigned long resW5200 = 0;
 	static unsigned long iniW5200 = 0;
 	static unsigned long pingt = 0;
-	static unsigned long Request_LowConsume = -HTTP_REQ_LowConsume;
+	static unsigned long Request_LowConsume = -MC.Option.LowConsumeRequestPeriod;
 #ifdef MQTT
 	static unsigned long narmont=0;
 	static unsigned long mqttt=0;
@@ -691,14 +691,14 @@ void vWeb0(void *)
 				active = false;
 			}
 
-			if(active && thisTime - Request_LowConsume > HTTP_REQ_LowConsume) {
-				Request_LowConsume = thisTime;
+			if(active && Request_LowConsume && thisTime - Request_LowConsume > MC.Option.LowConsumeRequestPeriod * 1000) {
+				Request_LowConsume = MC.Option.LowConsumeRequestPeriod ? thisTime | 0x1 : 0;
 				int tmp = Send_HTTP_Request(MC.Option.LowConsumeRequest);
 				if(tmp >= 0) {
 					LowConsumeMode = tmp;
 					if(!LowConsumeMode) AfterFilledTimer = 0;
 				}
-				else if(tmp >= -2000000001) Request_LowConsume -= HTTP_REQ_LowConsume - 5000;
+				else if(tmp >= -2000000001) Request_LowConsume = (Request_LowConsume - (MC.Option.LowConsumeRequestPeriod > 5 ? MC.Option.LowConsumeRequestPeriod * 1000 - 5000 : 0)) | 0x1;
 				active = false;
 			}
 

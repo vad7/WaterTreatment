@@ -172,6 +172,7 @@ struct type_option {
 	uint16_t LTank_LowConsumeMin;	// Низкий уровень бака при низком потреблении ( от резервного источника), сотые %
 	uint16_t LTank_AfterFilledTimer;// Время после отключения реле заполнения бака до останова глубинного насоса, сек
 	char     LowConsumeRequest[64];	// HTTP запрос о режиме низкого потребления, формат server/request, возврат после '=': 0 - нет, 1 - да
+	uint16_t LowConsumeRequestPeriod;// Периодичность запроса о режиме низкого потребления, если 0, то только при старте, сек
 } __attribute__((packed));
 
 //  Работа с отдельными флагами type_DateTime

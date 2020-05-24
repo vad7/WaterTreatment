@@ -608,6 +608,7 @@ void MainClass::resetSetting()
 	Option.FilterTankSoftener = 10;
 	FilterTankSquare = CalcFilterSquare(Option.FilterTank);
 	FilterTankSoftenerSquare = CalcFilterSquare(Option.FilterTankSoftener);
+	Option.LowConsumeRequestPeriod = HTTP_REQ_LowConsume;
 }
 
 // --------------------------------------------------------------------
@@ -856,6 +857,7 @@ boolean MainClass::set_option(char *var, float xx)
    if(strcmp(var,option_FilterTankSoftener)==0){ FilterTankSoftenerSquare = CalcFilterSquare(Option.FilterTankSoftener = x); return true; } else
    if(strcmp(var,option_DrainingWaterAfterRegen)==0){ Option.DrainingWaterAfterRegen = x; return true; } else
    if(strcmp(var,option_RegenStart)==0){ Option.DrainingWaterAfterRegen = x; return true; } else // Start regenerate
+   if(strcmp(var,option_LowConsumeRequestPeriod)==0){ Option.LowConsumeRequestPeriod = x; return true; } else
    if(strncmp(var,option_SGL1W, sizeof(option_SGL1W)-1)==0) {
 	   uint8_t bit = var[sizeof(option_SGL1W)-1] - '0' - 1;
 	   if(bit <= 3) {
@@ -908,6 +910,7 @@ char* MainClass::get_option(char *var, char *ret)
    if(strcmp(var,option_FilterTankSoftener)==0){ return _itoa(Option.FilterTankSoftener, ret); } else
    if(strcmp(var,option_DrainingWaterAfterRegen)==0){ return _itoa(Option.DrainingWaterAfterRegen, ret); } else
    if(strcmp(var,option_LTank_AfterFilledTimer)==0){ return _itoa(Option.LTank_AfterFilledTimer, ret); } else
+   if(strcmp(var,option_LowConsumeRequestPeriod)==0){ return _itoa(Option.LowConsumeRequestPeriod, ret); } else
    if(strncmp(var,option_SGL1W, sizeof(option_SGL1W)-1)==0) {
 	   uint8_t bit = var[sizeof(option_SGL1W)-1] - '0' - 1;
 	   if(bit <= 3) {
