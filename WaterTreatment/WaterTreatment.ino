@@ -595,7 +595,6 @@ void vWeb0(void *)
 	static unsigned long resW5200 = 0;
 	static unsigned long iniW5200 = 0;
 	static unsigned long pingt = 0;
-	static unsigned long Request_LowConsume = -MC.Option.LowConsumeRequestPeriod;
 #ifdef MQTT
 	static unsigned long narmont=0;
 	static unsigned long mqttt=0;
@@ -603,6 +602,7 @@ void vWeb0(void *)
 	static boolean active;  // ФЛАГ Одно дополнительное действие за один цикл - распределяем нагрузку
 	static boolean network_last_link = true;
 
+	Request_LowConsume = -MC.Option.LowConsumeRequestPeriod;
 	MC.timeNTP = xTaskGetTickCount();        // В первый момент не обновляем
 	for(;;)
 	{
