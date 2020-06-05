@@ -602,7 +602,7 @@ void vWeb0(void *)
 	static boolean active;  // ФЛАГ Одно дополнительное действие за один цикл - распределяем нагрузку
 	static boolean network_last_link = true;
 
-	Request_LowConsume = -MC.Option.LowConsumeRequestPeriod;
+	Request_LowConsume = (-(uint32_t)MC.Option.LowConsumeRequestPeriod) | 0x1;
 	MC.timeNTP = xTaskGetTickCount();        // В первый момент не обновляем
 	for(;;)
 	{
