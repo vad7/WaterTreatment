@@ -692,11 +692,9 @@ void vWeb0(void *)
 			if(active && Request_LowConsume && thisTime - Request_LowConsume > MC.Option.LowConsumeRequestPeriod * 1000) {
 				Request_LowConsume = MC.Option.LowConsumeRequestPeriod ? thisTime | 0x1 : 0;
 				int tmp = Send_HTTP_Request(MC.Option.LowConsumeRequest);
-				if(tmp >= 0) {
-					LowConsumeMode = tmp;
-					if(!LowConsumeMode) AfterFilledTimer = 0;
-				}
-				else if(tmp >= -2000000001) Request_LowConsume = (Request_LowConsume - (MC.Option.LowConsumeRequestPeriod > 5 ? MC.Option.LowConsumeRequestPeriod * 1000 - 5000 : 0)) | 0x1;
+				if(tmp <= -2000000000 && tmp >= -2000000001) Request_LowConsume = (Request_LowConsume - (MC.Option.LowConsumeRequestPeriod > 5 ? MC.Option.LowConsumeRequestPeriod * 1000 - 5000 : 0)) | 0x1;
+				LowConsumeMode = tmp; // if error - set low consume mode
+				if(!LowConsumeMode) AfterFilledTimer = 0;
 				active = false;
 			}
 
