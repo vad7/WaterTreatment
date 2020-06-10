@@ -647,30 +647,28 @@ void vWeb0(void *)
 			}
 
 			// 3. Сброс сетевого чипа по времени
-			if((MC.time_resW5200() > 0) && (active))                             // Сброс W5200 если включен и время подошло
+			if(MC.time_resW5200() > 0)                             // Сброс W5200 если включен и время подошло
 			{
 				STORE_DEBUG_INFO(4);
 				resW5200 = xTaskGetTickCount();
 				if(timeResetW5200 == 0) timeResetW5200 = resW5200;      // Первая итерация не должна быть сразу
 				if(resW5200 - timeResetW5200 > MC.time_resW5200() * 1000UL) {
 					journal.jprintfopt("Resetting the chip %s by timer.\n", nameWiznet);
-					MC.fNetworkReset = true;                          // Послать команду сброса и применения сетевых настроек
+					MC.fNetworkReset = 1;                              // Послать команду сброса и применения сетевых настроек
 					timeResetW5200 = resW5200;                         // Запомить время сброса
-					active = false;
 				}
 			}
 			// 4. Проверка связи с чипом
-			if((MC.get_fInitW5200()) && (thisTime - iniW5200 > 60 * 1000UL) && (active)) // проверка связи с чипом сети раз в минуту
+			if((MC.get_fInitW5200()) && (thisTime - iniW5200 > W5500_LINK_CHECK * 1000UL)) // проверка связи с чипом сети раз в 30 сек
 			{
 				STORE_DEBUG_INFO(5);
 				iniW5200 = thisTime;
 				if(!MC.NO_Power) {
 					boolean lst = linkStatusWiznet(false);
 					if(!lst || !network_last_link) {
-						if(!lst) journal.jprintf_time("%s no link[%02X], resetting.\n", nameWiznet, W5100.readPHYCFGR());
-						MC.fNetworkReset = true;                          // Послать команду сброса и применения сетевых настроек
+						if(!lst && network_last_link) journal.jprintf_time("%s no link[%02X] - resetting\n", nameWiznet, W5100.readPHYCFGR());
+						MC.fNetworkReset = 1;           // Послать команду сброса и применения сетевых настроек
 						MC.num_resW5200++;              // Добавить счетчик инициализаций
-						active = false;
 					}
 					network_last_link = lst;
 				}
@@ -1295,7 +1293,7 @@ void vReadSensor_delay1ms(int32_t ms)
 			MC.NO_Power_delay = NO_POWER_ON_DELAY_CNT;
 		} else if(MC.NO_Power) { // Включаемся
 			if(MC.NO_Power_delay) {
-				if(--MC.NO_Power_delay == 0) MC.fNetworkReset = true;
+				if(--MC.NO_Power_delay == 0) MC.fNetworkReset = 1;
 			} else {
 				journal.jprintf_date("Power restored!\n");
 				MC.NO_Power = 0;
@@ -1732,6 +1730,11 @@ void vService(void *)
 			}
 			Stats.CheckCreateNewFile();
 			if(ResetDUE_countdown && --ResetDUE_countdown == 0) Software_Reset();      // Сброс
+			if(MC.fNetworkReset && --MC.fNetworkReset == 0) {
+				initW5200(true);                                  // Инициализация сети с выводом инфы в консоль
+				for(uint8_t i = 0; i < W5200_THREAD; i++) SETBIT1(Socket[i].flags,fABORT_SOCK);  // Признак инициализации сокета, надо прерывать передачу в сервере
+				MC.num_resW5200++;                                // Добавить счетчик инициализаций
+			}
 		} // 1 sec
 		vTaskDelay(1); // задержка чтения уменьшаем загрузку процессора
 	}

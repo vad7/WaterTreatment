@@ -393,7 +393,7 @@ public:
 
 	uint8_t  NO_Power;					  			// Нет питания основных узлов
 	uint8_t  NO_Power_delay;
-	boolean  fNetworkReset;							// Нужно сбросить сеть
+	uint8_t  fNetworkReset;							// Нужно сбросить сеть
     TEST_MODE testMode;                             // Значение режима тестирования
 	type_WorkStats WorkStats;               		// Структура для хранения счетчиков периодическая запись
 	type_WorkStats WorkStats_saved;

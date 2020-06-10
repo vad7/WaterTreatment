@@ -606,9 +606,9 @@ void parserGET(uint8_t thread)
 		}
 		if ((strcmp(str,"set_updateNet")==0)||(strcmp(str,"RESET_NET")==0))  // Функция Сброс w5200 и применение сетевых настроек, подождите 5 сек . . .
 		{
-			initW5200(true);                                  // Инициализация сети с выводом инфы в консоль
-			for(uint8_t i = 0; i < W5200_THREAD; i++) SETBIT1(Socket[i].flags,fABORT_SOCK);  // Признак инициализации сокета, надо прерывать передачу в сервере
-			MC.num_resW5200++;                                // Добавить счетчик инициализаций
+			MC.fNetworkReset = 3;        // Послать команду сброса и применения сетевых настроек
+			strcat(strReturn, "OK");
+			ADD_WEBDELIM(strReturn);
 			continue;
 		}
 		if(strncmp(str, "get_MODE", 8)==0) { // Функция get_MODE в каком состояниии
