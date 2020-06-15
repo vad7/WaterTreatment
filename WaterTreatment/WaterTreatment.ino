@@ -406,7 +406,7 @@ x_I2C_init_std_message:
 	}
 
 	journal.jprintfopt("* Start ADC\n");
-	journal.jprintf_date("Temp SAM3x: %.2f\n", temp_DUE());
+	//journal.jprintf_date("Temp SAM3x: %.2f\n", temp_DUE());
 	start_ADC(); // после инициализации
 	//journal.jprintfopt(" Mask ADC_IMR: 0x%08x\n",ADC->ADC_IMR);
 
@@ -433,7 +433,7 @@ x_I2C_init_std_message:
 			if(rtcI2C.readRTC(RTC_STORE_ADDR, (uint8_t*)&MC.RTC_store, sizeof(MC.RTC_store))) {
 				memset(&MC.RTC_store, 0, sizeof(MC.RTC_store));
 				journal.jprintf(" Error read RTC store!\n");
-			} else journal.jprintfopt(" RTC MEM: %02X, D: %d, R: %d\n", MC.RTC_store.Work, MC.RTC_store.UsedToday, MC.RTC_store.UsedRegen);
+			} else journal.jprintf_date(" RTC MEM: %02X, D: %d, R: %d\n", MC.RTC_store.Work, MC.RTC_store.UsedToday, MC.RTC_store.UsedRegen);
 		}
 	} else journal.jprintf(" Error read RTC!\n");
 	set_time();
