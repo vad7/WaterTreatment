@@ -183,6 +183,10 @@ void Statistics::Init(uint8_t newyear)
 		if(!newyear) { // read last stats record
 			int32_t pos = (CurrentBlock - BlockStart) * SD_BLOCK + CurrentPos - 1;
 			uint8_t b;
+			for(uint8_t i = 0; i < sizeof(Stats_data) / sizeof(Stats_data[0]); i++) {
+				if(Stats_data[i].object == STATS_OBJ_WaterUsed)	Stats_data[i].value = MC.RTC_store.UsedToday;
+				else if(Stats_data[i].object == STATS_OBJ_WaterRegen) Stats_data[i].value = MC.RTC_store.UsedRegen;
+			}
 			while(--pos >= 0) {
 				if(!StatsFile.seekSet(pos)) {
 					Error("seek", ID_STATS);
@@ -216,10 +220,11 @@ void Statistics::Init(uint8_t newyear)
 							p = temp_initbuf + format_date_size;
 							for(uint8_t i = 0; i < sizeof(Stats_data) / sizeof(Stats_data[0]); i++) {
 								float val = my_atof(++p);
-								if(Stats_data[i].object == STATS_OBJ_WaterUsed)	Stats_data[i].value = MC.RTC_store.UsedToday;
-								else if(Stats_data[i].object == STATS_OBJ_WaterRegen) Stats_data[i].value = MC.RTC_store.UsedRegen;
-								else if(val != ATOF_ERROR) {
+								if(val != ATOF_ERROR) {
 									switch(Stats_data[i].object) {
+									case STATS_OBJ_WaterUsed:
+									case STATS_OBJ_WaterRegen:
+										break;
 									case STATS_OBJ_Temp:
 									case STATS_OBJ_Press:
 										Stats_data[i].value = val * 100.0f + 0.005f;
