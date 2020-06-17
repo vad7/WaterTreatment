@@ -571,6 +571,7 @@ int8_t devPWM::get_readState(uint8_t group)
 	if(MC.NO_Power) {
 		Power = 0;
 		Voltage = 0;
+		return ERR_MODBUS_UNKNOWN;
 	}
 #endif
 	err=OK;
@@ -610,15 +611,25 @@ xErr:
 		MC.sInput[SPOWER].Read(true);
         if(MC.sInput[SPOWER].get_Input()) return err;
 #endif
-		numErr++;                  // число ошибок чтение по модбасу
+#ifdef  USE_UPS_220
+        if(MC.NO_Power) return err = ERR_NO_POWER;
+#endif
+        numErr++;                  // число ошибок чтение по модбасу
 		if(GETBIT(MC.Option.flags, fPWMLogErrors)) {
 			journal.jprintfopt_time("%s: Read #%d error %d, repeat...\n", name, group, err);      // Выводим сообщение о повторном чтении
 		}
 		_delay(PWM_DELAY_REPEAT);  // Чтение не удачно, делаем паузу
 	}
+#ifdef  USE_UPS_220
+	if(err) {
+		numErr -= PWM_NUM_READ;
+		err = ERR_NO_POWER;
+	}
+#else
 	if(err && GETBIT(MC.Option.flags, fPWMLogErrors)) {
 		journal.jprintf_time("%s: Read #%d error %d!\n", name, group, err);
 	}
+#endif
 	return err;
 }
 

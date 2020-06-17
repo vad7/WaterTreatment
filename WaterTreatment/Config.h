@@ -86,6 +86,8 @@ struct History_setup {
       #define SAM3X_ADC_REF  3.30   // Штатное подключение используется питание DUE
     #endif
     //#define USE_UPS					// Используется ИБП на контроллер, проверка через вход SPOWER
+	#define USE_UPS_220				// Используется ИБП на питание 220V, работа от ИБП определяется по неотклику счетчика электроэнергии
+
 	//#define STATS_USE_BUFFER_FOR_SAVING // Сохранять статистику только когда буфер (512 байт) заполнен, иначе каждый день
 
 	//#define RADIO_SENSORS			// Радиодатчики через ZONT МЛ‑489.
@@ -199,24 +201,25 @@ struct History_setup {
 
     // Контактные датчики (sInput[]------------------------------------------------------------------
 #ifndef TANK_ANALOG_LEVEL
-    #define INUMBER             7   	// Число контактных датчиков цифровые входы
+    #define INUMBER             8   	// Число контактных датчиков цифровые входы
 #else
-	#define INUMBER             5   	// Число контактных датчиков цифровые входы
+	#define INUMBER             6   	// Число контактных датчиков цифровые входы
 #endif
     // Имена индексов
 	#define REG_ACTIVE			0        // Активна регенерация (INP2) (белый+/коричневый)
 	#define REG_BACKWASH_ACTIVE 1        // Активна обратная промывка (INP3) (белый+/синий)
 	#define REG2_ACTIVE			2        // Активна регенерация умягчителя (INP4)
-	#define FLOODING			3        // Затопление (INP5)
-	#define LEAK				4        // Протечка (INP6)
-//	#define TANK_EMPTY			4        // Емкость пуста (INP6)
+	#define FLOODING			3        // Затопление (INP5 [D23])
+	#define LEAK				4        // Протечка (INP6 [D24])
+	#define SEPTIC_ALARM		5        // Авария септика (REL8 [D5])
 #ifndef TANK_ANALOG_LEVEL
-    #define TANK_LOW			5        // Нужен долив бака 500л (DAC0 [D66])
-	#define TANK_FULL			6        // Емкость полна (REL8 [D5])
+    #define TANK_LOW			6        // Нужен долив бака 500л (DAC0 [D66])
+	#define TANK_FULL			7        // Емкость полна (REL8 [D5])
 #endif
+//	#define TANK_EMPTY			8        // Емкость пуста (INP6)
 
 	// Массив ног
-	const uint8_t pinsInput[INUMBER] = { 56, 43, 54, 23, 24
+	const uint8_t pinsInput[INUMBER] = { 56, 43, 54, 23, 24, 5
 #ifndef TANK_ANALOG_LEVEL
 			, 66, 5
 #endif
@@ -226,7 +229,8 @@ struct History_setup {
     		  	  	  	  	  	  	  	"Идет обратная промывка",
 										"Идет регенерация умягчителя",
 										"Затопление",
-										"Протечка"
+										"Протечка",
+										"Авария септика"
 #ifndef TANK_ANALOG_LEVEL
 
 										,"Долив бака",
@@ -238,7 +242,8 @@ struct History_setup {
 										"REGBW",
 										"REG2",
 										"FLOOD",
-										"LEAK"
+										"LEAK",
+										"SEPTIC"
 #ifndef TANK_ANALOG_LEVEL
 										,"LOW",
 										"FULL"
@@ -246,15 +251,15 @@ struct History_setup {
                                      };
      
 #ifndef TANK_ANALOG_LEVEL
-    const bool TESTINPUT[INUMBER]        = { 0, 0, 0, 0, 0, 0, 0 };    // Значения датчиков при тестировании  опция TEST
-    const bool LEVELINPUT[INUMBER]       = { 0, 0, 0, 1, 0, 0, 0 };    // Значение датчика, когда сработал
-    const bool PULLUPINPUT[INUMBER]      = { 0, 0, 0, 0, 0, 1, 1 };    // если 1 - то на порту выставляется подтяжка к VCC.
-    const int8_t SENSOR_ERROR[INUMBER]   = { 0, 0, 0, 0, ERR_TANK_EMPTY, 0, 0 };  // При срабатывании генерить ошибку с заданным кодом, если не 0
+    const bool TESTINPUT[INUMBER]        = { 0, 0, 0, 0, 0, 0, 0, 0 };    // Значения датчиков при тестировании  опция TEST
+    const bool LEVELINPUT[INUMBER]       = { 0, 0, 0, 1, 0, 0, 0, 0 };    // Значение датчика, когда сработал
+    const bool PULLUPINPUT[INUMBER]      = { 0, 0, 0, 0, 0, 0, 0, 0 };    // если 1 - то на порту выставляется подтяжка к VCC.
+    const int8_t SENSOR_ERROR[INUMBER]   = { 0, 0, 0, 0, ERR_TANK_EMPTY, 0, 0, 0 };  // При срабатывании генерить ошибку с заданным кодом, если не 0
 #else
-      const bool TESTINPUT[INUMBER]        = { 0, 0, 0, 0, 0 };    // Значения датчиков при тестировании  опция TEST
-      const bool LEVELINPUT[INUMBER]       = { 0, 0, 0, 1, 0 };    // Значение датчика, когда сработал
-      const bool PULLUPINPUT[INUMBER]      = { 0, 0, 0, 0, 0 };    // если 1 - то на порту выставляется подтяжка к VCC.
-      const int8_t SENSOR_ERROR[INUMBER]   = { 0, 0, 0, 0, 0 };  // При срабатывании генерить ошибку с заданным кодом, если не 0
+      const bool TESTINPUT[INUMBER]        = { 0, 0, 0, 0, 0, 0 };    // Значения датчиков при тестировании  опция TEST
+      const bool LEVELINPUT[INUMBER]       = { 0, 0, 0, 1, 1, 1 };    // Значение датчика, когда сработал
+      const bool PULLUPINPUT[INUMBER]      = { 0, 0, 0, 0, 0, 0 };    // если 1 - то на порту выставляется подтяжка к VCC.
+      const int8_t SENSOR_ERROR[INUMBER]   = { 0, 0, 0, 0, 0, 0 };    // При срабатывании генерить ошибку с заданным кодом, если не 0
 #endif
     // ---------------------------------------------------------------------------------------------------------------------------------------
     // Частотные датчики ------------------------------------------------------------------

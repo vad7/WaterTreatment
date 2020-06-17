@@ -996,6 +996,9 @@ xErrorsProcessing:
 				if(CriticalErrors & ERRC_TankEmpty) {
 					strcpy(buf, "EMPTY! "); buf += 7;
 				}
+				if(CriticalErrors & ERRC_SepticAlarm) {
+					strcpy(buf, "SEPTIC! "); buf += 8;
+				}
 				if(CriticalErrors & ERRC_WeightEmpty) {
 					strcpy(buf, "BRINE! "); buf += 7;
 					goto xShowWeight;
@@ -1088,13 +1091,32 @@ void vReadSensor(void *)
 #endif
 		{
 			// Основная группа регистров, включая мощность
-			if(MC.dPWM.get_readState(0) && WaterBoosterStatus > 0 && WaterBoosterTimeout > MC.Option.PWM_StartingTime) {
-				if(MC.Option.PWM_DryRun && MC.dPWM.get_Power() < MC.Option.PWM_DryRun) { // Сухой ход
-					CriticalErrors |= ERRC_WaterBooster;
-					set_Error(ERR_PWM_DRY_RUN, (char*)__FUNCTION__);
-				} else if(MC.Option.PWM_Max && MC.dPWM.get_Power() > MC.Option.PWM_Max) { // Перегрузка
-					CriticalErrors |= ERRC_WaterBooster;
-					set_Error(ERR_PWM_MAX, (char*)__FUNCTION__);
+			if(MC.dPWM.get_readState(0) == OK) {
+				if(WaterBoosterStatus > 0 && WaterBoosterTimeout > MC.Option.PWM_StartingTime) {
+					if(MC.Option.PWM_DryRun && MC.dPWM.get_Power() < MC.Option.PWM_DryRun) { // Сухой ход
+						CriticalErrors |= ERRC_WaterBooster;
+						set_Error(ERR_PWM_DRY_RUN, (char*)__FUNCTION__);
+					} else if(MC.Option.PWM_Max && MC.dPWM.get_Power() > MC.Option.PWM_Max) { // Перегрузка
+						CriticalErrors |= ERRC_WaterBooster;
+						set_Error(ERR_PWM_MAX, (char*)__FUNCTION__);
+					}
+				}
+			}
+			if(MC.dPWM.get_lastErr() == ERR_NO_POWER) {
+				if(!MC.NO_Power) {
+					MC.NO_Power = 1;
+					MC.save_WorkStats();
+					Stats.SaveStats(0);
+					Stats.SaveHistory(0);
+					journal.jprintf_date("Power lost!\n");
+				}
+				MC.NO_Power_delay = NO_POWER_ON_DELAY * 1000 / TIME_READ_SENSOR;
+			} else if(MC.NO_Power) { // Включаемся
+				if(MC.NO_Power_delay) {
+					if(--MC.NO_Power_delay == 0) MC.fNetworkReset = 1;
+				} else {
+					journal.jprintf_date("Power restored!\n");
+					MC.NO_Power = 0;
 				}
 			}
 		}
@@ -1283,6 +1305,7 @@ void vReadSensor_delay1ms(int32_t ms)
 		MC.sInput[SPOWER].Read(true);
 		if(MC.sInput[SPOWER].get_Input()) { // Электричество кончилось
 			if(!MC.NO_Power) {
+				MC.NO_Power = 1;
 				MC.save_WorkStats();
 				Stats.SaveStats(0);
 				Stats.SaveHistory(0);
@@ -1404,6 +1427,15 @@ void vPumps( void * )
 				}
 			} else FloodingTime = 0;
 		}
+		if(MC.sInput[SEPTIC_ALARM].get_Input()) {
+			if(++SepticAlarmTime > MC.Option.SepticAlarmDebounce * 1000 / TIME_SLICE_PUMPS) {
+				vPumpsNewError = ERR_SEPTIC_ALARM;
+				CriticalErrors |= ERRC_SepticAlarm;
+				MC.dRelay[RWATEROFF].set_ON();
+				SepticAlarmTime = 0;
+			}
+		} else SepticAlarmTime = 0;
+
 		// Water Booster
 		if(WaterBoosterStatus == 0) {
 			if(!CriticalErrors && press != ERROR_PRESS

@@ -21,7 +21,7 @@
 
 // ОПЦИИ КОМПИЛЯЦИИ ПРОЕКТА -------------------------------------------------------
 #define VERSION			  "1.12"				// Версия прошивки
-#define VER_SAVE		  3					// Версия формата сохраняемых данных в I2C память
+#define VER_SAVE		  4					// Версия формата сохраняемых данных в I2C память
 //#define LOG                               // В последовательный порт шлет лог веб сервера (логируются запросы)
 #define FAST_LIB                            // использование допиленной библиотеки езернета
 #define TIME_ZONE         3                 // поправка на часовой пояс по ДЕФОЛТУ
@@ -106,7 +106,7 @@ const uint16_t  defaultPort=80;
 #define TIME_LED_ERR          200            // Период мигания светодиода при ошибке (мсек).
 #define TIME_BEEP_ERR         2000           // Период звукового сигнала при ошибке, мсек
 #define cDELAY_START_MESSAGE  60             // Задержка (сек) после старта на отправку сообщений
-#define NO_POWER_ON_DELAY_CNT 10		     // Задержка включения после появления питания, *TIME_READ_SENSOR
+#define NO_POWER_ON_DELAY     15		     // Задержка включения после появления питания, сек
 #define WB_LOW_CONSUME_MAX_TIME 25000		 // Максимальное время бесперерывной работы насосной станции. После него будет переыв на включение дозатора, ms
 
 #define PWM_READ_PERIOD      (3*1000)        // Время опроса не критичных параметров счетчика, ms
@@ -405,6 +405,7 @@ const char *option_RegenStart			= {"R"};
 const char *option_LTank_LowConsumeMin	= {"LLM"};
 const char *option_LTank_AfterFilledTimer={"TAF"};
 const char *option_LowConsumeRequestPeriod={"LCP"};
+const char *option_SepticAlarmDebounce  ={"SD"};
 
 // WorkStats, get_WS..., set_WS...(x)
 const char *webWS_UsedToday 					= { "UD" };
@@ -495,8 +496,10 @@ const char *webWS_UsedLastRegenSoftening  		= { "RSL" };
 #define ERR_WEIGHT_LOW		-63			// Маленький вес реагента
 #define ERR_WEIGHT_EMPTY	-64			// Пустой бак с реагентом
 #define ERR_LEAK			-65			// Протечка
+#define ERR_SEPTIC_ALARM	-66			// Авария септика
+#define ERR_NO_POWER		-67			// Нет электричества
 
-#define ERR_ERRMAX			-65			// Последняя ошибка
+#define ERR_ERRMAX			-67			// Последняя ошибка
 
 // Предупреждения
 #define WARNING_VALUE        1         // Попытка установить значение за границами диапазона запрос типа SET
@@ -569,6 +572,8 @@ const char *noteError[] = {
 		"Низкий уровень реагента",															//-63
 		"Реагент закончился!",																//-64
 		"Протечка!",																		//-65
+		"Авария септика!",																	//-66
+		"Нет электричества",																//-67
 
 		"NULL"
 		};

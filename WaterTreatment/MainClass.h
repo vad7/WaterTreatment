@@ -64,6 +64,7 @@ struct type_RTC_memory { // DS3231/DS3232 used alarm memory, starts from 0x07, m
 #define	ERRC_Flooding		0x02
 #define	ERRC_TankEmpty		0x04
 #define	ERRC_WeightEmpty	0x08
+#define	ERRC_SepticAlarm	0x10
 volatile uint32_t CriticalErrors = 0;	// Stop any work when these errors have occurred
 int32_t  vPumpsNewErrorData = 0;
 int8_t   vPumpsNewError = 0;
@@ -79,7 +80,8 @@ int32_t _WaterBoosterCountLrest = 0;
 //bool 	 WaterBoosterError = false;
 //volatile bool FloodingError = false;
 //bool	 TankEmpty = false;
-uint32_t FloodingTime = 0;	// unixtime
+uint32_t FloodingTime = 0;
+uint32_t SepticAlarmTime;
 uint32_t FillingTankTimer = 0;
 int16_t  FillingTankLastLevel = 0;	// in 0.01%
 uint32_t TimeFeedPump = 0;	// ms
@@ -174,6 +176,7 @@ struct type_option {
 	uint16_t LTank_AfterFilledTimer;// Время после отключения реле заполнения бака до останова глубинного насоса, сек
 	char     LowConsumeRequest[64];	// HTTP запрос о режиме низкого потребления, формат server/request, возврат после '=': 0 - нет, 1 - да
 	uint16_t LowConsumeRequestPeriod;// Периодичность запроса о режиме низкого потребления, если 0, то только при старте, сек
+	uint16_t SepticAlarmDebounce;	// Время исключения помех датчика аварии септика, сек
 } __attribute__((packed));
 
 //  Работа с отдельными флагами type_DateTime
@@ -392,7 +395,7 @@ public:
 	type_option Option;                  			// Опции
 
 	uint8_t  NO_Power;					  			// Нет питания основных узлов
-	uint8_t  NO_Power_delay;
+	uint16_t  NO_Power_delay;
 	uint8_t  fNetworkReset;							// Нужно сбросить сеть
     TEST_MODE testMode;                             // Значение режима тестирования
 	type_WorkStats WorkStats;               		// Структура для хранения счетчиков периодическая запись
