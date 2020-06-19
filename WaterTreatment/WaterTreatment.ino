@@ -940,8 +940,13 @@ xErrorsProcessing:
 				} else {
 					lcd.clear();
 					lcd.print(LCD_SetupMenu[LCD_setup & 0xFF]);
-					lcd.setCursor(0, 2);
+					lcd.setCursor(0, 1);
 					lcd.print("Long press OK - Exit");
+					lcd.setCursor(0, 3);
+					NowDateToStr(buffer);
+					buffer[10] = ' ';
+					NowTimeToStr(buffer + 11);
+					lcd.print(buffer);
 					lcd.setCursor(0, 0);
 				}
 			} else {
