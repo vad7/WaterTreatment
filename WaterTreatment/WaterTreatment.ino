@@ -958,7 +958,7 @@ xErrorsProcessing:
 					*buf++ = 'R';
 					tmp = MC.RTC_store.UsedRegen;
 				} else {
-					*buf++ = LowConsumeMode ? 'G' : '\x7E'; // '->'
+					*buf++ = MC.NO_Power ? 'x' : LowConsumeMode ? 'G' : '\x7E'; // '->'
 					tmp = MC.WorkStats.UsedSinceLastRegen + MC.RTC_store.UsedToday;
 				}
 				if(tmp < 10000) *buf++ = ' ';
