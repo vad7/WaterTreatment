@@ -618,6 +618,8 @@ void parserGET(uint8_t thread)
 					strcat(strReturn, "Затопление!");
 				} else if(CriticalErrors & ERRC_WaterBooster) {
 					strcat(strReturn, "Насосная ст.!");
+				} else if(CriticalErrors & ERRC_SepticAlarm) {
+					strcat(strReturn, "Септик!");
 				} else if(CriticalErrors & ERRC_WeightEmpty) {
 					strcat(strReturn, "Реагент!");
 				} else if(MC.sInput[REG_ACTIVE].get_Input() || MC.sInput[REG_BACKWASH_ACTIVE].get_Input() || MC.sInput[REG2_ACTIVE].get_Input()) {
@@ -625,6 +627,8 @@ void parserGET(uint8_t thread)
 				} else if(MC.get_errcode()) {
 					strcat(strReturn, "Ошибка: ");
 					_itoa(MC.get_errcode(), strReturn);
+				} else if(MC.NO_Power) {
+					strcat(strReturn, "Нет электричества");
 				} else if(LowConsumeMode) {
 					strcat(strReturn, "От резерва");
 				} else {
