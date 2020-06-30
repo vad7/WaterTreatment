@@ -406,6 +406,11 @@ const char *option_LTank_LowConsumeMin	= {"LLM"};
 const char *option_LTank_AfterFilledTimer={"TAF"};
 const char *option_LowConsumeRequestPeriod={"LCP"};
 const char *option_SepticAlarmDebounce  ={"SD"};
+const char prof_DailySwitch[] 	= "DS";
+const char prof_DailySwitchDevice = 'D';		// DSD
+const char prof_DailySwitchOn  	= 'S';			// DSS
+const char prof_DailySwitchOff 	= 'E';			// DSE
+
 
 // WorkStats, get_WS..., set_WS...(x)
 const char *webWS_UsedToday 					= { "UD" };
@@ -599,6 +604,7 @@ const char *noteError[] = {
 	#define I2C_COUNT_EEPROM		0x0000      // Адрес внутри чипа eeprom от куда пишется счетчики с начала чипа 0
 	#define I2C_SETTING_EEPROM		0x0080      // Адрес внутри чипа eeprom от куда пишутся настройки, а перед ним пишется счетчики
 	#define I2C_SETTING_EEPROM_NEXT 0x07FE
+	#define DAILY_SWITCH_MAX		10			// Максимальное количество записей ежедневного включения устройств (DailySwitch). MAX=10
 	#define I2C_JOURNAL_EEPROM 		I2C_SETTING_EEPROM_NEXT       // Адрес с которого начинается журнал в памяти i2c, в начале лежит признак форматирования журнала. Длина журнала JOURNAL_LEN
 	#define I2C_JOURNAL_START 		(I2C_JOURNAL_EEPROM + 2)      // Адрес с которого начинается ДАННЫЕ журнал в памяти i2c ВНИМАНИЕ - 2 байт лежит признак форматирования журнала
 	#define I2C_JOURNAL_EEPROM_NEXT (I2C_MEMORY_TOTAL * 1024 / 8) // Адрес после журнала = размер EEPROM
@@ -614,6 +620,7 @@ const char *noteError[] = {
 	#define I2C_COUNT_EEPROM		0x0000      // Адрес внутри чипа eeprom от куда пишется счетчики с начала чипа 0
 	#define I2C_SETTING_EEPROM		0x0080      // Адрес внутри чипа eeprom от куда пишутся настройки, а перед ним пишутся счетчики
 	#define I2C_SETTING_EEPROM_NEXT 0x07FE
+	#define DAILY_SWITCH_MAX		5			// Максимальное количество записей ежедневного включения устройств (DailySwitch)
 	#define I2C_JOURNAL_EEPROM 		I2C_SETTING_EEPROM_NEXT       // Адрес с которого начинается журнал в памяти i2c, в начале лежит признак форматирования журнала. Длина журнала JOURNAL_LEN
 	#define I2C_JOURNAL_START 		(I2C_JOURNAL_EEPROM + 2)      // Адрес с которого начинается ДАННЫЕ журнал в памяти i2c ВНИМАНИЕ - 2 байт лежит признак форматирования журнала
 	#define I2C_JOURNAL_EEPROM_NEXT (I2C_MEMORY_TOTAL * 1024 / 8) // Адрес после журнала = размер EEPROM

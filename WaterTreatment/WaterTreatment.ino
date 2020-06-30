@@ -1569,6 +1569,7 @@ xWaterBooster_OFF:
 void vService(void *)
 {
 	static uint8_t  task_updstat_countm = rtcSAM3X8.get_minutes();
+	static uint8_t  task_dailyswitch_countm = task_updstat_countm;
 	static uint8_t  task_every_min = task_updstat_countm;
 	static TickType_t timer_sec = GetTickCount(), timer_idle = 0, timer_total = 0;
 
@@ -1755,6 +1756,17 @@ void vService(void *)
 						} else if(NewRegenStatus) {
 							journal.jprintf_date("Regen F2 begin\n");
 							NewRegenStatus = false;
+						}
+					}
+					if(m != task_dailyswitch_countm) {
+						task_dailyswitch_countm = m;
+						uint32_t tt = rtcSAM3X8.get_hours() * 100 + m;
+						for(uint8_t i = 0; i < DAILY_SWITCH_MAX; i++) {
+							if(MC.Option.DailySwitch[i].Device == 0) break;
+							uint32_t st = MC.Option.DailySwitch[i].TimeOn * 10;
+							uint32_t end = MC.Option.DailySwitch[i].TimeOff * 10;
+							MC.dRelay[MC.Option.DailySwitch[i].Device].set_Relay(((end >= st && tt >= st && tt <= end) || (end < st && (tt >= st || tt <= end)))
+									&& !MC.NO_Power && !LowConsumeMode ? fR_StatusDaily : -fR_StatusDaily);
 						}
 					}
 				}

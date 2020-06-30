@@ -108,6 +108,8 @@ function loadParam(paramid, noretry, resultdiv) {
 								else if(/LvL[()]/.test(values[0]) && !!(element = document.getElementById(valueid)).getAttribute("name")) type = "bar";
 								else if(values[0].indexOf("RELOAD")==0) { 
 									location.reload();
+								} else if(values[0].indexOf("(DSD")!=-1) {
+									loadParam("get_tblPDS");
 								} else {
 									if((element = document.getElementById(valueid + "-ONOFF"))) { // Надпись
 										element.innerHTML = values[1] == 1 ? "Вкл" : "Выкл";
@@ -382,6 +384,16 @@ function loadParam(paramid, noretry, resultdiv) {
 												}
 												document.getElementById(valueid).innerHTML = content;
 											}
+										} else if(values[0] == 'get_tblPDS') {
+											var content = "";
+											var trows = values[1].split('|');
+											var elem = document.getElementById("get_listdsr");
+											for(var j = 0; j < trows.length - 1; j++) {
+												var tflds = trows[j].split(';');
+												content += '<tr><td><select id="get_prof-dsd' + j + '" onchange="setParam(\'get_Prof(DSD' + j + ')\')">' + elem.innerHTML.replace('>' + tflds[0] + '<', ' selected>' + tflds[0] + '<') + '<\select></td><td>' + tflds[1] 
+													+ '</td><td nowrap><input id="get_prof-dss' + j + '" type="text" size="6" value="' + tflds[2] + '"> <input type="submit" value=">" onclick="setDS(\'S\',' + j + ')"></td><td nowrap><input id="get_prof-dse' + j + '" type="text" size="6" value="' + tflds[3] + '"> <input type="submit" value=">" onclick="setDS(\'E\',' + j + ')"></td></tr>';
+											}
+											document.getElementById(valueid).innerHTML = content;
 										} else {
 											var content = values[1].replace(/</g, "&lt;").replace(/\|$/g, "").replace(/\|/g, "</td><td>").replace(/\n/g, "</td></tr><tr><td>");
 											var element = document.getElementById(valueid);

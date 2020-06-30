@@ -9,7 +9,7 @@
 		urlupdate = 2000;
 		window.onload = function() {
 		loadParam("get_tblRelay,get_tblPwrC,LowConsume");
-		loadParam("get_tblInput");
+		loadParam("get_tblInput,get_tblPDS");
 	};
 	</script>
 </head>
@@ -64,6 +64,16 @@
     </tbody>
   </table>            
 </div>
+<div class="row1"><h2>Ежесуточное включение реле</h2></div>	
+<table>
+	<thead><tr>
+		<th>Имя</th>
+		<th>Описание</th>
+		<th>Время включения</th>
+		<th>Включено по</th>
+	</tr></thead>
+	<tbody id="get_tblpds"></tbody>
+</table>
 <div class="row1">
 <h2>HTTP датчики</h2>
 <div style="font-size:medium">Режим минимальной нагрузки (питание от резерва): <input type="checkbox" id="lowconsume" onChange="setParam('LowConsume_set','lowconsume');"></div>

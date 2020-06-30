@@ -860,6 +860,26 @@ boolean MainClass::set_option(char *var, float xx)
    if(strcmp(var,option_RegenStart)==0){ Option.DrainingWaterAfterRegen = x; return true; } else // Start regenerate
    if(strcmp(var,option_LowConsumeRequestPeriod)==0){ Option.LowConsumeRequestPeriod = x; Request_LowConsume = xTaskGetTickCount(); return true; } else
    if(strcmp(var,option_SepticAlarmDebounce)==0){ Option.SepticAlarmDebounce = x; return true; } else
+   if(strncmp(var, prof_DailySwitch, sizeof(prof_DailySwitch)-1) == 0) {
+		var += sizeof(prof_DailySwitch)-1;
+		uint32_t i = *(var + 1) - '0';
+		if(i >= DAILY_SWITCH_MAX) return false;
+		if(*var == prof_DailySwitchDevice) {
+			Option.DailySwitch[i].Device = x;
+		} else {
+			uint32_t h = x / 10;
+			if(h > 23) h = 23;
+			uint32_t m = x % 10;
+			if(m > 5) m = 5;
+			x = h * 10 + m;
+			if(*var == prof_DailySwitchOn) {
+				Option.DailySwitch[i].TimeOn = x;
+			} else if(*var == prof_DailySwitchOff) {
+				Option.DailySwitch[i].TimeOff = x;
+			}
+		}
+		return true;
+   } else
    if(strncmp(var,option_SGL1W, sizeof(option_SGL1W)-1)==0) {
 	   uint8_t bit = var[sizeof(option_SGL1W)-1] - '0' - 1;
 	   if(bit <= 3) {
@@ -873,54 +893,67 @@ boolean MainClass::set_option(char *var, float xx)
 // Получить опции , результат добавляется в ret, "get_Opt"
 char* MainClass::get_option(char *var, char *ret)
 {
-   if(strcmp(var,option_TIME_CHART)==0)       {return _itoa(Option.tChart,ret);} else
-   if(strcmp(var,option_BEEP)==0)             {if(GETBIT(Option.flags,fBeep)) return strcat(ret,(char*)cOne); else return strcat(ret,(char*)cZero); }else            // Подача звукового сигнала
-   if(strcmp(var,option_History)==0)          {if(GETBIT(Option.flags,fHistory)) return strcat(ret,(char*)cOne); else return strcat(ret,(char*)cZero);   }else            // Сбрасывать статистику на карту
-   if(strcmp(var,option_WebOnSPIFlash)==0)    { return strcat(ret, (char*)(GETBIT(Option.flags, fWebStoreOnSPIFlash) ? cOne : cZero)); } else
-   if(strcmp(var,option_LogWirelessSensors)==0){ return strcat(ret, (char*)(GETBIT(Option.flags, fLogWirelessSensors) ? cOne : cZero)); } else
-   if(strcmp(var,option_fDontRegenOnWeekend)==0){ return strcat(ret, (char*)(GETBIT(Option.flags, fDontRegenOnWeekend) ? cOne : cZero)); } else
-   if(strcmp(var,option_fDebugToJournal)==0){ return strcat(ret, (char*)(GETBIT(Option.flags, fDebugToJournal) ? cOne : cZero)); } else
-   if(strcmp(var,option_fDebugToSerial)==0){ return strcat(ret, (char*)(GETBIT(Option.flags, fDebugToSerial) ? cOne : cZero)); } else
-   if(strcmp(var,option_FeedPumpMaxFlow)==0){ return _itoa(Option.FeedPumpMaxFlow, ret); } else
-   if(strcmp(var,option_BackWashFeedPumpMaxFlow)==0){ return _itoa(Option.BackWashFeedPumpMaxFlow, ret); } else
-   if(strcmp(var,option_BackWashFeedPumpDelay)==0){ return _itoa(Option.BackWashFeedPumpDelay, ret); } else
-   if(strcmp(var,option_RegenHour)==0){ return _itoa(Option.RegenHour, ret); } else
-   if(strcmp(var,option_DaysBeforeRegen)==0){ return _itoa(Option.DaysBeforeRegen, ret); } else
-   if(strcmp(var,option_DaysBeforeRegenSoftening)==0){ return _itoa(Option.DaysBeforeRegenSoftening, ret); } else
-   if(strcmp(var,option_UsedBeforeRegen)==0){ return _itoa(Option.UsedBeforeRegen, ret); } else
-   if(strcmp(var,option_UsedBeforeRegenSoftening)==0){ return _itoa(Option.UsedBeforeRegenSoftening, ret); } else
-   if(strcmp(var,option_MinPumpOnTime)==0){ return _itoa((uint32_t)Option.MinPumpOnTime, ret); } else
-   if(strcmp(var,option_MinWaterBoostOnTime)==0){ return _itoa((uint32_t)Option.MinWaterBoostOnTime, ret); } else
-   if(strcmp(var,option_MinWaterBoostOffTime)==0){ return _itoa((uint32_t)Option.MinWaterBoostOffTime, ret); } else
-   if(strcmp(var,option_MinRegen)==0){ return _itoa(Option.MinRegenLiters, ret); } else
-   if(strcmp(var,option_MinDrain)==0){ _dtoa(ret, Option.MinDrainLiters, 1); return ret; } else
-   if(strcmp(var,option_DrainAfterNoConsume)==0){ return _itoa(Option.DrainAfterNoConsume / (60 * 60), ret); } else
-   if(strcmp(var,option_DrainTime)==0){ return _itoa(Option.DrainTime, ret); } else
-   if(strcmp(var,option_PWM_LOG_ERR)==0){ return strcat(ret, (char*)(GETBIT(Option.flags, fPWMLogErrors) ? cOne : cZero)); } else
-   if(strcmp(var,option_PWM_DryRun)==0){ return _itoa(Option.PWM_DryRun, ret); } else
-   if(strcmp(var,option_PWM_Max)==0){ return _itoa(Option.PWM_Max, ret); } else
-   if(strcmp(var,option_PWM_StartingTime)==0){ return _itoa(Option.PWM_StartingTime, ret); } else
-   if(strcmp(var,option_PWATER_RegMin)==0){ _dtoa(ret, Option.PWATER_RegMin, 2); return ret; } else
-   if(strcmp(var,option_LTANK_Empty)==0){ _dtoa(ret, Option.LTANK_Empty, 2); return ret; } else
-   if(strcmp(var,option_LTank_LowConsumeMin)==0){ _dtoa(ret, Option.LTank_LowConsumeMin, 2); return ret; } else
-   if(strcmp(var,option_Weight_Low)==0){ _dtoa(ret, Option.Weight_Low, 2); return ret; } else
-   if(strcmp(var,option_FloodingDebounceTime)==0){ return _itoa(Option.FloodingDebounceTime, ret); } else
-   if(strcmp(var,option_FloodingTimeout)==0){ return _itoa(Option.FloodingTimeout, ret); } else
-   if(strcmp(var,option_FillingTankTimeout)==0){ return _itoa(Option.FillingTankTimeout, ret); } else
-   if(strcmp(var,option_CriticalErrorsTimeout)==0){ return _itoa(Option.CriticalErrorsTimeout, ret); } else
-   if(strcmp(var,option_FilterTank)==0){ return _itoa(Option.FilterTank, ret); } else
-   if(strcmp(var,option_FilterTankSoftener)==0){ return _itoa(Option.FilterTankSoftener, ret); } else
-   if(strcmp(var,option_DrainingWaterAfterRegen)==0){ return _itoa(Option.DrainingWaterAfterRegen, ret); } else
-   if(strcmp(var,option_LTank_AfterFilledTimer)==0){ return _itoa(Option.LTank_AfterFilledTimer, ret); } else
-   if(strcmp(var,option_LowConsumeRequestPeriod)==0){ return _itoa(Option.LowConsumeRequestPeriod, ret); } else
-   if(strcmp(var,option_SepticAlarmDebounce)==0){ return _itoa(Option.SepticAlarmDebounce, ret); } else
-   if(strncmp(var,option_SGL1W, sizeof(option_SGL1W)-1)==0) {
+	if(strcmp(var,option_TIME_CHART)==0)       {return _itoa(Option.tChart,ret);} else
+	if(strcmp(var,option_BEEP)==0)             {if(GETBIT(Option.flags,fBeep)) return strcat(ret,(char*)cOne); else return strcat(ret,(char*)cZero); }else            // Подача звукового сигнала
+	if(strcmp(var,option_History)==0)          {if(GETBIT(Option.flags,fHistory)) return strcat(ret,(char*)cOne); else return strcat(ret,(char*)cZero);   }else            // Сбрасывать статистику на карту
+	if(strcmp(var,option_WebOnSPIFlash)==0)    { return strcat(ret, (char*)(GETBIT(Option.flags, fWebStoreOnSPIFlash) ? cOne : cZero)); } else
+	if(strcmp(var,option_LogWirelessSensors)==0){ return strcat(ret, (char*)(GETBIT(Option.flags, fLogWirelessSensors) ? cOne : cZero)); } else
+	if(strcmp(var,option_fDontRegenOnWeekend)==0){ return strcat(ret, (char*)(GETBIT(Option.flags, fDontRegenOnWeekend) ? cOne : cZero)); } else
+	if(strcmp(var,option_fDebugToJournal)==0){ return strcat(ret, (char*)(GETBIT(Option.flags, fDebugToJournal) ? cOne : cZero)); } else
+	if(strcmp(var,option_fDebugToSerial)==0){ return strcat(ret, (char*)(GETBIT(Option.flags, fDebugToSerial) ? cOne : cZero)); } else
+	if(strcmp(var,option_FeedPumpMaxFlow)==0){ return _itoa(Option.FeedPumpMaxFlow, ret); } else
+	if(strcmp(var,option_BackWashFeedPumpMaxFlow)==0){ return _itoa(Option.BackWashFeedPumpMaxFlow, ret); } else
+	if(strcmp(var,option_BackWashFeedPumpDelay)==0){ return _itoa(Option.BackWashFeedPumpDelay, ret); } else
+	if(strcmp(var,option_RegenHour)==0){ return _itoa(Option.RegenHour, ret); } else
+	if(strcmp(var,option_DaysBeforeRegen)==0){ return _itoa(Option.DaysBeforeRegen, ret); } else
+	if(strcmp(var,option_DaysBeforeRegenSoftening)==0){ return _itoa(Option.DaysBeforeRegenSoftening, ret); } else
+	if(strcmp(var,option_UsedBeforeRegen)==0){ return _itoa(Option.UsedBeforeRegen, ret); } else
+	if(strcmp(var,option_UsedBeforeRegenSoftening)==0){ return _itoa(Option.UsedBeforeRegenSoftening, ret); } else
+	if(strcmp(var,option_MinPumpOnTime)==0){ return _itoa((uint32_t)Option.MinPumpOnTime, ret); } else
+	if(strcmp(var,option_MinWaterBoostOnTime)==0){ return _itoa((uint32_t)Option.MinWaterBoostOnTime, ret); } else
+	if(strcmp(var,option_MinWaterBoostOffTime)==0){ return _itoa((uint32_t)Option.MinWaterBoostOffTime, ret); } else
+	if(strcmp(var,option_MinRegen)==0){ return _itoa(Option.MinRegenLiters, ret); } else
+	if(strcmp(var,option_MinDrain)==0){ _dtoa(ret, Option.MinDrainLiters, 1); return ret; } else
+	if(strcmp(var,option_DrainAfterNoConsume)==0){ return _itoa(Option.DrainAfterNoConsume / (60 * 60), ret); } else
+	if(strcmp(var,option_DrainTime)==0){ return _itoa(Option.DrainTime, ret); } else
+	if(strcmp(var,option_PWM_LOG_ERR)==0){ return strcat(ret, (char*)(GETBIT(Option.flags, fPWMLogErrors) ? cOne : cZero)); } else
+	if(strcmp(var,option_PWM_DryRun)==0){ return _itoa(Option.PWM_DryRun, ret); } else
+	if(strcmp(var,option_PWM_Max)==0){ return _itoa(Option.PWM_Max, ret); } else
+	if(strcmp(var,option_PWM_StartingTime)==0){ return _itoa(Option.PWM_StartingTime, ret); } else
+	if(strcmp(var,option_PWATER_RegMin)==0){ _dtoa(ret, Option.PWATER_RegMin, 2); return ret; } else
+	if(strcmp(var,option_LTANK_Empty)==0){ _dtoa(ret, Option.LTANK_Empty, 2); return ret; } else
+	if(strcmp(var,option_LTank_LowConsumeMin)==0){ _dtoa(ret, Option.LTank_LowConsumeMin, 2); return ret; } else
+	if(strcmp(var,option_Weight_Low)==0){ _dtoa(ret, Option.Weight_Low, 2); return ret; } else
+	if(strcmp(var,option_FloodingDebounceTime)==0){ return _itoa(Option.FloodingDebounceTime, ret); } else
+	if(strcmp(var,option_FloodingTimeout)==0){ return _itoa(Option.FloodingTimeout, ret); } else
+	if(strcmp(var,option_FillingTankTimeout)==0){ return _itoa(Option.FillingTankTimeout, ret); } else
+	if(strcmp(var,option_CriticalErrorsTimeout)==0){ return _itoa(Option.CriticalErrorsTimeout, ret); } else
+	if(strcmp(var,option_FilterTank)==0){ return _itoa(Option.FilterTank, ret); } else
+	if(strcmp(var,option_FilterTankSoftener)==0){ return _itoa(Option.FilterTankSoftener, ret); } else
+	if(strcmp(var,option_DrainingWaterAfterRegen)==0){ return _itoa(Option.DrainingWaterAfterRegen, ret); } else
+	if(strcmp(var,option_LTank_AfterFilledTimer)==0){ return _itoa(Option.LTank_AfterFilledTimer, ret); } else
+	if(strcmp(var,option_LowConsumeRequestPeriod)==0){ return _itoa(Option.LowConsumeRequestPeriod, ret); } else
+	if(strcmp(var,option_SepticAlarmDebounce)==0){ return _itoa(Option.SepticAlarmDebounce, ret); } else
+	if(strncmp(var, prof_DailySwitch, sizeof(prof_DailySwitch)-1) == 0) {
+		var += sizeof(prof_DailySwitch)-1;
+		uint8_t i = *(var + 1) - '0';
+		if(i >= DAILY_SWITCH_MAX) return false;
+		if(*var == prof_DailySwitchDevice) {
+		 _itoa(Option.DailySwitch[i].Device, ret);
+		} else if(*var == prof_DailySwitchOn) {
+		 m_snprintf(ret + m_strlen(ret), 32, "%02d:%d0", Option.DailySwitch[i].TimeOn / 10, Option.DailySwitch[i].TimeOn % 10);
+		} else if(*var == prof_DailySwitchOff) {
+		 m_snprintf(ret + m_strlen(ret), 32, "%02d:%d0", Option.DailySwitch[i].TimeOff / 10, Option.DailySwitch[i].TimeOff % 10);
+		}
+		return ret;
+	} else
+	if(strncmp(var,option_SGL1W, sizeof(option_SGL1W)-1)==0) {
 	   uint8_t bit = var[sizeof(option_SGL1W)-1] - '0' - 1;
 	   if(bit <= 3) {
 		   return strcat(ret,(char*)(GETBIT(Option.flags, f1Wire1TSngl + bit) ? cOne : cZero));
 	   }
-   }
-   return  strcat(ret,(char*)cInvalid);                
+	}
+	return  strcat(ret,(char*)cInvalid);
 }
 
 // Получить строку состояния  в виде строки

@@ -121,6 +121,12 @@ volatile uint8_t NeedSaveRTC = 0;
 
 uint16_t task_updstat_chars = 0;
 
+struct type_DailySwitch {
+	uint8_t Device;					// Реле; 0 - нет и конец массива
+	uint8_t TimeOn;					// Время включения hh:m0
+	uint8_t TimeOff;				// Время выключения hh:m0
+} __attribute__((packed));
+
 // type_option.flags
 #define fWebStoreOnSPIFlash 0				// флаг, что веб морда лежит на SPI Flash, иначе на SD карте
 #define fBeep               1               // флаг Использование звука
@@ -177,6 +183,7 @@ struct type_option {
 	char     LowConsumeRequest[64];	// HTTP запрос о режиме низкого потребления, формат server/request, возврат после '=': 0 - нет, 1 - да
 	uint16_t LowConsumeRequestPeriod;// Периодичность запроса о режиме низкого потребления, если 0, то только при старте, сек
 	uint16_t SepticAlarmDebounce;	// Время исключения помех датчика аварии септика, сек
+	type_DailySwitch DailySwitch[DAILY_SWITCH_MAX];	// дневное периодическое включение
 } __attribute__((packed));
 
 //  Работа с отдельными флагами type_DateTime

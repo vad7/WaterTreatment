@@ -1104,6 +1104,15 @@ xSaveStats:		if((i = MC.save_WorkStats()) == OK)
 			} else if(strcmp(str,"Flow")==0)     // Функция get_tblFlow
 			{
 				for(i=0;i<FNUMBER;i++) if(MC.sFrequency[i].get_present()){strcat(strReturn,MC.sFrequency[i].get_name());strcat(strReturn,";");}
+			} else if(strcmp(str,"PDS")==0) {    // Функция get_tblPDS
+				for(i = 0; i < DAILY_SWITCH_MAX; i++) {
+					if(MC.Option.DailySwitch[i].Device == 0) {
+						strcat(strReturn, "---;;00:00;00:00|");
+						break;
+					}
+					strReturn += m_snprintf(strReturn += m_strlen(strReturn), 256, "%s;%s;%02d:%d0;%02d:%d0|", MC.dRelay[MC.Option.DailySwitch[i].Device].get_name(), MC.dRelay[MC.Option.DailySwitch[i].Device].get_note(),
+							MC.Option.DailySwitch[i].TimeOn / 10, MC.Option.DailySwitch[i].TimeOn % 10, MC.Option.DailySwitch[i].TimeOff / 10, MC.Option.DailySwitch[i].TimeOff % 10);
+				}
 #ifdef CORRECT_POWER220
 			} else if(strcmp(str,"PwrC")==0) {    // Функция get_tblPwrC
 				for(i = 0; i < (int8_t)(sizeof(correct_power220)/sizeof(correct_power220[0])); i++) {
