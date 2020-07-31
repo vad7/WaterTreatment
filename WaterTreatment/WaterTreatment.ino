@@ -1753,6 +1753,7 @@ void vService(void *)
 							taskEXIT_CRITICAL();
 							NeedSaveWorkStats = 1;
 							journal.jprintf_date("Regen F2 finished, used: %d\n", MC.WorkStats.UsedLastRegenSoftening);
+							if((TimerDrainingWaterAfterRegen = MC.Option.DrainingWaterAfterRegenSoftening)) MC.dRelay[RDRAIN].set_ON();
 						} else if(NewRegenStatus) {
 							journal.jprintf_date("Regen F2 begin\n");
 							NewRegenStatus = false;

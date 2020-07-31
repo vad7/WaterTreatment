@@ -143,11 +143,20 @@ struct type_DailySwitch {
 
 // Структура для хранения настроек
 struct type_option {
-	uint8_t ver;					// номер версии для сохранения
+	uint8_t  ver;					// номер версии для сохранения
+	uint8_t  RegenHour;				// Час регенерации (0..23)
+	uint8_t  FilterTank;			// Диаметр фильтра обезжелезивателя в дюймах
+	uint8_t  FilterTankSoftener;	// Диаметр фильтра умягчителя в дюймах
 	uint16_t flags;					// Флаги опций до 16 флагов
 	uint16_t tChart;				// период графиков в секундах!!
 	uint32_t FeedPumpMaxFlow;		// лч, Максимальный проток до которого распределяется время включения дозатора
-	uint8_t  RegenHour;				// Час регенерации (0..23)
+	int32_t  WeightScale;			// Коэффициент калибровки весов, десятитысячные (~50.0)
+	int32_t  WeightZero;			// Вес 0, АЦП
+	int32_t  WeightTare;			// Вес тары, десятые грамма
+	int32_t  WeightFull;			// Полный вес реагента без тары, десятые грамма
+	uint32_t DrainAfterNoConsume;	// Через сколько секунд сливать воду при отсутствии потребления
+	uint32_t BackWashFeedPumpMaxFlow; // лч, Во время обратной промывки - максимальный проток до которого распределяется время включения дозатора
+	uint16_t BackWashFeedPumpDelay; // в TIME_READ_SENSOR, задержка включения дозатора
 	uint16_t DaysBeforeRegen;		// Дней до регенерации обезжелезивателя, 0 - не проверять
 	uint16_t UsedBeforeRegen;		// Количество литров до регенерации обезжелезивателя, 0 - нет
 	uint16_t UsedBeforeRegenSoftening;// Количество литров до регенерации умягчителя, 0 - нет
@@ -159,24 +168,16 @@ struct type_option {
 	uint16_t PWM_DryRun;			// Вт, Мощность сухого хода, если ниже во время работы - то стоп
 	uint16_t PWM_Max;				// Вт, Максимальная мощность, если больше во время работы - то стоп
 	uint16_t PWM_StartingTime;		// мсек, Время пуска
-	int32_t  WeightScale;			// Коэффициент калибровки весов, десятитысячные (~50.0)
-	int32_t  WeightZero;			// Вес 0, АЦП
-	int32_t  WeightTare;			// Вес тары, десятые грамма
-	int32_t  WeightFull;			// Полный вес реагента без тары, десятые грамма
 	uint16_t FloodingDebounceTime;	// сек, Время исключения помех срабатывания датчика протечки
 	uint16_t FloodingTimeout;		// сек, Время ожидания перед началом работы после срабатывания датчика протечки
 	int16_t  PWATER_RegMin;			// сотые бара, Нижний предел давления PWATER при регенерации
 	int16_t  LTANK_Empty;			// сотые %, Низкий уровень воды в баке - нужно включить заполнение бака до максимального
-	uint32_t DrainAfterNoConsume;	// Через сколько секунд сливать воду при отсутствии потребления
 	uint16_t DrainTime;				// Время слива воды, сек
 	uint16_t FillingTankTimeout;	// сек, Время заполнения бака на FILLING_TANK_STEP % при отсутствии потребления
 	int16_t  Weight_Low;			// сотые %, Низкий уровень реагента, для тревоги
 	uint16_t CriticalErrorsTimeout;	// сек, время восстановления после критических ошибок, кроме протечки
-	uint16_t BackWashFeedPumpDelay; // в TIME_READ_SENSOR, задержка включения дозатора
-	uint32_t BackWashFeedPumpMaxFlow; // лч, Во время обратной промывки - максимальный проток до которого распределяется время включения дозатора
-	uint8_t  FilterTank;			// Диаметр фильтра обезжелезивателя в дюймах
-	uint8_t  FilterTankSoftener;	// Диаметр фильтра умягчителя в дюймах
 	uint8_t  DrainingWaterAfterRegen;// сек, Слив после промывки обезжелезивателя
+	uint8_t  DrainingWaterAfterRegenSoftening;// сек, Слив после промывки умягчителя
 	uint16_t DaysBeforeRegenSoftening;// Дней до регенерации умягчителя, 0 - не проверять
 	uint16_t LTank_LowConsumeMin;	// Низкий уровень бака при низком потреблении ( от резервного источника), сотые %
 	uint16_t LTank_AfterFilledTimer;// Время после отключения реле заполнения бака до останова глубинного насоса, сек
@@ -184,7 +185,7 @@ struct type_option {
 	uint16_t LowConsumeRequestPeriod;// Периодичность запроса о режиме низкого потребления, если 0, то только при старте, сек
 	uint16_t SepticAlarmDebounce;	// Время исключения помех датчика аварии септика, сек
 	type_DailySwitch DailySwitch[DAILY_SWITCH_MAX];	// дневное периодическое включение
-} __attribute__((packed));
+};
 
 //  Работа с отдельными флагами type_DateTime
 #define fUpdateNTP     0                // флаг Обновление часов по NTP при старте

@@ -35,7 +35,7 @@
 //------------------------------------------------------------------------------
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 /** Macro for debug. */
-#define DEBUG_MODE 1
+#define DEBUG_MODE 0
 #if DEBUG_MODE
 #define DBG_FAIL_MACRO Serial.print(F(__FILE__)); Serial.println(__LINE__);
 #define DBG_PRINT_IF(b) if (b) {Serial.println(F(#b)); DBG_FAIL_MACRO;}
@@ -255,7 +255,7 @@ class FatVolume {
    *
    * \param[in] n cluster number.
    * \param[out] v value of entry
-   * \return true for success or false for failure
+   * \return -1 error, 0 EOC, else 1.
    */
   int8_t dbgFat(uint32_t n, uint32_t* v) {
     return fatGet(n, v);

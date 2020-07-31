@@ -20,7 +20,7 @@
 #include "Util.h"
 
 // ОПЦИИ КОМПИЛЯЦИИ ПРОЕКТА -------------------------------------------------------
-#define VERSION			  "1.12"				// Версия прошивки
+#define VERSION			  "1.14"			// Версия прошивки
 #define VER_SAVE		  5					// Версия формата сохраняемых данных в I2C память
 //#define LOG                               // В последовательный порт шлет лог веб сервера (логируются запросы)
 #define FAST_LIB                            // использование допиленной библиотеки езернета
@@ -31,7 +31,7 @@
 #define NTP_LOCAL_PORT    8888              // локальный порт, который будет прослушиваться на предмет UDP-пакетов NTP сервера
 #define NTP_REPEAT        3                 // Число попыток запросов NTP сервера
 #define NTP_REPEAT_TIME   1000              // (мсек) Время между повторами ntp пакетов
-#define PING_SERVER       "8.8.8.8"          // ping сервер по ДЕФОЛТУ
+#define PING_SERVER       "8.8.8.8"         // ping сервер по ДЕФОЛТУ
 #define WDT_TIME          6                 // период Watchdog таймера секунды но не более 16 секунд!!! ЕСЛИ установить 0 то Watchdog будет отключен!!!
 #ifndef INDEX_FILE
 #define INDEX_FILE        "index.html"       // стартовый файл по умолчанию для большой морды
@@ -401,6 +401,7 @@ const char *option_CriticalErrorsTimeout= {"CET"};
 const char *option_FilterTank           = {"TD"};
 const char *option_FilterTankSoftener   = {"TDS"};
 const char *option_DrainingWaterAfterRegen={"DAR"};
+const char *option_DrainingWaterAfterRegenSoftening={"DAS"};
 const char *option_RegenStart			= {"R"};
 const char *option_LTank_LowConsumeMin	= {"LLM"};
 const char *option_LTank_AfterFilledTimer={"TAF"};
