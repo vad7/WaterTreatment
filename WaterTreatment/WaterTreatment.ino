@@ -1743,6 +1743,7 @@ void vService(void *)
 					} else if(MC.RTC_store.Work & RTC_Work_Regen_F2) { // Regen Softening filter
 						if(!MC.sInput[REG2_ACTIVE].get_Input()) { // Finish?
 							MC.WorkStats.UsedLastRegenSoftening = MC.RTC_store.UsedRegen;
+							MC.WorkStats.UsedSinceLastRegen += MC.RTC_store.UsedRegen; // increase iron filter count
 							MC.RTC_store.UsedRegen = 0;
 							MC.WorkStats.DaysFromLastRegenSoftening = 0;
 							MC.WorkStats.RegCntSoftening++;
