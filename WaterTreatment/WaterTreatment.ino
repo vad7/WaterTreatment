@@ -201,7 +201,47 @@ void setup() {
 	Recover_I2C_bus();
 	delay(1);
 
+	// Настройка сервисных выводов
+	pinMode(PIN_KEY_SAFE, INPUT_PULLUP);    // Кнопка 1, Нажатие при включении - режим safeNetwork (настрока сети по умолчанию 192.168.0.177  шлюз 192.168.0.1, не спрашивает пароль на вход в веб морду)
+	pinMode(PIN_BEEP, OUTPUT);              // Выход на пищалку
+	pinMode(PIN_LED_OK, OUTPUT);            // Выход на светодиод мигает 0.5 герца - ОК  с частотой 2 герца ошибка
+	digitalWriteDirect(PIN_BEEP,LOW);       // Выключить пищалку
+	digitalWriteDirect(PIN_LED_OK,HIGH);    // Выключить светодиод
+
 	// 2. Инициализация журнала и в нем последовательный порт
+	// 2. Инициализация журнала
+	uint8_t b;
+	uint8_t ret = eepromI2C.read(I2C_COUNT_EEPROM, &b, 1);
+	if(ret == 0 && b != I2C_COUNT_EEPROM_HEADER && b != 0xFF) {
+		ret = 0xFF;
+	}
+#ifndef DEBUG
+	if(ret)
+#endif
+#ifndef DEBUG_NATIVE_USB
+	SerialDbg.begin(UART_SPEED);                   // Если надо инициализировать отладочный порт
+#endif
+	while(ret) {
+		SerialDbg.print("Wrong I2C EEPROM or setup, press KEY[D");
+		SerialDbg.print(PIN_KEY_SAFE);
+		SerialDbg.println("] to continue...");
+		if(!digitalReadDirect(PIN_KEY_SAFE)) {
+			WDT_Restart(WDT);
+			b = I2C_COUNT_EEPROM_HEADER;
+			ret = eepromI2C.write(I2C_COUNT_EEPROM, &b, 1);
+			if(ret) {
+				SerialDbg.print("Error ");
+				SerialDbg.print(ret);
+				SerialDbg.println(" write to EEPROM!");
+			} else SerialDbg.println("Wait...");
+			while(1) ;
+		}
+		for(uint8_t i = 0; i < 1000 / TIME_LED_ERR; i++) {
+			digitalWriteDirect(PIN_BEEP, i & 1);
+			digitalWriteDirect(PIN_LED_OK, i & 1);
+			delay(TIME_LED_ERR);
+		}
+	}
 	journal.Init();
 	uint16_t flags;
 	if(readEEPROM_I2C(I2C_SETTING_EEPROM + 2 + (sizeof(MC.Option) < 128 ? 1 : 2) + sizeof(MC.Option.ver), (uint8_t*)&flags, sizeof(flags))) {
@@ -357,16 +397,10 @@ x_I2C_init_std_message:
 	journal.jprintfopt("* Init %s\n",(char*)nameMainClass);
 	MC.init();                           // Основной класс
 
-	// 5. Установка сервисных пинов
+	// 5. Проверка кнопки Safe Network
 
-	pinMode(PIN_KEY_SAFE, INPUT_PULLUP);               // Кнопка 1, Нажатие при включении - режим safeNetwork (настрока сети по умолчанию 192.168.0.177  шлюз 192.168.0.1, не спрашивает пароль на вход в веб морду)
 	MC.safeNetwork=!digitalReadDirect(PIN_KEY_SAFE);
 	if(MC.safeNetwork) journal.jprintf("* Mode safe Network ON\n");
-
-	pinMode(PIN_BEEP, OUTPUT);              // Выход на пищалку
-	pinMode(PIN_LED_OK, OUTPUT);            // Выход на светодиод мигает 0.5 герца - ОК  с частотой 2 герца ошибка
-	digitalWriteDirect(PIN_BEEP,LOW);       // Выключить пищалку
-	digitalWriteDirect(PIN_LED_OK,HIGH);    // Выключить светодиод
 
 	// 6. Чтение ЕЕПРОМ
 	journal.jprintfopt("* Load data from I2C\n");

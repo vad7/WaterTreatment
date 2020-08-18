@@ -26,11 +26,6 @@
 void Journal::Init()
 {
 	err = OK;
-#ifdef DEBUG
-#ifndef DEBUG_NATIVE_USB
-	SerialDbg.begin(UART_SPEED);                   // Если надо инициализировать отладочный порт
-#endif
-#endif
 
 #ifdef I2C_JOURNAL_IN_RAM     // журнал в памяти
 	bufferTail = 0;

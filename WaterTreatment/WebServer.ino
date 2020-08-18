@@ -231,9 +231,7 @@ xUNAUTHORIZED:
 		//	vTaskDelay(TIME_WEB_SERVER / portTICK_PERIOD_MS); // задержка чтения уменьшаем загрузку процессора
 			taskYIELD();
 		} // end if (client)
-#ifdef FAST_LIB  // Переделка
 	}  // for (int sock = 0; sock < W5200_SOCK_SYS; sock++)
-#endif
 	SemaphoreGive (xWebThreadSemaphore);              // Семафор отдать
 }
 

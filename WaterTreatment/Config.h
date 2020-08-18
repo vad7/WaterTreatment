@@ -185,11 +185,11 @@ struct History_setup {
 	#define PIN_LED_OK			42          // Зеленый светодиод Выход на светодиод мигает 0.5 герца - ОК  с частотой 2 герца ошибка
 #endif
     #define PIN_LED_ERROR		13		    // Для библиотеки FreeRTOS
-    #define PIN_KEY_SAFE		26          // Нажатие при включении - режим safeNetwork (настрока сети по умолчанию, не спрашивает пароль на вход в веб морду)
     #define PIN_BEEP			11          // SOUND Выход на пищалку  88- нога не использующиеся
 	#define PIN_KEY_UP			32			// KEYS.2
 	#define PIN_KEY_DOWN		30			// KEYS.3
 	#define PIN_KEY_OK			12			// KEYS.4
+	#define PIN_KEY_SAFE		PIN_KEY_DOWN// Нажатие при включении - режим safeNetwork (настрока сети по умолчанию, не спрашивает пароль на вход в веб морду)
 
 	#define TANK_ANALOG_LEVEL				// Использовать аналоговый датчик уровня в баке, MINPRESS = уровень сухого бака, MAXPRESS = уровень перелива.
 
