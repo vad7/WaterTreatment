@@ -688,6 +688,7 @@ int Send_HTTP_Request(char *request)
 										if(tTCP.read() == '\r' && tTCP.read() == '\n' && tTCP.read() == '\r' && tTCP.read() == '\n') { // тело
 											memset(buffer, 0, BUFFER_SIZE);
 											tTCP.read(buffer, BUFFER_SIZE - 1);
+											buffer[BUFFER_SIZE - 1] = '\0';
 											char *p = strchr((char*)buffer, '=');
 											if(p != NULL) {
 												ret = atoi(p + 1);

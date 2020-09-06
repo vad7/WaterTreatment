@@ -1314,40 +1314,38 @@ xSaveStats:		if((i = MC.save_WorkStats()) == OK)
 				if((y = strchr(x, ':'))) {
 					*y++ = '\0';
 					uint8_t id = atoi(x);
-					uint16_t par = atoi(y + 2); // Передается нумерация регистров с 1, а в modbus с 0
-					if(par--) {
-						i = OK;
-						if(strncmp(str, "set", 3) == 0) {
-							// strtol - NO REENTRANT FUNCTION!
-							if(*y == 'h') i = Modbus.writeHoldingRegisters16(id, par, strtol(z, NULL, 0)); // 1 register (int16).
-							//else if(*y == 'l') i = Modbus.writeHoldingRegisters32(id, par, strtol(z, NULL, 0)); // 2 registers (int32).
-							else if(*y == 'f') i = Modbus.writeHoldingRegistersFloat(id, par, strtol(z, NULL, 0)); // 2 registers (float).
-							else if(*y == 'c') i = Modbus.writeSingleCoil(id, par, atoi(z));	// coil
-							else goto x_FunctionNotFound;
-							_delay(MODBUS_TIME_TRANSMISION * 10); // Задержка перед чтением
-						} else if(strncmp(str, "get", 3) == 0) {
+					uint16_t par = atoi(y + 2);
+					i = OK;
+					if(strncmp(str, "set", 3) == 0) {
+						// strtol - NO REENTRANT FUNCTION!
+						if(*y == 'h') i = Modbus.writeHoldingRegisters16(id, par, strtol(z, NULL, 0)); // 1 register (int16).
+						//else if(*y == 'u') i = Modbus.writeHoldingRegisters32(id, par, strtol(z, NULL, 0)); // 2 registers (int32).
+						else if(*y == 'f') i = Modbus.writeHoldingRegistersFloat(id, par, strtol(z, NULL, 0)); // 2 registers (float).
+						else if(*y == 'c') i = Modbus.writeSingleCoil(id, par, atoi(z));	// coil
+						else goto x_FunctionNotFound;
+						_delay(MODBUS_TIME_TRANSMISION * 10); // Задержка перед чтением
+					} else if(strncmp(str, "get", 3) == 0) {
+					} else goto x_FunctionNotFound;
+					if(i == OK) {
+						if(*y == 'w') {
+							if((i = Modbus.readInputRegisters16(id, par, &par)) == OK) _itoa(par, strReturn);
+						} else if(*y == 'l') {
+							if((i = Modbus.readInputRegisters32(id, par, (uint32_t *)&l_i32)) == OK) _itoa(l_i32, strReturn);
+						} else if(*y == 'i') {
+							if((i = Modbus.readInputRegistersFloat(id, par, &pm)) == OK) _ftoa(strReturn, pm, 2);
+						} else if(*y == 'h') {
+							if((i = Modbus.readHoldingRegisters16(id, par, &par)) == OK) _itoa(par, strReturn);
+						} else if(*y == 'f') {
+							if((i = Modbus.readHoldingRegistersFloat(id, par, &pm)) == OK) _ftoa(strReturn, pm, 2);
+						} else if(*y == 'c') {
+							if((i = Modbus.readCoil(id, par, (boolean *)&par)) == OK) _itoa(par, strReturn);
 						} else goto x_FunctionNotFound;
-						if(i == OK) {
-							if(*y == 'w') {
-								if((i = Modbus.readInputRegisters16(id, par, &par)) == OK) _itoa(par, strReturn);
-							} else if(*y == 'l') {
-								if((i = Modbus.readInputRegisters32(id, par, (uint32_t *)&l_i32)) == OK) _itoa(l_i32, strReturn);
-							} else if(*y == 'i') {
-								if((i = Modbus.readInputRegistersFloat(id, par, &pm)) == OK) _ftoa(strReturn, pm, 2);
-							} else if(*y == 'h') {
-								if((i = Modbus.readHoldingRegisters16(id, par, &par)) == OK) _itoa(par, strReturn);
-							} else if(*y == 'f') {
-								if((i = Modbus.readHoldingRegistersFloat(id, par, &pm)) == OK) _ftoa(strReturn, pm, 2);
-							} else if(*y == 'c') {
-								if((i = Modbus.readCoil(id, par, (boolean *)&par)) == OK) _itoa(par, strReturn);
-							} else goto x_FunctionNotFound;
-						}
-						if(i != OK) {
-							strcat(strReturn, "E"); _itoa(i, strReturn);
-						}
-						ADD_WEBDELIM(strReturn);
-						continue;
 					}
+					if(i != OK) {
+						strcat(strReturn, "E"); _itoa(i, strReturn);
+					}
+					ADD_WEBDELIM(strReturn);
+					continue;
 				}
 			}
 

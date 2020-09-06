@@ -780,11 +780,12 @@ void vWeb2(void *)
 
 //////////////////////////////////////////////////////////////////////////
 #define LCD_SetupFlag 			0x80000000
-#define LCD_SetupMenuItems		4
+#define LCD_SetupMenuItems		5
 #define LCD_SetupMenu_Relays	0x100
 #define LCD_SetupMenu_Sensors	0x200
 #define LCD_SetupMenu_FlowCheck	0x300
-const char *LCD_SetupMenu[LCD_SetupMenuItems] = { "1. Exit", "2. Relays", "3. Sensors", "4. Flow check" };
+#define LCD_SetupMenu_Options	0x400
+const char *LCD_SetupMenu[LCD_SetupMenuItems] = { "1. Exit", "2. Relays", "3. Sensors", "4. Flow check", "5. Options" };
 uint32_t LCD_setup = 0; // 0x8000MMII: 8 - Setup active, MМ - Menu item (0..<max LCD_SetupMenuItems-1>) , II - Selecting item (0...)
 
 // Задача Пользовательский интерфейс (MC.xHandleKeysLCD) "KeysLCD"
@@ -831,6 +832,9 @@ xSetupExit:
 					setup_timeout = 0;
 				} else if((LCD_setup & 0xFF00) == LCD_SetupMenu_Relays) { // inside menu item selected - Relay
 					MC.dRelay[LCD_setup & 0xFF].set_Relay(MC.dRelay[LCD_setup & 0xFF].get_Relay() ? fR_StatusAllOff : fR_StatusManual);
+				} else if((LCD_setup & 0xFF00) == LCD_SetupMenu_Options) { // inside menu item selected - Options
+					MC.fNetworkReset = 1;
+					goto xSetupExit;
 				} else if((LCD_setup & 0xFF00) == 0) {	// select menu item
 					LCD_setup = (LCD_setup << 8) | LCD_SetupFlag;
 					if((LCD_setup & 0xFF00) == LCD_SetupMenu_FlowCheck) { // Flow check
@@ -868,6 +872,8 @@ xSetupExit:
 						LCD_setup++;
 						DisplayTick = ~DisplayTick;
 					}
+				} else if((LCD_setup & 0xFF00) == LCD_SetupMenu_Options) { // Options
+					goto xSetupExit;
 				} else if((LCD_setup & 0xFF00) == LCD_SetupMenu_Sensors) DisplayTick = ~DisplayTick;
 				setup_timeout = DISPLAY_SETUP_TIMEOUT / KEY_CHECK_PERIOD;
 			} else {
@@ -902,6 +908,8 @@ xErrorsProcessing:
 				} else if(((LCD_setup & 0xFF00) == 0 || (LCD_setup & 0xFF00) == LCD_SetupMenu_Relays) && (LCD_setup & 0xFF) > 0) {
 					LCD_setup--;
 					DisplayTick = ~DisplayTick;
+				} else if((LCD_setup & 0xFF00) == LCD_SetupMenu_Options) { // Options
+					goto xSetupExit;
 				}
 				setup_timeout = DISPLAY_SETUP_TIMEOUT / KEY_CHECK_PERIOD;
 			} else goto xErrorsProcessing;
@@ -971,6 +979,9 @@ xErrorsProcessing:
 					DisplayTick = xTaskGetTickCount() - (DISPLAY_UPDATE - 1000);
 					vTaskDelay(KEY_CHECK_PERIOD);
 					continue;
+				} else if((LCD_setup & 0xFF00) == LCD_SetupMenu_Options) { // Options
+					lcd.clear();
+					lcd.print("Ok - Network reset");
 				} else {
 					lcd.clear();
 					lcd.print(LCD_SetupMenu[LCD_setup & 0xFF]);
@@ -1814,9 +1825,11 @@ void vService(void *)
 			Stats.CheckCreateNewFile();
 			if(ResetDUE_countdown && --ResetDUE_countdown == 0) Software_Reset();      // Сброс
 			if(MC.fNetworkReset && --MC.fNetworkReset == 0) {
-				initW5200(true);                                  // Инициализация сети с выводом инфы в консоль
-				for(uint8_t i = 0; i < W5200_THREAD; i++) SETBIT1(Socket[i].flags,fABORT_SOCK);  // Признак инициализации сокета, надо прерывать передачу в сервере
-				MC.num_resW5200++;                                // Добавить счетчик инициализаций
+				if(!initW5200(true)) MC.fNetworkReset = 60;                                  // Инициализация сети с выводом инфы в консоль
+				else {
+					for(uint8_t i = 0; i < W5200_THREAD; i++) SETBIT1(Socket[i].flags,fABORT_SOCK);  // Признак инициализации сокета, надо прерывать передачу в сервере
+					MC.num_resW5200++;                                // Добавить счетчик инициализаций
+				}
 			}
 		} // 1 sec
 		vTaskDelay(1); // задержка чтения уменьшаем загрузку процессора
