@@ -1574,7 +1574,7 @@ xWaterBooster_OFF:
 			if(MC.sADC[LTANK].get_Value() <= (MC.sInput[REG_BACKWASH_ACTIVE].get_Input() ? MC.sADC[LTANK].get_maxValue() - FILL_TANK_REGEN_DELTA : LowConsumeMode ? MC.Option.LTank_LowConsumeMin : MC.sADC[LTANK].get_minValue())) {
 				if(!(CriticalErrors & ~ERRC_TankEmpty)) {
 					if(!LowConsumeMode || (!MC.dRelay[RFEEDPUMP].get_Relay() && WaterBoosterStatus == 0)) {
-						if(LowConsumeMode) AfterFilledTimer = MC.Option.LTank_AfterFilledTimer * 1000;
+						if(LowConsumeMode && !(MC.RTC_store.Work & (RTC_Work_Regen_F1 | RTC_Work_Regen_F2))) AfterFilledTimer = MC.Option.LTank_AfterFilledTimer * 1000;
 						MC.dRelay[RFILL].set_ON();	// Start filling tank
 						FillingTankLastLevel = 0;
 					}
