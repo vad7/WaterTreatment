@@ -1420,7 +1420,7 @@ void vPumps( void * )
 			if(tank_empty) {
 				if(!(CriticalErrors & ERRC_TankEmpty)) vPumpsNewError = ERR_TANK_EMPTY;
 				CriticalErrors |= ERRC_TankEmpty;
-			} else if(!CriticalErrors_timeout) CriticalErrors &= ~ERRC_TankEmpty;
+			} else if((CriticalErrors & ERRC_TankEmpty) && !CriticalErrors_timeout) CriticalErrors &= ~ERRC_TankEmpty;
 			else if(MC.dRelay[RFILL].get_Relay()) {
 				if(MC.Option.FillingTankTimeout) { // Check tank filling speed
 					// FillingTankLastLevel == 0 - Start watching
