@@ -1704,14 +1704,18 @@ void vService(void *)
 
 				if(MC.dRelay[RSTARTREG].get_Relay() && !(MC.RTC_store.Work & RTC_Work_Regen_F1)) { // 1 minute passed but regeneration did not start
 					set_Error(ERR_START_REG, (char*)__FUNCTION__);
+					MC.dRelay[RSTARTREG].set_OFF();
+					goto xOtherTask_1min;
 				}
 				if(MC.dRelay[RSTARTREG2].get_Relay() && !(MC.RTC_store.Work & RTC_Work_Regen_F2)) { // 1 minute passed but regeneration did not start
 					set_Error(ERR_START_REG2, (char*)__FUNCTION__);
+					MC.dRelay[RSTARTREG2].set_OFF();
+					goto xOtherTask_1min;
 				}
 				if(!CriticalErrors) {
 					int err = MC.get_errcode();
 					if((err == ERR_FLOODING || err == ERR_TANK_EMPTY) && Errors[1] == 0) MC.clear_error();
-					if(err != ERR_START_REG && err != ERR_START_REG2 && !(MC.RTC_store.Work & RTC_Work_Regen_MASK) && !LowConsumeMode && rtcSAM3X8.get_hours() == MC.Option.RegenHour) {
+					if(!(MC.RTC_store.Work & RTC_Work_Regen_MASK) && !LowConsumeMode && rtcSAM3X8.get_hours() == MC.Option.RegenHour) {
 						uint32_t need_regen = 0;
 						if((MC.Option.DaysBeforeRegen && MC.WorkStats.DaysFromLastRegen >= MC.Option.DaysBeforeRegen)
 								|| (MC.Option.UsedBeforeRegen && MC.WorkStats.UsedSinceLastRegen + MC.RTC_store.UsedToday >= MC.Option.UsedBeforeRegen)
@@ -1818,6 +1822,7 @@ void vService(void *)
 					}
 				}
 			}
+xOtherTask_1min:
 			if(++task_updstat_chars >= MC.get_tChart()) { // пришло время
 				task_updstat_chars = 0;
 				MC.updateChart();                                       // Обновить графики
