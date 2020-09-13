@@ -832,6 +832,7 @@ xSetupExit:
 					setup_timeout = 0;
 				} else if((LCD_setup & 0xFF00) == LCD_SetupMenu_Relays) { // inside menu item selected - Relay
 					MC.dRelay[LCD_setup & 0xFF].set_Relay(MC.dRelay[LCD_setup & 0xFF].get_Relay() ? fR_StatusAllOff : fR_StatusManual);
+					if((LCD_setup & 0xFF) == RFILL) FillingTankLastLevel = 0;
 				} else if((LCD_setup & 0xFF00) == LCD_SetupMenu_Options) { // inside menu item selected - Options
 					MC.fNetworkReset = 1;
 					goto xSetupExit;
@@ -1549,6 +1550,7 @@ xWaterBooster_OFF:
 				taskEXIT_CRITICAL();
 			} else if(!(CriticalErrors & ~ERRC_TankEmpty)) {
 				MC.dRelay[RFILL].set_ON();	// Start filling tank
+				FillingTankLastLevel = 0;
 			}
 		}
 		if(MC.sInput[TANK_FULL].get_Input()) {
