@@ -649,7 +649,7 @@ xSkipEmpty:
 	switch(Stats_data[i].object) {
 	case STATS_OBJ_Temp:					// C
 	case STATS_OBJ_Press: 					// bar
-		int_to_dec_str(val, 100, ret, 1);
+		int_to_dec_str(val / 10, 10, ret, 1);
 		break;
 	case STATS_OBJ_Voltage:					// V
 		int_to_dec_str(val, 10, ret, 0);
@@ -670,14 +670,14 @@ xSkipEmpty:
 		switch(Stats_data[i].type) {
 		case STATS_TYPE_SUM:
 		case STATS_TYPE_AVG:
-			int_to_dec_str(val, 1000000, ret, 3);
+			int_to_dec_str(val / 1000, 1000, ret, 3);
 			break;
 		default:
 			int_to_dec_str(val, 1000, ret, 3);
 		}
 		break;
 	default:
-		if(Stats_data[i].type == STATS_TYPE_TIME) int_to_dec_str(val, 60000, ret, 1);  // минуты;
+		if(Stats_data[i].type == STATS_TYPE_TIME) int_to_dec_str(val / 10000, 6, ret, 1);  // минуты;
 		else goto xSkipEmpty;
 		break;
 	}
