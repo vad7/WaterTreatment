@@ -1587,7 +1587,10 @@ xWaterBooster_OFF:
 
 		// Regenerating
 		if(reg_active & 1) { // Regen Iron removing filter
-			if(MC.dRelay[RSTARTREG].get_Relay()) MC.dRelay[RSTARTREG].set_OFF();
+			if(MC.dRelay[RSTARTREG].get_Relay()) {
+				MC.dRelay[RSTARTREG].set_OFF();
+				if(MC.get_errcode() == ERR_START_REG && Errors[1] == 0) MC.clear_error();
+			}
 			if(!(MC.RTC_store.Work & RTC_Work_Regen_F1)) { // Started?
 				MC.RTC_store.Work |= RTC_Work_Regen_F1;
 				MC.dRelay[RWATEROFF].set_ON();
@@ -1597,7 +1600,10 @@ xWaterBooster_OFF:
 				NeedSaveRTC = RTC_SaveAll;
 			}
 		} else if(reg_active & 2) {	// Regen Softening filter
-			if(MC.dRelay[RSTARTREG2].get_Relay()) MC.dRelay[RSTARTREG2].set_OFF();
+			if(MC.dRelay[RSTARTREG2].get_Relay()) {
+				MC.dRelay[RSTARTREG2].set_OFF();
+				if(MC.get_errcode() == ERR_START_REG2 && Errors[1] == 0) MC.clear_error();
+			}
 			if(!(MC.RTC_store.Work & RTC_Work_Regen_F2)) { // Started?
 				MC.RTC_store.Work |= RTC_Work_Regen_F2;
 				NewRegenStatus = true;
