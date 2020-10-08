@@ -185,7 +185,7 @@ void Statistics::Init(uint8_t newyear)
 			uint8_t b;
 			for(uint8_t i = 0; i < sizeof(Stats_data) / sizeof(Stats_data[0]); i++) {
 				if(Stats_data[i].object == STATS_OBJ_WaterUsed)	Stats_data[i].value = MC.RTC_store.UsedToday;
-				else if(Stats_data[i].object == STATS_OBJ_WaterRegen) Stats_data[i].value = MC.RTC_store.UsedRegen;
+				//else if(Stats_data[i].object == STATS_OBJ_WaterRegen) Stats_data[i].value = MC.RTC_store.UsedRegen;
 			}
 			while(--pos >= 0) {
 				if(!StatsFile.seekSet(pos)) {
@@ -223,7 +223,7 @@ void Statistics::Init(uint8_t newyear)
 								if(val != ATOF_ERROR) {
 									switch(Stats_data[i].object) {
 									case STATS_OBJ_WaterUsed:
-									case STATS_OBJ_WaterRegen:
+									//case STATS_OBJ_WaterRegen:
 										break;
 									case STATS_OBJ_Temp:
 									case STATS_OBJ_Press:
@@ -342,6 +342,7 @@ void Statistics::Reset()
 }
 
 // Обновить статистику, вызывается часто, раз в TIME_READ_SENSOR
+// Возврат: True - новый день
 void Statistics::Update()
 {
 #ifndef TEST_BOARD
@@ -351,10 +352,9 @@ void Statistics::Update()
 	uint32_t tm = GetTickCount() - previous;
 	previous = GetTickCount();
 	if(rtcSAM3X8.get_days() != day) {
-		if(SaveStats(2) == OK) {
-			Reset();
-			if(year != rtcSAM3X8.get_years()) NewYearFlag = 1; // waiting to switch a next year
-		}
+		SaveStats(2);
+		Reset();
+		if(year != rtcSAM3X8.get_years()) NewYearFlag = 1; // waiting to switch a next year
 	}
 	int32_t newval = 0;
 	for(uint8_t i = 0; i < sizeof(Stats_data) / sizeof(Stats_data[0]); i++) {
@@ -364,6 +364,12 @@ void Statistics::Update()
 			Stats_WaterUsed_work = 0;
 			break;
 		case STATS_OBJ_WaterRegen:
+			if(!MC.sInput[REG_ACTIVE].get_Input() && !MC.sInput[REG_BACKWASH_ACTIVE].get_Input()) continue;
+			newval = Stats_WaterRegen_work;
+			Stats_WaterRegen_work = 0;
+			break;
+		case STATS_OBJ_WaterRegenSoftening:
+			if(!MC.sInput[REG2_ACTIVE].get_Input()) continue;
 			newval = Stats_WaterRegen_work;
 			Stats_WaterRegen_work = 0;
 			break;
@@ -601,7 +607,11 @@ void Statistics::StatsFieldHeader(char *ret, uint8_t i, uint8_t flag)
 		return;
 	case STATS_OBJ_WaterRegen:
 		if(flag) strcat(ret, "L");	// ось литры
-		strcat(ret, "Регенерация, л");
+		strcat(ret, "Регенерация обезжелезивателя, л");
+		break;
+	case STATS_OBJ_WaterRegenSoftening:
+		if(flag) strcat(ret, "L");	// ось литры
+		strcat(ret, "Регенерация умягчителя, л");
 		break;
 	case STATS_OBJ_BrineWeight:
 		if(flag) strcat(ret, "M");	// ось вес
@@ -655,8 +665,11 @@ xSkipEmpty:
 		int_to_dec_str(val, 10, ret, 0);
 		break;
 	case STATS_OBJ_WaterUsed:				// L
-	case STATS_OBJ_WaterRegen:				// L
 		int_to_dec_str(val, 1, ret, 0);
+		break;
+	case STATS_OBJ_WaterRegen:				// L
+	case STATS_OBJ_WaterRegenSoftening:		// L
+		if(val != 0) int_to_dec_str(val, 1, ret, 0);
 		break;
 	case STATS_OBJ_BrineWeight:				// kg
 	case STATS_OBJ_Flow:					// m3h

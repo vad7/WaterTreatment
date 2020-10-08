@@ -350,7 +350,7 @@ function loadChartsGroup(period) {
 			for(var fi = 1; fi < arr.length; fi++) {
 				var nf = parseFloat(arr[fi]);
 				if(!isNaN(nf)) {
-					if(nf == 0 && (fi == 5 || fi == 10 || fi == 11) && arr[15] == 0) continue; // if no Motohour - skip zero (W)
+					//if(nf == 0 && (fi == 5 || fi == 10 || fi == 11) && arr[15] == 0) continue; // if no Motohour - skip zero (W)
 					fieldList[fi - 1].data.push([dt, nf]);
 				}
 			}

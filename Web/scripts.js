@@ -1,5 +1,5 @@
 // Copyright by Vadim Kulakov vad7@yahoo.com, vad711
-var VER_WEB = "1.14";
+var VER_WEB = "1.17";
 var urlcontrol = ''; //  автоопределение (если адрес сервера совпадает с адресом контроллера)
 // адрес и порт контроллера, если адрес сервера отличен от адреса контроллера (не рекомендуется)
 //var urlcontrol = 'http://192.168.0.199';
@@ -504,7 +504,7 @@ function loadParam(paramid, noretry, resultdiv) {
 				check_ready = 1;
 				setTimeout(function() {
 					loadParam(paramid);
-				}, 4000);
+				}, urltimeout);
 			}
 			autoheight(); // update height
 		}

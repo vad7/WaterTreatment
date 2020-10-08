@@ -49,12 +49,13 @@ enum {
 	STATS_OBJ_Voltage,		// V
 	STATS_OBJ_Power,		// кВт*ч
 	STATS_OBJ_WaterUsed,	// л
-	STATS_OBJ_WaterRegen,	// л
+	STATS_OBJ_WaterRegen,	// Регенерация обезжелезивателя, л
 	STATS_OBJ_BrineWeight,	// кг
 	STATS_OBJ_WaterBooster,	// сек
 	STATS_OBJ_FeedPump,		// сек
 	STATS_OBJ_Level,		// %
-	STATS_OBJ_WaterBoosterLiters // л
+	STATS_OBJ_WaterBoosterLiters, // л
+	STATS_OBJ_WaterRegenSoftening // Регенерация умягчителя, л
 };
 struct History_setup {
 	uint8_t		object;			// STATS_OBJ_*
@@ -471,7 +472,8 @@ struct History_setup {
 		{ 0, STATS_OBJ_Power, STATS_TYPE_SUM },
 		{ 0, STATS_OBJ_Power, STATS_TYPE_MAX },
 		{ 0, STATS_OBJ_Voltage, STATS_TYPE_MIN },
-		{ 0, STATS_OBJ_Voltage, STATS_TYPE_MAX }
+		{ 0, STATS_OBJ_Voltage, STATS_TYPE_MAX },
+		{ 0, STATS_OBJ_WaterRegenSoftening, STATS_TYPE_SUM }
 	};
 
 	// История (графики)

@@ -20,7 +20,7 @@
 #include "Util.h"
 
 // ОПЦИИ КОМПИЛЯЦИИ ПРОЕКТА -------------------------------------------------------
-#define VERSION			  "1.16"			// Версия прошивки
+#define VERSION			  "1.17"			// Версия прошивки
 #define VER_SAVE		  5					// Версия формата сохраняемых данных в I2C память
 //#define LOG                               // В последовательный порт шлет лог веб сервера (логируются запросы)
 #define FAST_LIB                            // использование допиленной библиотеки езернета
@@ -383,6 +383,7 @@ const char *option_MinPumpOnTime		= {"MPOT"};
 const char *option_MinWaterBoostOnTime	= {"MWBT"};
 const char *option_MinWaterBoostOffTime	= {"MWBTF"};
 const char *option_MinRegen				= {"MR"};
+const char *option_MinRegenSoftening	= {"MRS"};
 const char *option_MinDrain				= {"MD"};
 const char *option_DrainTime			= {"DT"};
 const char *option_DrainAfterNoConsume	= {"DA"};

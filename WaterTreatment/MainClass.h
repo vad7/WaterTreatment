@@ -184,6 +184,7 @@ struct type_option {
 	char     LowConsumeRequest[64];	// HTTP запрос о режиме низкого потребления, формат server/request, возврат после '=': 0 - нет, 1 - да
 	uint16_t LowConsumeRequestPeriod;// Периодичность запроса о режиме низкого потребления, если 0, то только при старте, сек
 	uint16_t SepticAlarmDebounce;	// Время исключения помех датчика аварии септика, сек
+	uint16_t MinRegenLitersSoftening;// Тревога, если за регенерацию умягчителя израсходовано меньше литров
 	type_DailySwitch DailySwitch[DAILY_SWITCH_MAX];	// дневное периодическое включение
 };
 

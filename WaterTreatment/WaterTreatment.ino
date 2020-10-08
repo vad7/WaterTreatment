@@ -1256,8 +1256,32 @@ void vReadSensor(void *)
 		if(temp2 != STARTTEMP) MC.sTemp[TIN].set_Temp(temp2);
 		*/ // do not need averaging.
 
-		MC.calculatePower();  // Расчет мощностей
+		MC.calculatePower();	// Расчет мощностей
 		Stats.Update();
+		if((MC.RTC_store.Work & RTC_Work_WeekDay_MASK) != rtcSAM3X8.get_day_of_week()) {	// новый день
+			//vTaskSuspendAll(); // запрет других задач
+			MC.RTC_store.Work = (MC.RTC_store.Work & ~RTC_Work_WeekDay_MASK) | rtcSAM3X8.get_day_of_week();
+			uint32_t ut = MC.RTC_store.UsedToday;
+			MC.RTC_store.UsedToday = 0;
+			MC.WorkStats.DaysFromLastRegen++;
+			MC.WorkStats.DaysFromLastRegenSoftening++;
+			MC.WorkStats.UsedYesterday = ut;
+			MC.WorkStats.UsedSinceLastRegen += ut;
+			MC.WorkStats.UsedSinceLastRegenSoftening += ut;
+			MC.WorkStats.UsedTotal += ut;
+			if(ut > 10) {
+				MC.WorkStats.UsedAverageDay += ut;
+				MC.WorkStats.UsedAverageDayNum++;
+				if(MC.WorkStats.UsedAverageDayNum >= WS_AVERAGE_DAYS) {
+					MC.WorkStats.UsedAverageDay = MC.WorkStats.UsedAverageDay / MC.WorkStats.UsedAverageDayNum;
+					MC.WorkStats.UsedAverageDayNum = 1;
+				}
+			}
+			NeedSaveWorkStats = 1;
+			NeedSaveRTC = RTC_SaveAll;
+			//xTaskResumeAll(); // Разрешение других задач
+			update_RTC_store_memory();
+		}
 
 		vReadSensor_delay1ms((TIME_READ_SENSOR - (int32_t)(GetTickCount() - ttime)) / 2);     // 1. Ожидать время нужное для цикла чтения
 
@@ -1670,43 +1694,15 @@ void vService(void *)
 				if(task_updstat_countm == 59) MC.save_WorkStats();		// сохранить раз в час
 				Stats.History();                                        // запись истории в файл
 
-				if((MC.RTC_store.Work & RTC_Work_WeekDay_MASK) != rtcSAM3X8.get_day_of_week()) { // Next day
-					uint32_t ut;
-					{
-						vTaskSuspendAll(); // запрет других задач
-						MC.RTC_store.Work = (MC.RTC_store.Work & ~RTC_Work_WeekDay_MASK) | rtcSAM3X8.get_day_of_week();
-						ut = MC.RTC_store.UsedToday;
-						MC.RTC_store.UsedToday = 0;
-						MC.WorkStats.DaysFromLastRegen++;
-						MC.WorkStats.DaysFromLastRegenSoftening++;
-						MC.WorkStats.UsedYesterday = ut;
-						MC.WorkStats.UsedSinceLastRegen += ut;
-						MC.WorkStats.UsedSinceLastRegenSoftening += ut;
-						MC.WorkStats.UsedTotal += ut;
-						if(ut > 10) {
-							MC.WorkStats.UsedAverageDay += ut;
-							MC.WorkStats.UsedAverageDayNum++;
-							if(MC.WorkStats.UsedAverageDayNum >= WS_AVERAGE_DAYS) {
-								MC.WorkStats.UsedAverageDay = MC.WorkStats.UsedAverageDay / MC.WorkStats.UsedAverageDayNum;
-								MC.WorkStats.UsedAverageDayNum = 1;
-							}
-						}
-						NeedSaveWorkStats = 1;
-						NeedSaveRTC = RTC_SaveAll;
-						xTaskResumeAll(); // Разрешение других задач
-						update_RTC_store_memory();
-					}
-				} else {
-					// Water did not consumed a long time ago.
-					if(MC.Option.DrainAfterNoConsume) {
-						uint32_t ut = rtcSAM3X8.unixtime();
-						if(ut - (MC.WorkStats.UsedLastTime > MC.WorkStats.LastDrain ? MC.WorkStats.UsedLastTime : MC.WorkStats.LastDrain ? MC.WorkStats.LastDrain : ut) >= MC.Option.DrainAfterNoConsume && !CriticalErrors) {
-							MC.WorkStats.LastDrain = rtcSAM3X8.unixtime();
-							TimerDrainingWater = MC.Option.DrainTime;
-							MC.WorkStats.UsedDrain = 0;
-							UsedDrainRest = MC.sFrequency[FLOW].PassedRest;
-							MC.dRelay[RDRAIN].set_ON();
-						}
+				// Water did not consumed a long time ago.
+				if(MC.Option.DrainAfterNoConsume) {
+					uint32_t ut = rtcSAM3X8.unixtime();
+					if(ut - (MC.WorkStats.UsedLastTime > MC.WorkStats.LastDrain ? MC.WorkStats.UsedLastTime : MC.WorkStats.LastDrain ? MC.WorkStats.LastDrain : ut) >= MC.Option.DrainAfterNoConsume && !CriticalErrors) {
+						MC.WorkStats.LastDrain = rtcSAM3X8.unixtime();
+						TimerDrainingWater = MC.Option.DrainTime;
+						MC.WorkStats.UsedDrain = 0;
+						UsedDrainRest = MC.sFrequency[FLOW].PassedRest;
+						MC.dRelay[RDRAIN].set_ON();
 					}
 				}
 
@@ -1811,6 +1807,9 @@ void vService(void *)
 							taskEXIT_CRITICAL();
 							NeedSaveWorkStats = 1;
 							journal.jprintf_date("Regen F2 finished, used: %d\n", MC.WorkStats.UsedLastRegenSoftening);
+							if(MC.WorkStats.UsedLastRegenSoftening < MC.Option.MinRegenLitersSoftening) {
+								set_Error(ERR_FEW_LITERS_REG, (char*)__FUNCTION__);
+							}
 							if((TimerDrainingWaterAfterRegen = MC.Option.DrainingWaterAfterRegenSoftening)) MC.dRelay[RDRAIN].set_ON();
 						} else if(NewRegenStatus) {
 							journal.jprintf_date("Regen F2 begin\n");
