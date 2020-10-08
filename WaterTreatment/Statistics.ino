@@ -669,7 +669,8 @@ xSkipEmpty:
 		break;
 	case STATS_OBJ_WaterRegen:				// L
 	case STATS_OBJ_WaterRegenSoftening:		// L
-		if(val != 0) int_to_dec_str(val, 1, ret, 0);
+		if(val == 0) goto xSkipEmpty;
+		int_to_dec_str(val, 1, ret, 0);
 		break;
 	case STATS_OBJ_BrineWeight:				// kg
 	case STATS_OBJ_Flow:					// m3h
