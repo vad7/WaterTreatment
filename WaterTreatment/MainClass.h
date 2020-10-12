@@ -91,6 +91,7 @@ uint32_t TimerDrainingWaterAfterRegen = 0;
 int32_t  UsedDrainRest = 0;
 volatile bool NewRegenStatus = false;
 volatile uint32_t RegBackwashTimer = 0;
+int16_t  RegStart_Weight;
 uint32_t ResetDUE_countdown = 0;
 bool	 DebugToJournalOn = false;
 uint32_t FlowPulseCounter;
@@ -185,6 +186,7 @@ struct type_option {
 	uint16_t LowConsumeRequestPeriod;// Периодичность запроса о режиме низкого потребления, если 0, то только при старте, сек
 	uint16_t SepticAlarmDebounce;	// Время исключения помех датчика аварии септика, сек
 	uint16_t MinRegenLitersSoftening;// Тревога, если за регенерацию умягчителя израсходовано меньше литров
+	uint16_t MinRegenWeightDecrease;// Тревога, если за регенерацию вес уменьшился меньше, чем задано, граммы
 	type_DailySwitch DailySwitch[DAILY_SWITCH_MAX];	// дневное периодическое включение
 };
 

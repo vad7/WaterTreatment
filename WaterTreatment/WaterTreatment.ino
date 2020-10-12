@@ -1618,8 +1618,9 @@ xWaterBooster_OFF:
 			if(!(MC.RTC_store.Work & RTC_Work_Regen_F1)) { // Started?
 				MC.RTC_store.Work |= RTC_Work_Regen_F1;
 				MC.dRelay[RWATEROFF].set_ON();
-				NewRegenStatus = true;
 				RegBackwashTimer = 0;
+				RegStart_Weight = Weight_value / 10;
+				NewRegenStatus = true;
 				MC.RTC_store.UsedRegen = 0;
 				NeedSaveRTC = RTC_SaveAll;
 			}
@@ -1630,6 +1631,7 @@ xWaterBooster_OFF:
 			}
 			if(!(MC.RTC_store.Work & RTC_Work_Regen_F2)) { // Started?
 				MC.RTC_store.Work |= RTC_Work_Regen_F2;
+				RegStart_Weight = Weight_value / 10;
 				NewRegenStatus = true;
 				MC.RTC_store.UsedRegen = 0;
 				NeedSaveRTC = RTC_SaveAll;
@@ -1787,6 +1789,8 @@ void vService(void *)
 							journal.jprintf_date("Regen F1 finished, used: %d\n", MC.WorkStats.UsedLastRegen);
 							if(MC.WorkStats.UsedLastRegen < MC.Option.MinRegenLiters) {
 								set_Error(ERR_FEW_LITERS_REG, (char*)__FUNCTION__);
+							} else if(Weight_value - RegStart_Weight < MC.Option.MinRegenWeightDecrease) {
+								set_Error(ERR_REG_FEW_WEIGHT_CONSUME, (char*)__FUNCTION__);
 							}
 							if((TimerDrainingWaterAfterRegen = MC.Option.DrainingWaterAfterRegen)) MC.dRelay[RDRAIN].set_ON();
 						} else if(NewRegenStatus) {
@@ -1809,6 +1813,8 @@ void vService(void *)
 							journal.jprintf_date("Regen F2 finished, used: %d\n", MC.WorkStats.UsedLastRegenSoftening);
 							if(MC.WorkStats.UsedLastRegenSoftening < MC.Option.MinRegenLitersSoftening) {
 								set_Error(ERR_FEW_LITERS_REG, (char*)__FUNCTION__);
+							} else if(Weight_value - RegStart_Weight < MC.Option.MinRegenWeightDecrease) {
+								set_Error(ERR_REG_FEW_WEIGHT_CONSUME, (char*)__FUNCTION__);
 							}
 							if((TimerDrainingWaterAfterRegen = MC.Option.DrainingWaterAfterRegenSoftening)) MC.dRelay[RDRAIN].set_ON();
 						} else if(NewRegenStatus) {

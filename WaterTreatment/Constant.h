@@ -384,6 +384,7 @@ const char *option_MinWaterBoostOnTime	= {"MWBT"};
 const char *option_MinWaterBoostOffTime	= {"MWBTF"};
 const char *option_MinRegen				= {"MR"};
 const char *option_MinRegenSoftening	= {"MRS"};
+const char *option_MinRegenWeightDecrease={"MRW"};
 const char *option_MinDrain				= {"MD"};
 const char *option_DrainTime			= {"DT"};
 const char *option_DrainAfterNoConsume	= {"DA"};
@@ -505,8 +506,9 @@ const char *webWS_UsedLastRegenSoftening  		= { "RSL" };
 #define ERR_LEAK			-65			// Протечка
 #define ERR_SEPTIC_ALARM	-66			// Авария септика
 #define ERR_NO_POWER		-67			// Нет электричества
+#define ERR_REG_FEW_WEIGHT_CONSUME -68	// Мало израсходовано реагента во время регенерации
 
-#define ERR_ERRMAX			-67			// Последняя ошибка
+#define ERR_ERRMAX			-68			// Последняя ошибка
 
 // Предупреждения
 #define WARNING_VALUE        1         // Попытка установить значение за границами диапазона запрос типа SET
@@ -581,6 +583,7 @@ const char *noteError[] = {
 		"Протечка!",																		//-65
 		"Авария септика!",																	//-66
 		"Нет электричества",																//-67
+		"Мало израсходовано реагента во время регенерации",									//-68
 
 		"NULL"
 		};
