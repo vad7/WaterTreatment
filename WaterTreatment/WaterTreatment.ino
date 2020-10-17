@@ -1787,12 +1787,13 @@ void vService(void *)
 							NeedSaveWorkStats = 1;
 							MC.dRelay[RWATEROFF].set_OFF();
 							journal.jprintf_date("Regen F1 finished, used: %d\n", MC.WorkStats.UsedLastRegen);
+							if((TimerDrainingWaterAfterRegen = MC.Option.DrainingWaterAfterRegen)) MC.dRelay[RDRAIN].set_ON();
 							if(MC.WorkStats.UsedLastRegen < MC.Option.MinRegenLiters) {
 								set_Error(ERR_FEW_LITERS_REG, (char*)__FUNCTION__);
-							} else if(RegStart_Weight - Weight_value / 10 < MC.Option.MinRegenWeightDecrease) {
+							} else if((RegStart_Weight = RegStart_Weight - Weight_value / 10) < MC.Option.MinRegenWeightDecrease) {
 								set_Error(ERR_REG_FEW_WEIGHT_CONSUME, (char*)__FUNCTION__);
+								journal.jprintf(" Reagent consumed: %d g.\n", RegStart_Weight);
 							}
-							if((TimerDrainingWaterAfterRegen = MC.Option.DrainingWaterAfterRegen)) MC.dRelay[RDRAIN].set_ON();
 						} else if(NewRegenStatus) {
 							journal.jprintf_date("Regen F1 begin\n");
 							NewRegenStatus = false;
@@ -1811,12 +1812,13 @@ void vService(void *)
 							taskEXIT_CRITICAL();
 							NeedSaveWorkStats = 1;
 							journal.jprintf_date("Regen F2 finished, used: %d\n", MC.WorkStats.UsedLastRegenSoftening);
+							if((TimerDrainingWaterAfterRegen = MC.Option.DrainingWaterAfterRegenSoftening)) MC.dRelay[RDRAIN].set_ON();
 							if(MC.WorkStats.UsedLastRegenSoftening < MC.Option.MinRegenLitersSoftening) {
 								set_Error(ERR_FEW_LITERS_REG, (char*)__FUNCTION__);
-							} else if(RegStart_Weight - Weight_value / 10 < MC.Option.MinRegenWeightDecrease) {
+							} else if((RegStart_Weight = RegStart_Weight - Weight_value / 10) < MC.Option.MinRegenWeightDecrease) {
 								set_Error(ERR_REG_FEW_WEIGHT_CONSUME, (char*)__FUNCTION__);
+								journal.jprintf(" Reagent consumed: %d g.\n", RegStart_Weight);
 							}
-							if((TimerDrainingWaterAfterRegen = MC.Option.DrainingWaterAfterRegenSoftening)) MC.dRelay[RDRAIN].set_ON();
 						} else if(NewRegenStatus) {
 							journal.jprintf_date("Regen F2 begin\n");
 							NewRegenStatus = false;
