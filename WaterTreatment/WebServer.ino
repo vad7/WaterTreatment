@@ -367,7 +367,7 @@ void readFileSD(char *filename, uint8_t thread)
 				sendConstRTOS(thread, HEADER_FILE_NOT_FOUND);
 				uint8_t ip[4];
 				W5100.readSnDIPR(Socket[thread].sock, ip);
-				journal.jprintfopt((char*) "WEB: %d.%d.%d.%d - File not found: %s\n", ip[0], ip[1], ip[2], ip[3], filename);
+				if(MC.get_NetworkFlags() & (1<<fWebLogError)) journal.jprintfopt((char*) "WEB: %d.%d.%d.%d - File not found: %s\n", ip[0], ip[1], ip[2], ip[3], filename);
 				return;
 			} // файл не найден
 xFileFound:
@@ -410,7 +410,7 @@ xFileFound:
 				sendConstRTOS(thread, HEADER_FILE_NOT_FOUND);
 				uint8_t ip[4];
 				W5100.readSnDIPR(Socket[thread].sock, ip);
-				journal.jprintfopt((char*) "WEB GET(%d.%d.%d.%d) - Not found: %s\n", ip[0], ip[1], ip[2], ip[3], filename);
+				if(MC.get_NetworkFlags() & (1<<fWebLogError)) journal.jprintfopt((char*) "WEB GET(%d.%d.%d.%d) - Not found: %s\n", ip[0], ip[1], ip[2], ip[3], filename);
 				return;
 			}
 		}
