@@ -1488,6 +1488,10 @@ void vPumps( void * )
 					TimerDrainingWater = 0;
 					TimerDrainingWaterAfterRegen = 0;
 				}
+				if(MC.dRelay[RDRAIN2].get_Relay()) {
+					MC.dRelay[RDRAIN2].set_OFF();
+					TimerDrainingWaterAfterRegen = 0;
+				}
 				MC.dRelay[RFEEDPUMP].set_OFF();
 				MC.dRelay[RWATEROFF].set_ON();
 				CriticalErrors |= ERRC_Flooding;
@@ -1688,7 +1692,10 @@ void vService(void *)
 						}
 					}
 				}
-			} else if(TimerDrainingWaterAfterRegen && --TimerDrainingWaterAfterRegen == 0) MC.dRelay[RDRAIN].set_OFF();
+			} else if(TimerDrainingWaterAfterRegen && --TimerDrainingWaterAfterRegen == 0) {
+				MC.dRelay[RDRAIN].set_OFF();
+				MC.dRelay[RDRAIN2].set_OFF();
+			}
 			uint8_t m = rtcSAM3X8.get_minutes();
 			if(m != task_updstat_countm) { 								// Через 1 минуту
 				task_updstat_countm = m;
@@ -1785,9 +1792,10 @@ void vService(void *)
 							NeedSaveRTC |= (1<<bRTC_Work) | (1<<bRTC_UsedRegen) | (1<<bRTC_Urgently);
 							taskEXIT_CRITICAL();
 							NeedSaveWorkStats = 1;
-							MC.dRelay[RWATEROFF].set_OFF();
 							journal.jprintf_date("Regen F1 finished, used: %d\n", MC.WorkStats.UsedLastRegen);
 							if((TimerDrainingWaterAfterRegen = MC.Option.DrainingWaterAfterRegen)) MC.dRelay[RDRAIN].set_ON();
+							_delay(100);
+							MC.dRelay[RWATEROFF].set_OFF();
 							if(MC.WorkStats.UsedLastRegen < MC.Option.MinRegenLiters) {
 								set_Error(ERR_FEW_LITERS_REG, (char*)__FUNCTION__);
 							} else if((RegStart_Weight = RegStart_Weight - Weight_value / 10) < MC.Option.MinRegenWeightDecrease) {
@@ -1812,7 +1820,7 @@ void vService(void *)
 							taskEXIT_CRITICAL();
 							NeedSaveWorkStats = 1;
 							journal.jprintf_date("Regen F2 finished, used: %d\n", MC.WorkStats.UsedLastRegenSoftening);
-							if((TimerDrainingWaterAfterRegen = MC.Option.DrainingWaterAfterRegenSoftening)) MC.dRelay[RDRAIN].set_ON();
+							if((TimerDrainingWaterAfterRegen = MC.Option.DrainingWaterAfterRegenSoftening)) MC.dRelay[RDRAIN2].set_ON();
 							if(MC.WorkStats.UsedLastRegenSoftening < MC.Option.MinRegenLitersSoftening) {
 								set_Error(ERR_FEW_LITERS_REG, (char*)__FUNCTION__);
 							} else if((RegStart_Weight = RegStart_Weight - Weight_value / 10) < MC.Option.MinRegenWeightDecrease) {
