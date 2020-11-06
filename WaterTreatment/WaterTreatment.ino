@@ -785,6 +785,7 @@ void vWeb2(void *)
 #define LCD_SetupMenu_Sensors	0x200
 #define LCD_SetupMenu_FlowCheck	0x300
 #define LCD_SetupMenu_Options	0x400
+#define LCD_SetupMenu_Relays_Max 7
 const char *LCD_SetupMenu[LCD_SetupMenuItems] = { "1. Exit", "2. Relays", "3. Sensors", "4. Flow check", "5. Options" };
 uint32_t LCD_setup = 0; // 0x8000MMII: 8 - Setup active, MМ - Menu item (0..<max LCD_SetupMenuItems-1>) , II - Selecting item (0...)
 
@@ -869,7 +870,7 @@ xSetupExit:
 						DisplayTick = ~DisplayTick;
 					}
 				} else if((LCD_setup & 0xFF00) == LCD_SetupMenu_Relays) {
-					if((LCD_setup & 0xFF) < (RNUMBER > 7 ? 7 : RNUMBER-1)) {
+					if((LCD_setup & 0xFF) < (RNUMBER > LCD_SetupMenu_Relays_Max-1 ? LCD_SetupMenu_Relays_Max-1 : RNUMBER-1)) {
 						LCD_setup++;
 						DisplayTick = ~DisplayTick;
 					}
@@ -927,7 +928,7 @@ xErrorsProcessing:
 			if(LCD_setup) {
 				if((LCD_setup & 0xFF00) == LCD_SetupMenu_Relays) { // Relays
 					lcd.clear();
-					for(uint8_t i = 0; i < (RNUMBER > 8 ? 8 : RNUMBER) ; i++) {
+					for(uint8_t i = 0; i < (RNUMBER > LCD_SetupMenu_Relays_Max ? LCD_SetupMenu_Relays_Max : RNUMBER) ; i++) {
 						lcd.setCursor(10 * (i % 2), i / 2);
 						lcd.print(MC.dRelay[i].get_Relay() ? '*' : ' ');
 						lcd.print(MC.dRelay[i].get_name());
