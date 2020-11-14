@@ -170,3 +170,46 @@ body.test #get_tblrelay span{display:none}
   opacity: 1;
   transition: all 0.4s ease-in-out; /* добавляем плавности перехода */
 }
+/* TOOLTIP #2 */
+[data-tooltip2] {display:inline-block;position:relative;cursor: pointer;} 
+[data-tooltip2]:before,[data-tooltip2]:after {visibility: hidden; -ms-filter: "progid:DXImageTransform.Microsoft.Alpha(Opacity=0)"; filter: progid: DXImageTransform.Microsoft.Alpha(Opacity=0); opacity: 0; pointer-events: none;}
+
+[data-tooltip2]:before {
+    background: #0C6161;
+    background: hsla(180, 78%, 21%,.9);
+    bottom: 100%;
+    margin-bottom: 6px;
+    color: #f6f6f6;
+    text-align: center;
+    content: attr(data-tooltip2);
+    font-size: 14px;
+    width: 220px;
+	left: 10px;
+    padding: 10px;
+    position: absolute;
+    text-shadow: 0 1px 1px hsla(0,0%,0%,1);
+    -webkit-border-radius: 5px;
+    -moz-border-radius: 5px;
+    -o-border-radius: 5px;
+    border-radius: 5px;
+}
+[data-tooltip2]:after {
+    border-top: 6px solid #006104;
+    border-top: 6px solid hsla(110,100%,17%,.9);
+    border-left: 6px solid transparent;
+    border-right: 6px solid transparent;
+    bottom: 100%;
+    content: "";
+    height: 0;
+    width: 0;
+    right: 25px;
+    position: absolute;
+}
+[data-tooltip2]:hover:before,
+[data-tooltip2]:hover:after {
+  visibility: visible;
+  -ms-filter: "progid:DXImageTransform.Microsoft.Alpha(Opacity=100)";
+  filter: progid: DXImageTransform.Microsoft.Alpha(Opacity=100);
+  opacity: 1;
+  transition: all 0.4s ease-in-out;
+}
