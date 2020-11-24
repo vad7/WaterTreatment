@@ -1717,12 +1717,12 @@ void vService(void *)
 				}
 
 				if(MC.dRelay[RSTARTREG].get_Relay() && !(MC.RTC_store.Work & RTC_Work_Regen_F1)) { // 1 minute passed but regeneration did not start
-					set_Error(ERR_START_REG, (char*)__FUNCTION__);
+					if(rtcSAM3X8.unixtime() - RegenStarted > START_REGEN_WAIT_TIME) set_Error(ERR_START_REG, (char*)__FUNCTION__);
 					MC.dRelay[RSTARTREG].set_OFF();
 					goto xOtherTask_1min;
 				}
 				if(MC.dRelay[RSTARTREG2].get_Relay() && !(MC.RTC_store.Work & RTC_Work_Regen_F2)) { // 1 minute passed but regeneration did not start
-					set_Error(ERR_START_REG2, (char*)__FUNCTION__);
+					if(rtcSAM3X8.unixtime() - RegenStarted > START_REGEN_WAIT_TIME) set_Error(ERR_START_REG2, (char*)__FUNCTION__);
 					MC.dRelay[RSTARTREG2].set_OFF();
 					goto xOtherTask_1min;
 				}
@@ -1752,16 +1752,18 @@ void vService(void *)
 										MC.WorkStats.Flags &= ~WS_F_StartRegen;
 										NeedSaveWorkStats = 1;
 									}
-									journal.jprintf_date("Regen F1 start\n");
 									MC.dRelay[RWATEROFF].set_ON();
 									MC.dRelay[RSTARTREG].set_ON();
+									journal.jprintf_date("Regen F1 start\n");
+									if(RegenStarted == 0) RegenStarted = rtcSAM3X8.unixtime();
 								} else if((need_regen & RTC_Work_Regen_F2) && !MC.dRelay[RSTARTREG2].get_Relay()) {
 									if(MC.WorkStats.Flags & WS_F_StartRegenSoft) {
 										MC.WorkStats.Flags &= ~WS_F_StartRegenSoft;
 										NeedSaveWorkStats = 1;
 									}
-									journal.jprintf_date("Regen F2 start\n");
 									MC.dRelay[RSTARTREG2].set_ON();
+									journal.jprintf_date("Regen F2 start\n");
+									if(RegenStarted == 0) RegenStarted = rtcSAM3X8.unixtime();
 								}
 							} else {
 								FillingTankLastLevel = 0;
@@ -1803,6 +1805,7 @@ void vService(void *)
 								set_Error(ERR_REG_FEW_WEIGHT_CONSUME, (char*)__FUNCTION__);
 								journal.jprintf(" Reagent consumed: %d g.\n", RegStart_Weight);
 							}
+							RegenStarted = 0;
 						} else if(NewRegenStatus) {
 							journal.jprintf_date("Regen F1 begin\n");
 							NewRegenStatus = false;
@@ -1828,6 +1831,7 @@ void vService(void *)
 								set_Error(ERR_REG_FEW_WEIGHT_CONSUME, (char*)__FUNCTION__);
 								journal.jprintf(" Reagent consumed: %d g.\n", RegStart_Weight);
 							}
+							RegenStarted = 0;
 						} else if(NewRegenStatus) {
 							journal.jprintf_date("Regen F2 begin\n");
 							NewRegenStatus = false;

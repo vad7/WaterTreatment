@@ -99,6 +99,7 @@ uint32_t FlowPulseCounterRest;
 bool     LowConsumeMode = false; //
 int32_t  AfterFilledTimer = 0;
 uint32_t Request_LowConsume;
+uint32_t RegenStarted = 0;
 
 // Weight
 //bool Weight_NeedRead = false; // allways
