@@ -1602,7 +1602,7 @@ xWaterBooster_OFF:
 			Charts_FillTank_work += TIME_SLICE_PUMPS * 100 / 1000; // in percent
 			//taskEXIT_CRITICAL();
 		} else {
-			if(MC.sADC[LTANK].get_Value() <= (MC.sInput[REG_BACKWASH_ACTIVE].get_Input() ? MC.sADC[LTANK].get_maxValue() - FILL_TANK_REGEN_DELTA : LowConsumeMode ? MC.Option.LTank_LowConsumeMin : MC.sADC[LTANK].get_minValue())) {
+			if(MC.sADC[LTANK].get_Value() <= (MC.sInput[REG_BACKWASH_ACTIVE].get_Input() ? MC.sADC[LTANK].get_maxValue() - FILL_TANK_REGEN_DELTA : LowConsumeMode ? MC.Option.LTank_LowConsumeMin : rtcSAM3X8.get_hours() == MC.Option.LTank_Night_Hour ? MC.Option.LTank_Night_Low : MC.sADC[LTANK].get_minValue())) {
 				if(!(CriticalErrors & ~ERRC_TankEmpty)) {
 					if(!LowConsumeMode || (!MC.dRelay[RFEEDPUMP].get_Relay() && WaterBoosterStatus == 0)) {
 						if(LowConsumeMode && !(MC.RTC_store.Work & (RTC_Work_Regen_F1 | RTC_Work_Regen_F2))) AfterFilledTimer = MC.Option.LTank_AfterFilledTimer * 1000;

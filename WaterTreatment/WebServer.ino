@@ -2074,7 +2074,7 @@ TYPE_RET_POST parserPOST(uint8_t thread, uint16_t size)
 	    lenFile=lenFile-len;                                                    // корректируем длину файла на длину заголовка (только бинарные данные)
 		while(buf_len < lenFile)  // Чтение остальных бинарных данных по сети
 		{
-			for(uint8_t i=0;i<20;i++) if(!Socket[thread].client.available()) _delay(1);else break; // ждем получние пакета до 20 мсек (может быть плохая связь)
+			for(uint8_t i=0;i<255;i++) if(!Socket[thread].client.available()) _delay(1);else break; // ждем получние пакета до 20 мсек (может быть плохая связь)
 			if(!Socket[thread].client.available()) break;                                          // пакета нет - выходим
 			len = Socket[thread].client.get_ReceivedSizeRX();                                      // получить длину входного пакета
 			if(len > W5200_MAX_LEN - 1) len = W5200_MAX_LEN - 1;                                   // Ограничить размером в максимальный размер пакета w5200

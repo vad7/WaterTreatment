@@ -188,6 +188,9 @@ struct type_option {
 	uint16_t SepticAlarmDebounce;	// Время исключения помех датчика аварии септика, сек
 	uint16_t MinRegenLitersSoftening;// Тревога, если за регенерацию умягчителя израсходовано меньше литров
 	uint16_t MinRegenWeightDecrease;// Тревога, если за регенерацию вес уменьшился меньше, чем задано, граммы
+	uint16_t LTank_Night_Low;		// Низкий уровень ночного заполнения бака, сотые %
+	int8_t   LTank_Night_Hour;		// Час ночного заполнение бака
+	uint8_t  _RESERVED_;
 	type_DailySwitch DailySwitch[DAILY_SWITCH_MAX];	// дневное периодическое включение
 };
 

@@ -20,8 +20,8 @@
 #include "Util.h"
 
 // ОПЦИИ КОМПИЛЯЦИИ ПРОЕКТА -------------------------------------------------------
-#define VERSION			  "1.18"			// Версия прошивки
-#define VER_SAVE		  6					// Версия формата сохраняемых данных в I2C память
+#define VERSION			  "1.19"			// Версия прошивки
+#define VER_SAVE		  7					// Версия формата сохраняемых данных в I2C память
 //#define LOG                               // В последовательный порт шлет лог веб сервера (логируются запросы)
 #define FAST_LIB                            // использование допиленной библиотеки езернета
 #define TIME_ZONE         3                 // поправка на часовой пояс по ДЕФОЛТУ
@@ -123,6 +123,10 @@ const uint16_t  defaultPort=80;
 #define HTTP_REQ_LowConsume   60  			// s, Период запроса о работе от резервного источника, по умолчанию
 #define HTTP_REQ_TIMEOUT      2000			// ms
 
+#define HOUR_SIGNAL_LIFE      12            // Час когда генерится сигнал жизни
+
+#define NIGHT_END_HOUR			7			// Час после ночного тарифа
+
 // ------------------- ОБЩИЕ НАСТРОЙКИ ----------------------------------
 #define LCD_COLS			20			// Колонок на LCD экране
 #define LCD_ROWS			4			// Строк на LCD экране
@@ -148,8 +152,6 @@ const uint16_t  defaultPort=80;
 const char NAME_USER[]  = "user";        // имя пользователя
 const char NAME_ADMIN[] = "admin";       // имя администратора
 //#define FILE_STATISTIC    "statistic.csv"// имя файла статистики за ТЕКУШИЙ период
-
-#define HOUR_SIGNAL_LIFE  12             // Час когда генерится сигнал жизни
 
 #define ATOF_ERROR       -9876543.0f     // Код ошибки преобразования строки во флоат
 
@@ -407,6 +409,8 @@ const char *option_DrainingWaterAfterRegenSoftening={"DAS"};
 const char *option_RegenStart			= {"R"};
 const char *option_LTank_LowConsumeMin	= {"LLM"};
 const char *option_LTank_AfterFilledTimer={"TAF"};
+const char *option_LTank_Night_Low		= {"LNL"};
+const char *option_LTank_Night_Hour		= {"LNH"};
 const char *option_LowConsumeRequestPeriod={"LCP"};
 const char *option_SepticAlarmDebounce  ={"SD"};
 const char prof_DailySwitch[] 	= "DS";

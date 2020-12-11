@@ -849,9 +849,11 @@ boolean MainClass::set_option(char *var, float xx)
    if(strcmp(var,option_PWM_StartingTime)==0){ Option.PWM_StartingTime = x; return true; } else
    if(strcmp(var,option_PWATER_RegMin)==0)   { Option.PWATER_RegMin = rd(xx, 100); return true; } else
    if(strcmp(var,option_LTANK_Empty)==0)     { Option.LTANK_Empty = rd(xx, 100); return true; } else
-   if(strcmp(var,option_LTank_LowConsumeMin)==0)     { Option.LTank_LowConsumeMin = rd(xx, 100); return true; } else
+   if(strcmp(var,option_LTank_LowConsumeMin)==0){ Option.LTank_LowConsumeMin = rd(xx, 100); return true; } else
    if(strcmp(var,option_LTank_AfterFilledTimer)==0){ Option.LTank_AfterFilledTimer = x; return true; } else
-   if(strcmp(var,option_Weight_Low)==0)    { Option.Weight_Low = rd(xx, 100); return true; } else
+   if(strcmp(var,option_LTank_Night_Low)==0) { Option.LTank_Night_Low = rd(xx, 100); return true; } else
+   if(strcmp(var,option_LTank_Night_Hour)==0){ Option.LTank_Night_Hour = x; return true; } else
+   if(strcmp(var,option_Weight_Low)==0)      { Option.Weight_Low = rd(xx, 100); return true; } else
    if(strcmp(var,option_FloodingDebounceTime)==0){ Option.FloodingDebounceTime = x; return true; } else
    if(strcmp(var,option_FloodingTimeout)==0) { Option.FloodingTimeout = x; return true; } else
    if(strcmp(var,option_FillingTankTimeout)==0){ Option.FillingTankTimeout = x; return true; } else
@@ -928,6 +930,8 @@ char* MainClass::get_option(char *var, char *ret)
 	if(strcmp(var,option_PWATER_RegMin)==0){ _dtoa(ret, Option.PWATER_RegMin, 2); return ret; } else
 	if(strcmp(var,option_LTANK_Empty)==0){ _dtoa(ret, Option.LTANK_Empty, 2); return ret; } else
 	if(strcmp(var,option_LTank_LowConsumeMin)==0){ _dtoa(ret, Option.LTank_LowConsumeMin, 2); return ret; } else
+	if(strcmp(var,option_LTank_Night_Low)==0){ _dtoa(ret, Option.LTank_Night_Low, 2); return ret; } else
+	if(strcmp(var,option_LTank_Night_Hour)==0){ return _itoa(Option.LTank_Night_Hour, ret); } else
 	if(strcmp(var,option_Weight_Low)==0){ _dtoa(ret, Option.Weight_Low, 2); return ret; } else
 	if(strcmp(var,option_FloodingDebounceTime)==0){ return _itoa(Option.FloodingDebounceTime, ret); } else
 	if(strcmp(var,option_FloodingTimeout)==0){ return _itoa(Option.FloodingTimeout, ret); } else
