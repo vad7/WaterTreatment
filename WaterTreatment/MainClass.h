@@ -142,6 +142,9 @@ struct type_DailySwitch {
 #define fDontRegenOnWeekend	9				// Не делать регенерацию в выходные
 #define fDebugToJournal		10				// Расширенная отладка в журнал
 #define fDebugToSerial		11				// Расширенная отладка в Serial
+#define fRegenAllowed		12				// Разрешена регенерация обезжелезивателя
+#define fRegenAllowedSoftener 13			// Разрешена регенерация умягчителя
+
 
 // Структура для хранения настроек
 struct type_option {
@@ -173,7 +176,7 @@ struct type_option {
 	uint16_t FloodingDebounceTime;	// сек, Время исключения помех срабатывания датчика протечки
 	uint16_t FloodingTimeout;		// сек, Время ожидания перед началом работы после срабатывания датчика протечки
 	int16_t  PWATER_RegMin;			// сотые бара, Нижний предел давления PWATER при регенерации
-	int16_t  LTANK_Empty;			// сотые %, Низкий уровень воды в баке - нужно включить заполнение бака до максимального
+	int16_t  LTANK_Low;				// сотые %, Низкий уровень воды в баке - нужно включить заполнение бака до максимального
 	uint16_t DrainTime;				// Время слива воды, сек
 	uint16_t FillingTankTimeout;	// сек, Время заполнения бака на FILLING_TANK_STEP % при отсутствии потребления
 	int16_t  Weight_Low;			// сотые %, Низкий уровень реагента, для тревоги
@@ -188,8 +191,8 @@ struct type_option {
 	uint16_t SepticAlarmDebounce;	// Время исключения помех датчика аварии септика, сек
 	uint16_t MinRegenLitersSoftening;// Тревога, если за регенерацию умягчителя израсходовано меньше литров
 	uint16_t MinRegenWeightDecrease;// Тревога, если за регенерацию вес уменьшился меньше, чем задано, граммы
-	uint16_t LTank_Night_Low;		// Низкий уровень ночного заполнения бака, сотые %
-	int8_t   LTank_Night_Hour;		// Час ночного заполнение бака
+	uint16_t LTank_Hour_Low;		// Низкий уровень ночного заполнения бака, сотые %
+	int8_t   LTank_Hour;			// Час ночного заполнение бака
 	uint8_t  _RESERVED_;
 	type_DailySwitch DailySwitch[DAILY_SWITCH_MAX];	// дневное периодическое включение
 };

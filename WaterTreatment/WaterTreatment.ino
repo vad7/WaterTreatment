@@ -1442,7 +1442,7 @@ void vPumps( void * )
 		if(ADC_has_been_read) {		// Не чаще, чем ADC
 			ADC_has_been_read = false;
 			for(uint8_t i = 0; i < ANUMBER; i++) MC.sADC[i].Read();			// Прочитать данные с аналоговых давления
-			tank_empty = tank_empty || (MC.sADC[LTANK].get_Value() < MC.Option.LTANK_Empty);
+			tank_empty = tank_empty || (MC.sADC[LTANK].get_Value() < MC.sADC[LTANK].get_minValue());
 			if(tank_empty) {
 				if(!(CriticalErrors & ERRC_TankEmpty)) vPumpsNewError = ERR_TANK_EMPTY;
 				CriticalErrors |= ERRC_TankEmpty;
@@ -1602,7 +1602,7 @@ xWaterBooster_OFF:
 			Charts_FillTank_work += TIME_SLICE_PUMPS * 100 / 1000; // in percent
 			//taskEXIT_CRITICAL();
 		} else {
-			if(MC.sADC[LTANK].get_Value() <= (MC.sInput[REG_BACKWASH_ACTIVE].get_Input() ? MC.sADC[LTANK].get_maxValue() - FILL_TANK_REGEN_DELTA : LowConsumeMode ? MC.Option.LTank_LowConsumeMin : rtcSAM3X8.get_hours() == MC.Option.LTank_Night_Hour ? MC.Option.LTank_Night_Low : MC.sADC[LTANK].get_minValue())) {
+			if(MC.sADC[LTANK].get_Value() <= (MC.sInput[REG_BACKWASH_ACTIVE].get_Input() ? MC.sADC[LTANK].get_maxValue() - FILL_TANK_REGEN_DELTA : LowConsumeMode ? MC.Option.LTank_LowConsumeMin : rtcSAM3X8.get_hours() == MC.Option.LTank_Hour ? MC.Option.LTank_Hour_Low : MC.Option.LTANK_Low)) {
 				if(!(CriticalErrors & ~ERRC_TankEmpty)) {
 					if(!LowConsumeMode || (!MC.dRelay[RFEEDPUMP].get_Relay() && WaterBoosterStatus == 0)) {
 						if(LowConsumeMode && !(MC.RTC_store.Work & (RTC_Work_Regen_F1 | RTC_Work_Regen_F2))) AfterFilledTimer = MC.Option.LTank_AfterFilledTimer * 1000;
@@ -1731,13 +1731,13 @@ void vService(void *)
 					if((err == ERR_FLOODING || err == ERR_TANK_EMPTY) && Errors[1] == 0) MC.clear_error();
 					if(!(MC.RTC_store.Work & RTC_Work_Regen_MASK) && !LowConsumeMode && rtcSAM3X8.get_hours() == MC.Option.RegenHour) {
 						uint32_t need_regen = 0;
-						if((MC.Option.DaysBeforeRegen && MC.WorkStats.DaysFromLastRegen >= MC.Option.DaysBeforeRegen)
+						if(GETBIT(MC.Option.flags, fRegenAllowed) && ((MC.Option.DaysBeforeRegen && MC.WorkStats.DaysFromLastRegen >= MC.Option.DaysBeforeRegen)
 								|| (MC.Option.UsedBeforeRegen && MC.WorkStats.UsedSinceLastRegen + MC.RTC_store.UsedToday >= MC.Option.UsedBeforeRegen)
-								|| (MC.WorkStats.Flags & WS_F_StartRegen)) {
+								|| (MC.WorkStats.Flags & WS_F_StartRegen))) {
 							need_regen |= RTC_Work_Regen_F1;
-						} else if((MC.Option.DaysBeforeRegenSoftening && MC.WorkStats.DaysFromLastRegenSoftening >= MC.Option.DaysBeforeRegenSoftening)
+						} else if(GETBIT(MC.Option.flags, fRegenAllowedSoftener) && ((MC.Option.DaysBeforeRegenSoftening && MC.WorkStats.DaysFromLastRegenSoftening >= MC.Option.DaysBeforeRegenSoftening)
 								|| (MC.Option.UsedBeforeRegenSoftening && MC.WorkStats.UsedSinceLastRegenSoftening + MC.RTC_store.UsedToday >= MC.Option.UsedBeforeRegenSoftening)
-								|| (MC.WorkStats.Flags & WS_F_StartRegenSoft)) {
+								|| (MC.WorkStats.Flags & WS_F_StartRegenSoft))) {
 							need_regen |= RTC_Work_Regen_F2;
 						}
 						if(need_regen) {

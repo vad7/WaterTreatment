@@ -252,7 +252,14 @@ void readFileSD(char *filename, uint8_t thread)
 		    get_Header(thread,(char*)"settings.txt");
 			get_txtSettings(thread);
 			return;
-		} else if(strcmp(filename, ".bin") == 0) { get_binSettings(thread); return; }
+		} else if(strcmp(filename, ".bin") == 0) {
+			get_binSettings(thread);
+			return;
+		} else if(strcmp(filename, "_eeprom.bin") == 0) {
+			get_binEeprom(thread);
+			return;
+		}
+
 		filename -= 8;
 	}
 	if(strcmp(filename, "journal.txt") == 0) { get_txtJournal(thread); return; }

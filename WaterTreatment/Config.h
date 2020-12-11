@@ -72,7 +72,7 @@ struct History_setup {
 //	#define TEST_BOARD 				// Тестовая плата!
 
     #define CONFIG_NAME   "vad7"
-    #define CONFIG_NOTE   "Обезжелезивание Quantum DMI-65, дозирование хлора, водоснабжение"
+    #define CONFIG_NOTE   "Водоснабжение, Обезжелезивание Quantum DMI-65, Дозирование хлора, Умягчение"
     // Колонна 1354, голова Autotrol 263 + 742 (засыпка 70л Quantum DMI-65)
 	// Дозатор гипохлорита натрия Stenner 45MHP10
     // Насосная станция Wilo HWJ 204-EM-50 (50л)
@@ -182,6 +182,8 @@ struct History_setup {
     #define PIN_ETH_RES			55          // ETH-RES Сброс сетевого чипа w5500 активный low нормально high
 #ifdef TEST_BOARD
 	#define PIN_LED_OK			13          // Зеленый светодиод Выход на светодиод мигает 0.5 герца - ОК  с частотой 2 герца ошибка
+	#undef PIN_SPI_CS_SD
+	#define PIN_SPI_CS_SD		4
 #else
 	#define PIN_LED_OK			42          // Зеленый светодиод Выход на светодиод мигает 0.5 герца - ОК  с частотой 2 герца ошибка
 #endif

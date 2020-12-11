@@ -597,7 +597,9 @@ void MainClass::resetSetting()
 	Option.DaysBeforeRegen = 16;
 	Option.UsedBeforeRegen = 3000;
 	Option.UsedBeforeRegenSoftening = 3500;
-	Option.LTANK_Empty = 500;
+	Option.LTANK_Low = 7000;
+	Option.LTank_Hour_Low = 9500;
+	Option.LTank_Hour = 6;
 	Option.Weight_Low = 500;
 	Option.DrainAfterNoConsume = 12;
 	Option.DrainTime = 15;
@@ -826,6 +828,8 @@ boolean MainClass::set_option(char *var, float xx)
    if(strcmp(var,option_fDontRegenOnWeekend)==0){ Option.flags = (Option.flags & ~(1<<fDontRegenOnWeekend)) | ((x!=0)<<fDontRegenOnWeekend); return true; } else
    if(strcmp(var,option_fDebugToJournal)==0) { Option.flags = (Option.flags & ~(1<<fDebugToJournal)) | (((DebugToJournalOn = x)!=0)<<fDebugToJournal); return true; } else
    if(strcmp(var,option_fDebugToSerial)==0) { Option.flags = (Option.flags & ~(1<<fDebugToSerial)) | ((x!=0)<<fDebugToSerial); return true; } else
+   if(strcmp(var,option_fRegenAllowed)==0) { Option.flags = (Option.flags & ~(1<<fRegenAllowed)) | ((x!=0)<<fRegenAllowed); return true; } else
+   if(strcmp(var,option_fRegenAllowedSoftener)==0) { Option.flags = (Option.flags & ~(1<<fRegenAllowedSoftener)) | ((x!=0)<<fRegenAllowedSoftener); return true; } else
    if(strcmp(var,option_FeedPumpMaxFlow)==0) { Option.FeedPumpMaxFlow = x; return true; } else
    if(strcmp(var,option_BackWashFeedPumpMaxFlow)==0){ Option.BackWashFeedPumpMaxFlow = x; return true; } else
    if(strcmp(var,option_BackWashFeedPumpDelay)==0){ Option.BackWashFeedPumpDelay = x; return true; } else
@@ -848,11 +852,11 @@ boolean MainClass::set_option(char *var, float xx)
    if(strcmp(var,option_PWM_Max)==0)         { Option.PWM_Max = x; return true; } else
    if(strcmp(var,option_PWM_StartingTime)==0){ Option.PWM_StartingTime = x; return true; } else
    if(strcmp(var,option_PWATER_RegMin)==0)   { Option.PWATER_RegMin = rd(xx, 100); return true; } else
-   if(strcmp(var,option_LTANK_Empty)==0)     { Option.LTANK_Empty = rd(xx, 100); return true; } else
+   if(strcmp(var,option_LTANK_Low)==0)     { Option.LTANK_Low = rd(xx, 100); return true; } else
    if(strcmp(var,option_LTank_LowConsumeMin)==0){ Option.LTank_LowConsumeMin = rd(xx, 100); return true; } else
    if(strcmp(var,option_LTank_AfterFilledTimer)==0){ Option.LTank_AfterFilledTimer = x; return true; } else
-   if(strcmp(var,option_LTank_Night_Low)==0) { Option.LTank_Night_Low = rd(xx, 100); return true; } else
-   if(strcmp(var,option_LTank_Night_Hour)==0){ Option.LTank_Night_Hour = x; return true; } else
+   if(strcmp(var,option_LTank_Hour_Low)==0) { Option.LTank_Hour_Low = rd(xx, 100); return true; } else
+   if(strcmp(var,option_LTank_Hour)==0){ Option.LTank_Hour = x; return true; } else
    if(strcmp(var,option_Weight_Low)==0)      { Option.Weight_Low = rd(xx, 100); return true; } else
    if(strcmp(var,option_FloodingDebounceTime)==0){ Option.FloodingDebounceTime = x; return true; } else
    if(strcmp(var,option_FloodingTimeout)==0) { Option.FloodingTimeout = x; return true; } else
@@ -906,6 +910,8 @@ char* MainClass::get_option(char *var, char *ret)
 	if(strcmp(var,option_fDontRegenOnWeekend)==0){ return strcat(ret, (char*)(GETBIT(Option.flags, fDontRegenOnWeekend) ? cOne : cZero)); } else
 	if(strcmp(var,option_fDebugToJournal)==0){ return strcat(ret, (char*)(GETBIT(Option.flags, fDebugToJournal) ? cOne : cZero)); } else
 	if(strcmp(var,option_fDebugToSerial)==0){ return strcat(ret, (char*)(GETBIT(Option.flags, fDebugToSerial) ? cOne : cZero)); } else
+	if(strcmp(var,option_fRegenAllowed)==0){ return strcat(ret, (char*)(GETBIT(Option.flags, fRegenAllowed) ? cOne : cZero)); } else
+	if(strcmp(var,option_fRegenAllowedSoftener)==0){ return strcat(ret, (char*)(GETBIT(Option.flags, fRegenAllowedSoftener) ? cOne : cZero)); } else
 	if(strcmp(var,option_FeedPumpMaxFlow)==0){ return _itoa(Option.FeedPumpMaxFlow, ret); } else
 	if(strcmp(var,option_BackWashFeedPumpMaxFlow)==0){ return _itoa(Option.BackWashFeedPumpMaxFlow, ret); } else
 	if(strcmp(var,option_BackWashFeedPumpDelay)==0){ return _itoa(Option.BackWashFeedPumpDelay, ret); } else
@@ -928,10 +934,10 @@ char* MainClass::get_option(char *var, char *ret)
 	if(strcmp(var,option_PWM_Max)==0){ return _itoa(Option.PWM_Max, ret); } else
 	if(strcmp(var,option_PWM_StartingTime)==0){ return _itoa(Option.PWM_StartingTime, ret); } else
 	if(strcmp(var,option_PWATER_RegMin)==0){ _dtoa(ret, Option.PWATER_RegMin, 2); return ret; } else
-	if(strcmp(var,option_LTANK_Empty)==0){ _dtoa(ret, Option.LTANK_Empty, 2); return ret; } else
+	if(strcmp(var,option_LTANK_Low)==0){ _dtoa(ret, Option.LTANK_Low, 2); return ret; } else
 	if(strcmp(var,option_LTank_LowConsumeMin)==0){ _dtoa(ret, Option.LTank_LowConsumeMin, 2); return ret; } else
-	if(strcmp(var,option_LTank_Night_Low)==0){ _dtoa(ret, Option.LTank_Night_Low, 2); return ret; } else
-	if(strcmp(var,option_LTank_Night_Hour)==0){ return _itoa(Option.LTank_Night_Hour, ret); } else
+	if(strcmp(var,option_LTank_Hour_Low)==0){ _dtoa(ret, Option.LTank_Hour_Low, 2); return ret; } else
+	if(strcmp(var,option_LTank_Hour)==0){ return _itoa(Option.LTank_Hour, ret); } else
 	if(strcmp(var,option_Weight_Low)==0){ _dtoa(ret, Option.Weight_Low, 2); return ret; } else
 	if(strcmp(var,option_FloodingDebounceTime)==0){ return _itoa(Option.FloodingDebounceTime, ret); } else
 	if(strcmp(var,option_FloodingTimeout)==0){ return _itoa(Option.FloodingTimeout, ret); } else

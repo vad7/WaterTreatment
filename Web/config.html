@@ -7,7 +7,7 @@
 <script type='text/javascript' src='scripts.js'></script>
 <script type="text/javascript">
 window.onload = function() {
-	loadParam("get_Opt(FPMF),get_Opt(UBR),get_Opt(RH),get_Opt(NRW),get_Opt(DT),get_Opt(MR),get_Opt(MD),get_Opt(HIST),get_Opt(BEEP),get_Opt(WSPIF),get_Opt(LOGWS),get_Opt(TIME_CHART),get_Opt(PWMLOG),get_Opt(SGL1W_1),get_Opt(SGL1W_2),get_Opt(SGL1W_3),get_Opt(SGL1W_4),get_Opt(TD),get_Opt(TDS),get_Opt(TAF),get_Opt(LLM),get_Opt(DAR),get_Opt(DBRS),get_Opt(LCP),get_Opt(SD),get_Opt(DAS),get_Opt(MRS),get_Opt(MRW),get_Opt(LNH),get_Opt(LNL)");
+	loadParam("get_Opt(FPMF),get_Opt(UBR),get_Opt(RH),get_Opt(NRW),get_Opt(DT),get_Opt(MR),get_Opt(MD),get_Opt(HIST),get_Opt(BEEP),get_Opt(WSPIF),get_Opt(LOGWS),get_Opt(TIME_CHART),get_Opt(PWMLOG),get_Opt(SGL1W_1),get_Opt(SGL1W_2),get_Opt(SGL1W_3),get_Opt(SGL1W_4),get_Opt(TD),get_Opt(TDS),get_Opt(TAF),get_Opt(LLM),get_Opt(DAR),get_Opt(DBRS),get_Opt(LCP),get_Opt(SD),get_Opt(DAS),get_Opt(MRS),get_Opt(MRW),get_Opt(LH),get_Opt(LHL)");
 	loadParam("get_Opt(MWBT),get_Opt(MWBTF),get_Opt(MPOT),get_Opt(DR),get_Opt(PM),get_Opt(PST),get_WSRC,get_WSRSC,get_WST,get_Opt(WRM),get_Opt(TE),get_Opt(FDT),get_Opt(FT),get_Opt(FTT),get_Opt(UBRS),get_Opt(DBR),get_Opt(WE),get_Opt(CET),get_Opt(DA),get_Opt(BWFD),get_Opt(BWMF),LowConsume_Req");
 }; 
 function show_all() {
@@ -72,12 +72,33 @@ function show_all() {
 			<td><input type="checkbox" id="get_opt-nrw" onChange="setParam('get_Opt(NRW)');"></td>
 		</tr>
 		<tr>
+			<td>Автоматически запускать регенерацию обезжелезивателя</td>
+			<td><input type="checkbox" id="get_opt-ra1" onChange="setParam('get_Opt(RA1)');"></td>
+		</tr>
+		<tr>
 			<td>Дней до регенерации обезжелезивателя</td>
 			<td nowrap><input id="get_opt-dbr" type="number"> <input type="submit" value=">" onclick="setParam('get_Opt(DBR)');"></td>
 		</tr>
 		<tr>
 			<td>Количество литров до регенерации обезжелезивателя</td>
 			<td nowrap><input id="get_opt-ubr" type="number"> <input type="submit" value=">" onclick="setParam('get_Opt(UBR)');"></td>
+		</tr>
+		<tr>
+			<td>Во время обратной промывки - максимальный проток дозатора, лч</td>
+			<td nowrap><input id="get_opt-bwmf" type="number"> <input type="submit" value=">" onclick="setParam('get_Opt(BWMF)');"></td>
+		</tr>
+		<tr>
+			<td>Во время обратной промывки - задержка включения дозатора, сек</td>
+			<td nowrap><input id="get_opt-bwfd" type="number"> <input type="submit" value=">" onclick="setParam('get_Opt(BWFD)');"></td>
+		</tr>
+		<tr>
+			<td>Время сброса воды после регенерации обезжелезивателя, сек</td>
+			<td nowrap><input id="get_opt-dar" type="number"> <input type="submit" value=">" onclick="setParam('get_Opt(DAR)');"></td>
+		</tr>
+
+		<tr>
+			<td>Автоматически запускать регенерацию умягчителя</td>
+			<td><input type="checkbox" id="get_opt-ra2" onChange="setParam('get_Opt(RA2)');"></td>
 		</tr>
 		<tr>
 			<td>Дней до регенерации умягчителя</td>
@@ -88,18 +109,6 @@ function show_all() {
 			<td nowrap><input id="get_opt-ubrs" type="number"> <input type="submit" value=">" onclick="setParam('get_Opt(UBRS)');"></td>
 		</tr>
 		<tr>
-			<td>Задержка включения дозатора во время обратной промывки, сек</td>
-			<td nowrap><input id="get_opt-bwfd" type="number"> <input type="submit" value=">" onclick="setParam('get_Opt(BWFD)');"></td>
-		</tr>
-		<tr>
-			<td>Во время обратной промывки - максимальный проток дозатора, лч</td>
-			<td nowrap><input id="get_opt-bwmf" type="number"> <input type="submit" value=">" onclick="setParam('get_Opt(BWMF)');"></td>
-		</tr>
-		<tr>
-			<td>Время сброса воды после регенерации обезжелезивателя, сек</td>
-			<td nowrap><input id="get_opt-dar" type="number"> <input type="submit" value=">" onclick="setParam('get_Opt(DAR)');"></td>
-		</tr>
-		<tr>
 			<td>Время сброса воды после регенерации умягчителя, сек</td>
 			<td nowrap><input id="get_opt-das" type="number"> <input type="submit" value=">" onclick="setParam('get_Opt(DAS)');"></td>
 		</tr>
@@ -107,28 +116,28 @@ function show_all() {
 			<td><b>Аналоговые датчики</b></td><td></td>
 		</tr>
 		<tr>
-			<td>Нижний предел давления при регенерации, бар</td>
-			<td nowrap><input id="get_opt-wrm" type="number" step="0.01"> <input type="submit" value=">" onclick="setParam('get_Opt(WRM)');"></td>
+			<td>Нижний уровень бака для начала его заполнения, %</td>
+			<td nowrap><input id="get_opt-te" type="number" step="0.01"> <input type="submit" value=">" onclick="setParam('get_Opt(TE)');"></td>
 		</tr>
 		<tr>
-			<td>Нижний уровень бака для начала заполнения при работе от резерва, %</td>
+			<td>Нижний уровень бака для начала его заполнения при работе от резерва, %</td>
 			<td nowrap><input id="get_opt-llm" type="number" step="0.01"> <input type="submit" value=">" onclick="setParam('get_Opt(LLM)');"></td>
 		</tr>
 		<tr>
-			<td>Час специального нижнего уровня бака для заполнения</td>
-			<td nowrap><input id="get_opt-lnh" type="number"> <input type="submit" value=">" onclick="setParam('get_Opt(LNH)');"></td>
+			<td>Час специального нижнего уровня бака для начала его заполнения (0..23)</td>
+			<td nowrap><input id="get_opt-lh" type="number"> <input type="submit" value=">" onclick="setParam('get_Opt(LH)');"></td>
 		</tr>
 		<tr>
-			<td>Нижний уровень бака для начала заполнения в специальный час, %</td>
-			<td nowrap><input id="get_opt-lnl" type="number" step="0.01"> <input type="submit" value=">" onclick="setParam('get_Opt(LNL)');"></td>
-		</tr>
-		<tr>
-			<td>Уровень пустого бака - авария, %</td>
-			<td nowrap><input id="get_opt-te" type="number" step="0.01"> <input type="submit" value=">" onclick="setParam('get_Opt(TE)');"></td>
+			<td>Нижний уровень бака для начала его заполнения в специальный час, %</td>
+			<td nowrap><input id="get_opt-lhl" type="number" step="0.01"> <input type="submit" value=">" onclick="setParam('get_Opt(LHL)');"></td>
 		</tr>
 		<tr>
 			<td>Низкий уровень реагента - авария, %</td>
 			<td nowrap><input id="get_opt-we" type="number" step="0.01"> <input type="submit" value=">" onclick="setParam('get_Opt(WE)');"></td>
+		</tr>
+		<tr>
+			<td>Нижний предел давления при регенерации, бар</td>
+			<td nowrap><input id="get_opt-wrm" type="number" step="0.01"> <input type="submit" value=">" onclick="setParam('get_Opt(WRM)');"></td>
 		</tr>
 		<tr>
 			<td><b>Защиты</b></td><td></td>
