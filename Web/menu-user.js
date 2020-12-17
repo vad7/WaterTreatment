@@ -1,4 +1,4 @@
-document.write('<a href="index.html" class="logo"></a>');
+document.write('<a href="plan.html" class="logo"></a>');
 document.write('\
 <div class="menu-profiles">\
 	<b><span id="get_mode"></span></b><br>\
