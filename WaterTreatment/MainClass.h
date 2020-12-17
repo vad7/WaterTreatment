@@ -46,6 +46,7 @@ struct type_WorkStats {
 
 #define WS_F_StartRegen				0x01
 #define WS_F_StartRegenSoft			0x02
+#define WS_F_MASK					0x3F
 #define WS_F_bNeedRegen				6		// Зарезервировано для вывода в веб
 #define WS_F_bNeedRegenSoft			7		// Зарезервировано для вывода в веб
 #define WS_AVERAGE_DAYS				100		// После этого начнется новый отсчет, предыдущее среднее значение будет взято как первое значение.

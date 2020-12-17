@@ -17,7 +17,7 @@ window.onload = function() {
 	updateParam("get_tblErr");
 };
 function SwRegen(r) {
-	var v = Number(document.getElementById("get_wsf").innerText);
+	var v = Number(document.getElementById("get_wsf").innerText) & 0x3F;
 	if(confirm(((v & r) ? "Отменить" : "Запланировать") + " регенерацию " + (r==1 ? "обезжелезивателя?" : "умягчителя?"))) loadParam("set_WSF=" + r);
 }
 function loadParam_after(paramid) {

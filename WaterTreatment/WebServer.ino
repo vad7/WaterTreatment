@@ -771,7 +771,7 @@ xSaveStats:		if((i = MC.save_WorkStats()) == OK)
 				}
 			} else if(*str == webWS_Flags) {
 				if(i) {
-					MC.WorkStats.Flags ^= l_i32; 		// set_WSF=x (XOR x)
+					MC.WorkStats.Flags ^= l_i32 & WS_F_MASK; 		// set_WSF=x (XOR x)
 					NeedSaveWorkStats = 1;
 				}
 				l_i32 = MC.WorkStats.Flags | (MC.get_NeedRegen() << WS_F_bNeedRegen) | (MC.get_NeedRegenSoftening() << WS_F_bNeedRegenSoft);
