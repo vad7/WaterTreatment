@@ -1731,13 +1731,9 @@ void vService(void *)
 					if((err == ERR_FLOODING || err == ERR_TANK_EMPTY) && Errors[1] == 0) MC.clear_error();
 					if(!(MC.RTC_store.Work & RTC_Work_Regen_MASK) && !LowConsumeMode && rtcSAM3X8.get_hours() == MC.Option.RegenHour) {
 						uint32_t need_regen = 0;
-						if(GETBIT(MC.Option.flags, fRegenAllowed) && ((MC.Option.DaysBeforeRegen && MC.WorkStats.DaysFromLastRegen >= MC.Option.DaysBeforeRegen)
-								|| (MC.Option.UsedBeforeRegen && MC.WorkStats.UsedSinceLastRegen + MC.RTC_store.UsedToday >= MC.Option.UsedBeforeRegen)
-								|| (MC.WorkStats.Flags & WS_F_StartRegen))) {
+						if(MC.get_NeedRegen() || (MC.WorkStats.Flags & WS_F_StartRegen)) {
 							need_regen |= RTC_Work_Regen_F1;
-						} else if(GETBIT(MC.Option.flags, fRegenAllowedSoftener) && ((MC.Option.DaysBeforeRegenSoftening && MC.WorkStats.DaysFromLastRegenSoftening >= MC.Option.DaysBeforeRegenSoftening)
-								|| (MC.Option.UsedBeforeRegenSoftening && MC.WorkStats.UsedSinceLastRegenSoftening + MC.RTC_store.UsedToday >= MC.Option.UsedBeforeRegenSoftening)
-								|| (MC.WorkStats.Flags & WS_F_StartRegenSoft))) {
+						} else if(MC.get_NeedRegenSoftening() || (MC.WorkStats.Flags & WS_F_StartRegenSoft)) {
 							need_regen |= RTC_Work_Regen_F2;
 						}
 						if(need_regen) {

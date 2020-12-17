@@ -41,11 +41,13 @@ struct type_WorkStats {
 	uint16_t UsedLastRegen;			// Liters
 	uint16_t RegCntSoftening;
 	uint16_t UsedLastRegenSoftening;// Liters
-	uint8_t  Flags;
+	uint8_t  Flags;					// WS_F_*
 } __attribute__((packed));
 
 #define WS_F_StartRegen				0x01
 #define WS_F_StartRegenSoft			0x02
+#define WS_F_bNeedRegen				6		// Зарезервировано для вывода в веб
+#define WS_F_bNeedRegenSoft			7		// Зарезервировано для вывода в веб
 #define WS_AVERAGE_DAYS				100		// После этого начнется новый отсчет, предыдущее среднее значение будет взято как первое значение.
 
 #define RTC_Work_WeekDay_MASK		0x07	// Active weekday (1-7)
@@ -264,6 +266,14 @@ public:
     void   set_testMode(TEST_MODE t);    // Установить значение текущий режим работы
     void   StateToStr(char * ret);                 // Получить состояние в виде строки
     char  *TestToStr();                  // Получить режим тестирования
+    inline bool get_NeedRegen(void) {
+		return GETBIT(Option.flags, fRegenAllowed) && ((Option.DaysBeforeRegen && WorkStats.DaysFromLastRegen >= Option.DaysBeforeRegen)
+				|| (Option.UsedBeforeRegen && WorkStats.UsedSinceLastRegen + RTC_store.UsedToday >= Option.UsedBeforeRegen));
+    }
+    inline bool get_NeedRegenSoftening(void) {
+    	return GETBIT(Option.flags, fRegenAllowedSoftener) && ((Option.DaysBeforeRegenSoftening && WorkStats.DaysFromLastRegenSoftening >= Option.DaysBeforeRegenSoftening)
+    			|| (Option.UsedBeforeRegenSoftening && WorkStats.UsedSinceLastRegenSoftening + RTC_store.UsedToday >= Option.UsedBeforeRegenSoftening));
+    }
 
 	uint32_t get_errorReadTemp();       // Получить число ошибок чтения датчиков температуры
 	void     Reset_TempErrors();		// Сбросить счетчик ошибок всех датчиков

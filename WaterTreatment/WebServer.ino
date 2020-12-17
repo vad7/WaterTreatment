@@ -774,7 +774,8 @@ xSaveStats:		if((i = MC.save_WorkStats()) == OK)
 					MC.WorkStats.Flags ^= l_i32; 		// set_WSF=x (XOR x)
 					NeedSaveWorkStats = 1;
 				}
-				_itoa(MC.WorkStats.Flags, strReturn);	// get_WSF
+				l_i32 = MC.WorkStats.Flags | (MC.get_NeedRegen() << WS_F_bNeedRegen) | (MC.get_NeedRegenSoftening() << WS_F_bNeedRegenSoft);
+				_itoa(l_i32, strReturn);	// get_WSF
 			}
 			ADD_WEBDELIM(strReturn); continue;
 		}
