@@ -404,7 +404,8 @@ void Statistics::Update()
 			Stats_FeedPump_work = 0;
 			break;
 		case STATS_OBJ_BrineWeight:
-			newval = Weight_value;
+			newval = Weight_value / 10;
+			if(newval < 0) newval = 0;
 			break;
 		}
 		switch(Stats_data[i].type){
@@ -493,7 +494,7 @@ void Statistics::History()
 				break;
 			}
 		case STATS_OBJ_BrineWeight: {
-				int_to_dec_str(Weight_value, 10, &buf, 0); // kg, M (/1000)
+				int_to_dec_str(Weight_value < 0 ? 0 : Weight_value, 10, &buf, 0); // kg, M (/1000)
 				break;
 			}
 		case STATS_OBJ_Level: {
