@@ -14,12 +14,22 @@ document.write('<ul class="cd-accordion-menu">\
 	</ul>\
 </li>\
 <li class="about"><a href="about.html"><i></i>О контроллере</a></li>\
-<li class="login"><a href="lan.html" onclick="NeedLogin=1"><i></i>Логин</a></li>\
+<li class="login"><a href="lan.html" onclick="login();"><i></i>Логин</a></li>\
 </ul>');
 document.write('\
 <div class="dateinfo">\
 	<div id="get_status"></div>\
 </div>');
+function login()
+{
+	NeedLogin = 1;
+	//var sstor = window.sessionStorage;
+	var meta = document.createElement('meta');
+	meta.httpEquiv = "Expires";
+	meta.content = "-1";
+	document.getElementsByTagName('head')[0].appendChild(meta);
+//	location.reload(1);
+};
 var extract = new RegExp('[a-z0-9-]+\.html');
 var pathname = location.pathname;
 pathmath = pathname.match(extract);
