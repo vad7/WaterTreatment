@@ -1744,19 +1744,11 @@ void vService(void *)
 #endif
 							{
 								if((need_regen & RTC_Work_Regen_F1) && !MC.dRelay[RSTARTREG].get_Relay()) {
-									if(MC.WorkStats.Flags & WS_F_StartRegen) {
-										MC.WorkStats.Flags &= ~WS_F_StartRegen;
-										NeedSaveWorkStats = 1;
-									}
 									MC.dRelay[RWATEROFF].set_ON();
 									MC.dRelay[RSTARTREG].set_ON();
 									journal.jprintf_date("Regen F1 start\n");
 									if(RegenStarted == 0) RegenStarted = rtcSAM3X8.unixtime();
 								} else if((need_regen & RTC_Work_Regen_F2) && !MC.dRelay[RSTARTREG2].get_Relay()) {
-									if(MC.WorkStats.Flags & WS_F_StartRegenSoft) {
-										MC.WorkStats.Flags &= ~WS_F_StartRegenSoft;
-										NeedSaveWorkStats = 1;
-									}
 									MC.dRelay[RSTARTREG2].set_ON();
 									journal.jprintf_date("Regen F2 start\n");
 									if(RegenStarted == 0) RegenStarted = rtcSAM3X8.unixtime();
@@ -1803,6 +1795,10 @@ void vService(void *)
 							}
 							RegenStarted = 0;
 						} else if(NewRegenStatus) {
+							if(MC.WorkStats.Flags & WS_F_StartRegen) {
+								MC.WorkStats.Flags &= ~WS_F_StartRegen;
+								NeedSaveWorkStats = 1;
+							}
 							journal.jprintf_date("Regen F1 begin\n");
 							NewRegenStatus = false;
 						}
@@ -1829,6 +1825,10 @@ void vService(void *)
 							}
 							RegenStarted = 0;
 						} else if(NewRegenStatus) {
+							if(MC.WorkStats.Flags & WS_F_StartRegenSoft) {
+								MC.WorkStats.Flags &= ~WS_F_StartRegenSoft;
+								NeedSaveWorkStats = 1;
+							}
 							journal.jprintf_date("Regen F2 begin\n");
 							NewRegenStatus = false;
 						}

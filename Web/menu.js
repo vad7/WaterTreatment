@@ -14,7 +14,7 @@ document.write('\
 		<li class="history"><a href="history.html">Детально</a></li>\
 	</ul>\
 </li>\
-<li class="setsensors sensorst sensorsp relay has-children">\
+<li name="USR"  class="setsensors sensorst sensorsp relay has-children">\
 	<input type="checkbox" name="group-3" id="group-3">\
 	<label for="group-3"><i></i>Конфигурация</label>\
 	<ul>\
@@ -24,7 +24,7 @@ document.write('\
 		<li class="setsensors"><a href="setsensors.html">Привязка датчиков</a></li>\
 	</ul>\
 </li>\
-<li class="lan config system files time notice mqtt const has-children">\
+<li name="USR" class="lan config system files time notice mqtt const has-children">\
 	<input type="checkbox" name="group-4" id="group-4">\
 	<label for="group-4"><i></i>Сервис</label>\
 	<ul>\
@@ -38,7 +38,7 @@ document.write('\
 		<li class="files"><a href="files.html">Файлы</a></li>\
 	</ul>\
 </li>\
-<li class="charts test modbus log freertos has-children">\
+<li name="USR" class="charts test modbus log freertos has-children">\
 	<input type="checkbox" name="group-5" id="group-5">\
 	<label for="group-5"><i></i>Отладка</label>\
 	<ul>\
@@ -50,6 +50,7 @@ document.write('\
 	</ul>\
 </li>\
 <li class="about"><a href="about.html"><i></i>О контроллере</a></li>\
+<li name="USR" id="mlogin" hidden><a href="planf.html" onclick="NeedLogin=1"><i></i>Логин</a></li>\
 </ul>');
 document.write('\
 <div class="dateinfo">\
@@ -62,5 +63,6 @@ if(!pathmath) {var activeli = document.body.className;} else {var activeli = pat
 var elements = document.getElementsByClassName(activeli);
 var countElements = elements.length;
 for(i=0;i<countElements;i++){document.getElementsByClassName(activeli)[i].classList.add("active");}
+loadParam("USR");
 updateParam("get_status,get_MODE");
 window.onscroll = function() { autoheight(); }
