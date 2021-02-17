@@ -26,7 +26,7 @@ struct type_WebSecurity
 	uint8_t len;
 	char *hash;
 };
-void calc_WebSec_hash(type_WebSecurity *ws, char *login, char *pass);
+void calc_WebSec_hash(type_WebSecurity *ws, char *login, char *pass, char *buf);
 
 uint16_t calc_crc16(unsigned char * pcBlock, unsigned short len, uint16_t crc = 0xFFFF);
 void    int_to_dec_str(int32_t value, int32_t div, char **ret, uint8_t maxfract);
