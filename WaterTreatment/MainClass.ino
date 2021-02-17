@@ -650,8 +650,8 @@ boolean MainClass::set_network(char *var, char *c)
 	                                    else if (x == 1) {SETBIT1(Network.flags,fPass);  return true;}
 	                                    else return false;
 	                                    }else
-	 if(strcmp(var,net_PASSUSER)==0){    strcpy(Network.passUser,c);set_hashUser(); return true;   }else
-	 if(strcmp(var,net_PASSADMIN)==0){   strcpy(Network.passAdmin,c);set_hashAdmin(); return true; }else
+	 if(strcmp(var,net_PASSUSER)==0){    strcpy(Network.passUser,c); calc_WebSec_hash(&WebSec_user, (char*)NAME_USER, Network.passUser); return true; }else
+	 if(strcmp(var,net_PASSADMIN)==0){   strcpy(Network.passAdmin,c); calc_WebSec_hash(&WebSec_admin, (char*)NAME_ADMIN, Network.passAdmin); return true; }else
 	 if(strcmp(var, net_fWebLogError) == 0) { Network.flags = (Network.flags & ~(1<<fWebLogError)) | ((x == 1)<<fWebLogError); return true; } else
 	 if(strcmp(var, net_fWebFullLog) == 0) { Network.flags = (Network.flags & ~(1<<fWebFullLog)) | ((x == 1)<<fWebFullLog); return true; } else
 	 if(strcmp(var,net_SIZE_PACKET)==0){
@@ -1098,31 +1098,6 @@ void MainClass::get_Chart(char *var, char* str)
 	} else if(strcmp(var, chart_BrineWeight) == 0) {
 		ChartBrineWeight.get_PointsStrDiv100(str);
 	}
-}
-
-// расчитать хеш для пользователя возвращает длину хеша
-uint8_t MainClass::set_hashUser()
-{
-	char buf[20];
-	strcpy(buf, NAME_USER);
-	strcat(buf, ":");
-	strcat(buf, Network.passUser);
-	base64_encode(Security.hashUser, buf, strlen(buf));
-	Security.hashUserLen = strlen(Security.hashUser);
-	journal.jprintfopt(" Hash user: %s\n", Security.hashUser);
-	return Security.hashUserLen;
-}
-// расчитать хеш для администратора возвращает длину хеша
-uint8_t MainClass::set_hashAdmin()
-{
-	char buf[20];
-	strcpy(buf, NAME_ADMIN);
-	strcat(buf, ":");
-	strcat(buf, Network.passAdmin);
-	base64_encode(Security.hashAdmin, buf, strlen(buf));
-	Security.hashAdminLen = strlen(Security.hashAdmin);
-	journal.jprintfopt(" Hash admin: %s\n", Security.hashAdmin);
-	return Security.hashAdminLen;
 }
 
 // --------------------------------------------------------------------------------------------------------

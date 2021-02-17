@@ -584,6 +584,26 @@ uint8_t initSpiDisk(boolean)
 #endif
 }
 
+// расчитать хеш для пользователя
+void calc_WebSec_hash(type_WebSecurity *ws, char *login, char *pass)
+{
+	char buf[64];
+	char outbuf[128];
+	journal.jprintf(" Hash %s: ", login);
+	strcpy(buf, login);
+	strcat(buf, ":");
+	strcat(buf, pass);
+	base64_encode(outbuf, buf, strlen(buf));
+	ws->len = strlen(outbuf);
+	ws->hash = (char*)malloc(ws->len + 1);
+	if(!ws->hash) journal.jprintf(" MEMORY LOW!\n");
+	else {
+		memcpy(ws->hash, outbuf, ws->len);
+		*(ws->hash + ws->len) = '\0';
+		journal.jprintf("%s\n", ws->hash);
+	}
+}
+
 // base64 -хеш функция ------------------------------------------------------------------------------------------------
 /* Copyright (c) 2013 Adam Rudd. */
 const char b64_alphabet[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"

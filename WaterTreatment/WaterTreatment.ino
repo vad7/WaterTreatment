@@ -413,8 +413,8 @@ x_I2C_init_std_message:
 	}
 
 	// обновить хеш для пользователей
-	MC.set_hashUser();
-	MC.set_hashAdmin();
+	calc_WebSec_hash(&WebSec_user, (char*)NAME_USER, MC.get_passUser());
+	calc_WebSec_hash(&WebSec_admin, (char*)NAME_ADMIN, MC.get_passAdmin());
 
 	// 7. Инициализация СД карты и запоминание результата 3 попытки
 	journal.jprintfopt("* Init SD card\n");

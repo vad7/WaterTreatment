@@ -132,6 +132,9 @@ struct type_DailySwitch {
 	uint8_t TimeOff;				// Время выключения hh:m0
 } __attribute__((packed));
 
+type_WebSecurity WebSec_user;				// хеш паролей
+type_WebSecurity WebSec_admin;				// хеш паролей
+
 // type_option.flags
 #define fWebStoreOnSPIFlash 0				// флаг, что веб морда лежит на SPI Flash, иначе на SD карте
 #define fBeep               1               // флаг Использование звука
@@ -311,9 +314,6 @@ public:
 	//  inline uint16_t get_sizePacket() {return Network.sizePacket;} // Получить размер пакета при передаче
 	inline uint16_t get_sizePacket() {return 2048;} // Получить размер пакета при передаче
 
-	uint8_t set_hashUser();                               // расчитать хеш для пользователя возвращает длину хеша
-	uint8_t set_hashAdmin();                              // расчитать хеш для администратора возвращает длину хеша
-
 	// Дата время
 	boolean set_datetime(char *var, char *c);              //  Установить параметр дата и время из строки
 	void    get_datetime(char *var,char *ret);             //  Получить параметр дата и время из строки
@@ -334,6 +334,7 @@ public:
 	boolean get_NoPing() { return GETBIT(Network.flags,fNoPing);} //  Получить флаг блокировки пинга
 	char *  get_netMAC() {return MAC2String(Network.mac);}  //  получить мас адрес контроллера
 	inline  char* get_passUser() { return Network.passUser; }
+	inline  char* get_passAdmin() { return Network.passAdmin; }
 
 	boolean get_DHCP() { return GETBIT(Network.flags,fDHCP);}    //  Получить использование DHCP
 	byte *get_mac() { return Network.mac;}                 //  Получить mac адрес

@@ -1998,8 +1998,9 @@ uint16_t GetRequestedHttpResource(uint8_t thread)
 		if(str) str += sizeof(header_Authorization_1) - 1;
 		else if((str = strstr((char*)Socket[thread].inBuf, header_Authorization_2))) str += sizeof(header_Authorization_2) - 1;
 		if(str) {
-			if(strncmp(str, MC.Security.hashAdmin, MC.Security.hashAdminLen) == 0) goto x_ok;
-			else if(strncmp(str, MC.Security.hashUser, MC.Security.hashUserLen) == 0 || !*MC.get_passUser()) SETBIT1(Socket[thread].flags, fUser); else return BAD_LOGIN_PASS;
+			if(strncmp(str, WebSec_admin.hash, WebSec_admin.len) == 0) goto x_ok;
+			else if(!MC.get_passUser() || strncmp(str, WebSec_user.hash, WebSec_user.len) == 0) SETBIT1(Socket[thread].flags, fUser);
+			else return BAD_LOGIN_PASS;
 		} else if(!*MC.get_passUser()) SETBIT1(Socket[thread].flags, fUser); else return UNAUTHORIZED;
 	}
 x_ok:
