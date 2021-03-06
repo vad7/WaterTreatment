@@ -33,7 +33,8 @@ enum {
 	STATS_TYPE_AVG,
 	STATS_TYPE_MAX,
 	STATS_TYPE_SUM,
-	STATS_TYPE_TIME // Time, ms
+	STATS_TYPE_TIME, // Time, ms
+	STATS_TYPE_DELTA // with previous value
 };
 
 struct Stats_Data {
@@ -477,7 +478,8 @@ struct History_setup {
 		{ 0, STATS_OBJ_Power, STATS_TYPE_MAX },
 		{ 0, STATS_OBJ_Voltage, STATS_TYPE_MIN },
 		{ 0, STATS_OBJ_Voltage, STATS_TYPE_MAX },
-		{ 0, STATS_OBJ_WaterRegenSoftening, STATS_TYPE_SUM }
+		{ 0, STATS_OBJ_WaterRegenSoftening, STATS_TYPE_SUM },
+		{ 0, STATS_OBJ_BrineWeight, STATS_TYPE_DELTA }
 	};
 
 	// История (графики)

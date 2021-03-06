@@ -1294,7 +1294,8 @@ xSaveStats:		if((i = MC.save_WorkStats()) == OK)
 			{
 				if (MC.set_network(x,z))  MC.get_network(x,strReturn);     // преобразование удачно
 				else strcat(strReturn,"E15") ; // ошибка преобразования строки
-				ADD_WEBDELIM(strReturn) ; continue;
+				ADD_WEBDELIM(strReturn);
+				break;
 			}
 
 			//11.  Графики смещение  используется в одной функции get_Chart -------------------------------------------

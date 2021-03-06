@@ -73,7 +73,7 @@ public:
 	void	Init(uint8_t newyear = 0);
 	void	Update();										// Обновить статистику, раз в период
 	void	UpdateEnergy();									// Обновить энергию и COP, вызывается часто
-	void	Reset();										// Сбросить накопленные промежуточные значения
+	void	Reset(bool newday);								// Сбросить накопленные промежуточные значения
 	int8_t	SaveStats(uint8_t newday);						// Записать статистику на SD
 	int8_t 	SaveHistory(uint8_t from_web);					// Записать буфер истории на SD
 	void	StatsFileHeader(char *buffer, uint8_t flag);	// Возвращает файл с заголовками полей

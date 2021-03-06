@@ -168,7 +168,7 @@ void Statistics::Error(const char *text, uint8_t what)
 
 void Statistics::Init(uint8_t newyear)
 {
-	if(!newyear) Reset();
+	if(!newyear) Reset(false);
 	HistoryCurrentBlock = 0;
 	HistoryBlockCreating = 0;
 	year = rtcSAM3X8.get_years();
@@ -318,7 +318,7 @@ void Statistics::CheckCreateNewFile()
 }
 
 // Сбросить накопленные промежуточные значения
-void Statistics::Reset()
+void Statistics::Reset(bool newday)
 {
 #ifndef TEST_BOARD
 	if(MC.get_testMode() > STAT_TEST) return;
@@ -330,6 +330,11 @@ void Statistics::Reset()
 			break;
 		case STATS_TYPE_MAX:
 			Stats_data[i].value = MIN_INT32_VALUE;
+			break;
+		case STATS_TYPE_DELTA:
+			if(newday) {
+				if(Stats_data[i].object == STATS_OBJ_BrineWeight) Stats_data[i].value = Weight_value / 10;
+			}
 			break;
 		default:
 			Stats_data[i].value = 0;
@@ -352,8 +357,7 @@ void Statistics::Update()
 	uint32_t tm = GetTickCount() - previous;
 	previous = GetTickCount();
 	if(rtcSAM3X8.get_days() != day) {
-		SaveStats(2);
-		Reset();
+		Reset(SaveStats(2) == OK);
 		if(year != rtcSAM3X8.get_years()) NewYearFlag = 1; // waiting to switch a next year
 	}
 	int32_t newval = 0;
@@ -421,6 +425,8 @@ void Statistics::Update()
 			break;
 		case STATS_TYPE_TIME:
 			Stats_data[i].value += tm;
+			break;
+		case STATS_TYPE_DELTA:
 			break;
 		}
 	}
@@ -630,6 +636,9 @@ void Statistics::StatsFieldHeader(char *ret, uint8_t i, uint8_t flag)
 	case STATS_TYPE_AVG:
 		strcat(ret, " (Сред)");
 		break;
+	case STATS_TYPE_DELTA:
+		strcat(ret, " (Δ)");
+		break;
 	}
 }
 
@@ -674,6 +683,9 @@ xSkipEmpty:
 		int_to_dec_str(val, 1, ret, 0);
 		break;
 	case STATS_OBJ_BrineWeight:				// kg
+		if(Stats_data[i].type == STATS_TYPE_DELTA) {
+			val = Weight_value / 10 - val;
+		}
 	case STATS_OBJ_Flow:					// m3h
 		int_to_dec_str(val, 1000, ret, 3);
 		break;
