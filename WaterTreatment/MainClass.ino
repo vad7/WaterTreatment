@@ -119,7 +119,8 @@ void MainClass::clear_all_errors()
 	CriticalErrors = 0;
 	MC.clear_error();
 	// Water ON
-	MC.dRelay[RWATEROFF].set_OFF();
+	MC.dRelay[RWATEROFF1].set_OFF();
+	MC.dRelay[RWATERON].set_ON();
 }
 
 // Получить число ошибок чтения ВСЕХ датчиков темпеартуры

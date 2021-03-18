@@ -103,6 +103,7 @@ bool     LowConsumeMode = false; //
 int32_t  AfterFilledTimer = 0;
 uint32_t Request_LowConsume;
 uint32_t RegenStarted = 0;
+int16_t  RWATERON_Switching = 0; // >0 - в процессе переключения, <0 - задержка включения, сек
 
 // Weight
 //bool Weight_NeedRead = false; // allways

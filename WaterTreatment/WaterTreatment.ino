@@ -1495,14 +1495,16 @@ void vPumps( void * )
 					TimerDrainingWaterAfterRegen = 0;
 				}
 				MC.dRelay[RFEEDPUMP].set_OFF();
-				MC.dRelay[RWATEROFF].set_ON();
+				MC.dRelay[RWATEROFF1].set_ON();
+				MC.dRelay[RWATERON].set_OFF();
 				CriticalErrors |= ERRC_Flooding;
 				if(WaterBoosterStatus > 0) goto xWaterBooster_GO_OFF;
 			}
 		} else {
 			if(CriticalErrors & ERRC_Flooding) {
 				if(GetTickCount() - FloodingTime > (uint32_t) MC.Option.FloodingTimeout * 1000) {
-					MC.dRelay[RWATEROFF].set_OFF();
+					MC.dRelay[RWATEROFF1].set_OFF();
+					MC.dRelay[RWATERON].set_ON();
 					CriticalErrors &= ~ERRC_Flooding;
 					FloodingTime = 0;
 				}
@@ -1512,7 +1514,8 @@ void vPumps( void * )
 			if(++SepticAlarmTime > MC.Option.SepticAlarmDebounce * 1000 / TIME_SLICE_PUMPS) {
 				vPumpsNewError = ERR_SEPTIC_ALARM;
 				CriticalErrors |= ERRC_SepticAlarm;
-				MC.dRelay[RWATEROFF].set_ON();
+				MC.dRelay[RWATEROFF1].set_ON();
+				MC.dRelay[RWATERON].set_OFF();
 				SepticAlarmTime = 0;
 			}
 		} else SepticAlarmTime = 0;
@@ -1623,7 +1626,8 @@ xWaterBooster_OFF:
 			}
 			if(!(MC.RTC_store.Work & RTC_Work_Regen_F1)) { // Started?
 				MC.RTC_store.Work |= RTC_Work_Regen_F1;
-				MC.dRelay[RWATEROFF].set_ON();
+				MC.dRelay[RWATEROFF1].set_ON();
+				//MC.dRelay[RWATERON].set_OFF();
 				RegBackwashTimer = 0;
 				RegStart_Weight = Weight_value / 10;
 				NewRegenStatus = true;
@@ -1633,6 +1637,7 @@ xWaterBooster_OFF:
 		} else if(reg_active & 2) {	// Regen Softening filter
 			if(MC.dRelay[RSTARTREG2].get_Relay()) {
 				MC.dRelay[RSTARTREG2].set_OFF();
+				MC.dRelay[RWATERON].set_OFF();
 				if(MC.get_errcode() == ERR_START_REG2 && Errors[1] == 0) MC.clear_error();
 			}
 			if(!(MC.RTC_store.Work & RTC_Work_Regen_F2)) { // Started?
@@ -1698,6 +1703,12 @@ void vService(void *)
 				MC.dRelay[RDRAIN].set_OFF();
 				MC.dRelay[RDRAIN2].set_OFF();
 			}
+			if(RWATERON_Switching < 0) {
+				if(++RWATERON_Switching == 0) {
+					RWATERON_Switching = RWATERON_TIME;
+					MC.dRelay[RWATERON].set_ON();
+				}
+			} else if(RWATERON_Switching > 0) RWATERON_Switching--;
 			uint8_t m = rtcSAM3X8.get_minutes();
 			if(m != task_updstat_countm) { 								// Через 1 минуту
 				task_updstat_countm = m;
@@ -1745,14 +1756,19 @@ void vService(void *)
 #endif
 							{
 								if((need_regen & RTC_Work_Regen_F1) && !MC.dRelay[RSTARTREG].get_Relay()) {
-									MC.dRelay[RWATEROFF].set_ON();
+									MC.dRelay[RWATEROFF1].set_ON();
 									MC.dRelay[RSTARTREG].set_ON();
 									journal.jprintf_date("Regen F1 start\n");
 									if(RegenStarted == 0) RegenStarted = rtcSAM3X8.unixtime();
 								} else if((need_regen & RTC_Work_Regen_F2) && !MC.dRelay[RSTARTREG2].get_Relay()) {
-									MC.dRelay[RSTARTREG2].set_ON();
-									journal.jprintf_date("Regen F2 start\n");
-									if(RegenStarted == 0) RegenStarted = rtcSAM3X8.unixtime();
+									if(!MC.dRelay[RWATERON].get_Relay() && !RWATERON_Switching) {
+										MC.dRelay[RSTARTREG2].set_ON();
+										journal.jprintf_date("Regen F2 start\n");
+										if(RegenStarted == 0) RegenStarted = rtcSAM3X8.unixtime();
+									} else if(MC.dRelay[RWATERON].get_Relay()) {
+										RWATERON_Switching = RWATERON_TIME;
+										MC.dRelay[RWATERON].set_OFF();
+									}
 								}
 							} else {
 								FillingTankLastLevel = 0;
@@ -1787,7 +1803,7 @@ void vService(void *)
 							journal.jprintf_date("Regen F1 finished, used: %d\n", MC.WorkStats.UsedLastRegen);
 							if((TimerDrainingWaterAfterRegen = MC.Option.DrainingWaterAfterRegen)) MC.dRelay[RDRAIN].set_ON();
 							_delay(100);
-							MC.dRelay[RWATEROFF].set_OFF();
+							MC.dRelay[RWATEROFF1].set_OFF();
 							if(MC.WorkStats.UsedLastRegen < MC.Option.MinRegenLiters) {
 								set_Error(ERR_FEW_LITERS_REG, (char*)__FUNCTION__);
 							} else if((RegStart_Weight = RegStart_Weight - Weight_value / 10) < MC.Option.MinRegenWeightDecrease) {
@@ -1818,6 +1834,7 @@ void vService(void *)
 							NeedSaveWorkStats = 1;
 							journal.jprintf_date("Regen F2 finished, used: %d\n", MC.WorkStats.UsedLastRegenSoftening);
 							if((TimerDrainingWaterAfterRegen = MC.Option.DrainingWaterAfterRegenSoftening)) MC.dRelay[RDRAIN2].set_ON();
+							RWATERON_Switching = -(int16_t)TimerDrainingWaterAfterRegen;
 							if(MC.WorkStats.UsedLastRegenSoftening < MC.Option.MinRegenLitersSoftening) {
 								set_Error(ERR_FEW_LITERS_REG, (char*)__FUNCTION__);
 							} else if((RegStart_Weight = RegStart_Weight - Weight_value / 10) < MC.Option.MinRegenWeightDecrease) {

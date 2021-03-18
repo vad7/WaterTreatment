@@ -713,7 +713,7 @@ xSaveStats:		if((i = MC.save_WorkStats()) == OK)
 			_dtoa(strReturn, MC.dPWM.get_Power(), 3); ADD_WEBDELIM(strReturn); continue;
 		}
 		if(strcmp(str, "get_WDIS") == 0) { // Выход воды отключен
-			strcat(strReturn, MC.dRelay[RWATEROFF].get_Relay() || MC.sInput[REG2_ACTIVE].get_Input() ? "1" : "0");
+			strcat(strReturn, MC.dRelay[RWATEROFF1].get_Relay() || !MC.dRelay[RWATERON].get_Relay() ? "1" : "0"); // MC.sInput[REG2_ACTIVE].get_Input()
 			ADD_WEBDELIM(strReturn); continue;
 		}
 		if(strncmp(str + 1, "et_WS", 5) == 0) { // get WorkStats
