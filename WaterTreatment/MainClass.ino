@@ -86,6 +86,8 @@ void MainClass::init()
 	for(i = 0; i < FNUMBER; i++) sFrequency[i].initFrequency(i);  // Инициализация частотных датчиков
 	for(i = 0; i < RNUMBER; i++) dRelay[i].initRelay(i);           // Инициализация реле
 
+	dRelay[RWATERON].set_ON();
+
 	Modbus.initModbus();
 
 	dPWM.initPWM();                                           // инициализация счетчика
