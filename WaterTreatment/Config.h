@@ -320,7 +320,7 @@ struct History_setup {
 											31, // REL5
 											9,	// REL6, DC_OUT7(L)
 											8,	// REL7, DC_OUT8(L)
-											66, // DAC0
+											7,  // REL10
                                        };
 	// Описание реле
 	const char *noteRelay[RNUMBER] = {	"Реле насосной станции",
