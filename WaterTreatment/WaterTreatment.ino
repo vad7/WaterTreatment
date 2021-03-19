@@ -910,10 +910,12 @@ xErrorsProcessing:
 					FlowPulseCounter = 0;
 					FlowPulseCounterRest = _FlowPulseCounterRest = MC.sFrequency[FLOW].PassedRest;
 				} else if((LCD_setup & 0xFF00) == 0) {
-					LCD_setup--;
-					DisplayTick = ~DisplayTick;
+					if(LCD_setup & 0xFF) {
+						LCD_setup--;
+						DisplayTick = ~DisplayTick;
+					}
 				} else if((LCD_setup & 0xFF00) == LCD_SetupMenu_Relays) {
-					if((LCD_setup & 0xFF) > 0) LCD_setup--; else LCD_setup = RNUMBER > LCD_SetupMenu_Relays_Max ? LCD_SetupMenu_Relays_Max-1 : RNUMBER-1;
+					if((LCD_setup & 0xFF) != 0) LCD_setup--; else LCD_setup |= RNUMBER > LCD_SetupMenu_Relays_Max ? LCD_SetupMenu_Relays_Max-1 : RNUMBER-1;
 					DisplayTick = ~DisplayTick;
 				} else if((LCD_setup & 0xFF00) == LCD_SetupMenu_Options) { // Options
 					goto xSetupExit;
