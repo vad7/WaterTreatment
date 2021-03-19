@@ -786,7 +786,7 @@ void vWeb2(void *)
 #define LCD_SetupMenu_Sensors	0x200
 #define LCD_SetupMenu_FlowCheck	0x300
 #define LCD_SetupMenu_Options	0x400
-#define LCD_SetupMenu_Relays_Max 7
+#define LCD_SetupMenu_Relays_Max 8
 const char *LCD_SetupMenu[LCD_SetupMenuItems] = { "1. Exit", "2. Relays", "3. Sensors", "4. Flow check", "5. Options" };
 uint32_t LCD_setup = 0; // 0x8000MMII: 8 - Setup active, MМ - Menu item (0..<max LCD_SetupMenuItems-1>) , II - Selecting item (0...)
 
@@ -871,10 +871,11 @@ xSetupExit:
 						DisplayTick = ~DisplayTick;
 					}
 				} else if((LCD_setup & 0xFF00) == LCD_SetupMenu_Relays) {
-					if((LCD_setup & 0xFF) < (RNUMBER > LCD_SetupMenu_Relays_Max-1 ? LCD_SetupMenu_Relays_Max-1 : RNUMBER-1)) {
-						LCD_setup++;
-						DisplayTick = ~DisplayTick;
+					LCD_setup++;
+					if((LCD_setup & 0xFF) >= (RNUMBER > LCD_SetupMenu_Relays_Max ? LCD_SetupMenu_Relays_Max : RNUMBER)) {
+						LCD_setup &= ~0xFF;
 					}
+					DisplayTick = ~DisplayTick;
 				} else if((LCD_setup & 0xFF00) == LCD_SetupMenu_Options) { // Options
 					goto xSetupExit;
 				} else if((LCD_setup & 0xFF00) == LCD_SetupMenu_Sensors) DisplayTick = ~DisplayTick;
@@ -908,8 +909,11 @@ xErrorsProcessing:
 				if((LCD_setup & 0xFF00) == LCD_SetupMenu_FlowCheck) { // Flow check
 					FlowPulseCounter = 0;
 					FlowPulseCounterRest = _FlowPulseCounterRest = MC.sFrequency[FLOW].PassedRest;
-				} else if(((LCD_setup & 0xFF00) == 0 || (LCD_setup & 0xFF00) == LCD_SetupMenu_Relays) && (LCD_setup & 0xFF) > 0) {
+				} else if((LCD_setup & 0xFF00) == 0) {
 					LCD_setup--;
+					DisplayTick = ~DisplayTick;
+				} else if((LCD_setup & 0xFF00) == LCD_SetupMenu_Relays) {
+					if((LCD_setup & 0xFF) > 0) LCD_setup--; else LCD_setup = RNUMBER > LCD_SetupMenu_Relays_Max ? LCD_SetupMenu_Relays_Max-1 : RNUMBER-1;
 					DisplayTick = ~DisplayTick;
 				} else if((LCD_setup & 0xFF00) == LCD_SetupMenu_Options) { // Options
 					goto xSetupExit;
