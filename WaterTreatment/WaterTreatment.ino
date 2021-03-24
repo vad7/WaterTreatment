@@ -488,7 +488,8 @@ x_I2C_init_std_message:
 	Weight.begin(HX711_DOUT_PIN, HX711_SCK_PIN);
 	Weight_Clear_Averaging();
 	journal.jprintfopt("* Scale inited, ADC: %d. ", Weight.read());
-	int cnt = 5, t = 100;
+	Weight_adc_median1 = Weight_adc_median2 = Weight.read();
+	int cnt = 4, t = 100;
 	while(cnt) {
 		WDT_Restart(WDT);
 		if(Weight_Read()) cnt--;
@@ -1126,7 +1127,7 @@ void vReadSensor(void *)
 	static uint32_t oldTime, OneWire_time;
 	oldTime = GetTickCount();
 	OneWire_time = oldTime - ONEWIRE_READ_PERIOD;
-	Weight_adc_median1 = Weight_adc_median2 = Weight.read();
+	//Weight_adc_median1 = Weight_adc_median2 = Weight.read();
 	for(;;) {
 		int8_t i;
 		//WDT_Restart(WDT);
