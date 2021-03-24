@@ -233,6 +233,9 @@ void Statistics::Init(uint8_t newyear)
 										Stats_data[i].value = val;
 										break;
 									case STATS_OBJ_BrineWeight:
+										Stats_data[i].value = val * 1000.0f + 0.0005f;
+										if(Stats_data[i].type == STATS_TYPE_DELTA) Stats_data[i].value = Weight_value / 10 - Stats_data[i].value;
+										break;
 									case STATS_OBJ_Flow:
 										Stats_data[i].value = val * 1000.0f + 0.0005f;
 										break;

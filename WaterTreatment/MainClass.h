@@ -117,6 +117,7 @@ int32_t	 Weight_value = 0;							// десятые грамма
 int16_t  Weight_Percent = 0;						// %, сотые
 int32_t  Weight_Test = 100000;						// десятые грамма, Тест
 void Weight_Clear_Averaging(void);
+void Weight_Read(void);
 
 #define  bRTC_UsedToday		0
 #define  bRTC_UsedRegen		1
