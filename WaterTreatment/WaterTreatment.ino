@@ -488,10 +488,12 @@ x_I2C_init_std_message:
 	Weight.begin(HX711_DOUT_PIN, HX711_SCK_PIN);
 	Weight_Clear_Averaging();
 	journal.jprintfopt("* Scale inited, ADC: %d. ", Weight.read());
-	int cnt = 5;
-	while(cnt--) {
+	int cnt = 5, t = 100;
+	while(cnt) {
 		WDT_Restart(WDT);
-		Weight_Read();
+		if(Weight_Read()) cnt--;
+		delay(10);
+		if(--t == 0) break;
 	}
 	journal.jprintfopt("Weight: %.1d g\n", Weight_value);
 

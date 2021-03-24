@@ -73,7 +73,8 @@ void Weight_Clear_Averaging(void)
 	Weight_adc_idx = 0;
 }
 
-void Weight_Read(void)
+// Read successfully - true
+bool Weight_Read(void)
 {
 //		if(Weight_NeedRead) { // allways
 			if(MC.get_testMode() != NORMAL) {
@@ -118,8 +119,10 @@ void Weight_Read(void)
 						} else set_Error(ERR_WEIGHT_LOW, (char*)__FUNCTION__);
 					}
 				} else if(CriticalErrors & ERRC_WeightEmpty) CriticalErrors &= ~ERRC_WeightEmpty;
+				return true;
 			}
 //		}
+		return false;
 }
 
 void MainClass::init()
