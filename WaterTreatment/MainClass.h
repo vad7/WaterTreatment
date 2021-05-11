@@ -42,6 +42,7 @@ struct type_WorkStats {
 	uint16_t RegCntSoftening;
 	uint16_t UsedLastRegenSoftening;// Liters
 	uint8_t  Flags;					// WS_F_*
+	uint8_t  RegenSofteningCntAlarm;// Alarm when zero
 } __attribute__((packed));
 
 #define WS_F_StartRegen				0x01
@@ -201,7 +202,7 @@ struct type_option {
 	uint16_t MinRegenWeightDecrease;// Тревога, если за регенерацию вес уменьшился меньше, чем задано, граммы
 	uint16_t LTank_Hour_Low;		// Низкий уровень ночного заполнения бака, сотые %
 	int8_t   LTank_Hour;			// Час ночного заполнение бака
-	uint8_t  _RESERVED_;
+	uint8_t  RegenSofteningCntAlarm;// Счетчик регенераций до включения тревоги
 	type_DailySwitch DailySwitch[DAILY_SWITCH_MAX];	// дневное периодическое включение
 };
 

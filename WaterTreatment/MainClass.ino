@@ -168,6 +168,10 @@ void MainClass::clear_error()
 // стереть все ошибки
 void MainClass::clear_all_errors()
 {
+	if(error == ERR_SALT_FINISH) {
+		MC.WorkStats.RegenSofteningCntAlarm = MC.Option.RegenSofteningCntAlarm;
+		NeedSaveWorkStats = 1;
+	}
 	memset(Errors, 0, sizeof(Errors));
 	memset(ErrorsTime, 0, sizeof(ErrorsTime));
 	CriticalErrors = 0;
@@ -924,6 +928,7 @@ boolean MainClass::set_option(char *var, float xx)
    if(strcmp(var,option_RegenStart)==0){ Option.DrainingWaterAfterRegen = x; return true; } else // Start regenerate
    if(strcmp(var,option_LowConsumeRequestPeriod)==0){ Option.LowConsumeRequestPeriod = x; Request_LowConsume = xTaskGetTickCount(); return true; } else
    if(strcmp(var,option_SepticAlarmDebounce)==0){ Option.SepticAlarmDebounce = x; return true; } else
+   if(strcmp(var,option_RegenSofteningCntAlarm)==0){ Option.RegenSofteningCntAlarm = x; return true; } else
    if(strncmp(var, prof_DailySwitch, sizeof(prof_DailySwitch)-1) == 0) {
 		var += sizeof(prof_DailySwitch)-1;
 		uint32_t i = *(var + 1) - '0';
@@ -1005,6 +1010,7 @@ char* MainClass::get_option(char *var, char *ret)
 	if(strcmp(var,option_LTank_AfterFilledTimer)==0){ return _itoa(Option.LTank_AfterFilledTimer, ret); } else
 	if(strcmp(var,option_LowConsumeRequestPeriod)==0){ return _itoa(Option.LowConsumeRequestPeriod, ret); } else
 	if(strcmp(var,option_SepticAlarmDebounce)==0){ return _itoa(Option.SepticAlarmDebounce, ret); } else
+	if(strcmp(var,option_RegenSofteningCntAlarm)==0){ return _itoa(Option.RegenSofteningCntAlarm, ret); } else
 	if(strncmp(var, prof_DailySwitch, sizeof(prof_DailySwitch)-1) == 0) {
 		var += sizeof(prof_DailySwitch)-1;
 		uint8_t i = *(var + 1) - '0';

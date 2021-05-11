@@ -526,7 +526,7 @@ x_I2C_init_std_message:
 	MC.mRTOS=MC.mRTOS+64+4* 150;
 
 	// ПРИОРИТЕТ 2 средний
-	if(xTaskCreate(vKeysLCD, "KeysLCD", 90, NULL, 4, &MC.xHandleKeysLCD) == errCOULD_NOT_ALLOCATE_REQUIRED_MEMORY) set_Error(ERR_MEM_FREERTOS,(char*)nameFREERTOS);
+	if(xTaskCreate(vKeysLCD, "KeysLCD", 90, NULL, 2, &MC.xHandleKeysLCD) == errCOULD_NOT_ALLOCATE_REQUIRED_MEMORY) set_Error(ERR_MEM_FREERTOS,(char*)nameFREERTOS);
 	MC.mRTOS=MC.mRTOS+64+4* 90;
 	if(xTaskCreate(vService, "Service", 180, NULL, 2, &MC.xHandleService) == errCOULD_NOT_ALLOCATE_REQUIRED_MEMORY) set_Error(ERR_MEM_FREERTOS,(char*)nameFREERTOS);
 	MC.mRTOS=MC.mRTOS+64+4* 180;
@@ -610,6 +610,7 @@ extern "C" void vApplicationIdleHook(void)  // FreeRTOS expects C linkage
 		if(ticks - countBeep > TIME_BEEP_ERR) {
 			digitalWriteDirect(PIN_BEEP, !MC.get_Beep() || Error_Beep_confirmed ? LOW : !digitalReadDirect(PIN_BEEP)); // звуковой сигнал
 			countBeep = ticks;
+			if(MC.get_errcode() == ERR_SALT_FINISH && digitalReadDirect(PIN_BEEP)) countBeep -= TIME_BEEP_ERR / 2;
 		}
 	} else if(ticks - countLED > TIME_LED_OK) {   // Ошибок нет и время пришло
 		Error_Beep_confirmed = false;
@@ -862,8 +863,10 @@ xSetupExit:
 				}
 				DisplayTick = ~DisplayTick;
 				setup_timeout = DISPLAY_SETUP_TIMEOUT / KEY_CHECK_PERIOD;
-			} else if(MC.get_errcode() && !Error_Beep_confirmed) Error_Beep_confirmed = true; // Supress beeping
-			else { // Enter Setup
+			} else if(MC.get_errcode() && !Error_Beep_confirmed) {
+				if(MC.get_errcode() == ERR_SALT_FINISH) MC.clear_all_errors();
+				Error_Beep_confirmed = true; // Supress beeping
+			} else { // Enter Setup
 				LCD_setup = LCD_SetupFlag;
 				lcd.command(LCD_DISPLAYCONTROL | LCD_DISPLAYON | LCD_CURSORON | LCD_BLINKON);
 				DisplayTick = ~DisplayTick;
@@ -1073,11 +1076,15 @@ xErrorsProcessing:
 					goto xShowWeight;
 				}
 				if(MC.get_errcode()) {
-					strcpy(buf, "ERR"); buf += 3;
-					buf = dptoa(buf, MC.get_errcode(), 0);
-					if(MC.get_errcode() == ERR_WEIGHT_LOW || MC.get_errcode() == ERR_WEIGHT_EMPTY) {
-						strcpy(buf, " W:"); buf += 3;
-						goto xShowWeight;
+					if(MC.get_errcode() == ERR_SALT_FINISH) {
+						strcpy(buf, "SALT!"); buf += 5;
+					} else {
+						strcpy(buf, "ERR"); buf += 3;
+						buf = dptoa(buf, MC.get_errcode(), 0);
+						if(MC.get_errcode() == ERR_WEIGHT_LOW || MC.get_errcode() == ERR_WEIGHT_EMPTY) {
+							strcpy(buf, " W:"); buf += 3;
+							goto xShowWeight;
+						}
 					}
 				}
 				if(buf == buffer) {
@@ -1713,7 +1720,11 @@ void vService(void *)
 				if(!CriticalErrors) {
 					int err = MC.get_errcode();
 					if((err == ERR_FLOODING || err == ERR_TANK_EMPTY) && Errors[1] == 0) MC.clear_error();
-					if(!(MC.RTC_store.Work & RTC_Work_Regen_MASK) && !LowConsumeMode && rtcSAM3X8.get_hours() == MC.Option.RegenHour) {
+					uint8_t h = rtcSAM3X8.get_hours();
+					if(h == NOT_CITICAL_ALARM_HOUR && MC.WorkStats.RegenSofteningCntAlarm == 0 && MC.Option.RegenSofteningCntAlarm && err != ERR_SALT_FINISH) {
+						set_Error(ERR_SALT_FINISH, (char*)__FUNCTION__);
+					}
+					if(!(MC.RTC_store.Work & RTC_Work_Regen_MASK) && !LowConsumeMode && h == MC.Option.RegenHour) {
 						uint32_t need_regen = 0;
 						if(MC.get_NeedRegen() || (MC.WorkStats.Flags & WS_F_StartRegen)) {
 							need_regen |= RTC_Work_Regen_F1;
@@ -1798,6 +1809,7 @@ void vService(void *)
 							MC.RTC_store.UsedRegen = 0;
 							MC.WorkStats.DaysFromLastRegenSoftening = 0;
 							MC.WorkStats.RegCntSoftening++;
+							if(MC.WorkStats.RegenSofteningCntAlarm) MC.WorkStats.RegenSofteningCntAlarm--;
 							MC.WorkStats.UsedSinceLastRegenSoftening = -MC.RTC_store.UsedToday;
 							MC.RTC_store.Work &= ~RTC_Work_Regen_F2;
 							taskENTER_CRITICAL();

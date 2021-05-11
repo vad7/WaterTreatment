@@ -20,8 +20,8 @@
 #include "Util.h"
 
 // ОПЦИИ КОМПИЛЯЦИИ ПРОЕКТА -------------------------------------------------------
-#define VERSION			  "1.22"			// Версия прошивки
-#define VER_SAVE		  7					// Версия формата сохраняемых данных в I2C память
+#define VERSION			  "1.23"			// Версия прошивки
+#define VER_SAVE		  8					// Версия формата сохраняемых данных в I2C память
 //#define LOG                               // В последовательный порт шлет лог веб сервера (логируются запросы)
 #define FAST_LIB                            // использование допиленной библиотеки езернета
 #define TIME_ZONE         3                 // поправка на часовой пояс по ДЕФОЛТУ
@@ -102,9 +102,9 @@ const uint16_t  defaultPort=80;
 #define TIME_WEB_SERVER       2              // мсек. Период опроса web servera было 5
 #define TIME_I2C_UPDATE       (60*60)*1000   // мсек. Время обновления внутренних часов по I2С часам (если конечно нужно)
 #define TIME_MESSAGE_TEMP     300			 // 1/10 секунды, Проверка граничных температур для уведомлений
-#define TIME_LED_OK           1500           // Период мигания светодиода при ОК (мсек)
+#define TIME_LED_OK           1500UL         // Период мигания светодиода при ОК (мсек)
 #define TIME_LED_ERR          200            // Период мигания светодиода при ошибке (мсек).
-#define TIME_BEEP_ERR         2000           // Период звукового сигнала при ошибке, мсек
+#define TIME_BEEP_ERR         2000UL         // Период звукового сигнала при ошибке, мсек
 #define cDELAY_START_MESSAGE  60             // Задержка (сек) после старта на отправку сообщений
 #define NO_POWER_ON_DELAY     15		     // Задержка включения после появления питания, сек
 #define WB_LOW_CONSUME_MAX_TIME 25000		 // Максимальное время бесперерывной работы насосной станции. После него будет переыв на включение дозатора, ms
@@ -415,6 +415,7 @@ const char *option_LTank_Hour_Low		= {"LHL"};
 const char *option_LTank_Hour			= {"LH"};
 const char *option_LowConsumeRequestPeriod={"LCP"};
 const char *option_SepticAlarmDebounce  ={"SD"};
+const char *option_RegenSofteningCntAlarm={"RSA"};
 const char prof_DailySwitch[] 	= "DS";
 const char prof_DailySwitchDevice = 'D';		// DSD
 const char prof_DailySwitchOn  	= 'S';			// DSS
@@ -513,8 +514,9 @@ const char *webWS_UsedLastRegenSoftening  		= { "RSL" };
 #define ERR_SEPTIC_ALARM	-66			// Авария септика
 #define ERR_NO_POWER		-67			// Нет электричества
 #define ERR_REG_FEW_WEIGHT_CONSUME -68	// Мало израсходовано реагента во время регенерации
+#define ERR_SALT_FINISH		-69			// Закончилась соль в баке умягчителя
 
-#define ERR_ERRMAX			-68			// Последняя ошибка
+#define ERR_ERRMAX			-69			// Последняя ошибка
 
 // Предупреждения
 #define WARNING_VALUE        1         // Попытка установить значение за границами диапазона запрос типа SET
@@ -590,6 +592,7 @@ const char *noteError[] = {
 		"Авария септика!",																	//-66
 		"Нет электричества",																//-67
 		"Мало израсходовано реагента во время регенерации",									//-68
+		"Закончилась соль в баке умягчителя",												//-69
 
 		"NULL"
 		};
