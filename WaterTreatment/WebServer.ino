@@ -1306,10 +1306,10 @@ xSaveStats:		if((i = MC.save_WorkStats()) == OK)
 			}
 
 			// 13 Опции
-			if (strcmp(str,"get_Opt")==0)           // Функция get_option - получить значение параметра отопления 
+			if (strcmp(str,"get_Opt")==0)           // Функция get_option - получить значение параметра
 			{
 				MC.get_option(x,strReturn); ADD_WEBDELIM(strReturn) ; continue;
-			} else if (strcmp(str,"set_Opt")==0)           // Функция set_option - установить значение паремтра  опций
+			} else if (strcmp(str,"set_Opt")==0)           // Функция set_option - установить значение пареметра
 			{
 				if (pm!=ATOF_ERROR) {   // нет ошибки преобразования
 					if (MC.set_option(x,pm)) MC.get_option(x,strReturn);  // преобразование удачно,

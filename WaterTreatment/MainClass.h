@@ -202,7 +202,7 @@ struct type_option {
 	uint16_t MinRegenWeightDecrease;// Тревога, если за регенерацию вес уменьшился меньше, чем задано, граммы
 	uint16_t LTank_Hour_Low;		// Низкий уровень ночного заполнения бака, сотые %
 	int8_t   LTank_Hour;			// Час ночного заполнение бака
-	uint8_t  RegenSofteningCntAlarm;// Счетчик регенераций до включения тревоги
+	uint8_t  RegenSofteningCntAlarm;// Счетчик регенераций до включения тревоги, 0 - нет
 	type_DailySwitch DailySwitch[DAILY_SWITCH_MAX];	// дневное периодическое включение
 };
 
