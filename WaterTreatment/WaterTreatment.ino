@@ -1783,15 +1783,15 @@ void vService(void *)
 							NeedSaveRTC |= (1<<bRTC_Work) | (1<<bRTC_UsedRegen) | (1<<bRTC_Urgently);
 							taskEXIT_CRITICAL();
 							NeedSaveWorkStats = 1;
-							journal.jprintf_date("Regen F1 finished, used: %d\n", MC.WorkStats.UsedLastRegen);
+							RegStart_Weight -= Weight_value / 10;
+							journal.jprintf_date("Regen F1 finished, Used: %d, reagent: %d g.\n", MC.WorkStats.UsedLastRegen, RegStart_Weight);
 							if((TimerDrainingWaterAfterRegen = MC.Option.DrainingWaterAfterRegen)) MC.dRelay[RDRAIN].set_ON();
 							_delay(100);
 							MC.dRelay[RWATEROFF1].set_OFF();
 							if(MC.WorkStats.UsedLastRegen < MC.Option.MinRegenLiters) {
 								set_Error(ERR_FEW_LITERS_REG, (char*)__FUNCTION__);
-							} else if((RegStart_Weight = RegStart_Weight - Weight_value / 10) < MC.Option.MinRegenWeightDecrease) {
+							} else if(RegStart_Weight < MC.Option.MinRegenWeightDecrease) {
 								set_Error(ERR_REG_FEW_WEIGHT_CONSUME, (char*)__FUNCTION__);
-								journal.jprintf(" Reagent consumed: %d g.\n", RegStart_Weight);
 							}
 							RegenStarted = 0;
 						} else if(NewRegenStatus) {
@@ -1816,14 +1816,14 @@ void vService(void *)
 							NeedSaveRTC |= (1<<bRTC_Work) | (1<<bRTC_UsedRegen) | (1<<bRTC_Urgently);
 							taskEXIT_CRITICAL();
 							NeedSaveWorkStats = 1;
-							journal.jprintf_date("Regen F2 finished, used: %d\n", MC.WorkStats.UsedLastRegenSoftening);
+							RegStart_Weight -= Weight_value / 10;
+							journal.jprintf_date("Regen F2 finished, Used: %d, reagent: %d g.\n", MC.WorkStats.UsedLastRegenSoftening, RegStart_Weight);
 							if((TimerDrainingWaterAfterRegen = MC.Option.DrainingWaterAfterRegenSoftening)) MC.dRelay[RDRAIN2].set_ON();
 							RWATERON_Switching = -(int16_t)TimerDrainingWaterAfterRegen;
 							if(MC.WorkStats.UsedLastRegenSoftening < MC.Option.MinRegenLitersSoftening) {
 								set_Error(ERR_FEW_LITERS_REG, (char*)__FUNCTION__);
-							} else if((RegStart_Weight = RegStart_Weight - Weight_value / 10) < MC.Option.MinRegenWeightDecrease) {
+							} else if(RegStart_Weight < MC.Option.MinRegenWeightDecrease) {
 								set_Error(ERR_REG_FEW_WEIGHT_CONSUME, (char*)__FUNCTION__);
-								journal.jprintf(" Reagent consumed: %d g.\n", RegStart_Weight);
 							}
 							RegenStarted = 0;
 						} else if(NewRegenStatus) {
