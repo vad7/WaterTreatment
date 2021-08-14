@@ -844,7 +844,7 @@ xSetupExit:
 					LCD_setup = 0;
 					setup_timeout = 0;
 				} else if((LCD_setup & 0xFF00) == LCD_SetupMenu_Relays) { // inside menu item selected - Relay
-					MC.dRelay[LCD_setup & 0xFF].set_Relay(MC.dRelay[LCD_setup & 0xFF].get_Relay() ? fR_StatusAllOff : fR_StatusManual);
+					MC.dRelay[LCD_setup & 0xFF].set_Relay(MC.dRelay[LCD_setup & 0xFF].get_Relay() ? fR_StatusAllOff : fR_StatusMain); // fR_StatusManual
 					if((LCD_setup & 0xFF) == RFILL) FillingTankLastLevel = 0;
 				} else if((LCD_setup & 0xFF00) == LCD_SetupMenu_Options) { // inside menu item selected - Options
 					MC.fNetworkReset = 1;

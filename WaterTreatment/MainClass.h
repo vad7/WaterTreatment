@@ -45,8 +45,8 @@ struct type_WorkStats {
 	uint8_t  RegenSofteningCntAlarm;// Alarm when zero
 } __attribute__((packed));
 
-#define WS_F_StartRegen				0x01
-#define WS_F_StartRegenSoft			0x02
+#define WS_F_StartRegen				0x01	// Запланирована регенерация обезжелезивателя вручную
+#define WS_F_StartRegenSoft			0x02	// Запланирована регенерация умягчителя вручную
 #define WS_F_MASK					0x3F
 #define WS_F_bNeedRegen				6		// Зарезервировано для вывода в веб
 #define WS_F_bNeedRegenSoft			7		// Зарезервировано для вывода в веб
@@ -54,8 +54,8 @@ struct type_WorkStats {
 
 #define RTC_Work_WeekDay_MASK		0x07	// Active weekday (1-7)
 #define RTC_Work_Regen_MASK			0x30	// 0 - not, bit - wait a regen hour
-#define RTC_Work_Regen_F1			0x10	// Iron remover
-#define RTC_Work_Regen_F2			0x20	// Softener
+#define RTC_Work_Regen_F1			0x10	// Iron remover regen in process
+#define RTC_Work_Regen_F2			0x20	// Softener regen in process
 
 struct type_RTC_memory { // DS3231/DS3232 used alarm memory, starts from 0x07, max size 7 bytes
 	volatile uint16_t UsedToday;	// 0. used daily until switch to new day, liters
