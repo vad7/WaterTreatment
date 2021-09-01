@@ -1,1 +1,1 @@
-%LOCALAPPDATA%\Arduino15\packages\arduino\tools\arm-none-eabi-gcc\4.8.3-2014q1/bin/arm-none-eabi-objdump -S WaterTreatment.ino.elf>WaterTreatment.asm
+%LOCALAPPDATA%\Arduino15\packages\arduino\tools\arm-none-eabi-gcc\4.8.3-2014q1/bin/arm-none-eabi-objdump -S WaterTreatment.elf>WaterTreatment.asm

@@ -205,8 +205,12 @@ void setup() {
 	pinMode(PIN_KEY_SAFE, INPUT_PULLUP);    // Кнопка 1, Нажатие при включении - режим safeNetwork (настрока сети по умолчанию 192.168.0.177  шлюз 192.168.0.1, не спрашивает пароль на вход в веб морду)
 	pinMode(PIN_BEEP, OUTPUT);              // Выход на пищалку
 	pinMode(PIN_LED_OK, OUTPUT);            // Выход на светодиод мигает 0.5 герца - ОК  с частотой 2 герца ошибка
+#ifdef PIN_LED_SRV_INFO
+	pinMode(PIN_LED_SRV_INFO, OUTPUT);
+	digitalWriteDirect(PIN_LED_SRV_INFO, LOW);
+#endif
 	digitalWriteDirect(PIN_BEEP,LOW);       // Выключить пищалку
-	digitalWriteDirect(PIN_LED_OK,HIGH);    // Выключить светодиод
+	digitalWriteDirect(PIN_LED_OK,HIGH);    // Включить светодиод
 
 	// 2. Инициализация журнала и в нем последовательный порт
 	// 2. Инициализация журнала
@@ -605,6 +609,9 @@ extern "C" void vApplicationIdleHook(void)  // FreeRTOS expects C linkage
 	if(MC.get_errcode() != OK) {          // Ошибка
 		if(ticks - countLED > TIME_LED_ERR) {
 			digitalWriteDirect(PIN_LED_OK, !digitalReadDirect(PIN_LED_OK));
+#ifdef PIN_LED_SRV_INFO
+			digitalWriteDirect(PIN_LED_SRV_INFO, !digitalReadDirect(PIN_LED_SRV_INFO));
+#endif
 			countLED = ticks;
 		}
 		if(ticks - countBeep > TIME_BEEP_ERR) {
@@ -616,6 +623,9 @@ extern "C" void vApplicationIdleHook(void)  // FreeRTOS expects C linkage
 		Error_Beep_confirmed = false;
 		digitalWriteDirect(PIN_BEEP, LOW);
 		digitalWriteDirect(PIN_LED_OK, !digitalReadDirect(PIN_LED_OK));
+#ifdef PIN_LED_SRV_INFO
+		digitalWriteDirect(PIN_LED_SRV_INFO, !MC.dRelay[RWATERON].get_Relay());	// горит если RWATERON = OFF
+#endif
 		countLED = ticks;
 	}
 //	static uint32_t tst = 1000;
@@ -844,7 +854,7 @@ xSetupExit:
 					LCD_setup = 0;
 					setup_timeout = 0;
 				} else if((LCD_setup & 0xFF00) == LCD_SetupMenu_Relays) { // inside menu item selected - Relay
-					MC.dRelay[LCD_setup & 0xFF].set_Relay(MC.dRelay[LCD_setup & 0xFF].get_Relay() ? fR_StatusAllOff : fR_StatusMain); // fR_StatusManual
+					MC.dRelay[LCD_setup & 0xFF].set_Relay(MC.dRelay[LCD_setup & 0xFF].get_Relay() ? fR_StatusAllOff : fR_StatusManual);
 					if((LCD_setup & 0xFF) == RFILL) FillingTankLastLevel = 0;
 				} else if((LCD_setup & 0xFF00) == LCD_SetupMenu_Options) { // inside menu item selected - Options
 					MC.fNetworkReset = 1;
@@ -1463,26 +1473,26 @@ void vPumps( void * )
 #else
 				vPumpsNewError = ERR_FLOODING;
 #endif
-				if(MC.dRelay[RFILL].get_Relay()) MC.dRelay[RFILL].set_OFF();
+				if(MC.dRelay[RFILL].get_Relay()) MC.dRelay[RFILL].set_Relay(fR_StatusAllOff);
 				if(MC.dRelay[RDRAIN].get_Relay()) {
-					MC.dRelay[RDRAIN].set_OFF();
+					MC.dRelay[RDRAIN].set_Relay(fR_StatusAllOff);
 					TimerDrainingWater = 0;
 					TimerDrainingWaterAfterRegen = 0;
 				}
 				if(MC.dRelay[RDRAIN2].get_Relay()) {
-					MC.dRelay[RDRAIN2].set_OFF();
+					MC.dRelay[RDRAIN2].set_Relay(fR_StatusAllOff);
 					TimerDrainingWaterAfterRegen = 0;
 				}
-				MC.dRelay[RFEEDPUMP].set_OFF();
+				MC.dRelay[RFEEDPUMP].set_Relay(fR_StatusAllOff);
 				MC.dRelay[RWATEROFF1].set_ON();
-				MC.dRelay[RWATERON].set_OFF();
+				MC.dRelay[RWATERON].set_Relay(fR_StatusAllOff);
 				CriticalErrors |= ERRC_Flooding;
 				if(WaterBoosterStatus > 0) goto xWaterBooster_GO_OFF;
 			}
 		} else {
 			if(CriticalErrors & ERRC_Flooding) {
 				if(GetTickCount() - FloodingTime > (uint32_t) MC.Option.FloodingTimeout * 1000) {
-					MC.dRelay[RWATEROFF1].set_OFF();
+					MC.dRelay[RWATEROFF1].set_Relay(fR_StatusAllOff);
 					MC.dRelay[RWATERON].set_ON();
 					CriticalErrors &= ~ERRC_Flooding;
 					FloodingTime = 0;
@@ -1494,7 +1504,7 @@ void vPumps( void * )
 				vPumpsNewError = ERR_SEPTIC_ALARM;
 				CriticalErrors |= ERRC_SepticAlarm;
 				MC.dRelay[RWATEROFF1].set_ON();
-				MC.dRelay[RWATERON].set_OFF();
+				MC.dRelay[RWATERON].set_Relay(fR_StatusAllOff);
 				SepticAlarmTime = 0;
 			}
 		} else SepticAlarmTime = 0;
@@ -1600,13 +1610,13 @@ xWaterBooster_OFF:
 		// Regenerating
 		if(reg_active & 1) { // Regen Iron removing filter
 			if(MC.dRelay[RSTARTREG].get_Relay()) {
-				MC.dRelay[RSTARTREG].set_OFF();
+				MC.dRelay[RSTARTREG].set_Relay(fR_StatusAllOff);
 				if(MC.get_errcode() == ERR_START_REG && Errors[1] == 0) MC.clear_error();
 			}
 			if(!(MC.RTC_store.Work & RTC_Work_Regen_F1)) { // Started?
 				MC.RTC_store.Work |= RTC_Work_Regen_F1;
 				MC.dRelay[RWATEROFF1].set_ON();
-				MC.dRelay[RWATERON].set_OFF();
+				MC.dRelay[RWATERON].set_Relay(fR_StatusAllOff);
 				RegBackwashTimer = 0;
 				RegStart_Weight = Weight_value / 10;
 				NewRegenStatus = true;
@@ -1615,12 +1625,12 @@ xWaterBooster_OFF:
 			}
 		} else if(reg_active & 2) {	// Regen Softening filter
 			if(MC.dRelay[RSTARTREG2].get_Relay()) {
-				MC.dRelay[RSTARTREG2].set_OFF();
+				MC.dRelay[RSTARTREG2].set_Relay(fR_StatusAllOff);
 				if(MC.get_errcode() == ERR_START_REG2 && Errors[1] == 0) MC.clear_error();
 			}
 			if(!(MC.RTC_store.Work & RTC_Work_Regen_F2)) { // Started?
 				MC.RTC_store.Work |= RTC_Work_Regen_F2;
-				MC.dRelay[RWATERON].set_OFF();
+				MC.dRelay[RWATERON].set_Relay(fR_StatusAllOff);
 				RegStart_Weight = Weight_value / 10;
 				NewRegenStatus = true;
 				MC.RTC_store.UsedRegen = 0;
@@ -1746,7 +1756,7 @@ void vService(void *)
 										if(RegenStarted == 0) RegenStarted = rtcSAM3X8.unixtime();
 									} else if(MC.dRelay[RWATERON].get_Relay()) {
 										RWATERON_Switching = RWATERON_TIME;
-										MC.dRelay[RWATERON].set_OFF();
+										MC.dRelay[RWATERON].set_Relay(fR_StatusAllOff);
 									}
 								} else if((need_regen & RTC_Work_Regen_F2) && !MC.dRelay[RSTARTREG2].get_Relay()) {
 									if(!MC.dRelay[RWATERON].get_Relay() && !RWATERON_Switching) {
@@ -1755,7 +1765,7 @@ void vService(void *)
 										if(RegenStarted == 0) RegenStarted = rtcSAM3X8.unixtime();
 									} else if(MC.dRelay[RWATERON].get_Relay()) {
 										RWATERON_Switching = RWATERON_TIME;
-										MC.dRelay[RWATERON].set_OFF();
+										MC.dRelay[RWATERON].set_Relay(fR_StatusAllOff);
 									}
 								}
 							} else {

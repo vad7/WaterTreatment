@@ -412,7 +412,10 @@ void Statistics::Update()
 			break;
 		case STATS_OBJ_BrineWeight:
 			newval = Weight_value / 10;
-			if(newval < 0) newval = 0;
+			if(newval <= 0) {
+				newval = 0;
+				if(Stats_data[i].type == STATS_TYPE_MIN && Stats_data[i].value != MAX_INT32_VALUE) continue; // не фиксировать провалы до нуля (например, при снятии бака для заполнения)
+			}
 			break;
 		}
 		switch(Stats_data[i].type){

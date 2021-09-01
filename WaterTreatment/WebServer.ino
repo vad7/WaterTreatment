@@ -1575,7 +1575,7 @@ xget_testTemp:					_dtoa(strReturn, MC.sTemp[p].get_testTemp(), 2); ADD_WEBDELIM
 							}
 							if(strncmp(str, "Relay", 5) == 0)           // Функция set_Relay
 							{
-								if(MC.dRelay[p].set_Relay(pm == 0 ? fR_StatusAllOff : fR_StatusMain) == OK) // fR_StatusManual
+								if(MC.dRelay[p].set_Relay(pm == 0 ? fR_StatusAllOff : fR_StatusManual) == OK)
 								{
 									if(MC.dRelay[p].get_Relay()) strcat(strReturn, cOne); else strcat(strReturn, cZero);
 									ADD_WEBDELIM(strReturn);

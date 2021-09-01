@@ -30,8 +30,8 @@ struct CORRECT_POWER220_STRUCT {
 
 enum {
 	STATS_TYPE_MIN = 0,
-	STATS_TYPE_AVG,
 	STATS_TYPE_MAX,
+	STATS_TYPE_AVG,
 	STATS_TYPE_SUM,
 	STATS_TYPE_TIME, // Time, ms
 	STATS_TYPE_DELTA // with previous value
@@ -190,6 +190,7 @@ struct History_setup {
 #endif
     #define PIN_LED_ERROR		13		    // Для библиотеки FreeRTOS
     #define PIN_BEEP			11          // SOUND Выход на пищалку  88- нога не использующиеся
+	#define PIN_LED_SRV_INFO	48			// ULN1. Выход на LED - горит при регенерации или при RWATERON=OFF, мигает часто при ошибке.
 	#define PIN_KEY_UP			32			// KEYS.2
 	#define PIN_KEY_DOWN		30			// KEYS.3
 	#define PIN_KEY_OK			12			// KEYS.4
