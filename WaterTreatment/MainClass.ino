@@ -973,7 +973,7 @@ char* MainClass::get_option(char *var, char *ret)
 	if(strcmp(var,option_WebOnSPIFlash)==0)    { return strcat(ret, (char*)(GETBIT(Option.flags, fWebStoreOnSPIFlash) ? cOne : cZero)); } else
 	if(strcmp(var,option_LogWirelessSensors)==0){ return strcat(ret, (char*)(GETBIT(Option.flags, fLogWirelessSensors) ? cOne : cZero)); } else
 	if(strcmp(var,option_fDontRegenOnWeekend)==0){ return strcat(ret, (char*)(GETBIT(Option.flags, fDontRegenOnWeekend) ? cOne : cZero)); } else
-	if(strcmp(var,option_fDebugToJournal)==0){ return strcat(ret, (char*)(GETBIT(Option.flags, fDebugToJournal) ? cOne : cZero)); } else
+	if(strcmp(var,option_fDebugToJournal)==0){ return strcat(ret, (char*)(DebugToJournalOn ? cOne : cZero)); } else
 	if(strcmp(var,option_fDebugToSerial)==0){ return strcat(ret, (char*)(GETBIT(Option.flags, fDebugToSerial) ? cOne : cZero)); } else
 	if(strcmp(var,option_fRegenAllowed)==0){ return strcat(ret, (char*)(GETBIT(Option.flags, fRegenAllowed) ? cOne : cZero)); } else
 	if(strcmp(var,option_fRegenAllowedSoftener)==0){ return strcat(ret, (char*)(GETBIT(Option.flags, fRegenAllowedSoftener) ? cOne : cZero)); } else

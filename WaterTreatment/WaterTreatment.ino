@@ -219,11 +219,12 @@ void setup() {
 	if(ret == 0 && b != I2C_COUNT_EEPROM_HEADER && b != 0xFF) {
 		ret = 0xFF;
 	}
+	DebugToJournalOn = ret;
 #ifndef DEBUG
 	if(ret)
 #endif
 #ifndef DEBUG_NATIVE_USB
-	SerialDbg.begin(UART_SPEED);                   // Если надо инициализировать отладочный порт
+		SerialDbg.begin(UART_SPEED);                   // Если надо инициализировать отладочный порт
 #endif
 	while(ret) {
 		SerialDbg.print("Wrong I2C EEPROM or setup, press KEY[D");
@@ -247,10 +248,13 @@ void setup() {
 		}
 	}
 	journal.Init();
-	uint16_t flags;
-	if(readEEPROM_I2C(I2C_SETTING_EEPROM + 2 + (sizeof(MC.Option) < 128 ? 1 : 2) + sizeof(MC.Option.ver), (uint8_t*)&flags, sizeof(flags))) {
-		DebugToJournalOn = true;
-	} else DebugToJournalOn = GETBIT(flags, fDebugToJournal);
+	if(!DebugToJournalOn) {
+		uint16_t flags;
+		if(readEEPROM_I2C(I2C_SETTING_EEPROM + 2 + (sizeof(MC.Option) < 128 ? 1 : 2) + ((uint8_t*)&MC.Option.flags - &MC.Option.ver), (uint8_t*)&flags, sizeof(flags))) {
+			DebugToJournalOn = true;
+			journal.printf("\nError read EEPROM!\n");
+		} else DebugToJournalOn = GETBIT(flags, fDebugToJournal);
+	}
 #ifdef TEST_BOARD
 	DebugToJournalOn = true;
 	journal.jprintf("\n---> TEST BOARD!!!\n\n");
