@@ -2182,11 +2182,11 @@ xContinueSearchHeader:
 				// thread - поток веб сервера,котрый обрабатывает post запрос
 				// ptr - указатель на начало данных (файла) в буфере Socket[thread].inPtr.
 				// buf_len - размер данных в буфере ptr (по сети осталось принять lenFile-buf_len)
-				if(fWebUploadingFilesTo == 1) {
+				if(fWebUploadingFilesTo == 1) { // SPI flash
 					uint16_t numPoint = 0;
 					int32_t loadLen; // Обработанная (загруженная) длина
 					STORE_DEBUG_INFO(54);
-					journal.jprintfopt("%s (%d) ", nameFile, lenFile);
+					if(MC.get_NetworkFlags() & (1<<fWebFullLog)) journal.jprintfopt("%s (%d) ", nameFile, lenFile);
 					loadLen = SerialFlash.free_size();
 					if(lenFile > loadLen) {
 						journal.jprintf("Not enough space, free: %d\n", loadLen);
@@ -2210,7 +2210,7 @@ xContinueSearchHeader:
 									numPoint++;
 									if(numPoint >= 20) {                   // точка на 30 кб приема (20 пакетов по 1540)
 										numPoint = 0;
-										journal.jprintfopt(".");
+										if(MC.get_NetworkFlags() & (1<<fWebFullLog)) journal.jprintfopt(".");
 									}
 								}
 								ff.close();
@@ -2231,7 +2231,7 @@ xContinueSearchHeader:
 					}
 				} else if(fWebUploadingFilesTo == 2) { // Запись на SD,
 					STORE_DEBUG_INFO(54);
-					journal.jprintf("%s (%d) ", nameFile, lenFile);
+					if(MC.get_NetworkFlags() & (1<<fWebFullLog)) journal.jprintfopt("%s (%d) ", nameFile, lenFile);
 					for(uint16_t _timeout = 0; _timeout < 2000 && card.card()->isBusy(); _timeout++) _delay(1);
 					if(wFile.opens(nameFile, O_CREAT | O_TRUNC | O_RDWR, &wfname)) {
 						wFile.timestamp(T_CREATE | T_ACCESS | T_WRITE, rtcSAM3X8.get_years(), rtcSAM3X8.get_months(), rtcSAM3X8.get_days(), rtcSAM3X8.get_hours(), rtcSAM3X8.get_minutes(), rtcSAM3X8.get_seconds());
@@ -2256,7 +2256,7 @@ xContinueSearchHeader:
 								STORE_DEBUG_INFO(57);
 								if(++numPoint >= 20) {// точка на 30 кб приема (20 пакетов по 1540)
 									numPoint = 0;
-									journal.jprintf(".");
+									if(MC.get_NetworkFlags() & (1<<fWebFullLog)) journal.jprintfopt(".");
 								}
 							}
 						}
@@ -2264,7 +2264,9 @@ xContinueSearchHeader:
 						if(!wFile.close()) {
 							journal.jprintf("Error close file (%d,%d)!\n", card.cardErrorCode(), card.cardErrorData());
 						}
-						if(lenFile == 0) journal.jprintf("Ok\n"); else journal.jprintf("Error - rest %d!\n", lenFile);
+						if(lenFile == 0) {
+							if(MC.get_NetworkFlags() & (1<<fWebFullLog)) journal.jprintfopt("Ok\n");
+						} else journal.jprintf("Error - rest %d!\n", lenFile);
 					} else journal.jprintf("Error create (%d,%d)!\n", card.cardErrorCode(), card.cardErrorData());
 					if(lenFile == 0) {
 						numFilesWeb++;
