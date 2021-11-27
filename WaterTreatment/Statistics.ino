@@ -360,8 +360,11 @@ void Statistics::Update()
 	uint32_t tm = GetTickCount() - previous;
 	previous = GetTickCount();
 	if(rtcSAM3X8.get_days() != day) {
-		Reset(SaveStats(2) == OK);
-		if(year != rtcSAM3X8.get_years()) NewYearFlag = 1; // waiting to switch a next year
+		if(SaveStats(2) == OK) {
+			Reset(true);
+			if(year != rtcSAM3X8.get_years()) NewYearFlag = 1; // waiting to switch a next year
+			journal.jprintfopt("=== %s\n", NowDateToStr()); // Новый день.
+		}
 	}
 	int32_t newval = 0;
 	for(uint8_t i = 0; i < sizeof(Stats_data) / sizeof(Stats_data[0]); i++) {

@@ -280,8 +280,10 @@ uint8_t check_address(char *adr, IPAddress &ip)
 	ret = dns.getHostByName(adr, tempIP, W5200_SOCK_SYS); // вот тут с сокетами начинаем работать
 	if(ret == 1)  // Адрес получен
 	{
-		journal.jprintfopt(" %s", adr);
-		journal.jprintfopt(" resolved by %s to %d.%d.%d.%d\n", dns.get_protocol() ? "TCP" : "UDP", tempIP[0], tempIP[1], tempIP[2], tempIP[3]);
+		if(MC.get_NetworkFlags() & (1<<fWebFullLog)) {
+			journal.jprintfopt(" %s", adr);
+			journal.jprintfopt(" resolved by %s to %d.%d.%d.%d\n", dns.get_protocol() ? "TCP" : "UDP", tempIP[0], tempIP[1], tempIP[2], tempIP[3]);
+		}
 		ip = tempIP;
 		return 2;
 	} else {

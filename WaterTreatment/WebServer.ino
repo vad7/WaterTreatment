@@ -2186,7 +2186,7 @@ xContinueSearchHeader:
 					uint16_t numPoint = 0;
 					int32_t loadLen; // Обработанная (загруженная) длина
 					STORE_DEBUG_INFO(54);
-					journal.jprintf("%s (%d) ", nameFile, lenFile);
+					journal.jprintfopt("%s (%d) ", nameFile, lenFile);
 					loadLen = SerialFlash.free_size();
 					if(lenFile > loadLen) {
 						journal.jprintf("Not enough space, free: %d\n", loadLen);
@@ -2210,11 +2210,11 @@ xContinueSearchHeader:
 									numPoint++;
 									if(numPoint >= 20) {                   // точка на 30 кб приема (20 пакетов по 1540)
 										numPoint = 0;
-										journal.jprintf(".");
+										journal.jprintfopt(".");
 									}
 								}
 								ff.close();
-								if(loadLen == lenFile) journal.jprintf("Ok\n");
+								if(loadLen == lenFile) journal.jprintfopt("Ok\n");
 								else { // Длины не совпали
 									journal.jprintf("%db, Error length!\n", loadLen);
 									loadLen = 0;

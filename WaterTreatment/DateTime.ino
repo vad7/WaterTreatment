@@ -150,7 +150,7 @@ boolean set_time_NTP(void)
 	unsigned long secs;
 	boolean flag = strlen(MC.get_serverNTP()) == 0;
 	IPAddress ip(0, 0, 0, 0);
-	journal.jprintfopt_time("Update time from NTP server: %s\n", flag ? "NONE" : MC.get_serverNTP());
+	if(MC.get_NetworkFlags() & (1<<fWebFullLog)) journal.jprintfopt_time("Update time from NTP server: %s\n", flag ? "NONE" : MC.get_serverNTP());
 	if(flag) return false;
 	//1. Установить адрес  не забываем работаетм через один сокет, опреации строго последовательные,иначе настройки сбиваются
 	WDT_Restart(WDT);                                        // Сбросить вачдог  при ошибке долго ждем
@@ -168,14 +168,14 @@ boolean set_time_NTP(void)
 
 	// 2. Посылка пакета
 	if(!Udp.begin(NTP_LOCAL_PORT, W5200_SOCK_SYS)) {
-		journal.jprintfopt(" UDP fail\n");
+		if(MC.get_NetworkFlags() & (1<<fWebFullLog)) journal.jprintfopt(" UDP fail\n");
 		SemaphoreGive(xWebThreadSemaphore);
 		return false;
 	}
 	for(uint8_t i = 0; i < NTP_REPEAT; i++)                                       // Делам 5 попыток получить время
 	{
 		WDT_Restart(WDT);                                            // Сбросить вачдог
-		journal.jprintfopt(" Send packet NTP, wait . . .\n");
+		if(MC.get_NetworkFlags() & (1<<fWebFullLog)) journal.jprintfopt(" Send packet NTP, wait . . .\n");
 		// Send packet
 		flag = true;
 		memset(packetBuffer, 0, NTP_PACKET_SIZE);
@@ -195,7 +195,7 @@ boolean set_time_NTP(void)
 		if(Udp.beginPacket(ip, NTP_PORT, W5200_SOCK_SYS) == 1) {
 			Udp.write(packetBuffer, NTP_PACKET_SIZE);
 			if(Udp.endPacket() != 1) {
-				journal.jprintfopt("Send packet NTP error\n");
+				if(MC.get_NetworkFlags() & (1<<fWebFullLog)) journal.jprintfopt("Send packet NTP error\n");
 				flag = false;
 			}
 		} else {
@@ -227,7 +227,7 @@ boolean set_time_NTP(void)
 		// обновились, можно и часы i2c обновить
 		setTime_RtcI2C(rtcSAM3X8.get_hours(), rtcSAM3X8.get_minutes(), rtcSAM3X8.get_seconds());
 		setDate_RtcI2C(rtcSAM3X8.get_days(), rtcSAM3X8.get_months(), rtcSAM3X8.get_years());
-		journal.jprintfopt(" Set time from NTP server: %s %s\n", NowDateToStr(), NowTimeToStr());
+		if(MC.get_NetworkFlags() & (1<<fWebFullLog)) journal.jprintfopt(" Set time from NTP server: %s %s\n", NowDateToStr(), NowTimeToStr());
 	} else {
 		journal.jprintf_date(" ERROR update time from NTP server!\n");
 	}
