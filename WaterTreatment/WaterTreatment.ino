@@ -983,7 +983,7 @@ xErrorsProcessing:
 					// Flow: 1.655
 					// Edges: 41234
 					// Liters: 112.1234
-					// Sp: 124.123  154.123
+					// m*h: 12.123 14.123
 					lcd.setCursor(0, 0);
 					strcpy(buf, "Flow: "); buf += 6;
 					uint32_t tmp = MC.sFrequency[FLOW].get_Value();
@@ -1012,11 +1012,11 @@ xErrorsProcessing:
 					tmp = MC.CalcFilteringSpeed(MC.FilterTankSquare);
 					if(tmp == 0) { // выводим K, если протока нет
 						strcpy(buf = buffer, "K: "); buf += 3;
-						buf = dptoa(buf, edges*10 / FlowPulseCounter*1000 + (FlowPulseCounterRest-_FlowPulseCounterRest)*1000/MC.sFrequency[FLOW].get_kfValue(), 3);
+						buf = dptoa(buf, edges*10 / (FlowPulseCounter*1000 + (FlowPulseCounterRest-_FlowPulseCounterRest)*1000/MC.sFrequency[FLOW].get_kfValue()), 3);
 					} else {
-						strcpy(buf = buffer, "Sp: "); buf += 4;
+						strcpy(buf = buffer, "m*h: "); buf += 4;
 						buf = dptoa(buf, tmp, 3);
-						*buf++ = ' '; *buf++ = ' ';
+						*buf++ = ' '; //*buf++ = ' ';
 						buf = dptoa(buf, MC.CalcFilteringSpeed(MC.FilterTankSoftenerSquare), 3);
 					}
 					buffer_space_padding(buf, LCD_COLS - (buf - buffer));
