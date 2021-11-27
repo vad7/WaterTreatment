@@ -1038,8 +1038,9 @@ xSaveStats:		if((i = MC.save_WorkStats()) == OK)
 
 				STORE_DEBUG_INFO(47);
 				strcat(strReturn,"<b> Времена</b>|;");
-				strcat(strReturn,"Текущее время|"); DecodeTimeDate(rtcSAM3X8.unixtime(),strReturn,3); strcat(strReturn,";");
-				strcat(strReturn,"Время сохранения текущих настроек |");DecodeTimeDate(MC.get_saveTime(),strReturn,3);strcat(strReturn,";");
+				strReturn += m_snprintf(strReturn += strlen(strReturn), 256, "Текущее время [%u]|", GetTickCount());
+					DecodeTimeDate(rtcSAM3X8.unixtime(),strReturn,3); strcat(strReturn,";");
+					strcat(strReturn,"Время сохранения текущих настроек |");DecodeTimeDate(MC.get_saveTime(),strReturn,3);strcat(strReturn,";");
 
 				strcat(strReturn,"<b> Счетчики ошибок</b>|;");
 				strcat(strReturn,"Счетчик \"Потеря связи с "); strcat(strReturn,nameWiznet);strcat(strReturn,"\", повторная инициализация  <sup>3</sup>|");_itoa(MC.num_resW5200,strReturn);strcat(strReturn,";");

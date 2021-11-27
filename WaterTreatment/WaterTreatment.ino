@@ -1445,7 +1445,7 @@ void vPumps( void * )
 				if(MC.Option.FillingTankTimeout) { // Check tank filling speed
 					// FillingTankLastLevel == 0 - Start watching
 					if(FillingTankLastLevel && WaterBoosterStatus == 0) { // No water consuming from tank
-						if(GetTickCount() - FillingTankTimer >= (uint32_t) MC.Option.FillingTankTimeout * 1000 && !vPumpsNewError) {
+						if(GetTickCount() - FillingTankTimer >= (uint32_t)(MC.Option.FillingTankTimeout * 1000) && !vPumpsNewError) {
 							if(MC.sADC[LTANK].get_Value() - FillingTankLastLevel < FILLING_TANK_STEP) {
 								vPumpsNewErrorData = MC.sADC[LTANK].get_Value() - FillingTankLastLevel;
 								vPumpsNewError = ERR_TANK_NO_FILLING;
@@ -1580,7 +1580,10 @@ xWaterBooster_OFF:
 			}
 		}
 		if(MC.sInput[TANK_FULL].get_Input()) {
-			if(MC.dRelay[RFILL].get_Relay()) MC.dRelay[RFILL].set_OFF();	// Stop filling tank
+			if(MC.dRelay[RFILL].get_Relay()) {
+				MC.dRelay[RFILL].set_OFF();	// Stop filling tank
+				FillingTankLastLevel = 0;
+			}
 		}
 #else
 		if(MC.dRelay[RFILL].get_Relay()) {
@@ -1773,8 +1776,8 @@ void vService(void *)
 									}
 								}
 							} else {
-								FillingTankLastLevel = 0;
 								MC.dRelay[RFILL].set_ON();	// Start filling tank
+								FillingTankLastLevel = 0;
 							}
 						}
 					}

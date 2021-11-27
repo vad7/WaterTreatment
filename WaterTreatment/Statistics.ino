@@ -462,7 +462,7 @@ void Statistics::History()
 		*buf++ = ';';
 		switch(HistorySetup[i].object) { // web will divide by 1/10/1000, except 'L'
 		case STATS_OBJ_Temp:		// C
-			int_to_dec_str(MC.sTemp[HistorySetup[i].number].get_Temp(), 10, &buf, 0); // T (/10)
+			int_to_dec_str(MC.sTemp[HistorySetup[i].number].get_Temp(), 10, &buf, 0); // T (/10), дробная часть выделяется в html
 			break;
 		case STATS_OBJ_Press:		// bar
 			int_to_dec_str(MC.sADC[HistorySetup[i].number].get_Value(), 10, &buf, 0); // P (/10)
@@ -509,8 +509,8 @@ void Statistics::History()
 				int_to_dec_str(Weight_value < 0 ? 0 : Weight_value, 10, &buf, 0); // kg, M (/1000)
 				break;
 			}
-		case STATS_OBJ_Level: {
-				int_to_dec_str(MC.sADC[HistorySetup[i].number].get_Value(), 100, &buf, 0); // %, R
+		case STATS_OBJ_Level: { // дробная часть выделяется в html
+				int_to_dec_str(MC.sADC[HistorySetup[i].number].get_Value(), 1, &buf, 0); // % (/100), R
 				break;
 			}
 		}
