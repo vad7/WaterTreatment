@@ -890,7 +890,7 @@ xSetupExit:
 			}
 			while(!digitalReadDirect(PIN_KEY_OK)) vTaskDelay(KEY_DEBOUNCE_TIME);
 			//journal.jprintfopt("[OK]\n");
-		} else if(!digitalReadDirect(PIN_KEY_UP)) {
+		} else if(!digitalReadDirect(PIN_KEY_UP)) { // ->
 			vTaskDelay(KEY_DEBOUNCE_TIME);
 			while(!digitalReadDirect(PIN_KEY_UP)) vTaskDelay(KEY_DEBOUNCE_TIME);
 			if(LCD_setup) {
@@ -907,6 +907,24 @@ xSetupExit:
 					DisplayTick = ~DisplayTick;
 				} else if((LCD_setup & 0xFF00) == LCD_SetupMenu_Options) { // Options
 					goto xSetupExit;
+				} else if((LCD_setup & 0xFF00) == LCD_SetupMenu_FlowCheck) { // inside menu item selected - Flow check
+					lcd.clear();
+					uint32_t tmp = FlowPulseCounter * MC.sFrequency[FLOW].get_kfValue() + FlowPulseCounterRest - _FlowPulseCounterRest;
+					lcd.print("K = Edges / Cup(L)");
+					lcd.setCursor(0, 1);
+					lcd.print("K 0.5L = ");	dptoa(buffer, tmp * 2, 2); lcd.print(buffer);
+					lcd.setCursor(0, 2);
+					lcd.print("K 1L =   ");	dptoa(buffer, tmp, 2); lcd.print(buffer);
+					lcd.setCursor(0, 3);
+					lcd.print("K 2L =   "); dptoa(buffer, tmp / 2, 2); lcd.print(buffer);
+					while(!digitalReadDirect(PIN_KEY_OK)) vTaskDelay(KEY_DEBOUNCE_TIME);
+					setup_timeout = DISPLAY_SETUP_TIMEOUT / KEY_CHECK_PERIOD;
+					while(--setup_timeout) {
+						vTaskDelay(KEY_CHECK_PERIOD);
+						if(!digitalReadDirect(PIN_KEY_UP) || !digitalReadDirect(PIN_KEY_DOWN) || !digitalReadDirect(PIN_KEY_OK)) break;
+					}
+					do { vTaskDelay(KEY_DEBOUNCE_TIME); } while(!digitalReadDirect(PIN_KEY_UP) || !digitalReadDirect(PIN_KEY_DOWN) || !digitalReadDirect(PIN_KEY_OK));
+					DisplayTick = ~DisplayTick;
 				} else if((LCD_setup & 0xFF00) == LCD_SetupMenu_Sensors) DisplayTick = ~DisplayTick;
 				setup_timeout = DISPLAY_SETUP_TIMEOUT / KEY_CHECK_PERIOD;
 			} else {
@@ -931,7 +949,7 @@ xErrorsProcessing:
 				}
 			}
 			//journal.jprintfopt("[UP]\n");
-		} else if(!digitalReadDirect(PIN_KEY_DOWN)) {
+		} else if(!digitalReadDirect(PIN_KEY_DOWN)) { // <-
 			vTaskDelay(KEY_DEBOUNCE_TIME);
 			while(!digitalReadDirect(PIN_KEY_DOWN)) vTaskDelay(KEY_DEBOUNCE_TIME);
 			if(LCD_setup) {
@@ -994,33 +1012,33 @@ xErrorsProcessing:
 
 					lcd.setCursor(0, 1);
 					strcpy(buf = buffer, "Edges: "); buf += 7;
-					uint32_t edges = (FlowPulseCounter * MC.sFrequency[FLOW].get_kfValue() + FlowPulseCounterRest - _FlowPulseCounterRest) / 100;
-					buf += i10toa(edges, buf, 0);
+					tmp = (FlowPulseCounter * MC.sFrequency[FLOW].get_kfValue() + FlowPulseCounterRest - _FlowPulseCounterRest) / 100;
+					buf += i10toa(tmp, buf, 0);
 					buffer_space_padding(buf, LCD_COLS - (buf - buffer));
 					lcd.print(buffer);
 
 					lcd.setCursor(0, 2);
 					strcpy(buf = buffer, "Liters: "); buf += 8;
-					edges*= 100;
-					buf += i10toa(edges / MC.sFrequency[FLOW].get_kfValue(), buf, 0);
+					tmp*= 100;
+					buf += i10toa(tmp / MC.sFrequency[FLOW].get_kfValue(), buf, 0);
 					*buf++ = '.';
-					buf += i10toa((uint32_t)(edges % MC.sFrequency[FLOW].get_kfValue()) * 10000 / MC.sFrequency[FLOW].get_kfValue(), buf, 4);
+					buf += i10toa((uint32_t)(tmp % MC.sFrequency[FLOW].get_kfValue()) * 10000 / MC.sFrequency[FLOW].get_kfValue(), buf, 4);
 					buffer_space_padding(buf, LCD_COLS - (buf - buffer));
 					lcd.print(buffer);
 
 					lcd.setCursor(0, 3);
 					tmp = MC.CalcFilteringSpeed(MC.FilterTankSquare);
 					if(tmp == 0) { // выводим K, если протока нет
-						strcpy(buf = buffer, "K: "); buf += 3;
-						buf = dptoa(buf, edges*10 / (FlowPulseCounter*1000 + (FlowPulseCounterRest-_FlowPulseCounterRest)*1000/MC.sFrequency[FLOW].get_kfValue()), 3);
+								// 12345678901234567890
+						lcd.print("Clear: \x7F, Calc: \x7E");
 					} else {
 						strcpy(buf = buffer, "m*h: "); buf += 4;
 						buf = dptoa(buf, tmp, 3);
 						*buf++ = ' '; //*buf++ = ' ';
 						buf = dptoa(buf, MC.CalcFilteringSpeed(MC.FilterTankSoftenerSquare), 3);
+						buffer_space_padding(buf, LCD_COLS - (buf - buffer));
+						lcd.print(buffer);
 					}
-					buffer_space_padding(buf, LCD_COLS - (buf - buffer));
-					lcd.print(buffer);
 
 					DisplayTick = xTaskGetTickCount() - (DISPLAY_UPDATE - 1000); // every 1000 ms
 					vTaskDelay(KEY_CHECK_PERIOD);
