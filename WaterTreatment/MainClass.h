@@ -98,8 +98,8 @@ volatile uint32_t RegBackwashTimer = 0;
 int16_t  RegStart_Weight;
 uint32_t ResetDUE_countdown = 0;
 bool	 DebugToJournalOn = false;
-uint32_t FlowPulseCounter;
-uint32_t FlowPulseCounterRest;
+uint32_t FlowPulseCounter;	// L
+uint32_t FlowPulseCounterRest; // L % K
 bool     LowConsumeMode = false; //
 int32_t  AfterFilledTimer = 0;
 uint32_t Request_LowConsume;

@@ -837,7 +837,7 @@ void vKeysLCD( void * )
 	for(;;)
 	{
 		if(LCD_setup) if(--setup_timeout == 0) goto xSetupExit;
-		if(!digitalReadDirect(PIN_KEY_OK)) {
+		if(!digitalReadDirect(PIN_KEY_OK)) { // OK (middle) key
 			vTaskDelay(KEY_DEBOUNCE_TIME);
 			if(LCD_setup) {
 				{
@@ -862,6 +862,8 @@ xSetupExit:
 					if((LCD_setup & 0xFF) == RFILL) FillingTankLastLevel = 0;
 				} else if((LCD_setup & 0xFF00) == LCD_SetupMenu_Options) { // inside menu item selected - Options
 					MC.fNetworkReset = 1;
+					goto xSetupExit;
+				} else if((LCD_setup & 0xFF00) == LCD_SetupMenu_FlowCheck) { // inside menu item selected - Flow check
 					goto xSetupExit;
 				} else if((LCD_setup & 0xFF00) == 0) {	// select menu item
 					LCD_setup = (LCD_setup << 8) | LCD_SetupFlag;
@@ -933,7 +935,7 @@ xErrorsProcessing:
 			vTaskDelay(KEY_DEBOUNCE_TIME);
 			while(!digitalReadDirect(PIN_KEY_DOWN)) vTaskDelay(KEY_DEBOUNCE_TIME);
 			if(LCD_setup) {
-				if((LCD_setup & 0xFF00) == LCD_SetupMenu_FlowCheck) { // Flow check
+				if((LCD_setup & 0xFF00) == LCD_SetupMenu_FlowCheck) { // Flow check - reset calc
 					FlowPulseCounter = 0;
 					FlowPulseCounterRest = _FlowPulseCounterRest = MC.sFrequency[FLOW].PassedRest;
 				} else if((LCD_setup & 0xFF00) == 0) {
@@ -978,41 +980,49 @@ xErrorsProcessing:
 					lcd.setCursor(10 * ((LCD_setup & 0xFF) % 2), (LCD_setup & 0xFF) / 2);
 				} else if((LCD_setup & 0xFF00) == LCD_SetupMenu_FlowCheck) { // Flow check
 					// 12345678901234567890
+					// Flow: 1.655
 					// Edges: 41234
 					// Liters: 112.1234
-					// Flow: 2332
 					// Sp: 124.123  154.123
 					lcd.setCursor(0, 0);
 					strcpy(buf, "Flow: "); buf += 6;
-					buf = dptoa(buf, MC.sFrequency[FLOW].get_Value(), 3);
+					uint32_t tmp = MC.sFrequency[FLOW].get_Value();
+					if(tmp) setup_timeout = DISPLAY_SETUP_TIMEOUT / KEY_CHECK_PERIOD; // не выходить из настроек пока проток есть
+					buf = dptoa(buf, tmp, 3);
 					buffer_space_padding(buf, LCD_COLS - (buf - buffer));
 					lcd.print(buffer);
 
 					lcd.setCursor(0, 1);
 					strcpy(buf = buffer, "Edges: "); buf += 7;
-					uint32_t tmp = (FlowPulseCounter * MC.sFrequency[FLOW].get_kfValue() + FlowPulseCounterRest - _FlowPulseCounterRest) / 100;
-					buf += i10toa(tmp, buf, 0);
+					uint32_t edges = (FlowPulseCounter * MC.sFrequency[FLOW].get_kfValue() + FlowPulseCounterRest - _FlowPulseCounterRest) / 100;
+					buf += i10toa(edges, buf, 0);
 					buffer_space_padding(buf, LCD_COLS - (buf - buffer));
 					lcd.print(buffer);
 
 					lcd.setCursor(0, 2);
 					strcpy(buf = buffer, "Liters: "); buf += 8;
-					tmp *= 100;
-					buf += i10toa(tmp / MC.sFrequency[FLOW].get_kfValue(), buf, 0);
+					edges*= 100;
+					buf += i10toa(edges / MC.sFrequency[FLOW].get_kfValue(), buf, 0);
 					*buf++ = '.';
-					buf += i10toa((uint32_t)(tmp % MC.sFrequency[FLOW].get_kfValue()) * 10000 / MC.sFrequency[FLOW].get_kfValue(), buf, 4);
+					buf += i10toa((uint32_t)(edges % MC.sFrequency[FLOW].get_kfValue()) * 10000 / MC.sFrequency[FLOW].get_kfValue(), buf, 4);
 					buffer_space_padding(buf, LCD_COLS - (buf - buffer));
 					lcd.print(buffer);
 
 					lcd.setCursor(0, 3);
-					strcpy(buf = buffer, "Sp: "); buf += 4;
-					buf = dptoa(buf, MC.CalcFilteringSpeed(MC.FilterTankSquare), 3);
-					*buf++ = ' '; *buf++ = ' ';
-					buf = dptoa(buf, MC.CalcFilteringSpeed(MC.FilterTankSoftenerSquare), 3);
+					tmp = MC.CalcFilteringSpeed(MC.FilterTankSquare);
+					if(tmp == 0) { // выводим K, если протока нет
+						strcpy(buf = buffer, "K: "); buf += 3;
+						buf = dptoa(buf, edges*10 / FlowPulseCounter*1000 + (FlowPulseCounterRest-_FlowPulseCounterRest)*1000/MC.sFrequency[FLOW].get_kfValue(), 3);
+					} else {
+						strcpy(buf = buffer, "Sp: "); buf += 4;
+						buf = dptoa(buf, tmp, 3);
+						*buf++ = ' '; *buf++ = ' ';
+						buf = dptoa(buf, MC.CalcFilteringSpeed(MC.FilterTankSoftenerSquare), 3);
+					}
 					buffer_space_padding(buf, LCD_COLS - (buf - buffer));
 					lcd.print(buffer);
 
-					DisplayTick = xTaskGetTickCount() - (DISPLAY_UPDATE - 1000);
+					DisplayTick = xTaskGetTickCount() - (DISPLAY_UPDATE - 1000); // every 1000 ms
 					vTaskDelay(KEY_CHECK_PERIOD);
 					continue;
 				} else if((LCD_setup & 0xFF00) == LCD_SetupMenu_Options) { // Options
