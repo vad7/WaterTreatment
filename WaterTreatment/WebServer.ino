@@ -54,7 +54,6 @@ const char *postRet[]            = {"Настройки из выбранног�
 #define emptyStr			WEB_HEADER_END  	   // пустая строка после которой начинаются данные
 #define MAX_FILE_LEN		64  	              // максимальная длина имени файла
 const char Title[]          = "Title: ";          // где лежит имя файла
-const char Length[]         = "Content-Length: "; // где лежит длина файла
 const char SETTINGS[]       = "*SETTINGS*";       // Идентификатор передачи настроек (лежит в Title:)
 const char LOAD_FLASH_START[]= "*SPI_FLASH*";     // Идентификатор начала загрузки веб морды в SPI Flash (лежит в Title:)
 const char LOAD_FLASH_END[]  = "*SPI_FLASH_END*"; // Идентификатор колнца загрузки веб морды в SPI Flash (лежит в Title:)
@@ -2042,62 +2041,68 @@ TYPE_RET_POST parserPOST(uint8_t thread, uint16_t size)
 	char *nameFile;      // указатель имя файла
 	int32_t buf_len, lenFile;
 
-	//journal.jprintfopt(" POST =>"); journal.jprintfopt("%s\n", Socket[thread].inPtr); if(strlen(Socket[thread].inPtr) >= PRINTF_BUF) journal.jprintfopt("%s\n", Socket[thread].inPtr + PRINTF_BUF - 1);
+	//journal.printf(" POST =>"); journal.printf("%s\n", Socket[thread].inPtr); if(strlen(Socket[thread].inPtr) >= PRINTF_BUF) journal.printf("%s\n", Socket[thread].inPtr + PRINTF_BUF - 1);
 	STORE_DEBUG_INFO(51);
 
 	// Поиски во входном буфере: данных, имени файла и длины файла
-	ptr = (byte*) strstr(Socket[thread].inPtr, emptyStr) + sizeof(emptyStr) - 1;    // поиск начала даных
-
-	if((nameFile = strstr(Socket[thread].inPtr, Title)) == NULL) { // Имя файла не найдено, запрос не верен, выходим
+	ptr = (byte*) strstr(Socket[thread].inPtr, emptyStr);     // поиск начала данных
+	if(!ptr) return pLOAD_ERR;
+	ptr += sizeof(emptyStr) - 1;
+	nameFile = strstr(Socket[thread].inPtr, Title);
+	pStart = (byte*) strstr(Socket[thread].inPtr, http_Length);
+	if(pStart) pStart += sizeof(http_Length) - 1;
+	if(nameFile) {
+		char *p = strchr(nameFile += sizeof(Title) - 1, '\r');
+		if(p) *p = '\0'; else nameFile = NULL;
+	}
+	if(!nameFile) { // Имя файла не найдено, запрос не верен, выходим
 		journal.jprintf("Upload: Name not found!\n");
 		return pLOAD_ERR;
 	}
-	nameFile += sizeof(Title) - 1;
-	char *tmp = strchr(nameFile, '\r');
-	if(tmp == NULL || tmp - nameFile >= MAX_FILE_LEN) {
-		nameFile[MAX_FILE_LEN] = '\0';
+	urldecode(nameFile, nameFile, MAX_FILE_LEN + 10);
+	if(strlen(nameFile) > MAX_FILE_LEN) {
 		journal.jprintf("Upload: %s name length > %d bytes!\n", nameFile, MAX_FILE_LEN - 1);
 		return pLOAD_ERR;
 	}
-	pStart = (byte*) strstr(Socket[thread].inPtr, Length);
-	if(pStart == NULL) { // Размер файла не найден, запрос не верен, выходим
+	if(!pStart) { // Размер файла не найден, запрос не верен, выходим
+xLenErr:
 		journal.jprintf("Upload: %s - length not found!\n", nameFile);
 		return pLOAD_ERR;
 	}
-	pStart += sizeof(Length) - 1;
-	*tmp = '\0';
-	urldecode(Socket[thread].outBuf, nameFile, 128);
-	nameFile = Socket[thread].outBuf;
-	tmp = strchr((char*) pStart, '\r');
-	if(tmp) {
-		*tmp = '\0';
-		lenFile = atoi((char*) pStart);	// получить длину
-	} else lenFile = 0;
+	lenFile = strtol((char*) pStart, NULL, 10);	// получить длину
 	// все нашлось, можно обрабатывать
 	buf_len = size - (ptr - (byte *) Socket[thread].inBuf);                  // длина (остаток) данных (файла) в буфере
 	// В зависимости от имени файла (Title)
 	if(strcmp(nameFile, SETTINGS) == 0) {  // Чтение настроек
+		if(lenFile <= 0) goto xLenErr;
 		STORE_DEBUG_INFO(52);
 		int32_t len;
 		// Определение начала данных (поиск HEADER_BIN)
-		pStart=(byte*)strstr((char*) ptr, HEADER_BIN);    // Поиск заголовка
-		if( pStart== NULL || lenFile == 0) {              // Заголовок не найден
+xContinueSearchHeader:
+		pStart = (byte*)strstr((char*) ptr, HEADER_BIN);    // Поиск заголовка
+		if(pStart == NULL) {              // Заголовок не найден
+			if((len = Socket[thread].client.available())) {
+				if(len > W5200_MAX_LEN) len = W5200_MAX_LEN;
+				Socket[thread].client.read(ptr = (uint8_t*)Socket[thread].inBuf, len);            // прочитать буфер
+				goto xContinueSearchHeader;
+			}
 			journal.jprintf("Upload: Wrong save format: %s!\n", nameFile);
+			//if(__.get_NetworkFlags() & (1<<fWebFullLog)) journal.jprintf("[Avail:%d] %s\n\n", Socket[thread].client.available(), ptr);
 			return pSETTINGS_ERR;
 		}
-		len=pStart+sizeof(HEADER_BIN) - (byte*) Socket[thread].inBuf-1;         // размер текстового заголовка в буфере до окончания HEADER_BIN, дальше идут бинарные данные
+		len=pStart+sizeof(HEADER_BIN)-1 - (byte*) Socket[thread].inBuf;         // размер текстового заголовка в буфере до окончания HEADER_BIN, дальше идут бинарные данные
 		buf_len = size - len;                                                   // определяем размер бинарных данных в первом пакете
 		memcpy(Socket[thread].outBuf, pStart+sizeof(HEADER_BIN)-1, buf_len);    // копируем бинарные данные в буфер, без заголовка!
-	    lenFile=lenFile-len;                                                    // корректируем длину файла на длину заголовка (только бинарные данные)
-		while(buf_len < lenFile)  // Чтение остальных бинарных данных по сети
+		while(1)  // Чтение остальных бинарных данных по сети
 		{
-			for(uint8_t i=0;i<255;i++) if(!Socket[thread].client.available()) _delay(1);else break; // ждем получние пакета до 20 мсек (может быть плохая связь)
+			for(uint8_t i = 0; i < 255; i++) {
+				if(!Socket[thread].client.available()) _delay(1); else break; // ждем получение пакета
+			}
 			if(!Socket[thread].client.available()) break;                                          // пакета нет - выходим
 			len = Socket[thread].client.get_ReceivedSizeRX();                                      // получить длину входного пакета
-			if(len > W5200_MAX_LEN - 1) len = W5200_MAX_LEN - 1;                                   // Ограничить размером в максимальный размер пакета w5200
-			Socket[thread].client.read(Socket[thread].inBuf, len);                                 // прочитать буфер
-			if(buf_len + len >= (int32_t) sizeof(Socket[thread].outBuf)) return pSETTINGS_MEM;     // проверить длину если не влезает то выходим
-			memcpy(Socket[thread].outBuf + buf_len, Socket[thread].inBuf, len);                    // Добавить пакет в буфер
+			if(len > W5200_MAX_LEN) len = W5200_MAX_LEN;                                   		// Ограничить размером в максимальный размер пакета w5200
+			if(buf_len + len > (int32_t)sizeof(Socket[thread].outBuf)) return pSETTINGS_MEM;     // проверить длину если не влезает то выходим
+			Socket[thread].client.read((uint8_t*)Socket[thread].outBuf + buf_len, len);            // прочитать буфер
 			buf_len = buf_len + len;                                                               // определить размер данных
 		}
 	    ptr = (byte*) Socket[thread].outBuf;
