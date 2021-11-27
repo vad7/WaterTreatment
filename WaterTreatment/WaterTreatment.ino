@@ -912,11 +912,11 @@ xSetupExit:
 					uint32_t tmp = FlowPulseCounter * MC.sFrequency[FLOW].get_kfValue() + FlowPulseCounterRest - _FlowPulseCounterRest;
 					lcd.print("K = Edges / Cup(L)");
 					lcd.setCursor(0, 1);
-					lcd.print("K 0.5L = ");	dptoa(buffer, tmp * 2, 2); lcd.print(buffer);
+					lcd.print("0.5L = ");	dptoa(buffer, tmp * 2, 2); lcd.print(buffer);
 					lcd.setCursor(0, 2);
-					lcd.print("K 1L =   ");	dptoa(buffer, tmp, 2); lcd.print(buffer);
+					lcd.print("1L   = ");	dptoa(buffer, tmp, 2); lcd.print(buffer);
 					lcd.setCursor(0, 3);
-					lcd.print("K 2L =   "); dptoa(buffer, tmp / 2, 2); lcd.print(buffer);
+					lcd.print("2L   = "); dptoa(buffer, tmp / 2, 2); lcd.print(buffer);
 					while(!digitalReadDirect(PIN_KEY_OK)) vTaskDelay(KEY_DEBOUNCE_TIME);
 					setup_timeout = DISPLAY_SETUP_TIMEOUT / KEY_CHECK_PERIOD;
 					while(--setup_timeout) {
@@ -1030,7 +1030,7 @@ xErrorsProcessing:
 					tmp = MC.CalcFilteringSpeed(MC.FilterTankSquare);
 					if(tmp == 0) { // выводим K, если протока нет
 								// 12345678901234567890
-						lcd.print("Clear: \x7F, Calc: \x7E");
+						lcd.print("Clear: \x7F, Calc: \x7E   ");
 					} else {
 						strcpy(buf = buffer, "m*h: "); buf += 4;
 						buf = dptoa(buf, tmp, 3);
