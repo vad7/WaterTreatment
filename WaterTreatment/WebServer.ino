@@ -1923,7 +1923,7 @@ xWgt_get:
 						} else if(*x == 'T') {      	// get_Wgt(T) - Tare
 							_dtoa(strReturn, MC.Option.WeightTare, 1);
 						} else if(*x == 'N') {      	// get_Wgt(N) - full brine weight
-							_dtoa(strReturn, MC.Option.WeightFull, 1);
+							_dtoa(strReturn, MC.Option.WeightFull, 0);
 						} else if(*x == 'A') {      	// get_Wgt(A) - ADC value
 							//_itoa(Weight_adc_filter[Weight_adc_idx ? Weight_adc_idx - 1 : sizeof(Weight_adc_filter) / sizeof(Weight_adc_filter[0]) - 1], strReturn); // one reading
 							_itoa(Weight_adc_sum / (sizeof(Weight_adc_filter) / sizeof(Weight_adc_filter[0])), strReturn); // averaged
@@ -1944,7 +1944,7 @@ xWgt_get:
 						if(*x == 'T') {      	// set_Wgt(T=) - Tare
 							MC.Option.WeightTare = pm * 10 + 0.05f;
 						} else if(*x == 'N') {      	// set_Wgt(N=) - full brine weight
-							MC.Option.WeightFull = pm * 10 + 0.05f;
+							MC.Option.WeightFull = pm;
 						} else if(*x == 'K') {      	// set_Wgt(K=) - Coefficient
 							MC.Option.WeightScale = (int32_t)pm * 10000;
 							if((z = strchr(z, '.'))) { // add 4 digit after decimal point (float has low resolution)

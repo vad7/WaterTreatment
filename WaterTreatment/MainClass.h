@@ -167,7 +167,7 @@ struct type_option {
 	int32_t  WeightScale;			// Коэффициент калибровки весов, десятитысячные (~50.0)
 	int32_t  WeightZero;			// Вес 0, АЦП
 	int32_t  WeightTare;			// Вес тары, десятые грамма
-	int32_t  WeightFull;			// Полный вес реагента без тары, десятые грамма
+	int32_t  WeightFull;			// Полный вес реагента без тары, граммы
 	uint32_t DrainAfterNoConsume;	// Через сколько секунд сливать воду при отсутствии потребления
 	uint32_t BackWashFeedPumpMaxFlow; // лч, Во время обратной промывки - максимальный проток до которого распределяется время включения дозатора
 	uint16_t BackWashFeedPumpDelay; // в TIME_READ_SENSOR, задержка включения дозатора

@@ -81,7 +81,7 @@ bool Weight_Read(void)
 //				Weight_NeedRead = false;
 				if(Weight_value != Weight_Test) {
 					Weight_value = Weight_Test;
-					Weight_Percent = Weight_value * 10000 / MC.Option.WeightFull;
+					Weight_Percent = Weight_value * 1000 / MC.Option.WeightFull;
 				}
 			} else if(Weight.is_ready()) { // 10Hz or 80Hz
 //				Weight_NeedRead = false;
@@ -108,8 +108,8 @@ bool Weight_Read(void)
 				}
 				if(Weight_adc_flagFull) adc_val = Weight_adc_sum / WEIGHT_AVERAGE_BUFFER; else adc_val = Weight_adc_sum / Weight_adc_idx;
 				if(GETBIT(MC.Option.flags, fDebugToSerial)) journal.printf("=%d\n", adc_val);
-				Weight_value = (adc_val - MC.Option.WeightZero) * 10000 / MC.Option.WeightScale - MC.Option.WeightTare;
-				Weight_Percent = Weight_value * 10000 / MC.Option.WeightFull;
+				Weight_value = (int64_t)(adc_val - MC.Option.WeightZero) * 10000 / MC.Option.WeightScale - MC.Option.WeightTare;
+				Weight_Percent = Weight_value * 1000 / MC.Option.WeightFull;
 				if(Weight_Percent < 0) Weight_Percent = 0; else if(Weight_Percent > 10000) Weight_Percent = 10000;
 				if(Weight_Percent < MC.Option.Weight_Low) {
 					if(!(CriticalErrors & ERRC_WeightEmpty)) {
