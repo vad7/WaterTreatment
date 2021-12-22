@@ -1873,7 +1873,7 @@ void vService(void *)
 							RWATERON_Switching = -(int16_t)TimerDrainingWaterAfterRegen;
 							if(MC.WorkStats.UsedLastRegenSoftening < MC.Option.MinRegenLitersSoftening) {
 								set_Error(ERR_FEW_LITERS_REG, (char*)__FUNCTION__);
-							} else if(RegStart_Weight < MC.Option.MinRegenWeightDecrease) {
+							} else if(RegStart_Weight < MC.Option.MinRegenWeightDecreaseSoftening) {
 								set_Error(ERR_REG_FEW_WEIGHT_CONSUME, (char*)__FUNCTION__);
 							}
 							RegenStarted = 0;

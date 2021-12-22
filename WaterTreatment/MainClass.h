@@ -199,10 +199,11 @@ struct type_option {
 	uint16_t LowConsumeRequestPeriod;// Периодичность запроса о режиме низкого потребления, если 0, то только при старте, сек
 	uint16_t SepticAlarmDebounce;	// Время исключения помех датчика аварии септика, сек
 	uint16_t MinRegenLitersSoftening;// Тревога, если за регенерацию умягчителя израсходовано меньше литров
-	uint16_t MinRegenWeightDecrease;// Тревога, если за регенерацию вес уменьшился меньше, чем задано, граммы
+	uint16_t MinRegenWeightDecrease;// Тревога, если за регенерацию обезжелезивателя вес уменьшился меньше, чем задано, граммы
 	uint16_t LTank_Hour_Low;		// Низкий уровень ночного заполнения бака, сотые %
 	int8_t   LTank_Hour;			// Час ночного заполнение бака
 	uint8_t  RegenSofteningCntAlarm;// Счетчик регенераций до включения тревоги, 0 - нет
+	uint16_t MinRegenWeightDecreaseSoftening;// Тревога, если за регенерацию умягчителя вес уменьшился меньше, чем задано, граммы
 	type_DailySwitch DailySwitch[DAILY_SWITCH_MAX];	// дневное периодическое включение
 };
 

@@ -9,7 +9,7 @@
 		urlupdate = 2000;
 		window.onload = function() {
 		loadParam("get_tblRelay,get_tblPwrC,LowConsume");
-		loadParam("get_tblInput,get_tblPDS");
+		loadParam("get_tblInput,get_listDSR,get_tblPDS");
 	};
 	</script>
 </head>
@@ -19,7 +19,7 @@
 <div class="row1">
 	<h2>Реле <input type="submit" value="Записать в EEPROM" onclick='loadParam("set_SAVE")' style="float:right;"></h2>
 	<div class="row1">
-		<table>
+		<table border="1" rules="rows">
 		<thead>
 		<tr>
 			<th width="15%">Имя</th>
@@ -47,7 +47,7 @@
 	</div>
  <br>
  <h2>Датчики сухой контакт</h2>
-  <table>
+  <table border="1" rules="rows">
     <thead>
     <tr>
       <th width="15%">Имя</th>
@@ -79,5 +79,6 @@
 <div style="font-size:medium">Режим минимальной нагрузки (питание от резерва): <input type="checkbox" id="lowconsume" onChange="setParam('LowConsume_set','lowconsume');"></div>
 </div>
 </div>
+<select id="get_listdsr" hidden></select>
 </body>
 </html>

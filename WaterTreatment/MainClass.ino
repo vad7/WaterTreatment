@@ -903,6 +903,7 @@ boolean MainClass::set_option(char *var, float xx)
    if(strcmp(var,option_MinRegen)==0)        { Option.MinRegenLiters = x; return true; } else
    if(strcmp(var,option_MinRegenSoftening)==0){ Option.MinRegenLitersSoftening = x; return true; } else
    if(strcmp(var,option_MinRegenWeightDecrease)==0){ Option.MinRegenWeightDecrease = x; return true; } else
+   if(strcmp(var,option_MinRegenWeightDecreaseSoftening)==0){ Option.MinRegenWeightDecreaseSoftening = x; return true; } else
    if(strcmp(var,option_MinDrain)==0)        { Option.MinDrainLiters = rd(xx, 10); return true; } else
    if(strcmp(var,option_DrainAfterNoConsume)==0){ Option.DrainAfterNoConsume = x * 60 * 60; return true; } else
    if(strcmp(var,option_DrainTime)==0)       { Option.DrainTime = x; return true; } else
@@ -991,6 +992,7 @@ char* MainClass::get_option(char *var, char *ret)
 	if(strcmp(var,option_MinRegen)==0){ return _itoa(Option.MinRegenLiters, ret); } else
 	if(strcmp(var,option_MinRegenSoftening)==0){ return _itoa(Option.MinRegenLitersSoftening, ret); } else
 	if(strcmp(var,option_MinRegenWeightDecrease)==0){ return _itoa(Option.MinRegenWeightDecrease, ret); } else
+	if(strcmp(var,option_MinRegenWeightDecreaseSoftening)==0){ return _itoa(Option.MinRegenWeightDecreaseSoftening, ret); } else
 	if(strcmp(var,option_MinDrain)==0){ _dtoa(ret, Option.MinDrainLiters, 1); return ret; } else
 	if(strcmp(var,option_DrainAfterNoConsume)==0){ return _itoa(Option.DrainAfterNoConsume / (60 * 60), ret); } else
 	if(strcmp(var,option_DrainTime)==0){ return _itoa(Option.DrainTime, ret); } else

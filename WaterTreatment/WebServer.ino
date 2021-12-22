@@ -566,6 +566,15 @@ void parserGET(uint8_t thread)
 				ADD_WEBDELIM(strReturn);
 				continue;
 			}
+			if(strcmp(str,"DSR")==0) {    // Функция get_listDSR
+				strcat(strReturn, "---;");
+				for(i = 0; i < RNUMBER; i++) {
+					strcat(strReturn, MC.dRelay[i].get_name()); strcat(strReturn,";");
+				}
+				ADD_WEBDELIM(strReturn);
+				continue;
+			}
+
 			i = 0;
 			if(strcmp(str,"Stats")==0) i = 1;   // Функция get_listStats
 			else if(strcmp(str,"Hist")==0) i = 2;   // Функция get_listHist
