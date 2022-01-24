@@ -358,7 +358,7 @@ boolean  Message::SendCommandSMTP(char *c, boolean wait)
 
   if (!clientMessage.connected())  // если клиент не соединен то это ошибка выходим
   {
-    JOURNAL("Server no connected, abort send mail???\n");
+	if(!GETBIT(WorkFlags, fWF_MessageSendError)) journal.jprintf("Server no connected, abort send mail???\n");
     return false;
   }
 
@@ -610,6 +610,7 @@ boolean Message::sendMail()
 		strncpy(retMail, "No connect", LEN_RETMAIL);
 		SETBIT1(WorkFlags, fWF_MessageSendError);
 		SemaphoreGive (xWebThreadSemaphore);
+		dnsUpadateSMTP = true;
 		return false;
 	}
 
@@ -619,6 +620,7 @@ boolean Message::sendMail()
 		clientMessage.stop();  // ответ содержит ошибки
 		SETBIT1(WorkFlags, fWF_MessageSendError);
 		SemaphoreGive (xWebThreadSemaphore);
+		dnsUpadateSMTP = true;
 		return false;
 	}
 	// 3. Авторизация
@@ -628,12 +630,14 @@ boolean Message::sendMail()
 			clientMessage.stop();  // ответ содержит ошибки
 			SETBIT1(WorkFlags, fWF_MessageSendError);
 			SemaphoreGive (xWebThreadSemaphore);
+			dnsUpadateSMTP = true;
 			return false;
 		}
 		if(!SendCommandSMTP((char*) "AUTH LOGIN", true)) {
 			clientMessage.stop();  // ответ содержит ошибки
 			SETBIT1(WorkFlags, fWF_MessageSendError);
 			SemaphoreGive (xWebThreadSemaphore);
+			dnsUpadateSMTP = true;
 			return false;
 		}
 		strcpy(tempBuf, "");
@@ -642,6 +646,7 @@ boolean Message::sendMail()
 			clientMessage.stop();  // ответ содержит ошибки
 			SETBIT1(WorkFlags, fWF_MessageSendError);
 			SemaphoreGive (xWebThreadSemaphore);
+			dnsUpadateSMTP = true;
 			return false;
 		}
 		strcpy(tempBuf, "");
@@ -650,6 +655,7 @@ boolean Message::sendMail()
 			clientMessage.stop();  // ответ содержит ошибки
 			SETBIT1(WorkFlags, fWF_MessageSendError);
 			SemaphoreGive (xWebThreadSemaphore);
+			dnsUpadateSMTP = true;
 			return false;
 		}
 	} else                                                               // Авторизация не требуется
@@ -658,6 +664,7 @@ boolean Message::sendMail()
 			clientMessage.stop();  // ответ содержит ошибки
 			SETBIT1(WorkFlags, fWF_MessageSendError);
 			SemaphoreGive (xWebThreadSemaphore);
+			dnsUpadateSMTP = true;
 			return false;
 		}
 	}
