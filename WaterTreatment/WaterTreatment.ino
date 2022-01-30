@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020 by Vadim Kulakov vad7@yahoo.com, vad711
+ * Copyright (c) 2020-2022 by Vadim Kulakov vad7@yahoo.com, vad711
  *
  * This file is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
@@ -1110,6 +1110,9 @@ xErrorsProcessing:
 				if(CriticalErrors & ERRC_TankEmpty) {
 					strcpy(buf, "EMPTY! "); buf += 7;
 				}
+				if(CriticalErrors & ERRC_WaterCounter) {
+					strcpy(buf, "CNT! "); buf += 5;
+				}
 				if(CriticalErrors & ERRC_SepticAlarm) {
 					strcpy(buf, "SEPTIC! "); buf += 8;
 				}
@@ -1547,12 +1550,20 @@ void vPumps( void * )
 					&& WaterBoosterTimeout >= MC.Option.MinWaterBoostOffTime
 					&& press <= (reg_active ? MC.Option.PWATER_RegMin : MC.sADC[PWATER].get_minValue())) { // Starting
 				if(!LowConsumeMode || (!MC.dRelay[RFEEDPUMP].get_Relay() && AfterFilledTimer == 0)) {
-					MC.dRelay[RBOOSTER1].set_ON();
-					WaterBoosterTimeout = 0;
-					WaterBoosterStatus = 1;
 					int32_t i = WaterBoosterCountL * 100 + (WaterBoosterCountLrest - _WaterBoosterCountLrest) * 100 / MC.sFrequency[FLOW].get_kfValue();
 					if(History_BoosterCountL == -1) History_BoosterCountL = i; else History_BoosterCountL += i;
 					MC.ChartWaterBoosterCount.addPoint(i);
+					if((LCD_setup & 0xFF00) != LCD_SetupMenu_FlowCheck && i <= MC.Option.MinWaterBoosterCountL) {
+						vPumpsNewError = ERR_WATER_CNT_FAIL;
+						CriticalErrors |= ERRC_WaterCounter;
+						MC.dRelay[RWATERON].set_Relay(fR_StatusAllOff);
+						MC.dRelay[RDRAIN].set_Relay(fR_StatusAllOff);
+						MC.dRelay[RDRAIN2].set_Relay(fR_StatusAllOff);
+					} else {
+						MC.dRelay[RBOOSTER1].set_ON();
+						WaterBoosterTimeout = 0;
+						WaterBoosterStatus = 1;
+					}
 				}
 			}
 		} else if(WaterBoosterStatus > 0) {

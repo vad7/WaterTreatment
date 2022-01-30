@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020 by Vadim Kulakov vad7@yahoo.com, vad711
+ * Copyright (c) 2020-2022 by Vadim Kulakov vad7@yahoo.com, vad711
   *
  * This file is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
@@ -20,7 +20,7 @@
 #include "Util.h"
 
 // ОПЦИИ КОМПИЛЯЦИИ ПРОЕКТА -------------------------------------------------------
-#define VERSION			  "1.30"			// Версия прошивки
+#define VERSION			  "1.31"			// Версия прошивки
 #define VER_SAVE		  9					// Версия формата сохраняемых данных в I2C память
 //#define LOG                               // В последовательный порт шлет лог веб сервера (логируются запросы)
 #define FAST_LIB                            // использование допиленной библиотеки езернета
@@ -390,6 +390,7 @@ const char *option_MinRegenSoftening	= {"MRS"};
 const char *option_MinRegenWeightDecrease={"MRW"};
 const char *option_MinRegenWeightDecreaseSoftening={"MRWS"};
 const char *option_MinDrain				= {"MD"};
+const char *option_MinWaterBoosterCountL= {"MWC"};
 const char *option_DrainTime			= {"DT"};
 const char *option_DrainAfterNoConsume	= {"DA"};
 const char *option_PWM_DryRun			= {"DR"};
@@ -501,25 +502,26 @@ const char *webWS_UsedLastRegenSoftening  		= { "RSL" };
 #define ERR_ADDRESS			-50        // Адрес датчика температуры не установлен
 #define ERR_FEW_LITERS_REG	-51			// Мало израсходовано воды при регенерации
 #define ERR_FEW_LITERS_DRAIN -52		// Мало израсходовано воды при сбросе воды
-#define ERR_RTC_LOW_BATTERY -53			// Села батарея часов
-#define ERR_PWM_DRY_RUN		-54			// Сухой ход двигателя насоса
-#define ERR_PWM_MAX			-55			// Перегрузка двигателя насоса
-#define ERR_PRESS			-56			// Ошибка давления
-#define ERR_FLOODING		-57			// Затопление
-//#define ERR_TANK_EMPTY	-58				// Пустой бак! (defined in config.h)
-#define ERR_TANK_NO_FILLING	-59			// Бак не заполняется
-#define ERR_RTC_WRITE		-60			// Ошибка записи в RTC память
-#define ERR_START_REG		-61			// Не запускается регенерация обезжелезивателя
-#define ERR_START_REG2		-62			// Не запускается регенерация умягчителя
-#define ERR_WEIGHT_LOW		-63			// Маленький вес реагента
-#define ERR_WEIGHT_EMPTY	-64			// Пустой бак с реагентом
-#define ERR_LEAK			-65			// Протечка
-#define ERR_SEPTIC_ALARM	-66			// Авария септика
-#define ERR_NO_POWER		-67			// Нет электричества
-#define ERR_REG_FEW_WEIGHT_CONSUME -68	// Мало израсходовано реагента во время регенерации
-#define ERR_SALT_FINISH		-69			// Закончилась соль в баке умягчителя
+#define ERR_WATER_CNT_FAIL	-53			// Неисправность счетчика воды
+#define ERR_RTC_LOW_BATTERY -54			// Села батарея часов
+#define ERR_PWM_DRY_RUN		-55			// Сухой ход двигателя насоса
+#define ERR_PWM_MAX			-56			// Перегрузка двигателя насоса
+#define ERR_PRESS			-57			// Ошибка давления
+#define ERR_FLOODING		-58			// Затопление
+//#define ERR_TANK_EMPTY	-59				// Пустой бак! (defined in config.h)
+#define ERR_TANK_NO_FILLING	-60			// Бак не заполняется
+#define ERR_RTC_WRITE		-61			// Ошибка записи в RTC память
+#define ERR_START_REG		-62			// Не запускается регенерация обезжелезивателя
+#define ERR_START_REG2		-63			// Не запускается регенерация умягчителя
+#define ERR_WEIGHT_LOW		-64			// Маленький вес реагента
+#define ERR_WEIGHT_EMPTY	-65			// Пустой бак с реагентом
+#define ERR_LEAK			-66			// Протечка
+#define ERR_SEPTIC_ALARM	-67			// Авария септика
+#define ERR_NO_POWER		-68			// Нет электричества
+#define ERR_REG_FEW_WEIGHT_CONSUME -69	// Мало израсходовано реагента во время регенерации
+#define ERR_SALT_FINISH		-70			// Закончилась соль в баке умягчителя
 
-#define ERR_ERRMAX			-69			// Последняя ошибка
+#define ERR_ERRMAX			-70			// Последняя ошибка
 
 // Предупреждения
 #define WARNING_VALUE        1         // Попытка установить значение за границами диапазона запрос типа SET
@@ -579,23 +581,24 @@ const char *noteError[] = {
 		"Адрес датчика температруры не установлен",											//-50
 		"Мало израсходовано воды при регенерации",											//-51
 		"Мало израсходовано воды при сливе",												//-52
-		"Села батарея часов",																//-53
-		"Суход ход двигателя насоса",														//-54
-		"Перегрузка двигателя насоса",														//-55
-		"Ошибка давления",																	//-56
-		"Затопление!",																		//-57
-		"Пустой бак",																		//-58
-		"Бак не заполняется",																//-59
-		"Ошибка записи в RTC",																//-60
-		"Не запускается регенерация обезжелезивателя",										//-61
-		"Не запускается регенерация умягчителя",											//-62
-		"Низкий уровень реагента",															//-63
-		"Реагент закончился!",																//-64
-		"Протечка!",																		//-65
-		"Авария септика!",																	//-66
-		"Нет электричества",																//-67
-		"Мало израсходовано реагента во время регенерации",									//-68
-		"Закончилась соль в баке умягчителя",												//-69
+		"Неисправность счетчика воды!",														//-53
+		"Села батарея часов",																//-54
+		"Суход ход двигателя насоса",														//-55
+		"Перегрузка двигателя насоса",														//-56
+		"Ошибка давления",																	//-57
+		"Затопление!",																		//-58
+		"Пустой бак",																		//-59
+		"Бак не заполняется",																//-60
+		"Ошибка записи в RTC",																//-61
+		"Не запускается регенерация обезжелезивателя",										//-62
+		"Не запускается регенерация умягчителя",											//-63
+		"Низкий уровень реагента",															//-64
+		"Реагент закончился!",																//-65
+		"Протечка!",																		//-66
+		"Авария септика!",																	//-67
+		"Нет электричества",																//-68
+		"Мало израсходовано реагента во время регенерации",									//-69
+		"Закончилась соль в баке умягчителя",												//-70
 
 		"NULL"
 		};

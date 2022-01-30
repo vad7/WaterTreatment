@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020 by Vadim Kulakov vad7@yahoo.com, vad711
+ * Copyright (c) 2020-2022 by Vadim Kulakov vad7@yahoo.com, vad711
   *
  * This file is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
@@ -69,6 +69,7 @@ struct type_RTC_memory { // DS3231/DS3232 used alarm memory, starts from 0x07, m
 #define	ERRC_TankEmpty		0x04
 #define	ERRC_WeightEmpty	0x08
 #define	ERRC_SepticAlarm	0x10
+#define	ERRC_WaterCounter	0x20
 volatile uint32_t CriticalErrors = 0;	// Stop any work when these errors have occurred
 int32_t  vPumpsNewErrorData = 0;
 int8_t   vPumpsNewError = 0;
@@ -81,6 +82,7 @@ uint32_t WaterBoosterTimeout = 0;  // ms
 uint32_t WaterBoosterCountL = 0;
 int32_t  WaterBoosterCountLrest = 0;
 int32_t _WaterBoosterCountLrest = 0;
+
 //bool 	 WaterBoosterError = false;
 //volatile bool FloodingError = false;
 //bool	 TankEmpty = false;
@@ -204,6 +206,7 @@ struct type_option {
 	int8_t   LTank_Hour;			// Час ночного заполнение бака
 	uint8_t  RegenSofteningCntAlarm;// Счетчик регенераций до включения тревоги, 0 - нет
 	uint16_t MinRegenWeightDecreaseSoftening;// Тревога, если за регенерацию умягчителя вес уменьшился меньше, чем задано, граммы
+	uint16_t MinWaterBoosterCountL; // Тревога, если между включениями насосной станции потреблено меньше литров, сотые
 	type_DailySwitch DailySwitch[DAILY_SWITCH_MAX];	// дневное периодическое включение
 };
 

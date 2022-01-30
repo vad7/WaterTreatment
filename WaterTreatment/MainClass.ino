@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020 by Vadim Kulakov vad7@yahoo.com, vad711
+ * Copyright (c) 2020-2022 by Vadim Kulakov vad7@yahoo.com, vad711
  *
  * This file is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
@@ -905,6 +905,7 @@ boolean MainClass::set_option(char *var, float xx)
    if(strcmp(var,option_MinRegenWeightDecrease)==0){ Option.MinRegenWeightDecrease = x; return true; } else
    if(strcmp(var,option_MinRegenWeightDecreaseSoftening)==0){ Option.MinRegenWeightDecreaseSoftening = x; return true; } else
    if(strcmp(var,option_MinDrain)==0)        { Option.MinDrainLiters = rd(xx, 10); return true; } else
+   if(strcmp(var,option_MinWaterBoosterCountL)==0){ Option.MinWaterBoosterCountL = rd(xx, 100); return true; } else
    if(strcmp(var,option_DrainAfterNoConsume)==0){ Option.DrainAfterNoConsume = x * 60 * 60; return true; } else
    if(strcmp(var,option_DrainTime)==0)       { Option.DrainTime = x; return true; } else
    if(strcmp(var,option_PWM_LOG_ERR)==0)     { Option.flags = (Option.flags & ~(1<<fPWMLogErrors)) | ((x!=0)<<fPWMLogErrors); return true; } else
@@ -994,6 +995,7 @@ char* MainClass::get_option(char *var, char *ret)
 	if(strcmp(var,option_MinRegenWeightDecrease)==0){ return _itoa(Option.MinRegenWeightDecrease, ret); } else
 	if(strcmp(var,option_MinRegenWeightDecreaseSoftening)==0){ return _itoa(Option.MinRegenWeightDecreaseSoftening, ret); } else
 	if(strcmp(var,option_MinDrain)==0){ _dtoa(ret, Option.MinDrainLiters, 1); return ret; } else
+	if(strcmp(var,option_MinWaterBoosterCountL)==0){ _dtoa(ret, Option.MinWaterBoosterCountL, 2); return ret; } else
 	if(strcmp(var,option_DrainAfterNoConsume)==0){ return _itoa(Option.DrainAfterNoConsume / (60 * 60), ret); } else
 	if(strcmp(var,option_DrainTime)==0){ return _itoa(Option.DrainTime, ret); } else
 	if(strcmp(var,option_PWM_LOG_ERR)==0){ return strcat(ret, (char*)(GETBIT(Option.flags, fPWMLogErrors) ? cOne : cZero)); } else
