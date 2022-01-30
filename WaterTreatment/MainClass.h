@@ -82,6 +82,7 @@ uint32_t WaterBoosterTimeout = 0;  // ms
 uint32_t WaterBoosterCountL = 0;
 int32_t  WaterBoosterCountLrest = 0;
 int32_t _WaterBoosterCountLrest = 0;
+uint8_t  WaterBoosterCountEnd = 0;
 
 //bool 	 WaterBoosterError = false;
 //volatile bool FloodingError = false;
@@ -432,7 +433,7 @@ public:
 	type_option Option;                  			// Опции
 
 	uint8_t  NO_Power;					  			// Нет питания основных узлов
-	uint16_t  NO_Power_delay;
+	uint16_t NO_Power_delay;
 	uint8_t  fNetworkReset;							// Нужно сбросить сеть
     TEST_MODE testMode;                             // Значение режима тестирования
 	type_WorkStats WorkStats;               		// Структура для хранения счетчиков периодическая запись
