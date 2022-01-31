@@ -1260,19 +1260,6 @@ void vReadSensor(void *)
 		}
 		WaterBoosterCountL += passed;
 		WaterBoosterCountLrest = MC.sFrequency[FLOW].PassedRest;
-		if(WaterBoosterCountEnd) {
-			WaterBoosterCountEnd = 0;
-			int32_t l = WaterBoosterCountL * 100 + (WaterBoosterCountLrest - _WaterBoosterCountLrest) * 100 / MC.sFrequency[FLOW].get_kfValue();
-			if(History_BoosterCountL == -1) History_BoosterCountL = l; else History_BoosterCountL += l;
-			MC.ChartWaterBoosterCount.addPoint(i);
-			if((LCD_setup & 0xFF00) != LCD_SetupMenu_FlowCheck && l <= MC.Option.MinWaterBoosterCountL) {
-				CriticalErrors |= ERRC_WaterCounter;
-				set_Error(ERR_WATER_CNT_FAIL, (char*)__FUNCTION__);
-				MC.dRelay[RWATERON].set_Relay(fR_StatusAllOff);
-				MC.dRelay[RDRAIN].set_Relay(fR_StatusAllOff);
-				MC.dRelay[RDRAIN2].set_Relay(fR_StatusAllOff);
-			}
-		}
 		if(LCD_setup) {
 			FlowPulseCounter += passed;
 			FlowPulseCounterRest = MC.sFrequency[FLOW].PassedRest;
@@ -1563,10 +1550,21 @@ void vPumps( void * )
 					&& WaterBoosterTimeout >= MC.Option.MinWaterBoostOffTime
 					&& press <= (reg_active ? MC.Option.PWATER_RegMin : MC.sADC[PWATER].get_minValue())) { // Starting
 				if(!LowConsumeMode || (!MC.dRelay[RFEEDPUMP].get_Relay() && AfterFilledTimer == 0)) {
-					MC.dRelay[RBOOSTER1].set_ON();
-					WaterBoosterCountEnd = 1;
-					WaterBoosterTimeout = 0;
-					WaterBoosterStatus = 1;
+					int32_t l = WaterBoosterCountL * 100 + (WaterBoosterCountLrest - _WaterBoosterCountLrest) * 100 / MC.sFrequency[FLOW].get_kfValue();
+					l += MC.sFrequency[FLOW].get_RawPassed();
+					if(History_BoosterCountL == -1) History_BoosterCountL = l; else History_BoosterCountL += l;
+					MC.ChartWaterBoosterCount.addPoint(l);
+					if((LCD_setup & 0xFF00) != LCD_SetupMenu_FlowCheck && l <= MC.Option.MinWaterBoosterCountL) {
+						CriticalErrors |= ERRC_WaterCounter;
+						if(!vPumpsNewError) vPumpsNewError = ERR_WATER_CNT_FAIL;
+						MC.dRelay[RWATERON].set_Relay(fR_StatusAllOff);
+						MC.dRelay[RDRAIN].set_Relay(fR_StatusAllOff);
+						MC.dRelay[RDRAIN2].set_Relay(fR_StatusAllOff);
+					} else {
+						MC.dRelay[RBOOSTER1].set_ON();
+						WaterBoosterTimeout = 0;
+						WaterBoosterStatus = 1;
+					}
 				}
 			}
 		} else if(WaterBoosterStatus > 0) {

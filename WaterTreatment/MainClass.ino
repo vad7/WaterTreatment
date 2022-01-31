@@ -41,7 +41,7 @@ int8_t set_Error(int8_t _err, char *nam)
 	if(i != sizeof(Errors) / sizeof(Errors[0])) {
 		Errors[i] = _err;
 		ErrorsTime[i] = rtcSAM3X8.unixtime();
-		journal.jprintf_date("$ERROR source: %s, code: %d\n", nam, _err);
+		journal.jprintf_date("$ERROR source: %s, code: %d (0x%X)\n", nam, _err, CriticalErrors);
 		if(xTaskGetSchedulerState() == taskSCHEDULER_RUNNING) {
 			journal.jprintf(" State:");
 			for(i = 0; i < RNUMBER; i++) journal.jprintf(" %s:%d", MC.dRelay[i].get_name(), MC.dRelay[i].get_Relay());
