@@ -1550,7 +1550,9 @@ void vPumps( void * )
 					&& WaterBoosterTimeout >= MC.Option.MinWaterBoostOffTime
 					&& press <= (reg_active ? MC.Option.PWATER_RegMin : MC.sADC[PWATER].get_minValue())) { // Starting
 				if(!LowConsumeMode || (!MC.dRelay[RFEEDPUMP].get_Relay() && AfterFilledTimer == 0)) {
-					int32_t l = WaterBoosterCountL * 100 + (WaterBoosterCountLrest - _WaterBoosterCountLrest) * 100 / MC.sFrequency[FLOW].get_kfValue();
+					int32_t l;
+					if(_WaterBoosterCountLrest == -1) goto xWaterBooster_StartFill;
+					l = WaterBoosterCountL * 100 + (WaterBoosterCountLrest - _WaterBoosterCountLrest) * 100 / MC.sFrequency[FLOW].get_kfValue();
 					l += MC.sFrequency[FLOW].get_RawPassed();
 					if(History_BoosterCountL == -1) History_BoosterCountL = l; else History_BoosterCountL += l;
 					MC.ChartWaterBoosterCount.addPoint(l);
@@ -1561,6 +1563,7 @@ void vPumps( void * )
 						MC.dRelay[RDRAIN].set_Relay(fR_StatusAllOff);
 						MC.dRelay[RDRAIN2].set_Relay(fR_StatusAllOff);
 					} else {
+xWaterBooster_StartFill:
 						MC.dRelay[RBOOSTER1].set_ON();
 						WaterBoosterTimeout = 0;
 						WaterBoosterStatus = 1;
@@ -1909,6 +1912,19 @@ void vService(void *)
 									&& !MC.NO_Power && !LowConsumeMode ? fR_StatusDaily : -fR_StatusDaily);
 						}
 					}
+					//
+					int16_t pw = MC.sADC[PWATER].get_Value();
+					if(MC.sADC[PWATER].get_Value() < MC.Option.PWATER_Osmos_Min) { // нет протока и давление низкое
+						if(MC.sFrequency[FLOW].get_Value() == 0) {
+							if(pw > Osmos_PWATER_Last) Osmos_PWATER_Cnt = 0;
+							else if(pw < Osmos_PWATER_Last) {
+								if(++Osmos_PWATER_Cnt > 1) {
+									;
+								}
+							}
+						} else Osmos_PWATER_Cnt = 0;
+					} else Osmos_PWATER_Cnt = 0;
+					Osmos_PWATER_Last = pw;
 				}
 			}
 xOtherTask_1min:
