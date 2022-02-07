@@ -1268,11 +1268,6 @@ void vReadSensor(void *)
 			MC.sFrequency[FLOW].Passed = 0;
 			interrupts();
 		}
-		if(!MC.sInput[REG_BACKWASH_ACTIVE].get_Input()) {
-			TimeFeedPump +=	(uint32_t)MC.sFrequency[FLOW].get_Value() * TIME_READ_SENSOR / MC.Option.FeedPumpMaxFlow;
-		} else if(++RegBackwashTimer > MC.Option.BackWashFeedPumpDelay) {
-			TimeFeedPump +=	(uint32_t)MC.sFrequency[FLOW].get_Value() * TIME_READ_SENSOR / MC.Option.BackWashFeedPumpMaxFlow;
-		}
 		WaterBoosterCountL += passed;
 		WaterBoosterCountLrest = MC.sFrequency[FLOW].PassedRest;
 		if(LCD_setup) {
@@ -1282,11 +1277,9 @@ void vReadSensor(void *)
 		if(passed) {
 			if(!MC.sInput[REG_BACKWASH_ACTIVE].get_Input()) {
 				TimeFeedPump +=	passed * 1000 * TIME_READ_SENSOR / MC.Option.FeedPumpMaxFlow;
-			} else if(++RegBackwashTimer > MC.Option.BackWashFeedPumpDelay) {
+			} else if(RegBackwashTimer == 0) { // В начале обратной промывки реагент не подаем, в конце - усиленная подача
 				TimeFeedPump +=	passed * 1000 * TIME_READ_SENSOR / MC.Option.BackWashFeedPumpMaxFlow;
 			}
-
-
 			uint32_t utm = rtcSAM3X8.unixtime();
 			if(MC.sInput[REG_ACTIVE].get_Input() || MC.sInput[REG_BACKWASH_ACTIVE].get_Input() || MC.sInput[REG2_ACTIVE].get_Input()) {
 				MC.RTC_store.UsedRegen += passed;
@@ -1690,7 +1683,7 @@ xWaterBooster_OFF:
 				MC.RTC_store.Work |= RTC_Work_Regen_F1;
 				MC.dRelay[RWATEROFF1].set_ON();
 				MC.dRelay[RWATERON].set_Relay(fR_StatusAllOff);
-				RegBackwashTimer = 0;
+				RegBackwashTimer = MC.Option.BackWashFeedPumpDelay;
 				RegStart_Weight = Weight_value / 10;
 				NewRegenStatus = true;
 				MC.RTC_store.UsedRegen = 0;
@@ -1771,6 +1764,8 @@ void vService(void *)
 					MC.dRelay[RWATERON].set_ON();
 				}
 			} else if(RWATERON_Switching > 0) RWATERON_Switching--;
+			if(RegBackwashTimer) RegBackwashTimer--;
+
 			uint8_t m = rtcSAM3X8.get_minutes();
 			if(m != task_updstat_countm) { 								// Через 1 минуту
 				task_updstat_countm = m;

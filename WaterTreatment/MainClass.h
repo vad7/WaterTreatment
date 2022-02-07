@@ -96,7 +96,7 @@ uint32_t TimerDrainingWater = 0;
 uint32_t TimerDrainingWaterAfterRegen = 0;
 int32_t  UsedDrainRest = 0;
 volatile bool NewRegenStatus = false;
-volatile uint32_t RegBackwashTimer = 0;
+volatile uint32_t RegBackwashTimer = 0;	// sec
 int16_t  RegStart_Weight;
 uint32_t ResetDUE_countdown = 0;
 bool	 DebugToJournalOn = false;
@@ -173,7 +173,7 @@ struct type_option {
 	int32_t  WeightFull;			// Полный вес реагента без тары, граммы
 	uint32_t DrainAfterNoConsume;	// Через сколько секунд сливать воду при отсутствии потребления
 	uint32_t BackWashFeedPumpMaxFlow; // тысячные литров в cек, Расход для постоянного включения дозатора (= FeedRate_ml_sec / Need_ml_sec * 1000)
-	uint16_t BackWashFeedPumpDelay; // в TIME_READ_SENSOR, задержка включения дозатора
+	uint16_t BackWashFeedPumpDelay; // задержка включения дозатора, сек
 	uint16_t DaysBeforeRegen;		// Дней до регенерации обезжелезивателя, 0 - не проверять
 	uint16_t UsedBeforeRegen;		// Количество литров до регенерации обезжелезивателя, 0 - нет
 	uint16_t UsedBeforeRegenSoftening;// Количество литров до регенерации умягчителя, 0 - нет
