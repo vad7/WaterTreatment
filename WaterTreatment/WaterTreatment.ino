@@ -1063,7 +1063,8 @@ xErrorsProcessing:
 				int32_t tmp = MC.sFrequency[FLOW].get_Value();
 				buf = dptoa(buf, tmp, 3);
 				strcpy(buf, " m3h "); buf += 5;
-				if(MC.sInput[REG_ACTIVE].get_Input() || MC.sInput[REG_BACKWASH_ACTIVE].get_Input() || MC.sInput[REG2_ACTIVE].get_Input()) {
+				uint8_t _regactive = (MC.sInput[REG_ACTIVE].get_Input() || MC.sInput[REG_BACKWASH_ACTIVE].get_Input()) | (MC.sInput[REG2_ACTIVE].get_Input() << 1);
+				if(_regactive) {
 					*buf++ = 'R';
 					tmp = MC.RTC_store.UsedRegen;
 				} else {
@@ -1133,7 +1134,21 @@ xErrorsProcessing:
 					}
 				}
 				if(buf == buffer) {
-					if((tmp = MC.dPWM.get_Power()) != 0) {
+					if(_regactive) {
+						// 12345678901234567890
+						// 0:30, m*h: 5.123
+						uint32_t t = RegenStarted ? rtcSAM3X8.unixtime() - RegenStarted : 0;
+						if(t < 86400) {
+							buf += i10toa(t / 60, buf, 0);
+							*buf++ = ':';
+							buf += i10toa(t % 60, buf, 2);
+						} else {
+							strcat(buf, "?:?");
+							buf += 3;
+						}
+						strcat(buf, ", m*h: "); buf += 7;
+						buf = dptoa(buf, MC.CalcFilteringSpeed((_regactive & 2) ? MC.FilterTankSoftenerSquare : MC.FilterTankSquare), 3);
+					} else if((tmp = MC.dPWM.get_Power()) != 0) {
 						strcpy(buf, "Power,W: "); buf += 9;
 						buf = dptoa(buf, tmp, 0);
 					} else {
@@ -1548,7 +1563,8 @@ void vPumps( void * )
 		if(WaterBoosterStatus == 0) {
 			if(!CriticalErrors && press != ERROR_PRESS
 					&& WaterBoosterTimeout >= MC.Option.MinWaterBoostOffTime
-					&& press <= (reg_active ? MC.Option.PWATER_RegMin : MC.sADC[PWATER].get_minValue())) { // Starting
+					&& (press <= (reg_active ? MC.Option.PWATER_RegMin : MC.sADC[PWATER].get_minValue()) || MC.Osmos_PWATER_Cnt > MC.Option.PWATER_Osmos_Step)) {
+				// Starting
 				if(!LowConsumeMode || (!MC.dRelay[RFEEDPUMP].get_Relay() && AfterFilledTimer == 0)) {
 					int32_t l;
 					if(_WaterBoosterCountLrest == -1) goto xWaterBooster_StartFill;
@@ -1849,7 +1865,7 @@ void vService(void *)
 							taskEXIT_CRITICAL();
 							NeedSaveWorkStats = 1;
 							RegStart_Weight -= Weight_value / 10;
-							journal.jprintf_date("Regen F1 finished, Used: %d, reagent: %d g.\n", MC.WorkStats.UsedLastRegen, RegStart_Weight);
+							journal.jprintf_date("Regen F1 finished, Used: %d, reagent: %d g, time: %d s.\n", MC.WorkStats.UsedLastRegen, RegStart_Weight, rtcSAM3X8.unixtime() - RegenStarted);
 							if((TimerDrainingWaterAfterRegen = MC.Option.DrainingWaterAfterRegen)) MC.dRelay[RDRAIN].set_ON();
 							_delay(100);
 							MC.dRelay[RWATEROFF1].set_OFF();
@@ -1883,7 +1899,7 @@ void vService(void *)
 							taskEXIT_CRITICAL();
 							NeedSaveWorkStats = 1;
 							RegStart_Weight -= Weight_value / 10;
-							journal.jprintf_date("Regen F2 finished, Used: %d, reagent: %d g.\n", MC.WorkStats.UsedLastRegenSoftening, RegStart_Weight);
+							journal.jprintf_date("Regen F2 finished, Used: %d, reagent: %d g, time: %d s.\n", MC.WorkStats.UsedLastRegenSoftening, RegStart_Weight, rtcSAM3X8.unixtime() - RegenStarted);
 							if((TimerDrainingWaterAfterRegen = MC.Option.DrainingWaterAfterRegenSoftening)) MC.dRelay[RDRAIN2].set_ON();
 							RWATERON_Switching = -(int16_t)TimerDrainingWaterAfterRegen;
 							if(MC.WorkStats.UsedLastRegenSoftening < MC.Option.MinRegenLitersSoftening) {
@@ -1916,15 +1932,11 @@ void vService(void *)
 					int16_t pw = MC.sADC[PWATER].get_Value();
 					if(MC.sADC[PWATER].get_Value() < MC.Option.PWATER_Osmos_Min) { // нет протока и давление низкое
 						if(MC.sFrequency[FLOW].get_Value() == 0) {
-							if(pw > Osmos_PWATER_Last) Osmos_PWATER_Cnt = 0;
-							else if(pw < Osmos_PWATER_Last) {
-								if(++Osmos_PWATER_Cnt > 1) {
-									;
-								}
-							}
-						} else Osmos_PWATER_Cnt = 0;
-					} else Osmos_PWATER_Cnt = 0;
-					Osmos_PWATER_Last = pw;
+							if(pw > MC.Osmos_PWATER_Last) MC.Osmos_PWATER_Cnt -= MC.Osmos_PWATER_Cnt > 0 ? 1 : 0;
+							else if(pw < MC.Osmos_PWATER_Last) MC.Osmos_PWATER_Cnt++;
+						} else MC.Osmos_PWATER_Cnt = 0;
+					} else MC.Osmos_PWATER_Cnt = 0;
+					MC.Osmos_PWATER_Last = pw;
 				}
 			}
 xOtherTask_1min:

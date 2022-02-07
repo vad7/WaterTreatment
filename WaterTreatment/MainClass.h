@@ -106,9 +106,8 @@ bool     LowConsumeMode = false; //
 int32_t  AfterFilledTimer = 0;
 uint32_t Request_LowConsume;
 uint32_t RegenStarted = 0;
+
 int16_t  RWATERON_Switching = 0; // >0 - в процессе переключения, <0 - задержка включения, сек
-uint8_t  Osmos_PWATER_Cnt = 0;
-int16_t  Osmos_PWATER_Last = 0;
 
 // Weight
 //bool Weight_NeedRead = false; // allways
@@ -210,7 +209,7 @@ struct type_option {
 	uint16_t MinRegenWeightDecreaseSoftening;// Тревога, если за регенерацию умягчителя вес уменьшился меньше, чем задано, граммы
 	uint16_t MinWaterBoosterCountL; // Тревога, если между включениями насосной станции потреблено меньше литров, сотые
 	int16_t  PWATER_Osmos_Min;		// Минимальное давление для осмоса, когда проток не фиксируется, сотые бара
-	uint8_t  PWATER_Osmos_Step;		// Осмос - Через сколько раз времени давление должно уменьшиться на 0.01 бар или больше без протока, секунды
+	uint8_t  PWATER_Osmos_Step;		// Осмос - Через сколько раз уменьшений давления без протока включать насосную станцию
 	uint8_t  _reserved_;
 	type_DailySwitch DailySwitch[DAILY_SWITCH_MAX];	// дневное периодическое включение
 };
@@ -445,6 +444,8 @@ public:
 	type_RTC_memory RTC_store;
 	uint32_t FilterTankSquare;						// m2 * 10000
 	uint32_t FilterTankSoftenerSquare;				// m2 * 10000
+	uint8_t  Osmos_PWATER_Cnt = 0;
+	int16_t  Osmos_PWATER_Last = 0;
 
 private:
 
