@@ -445,8 +445,8 @@ public:
 	type_RTC_memory RTC_store;
 	uint32_t FilterTankSquare;						// m2 * 10000
 	uint32_t FilterTankSoftenerSquare;				// m2 * 10000
-	uint8_t  Osmos_PWATER_Cnt = 0;
-	int16_t  Osmos_PWATER_Last = 0;
+	uint8_t  Osmos_PWATER_Cnt;
+	int16_t  Osmos_PWATER_Last;
 
 private:
 

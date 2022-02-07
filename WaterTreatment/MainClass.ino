@@ -600,6 +600,8 @@ void MainClass::resetSetting()
 	timeON = 0;                                     // время включения контроллера для вычисления UPTIME
 	countNTP = 0;                                   // число секунд с последнего обновления по NTP
 	timeNTP = 0;                                    // Время обновления по NTP в тиках (0-сразу обновляемся)
+	Osmos_PWATER_Cnt = 0;
+	Osmos_PWATER_Last = 0;
 
 	safeNetwork = false;                            // режим safeNetwork
 

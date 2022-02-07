@@ -1008,7 +1008,7 @@ void load_struct(void *to, uint8_t **from, uint16_t to_size)
 }
 
 // Round float * mul, mul: 10, 100, 1000
-int16_t rd(float num, int16_t mul)
+int32_t rd(float num, int16_t mul)
 {
 	return num * mul + (mul == 1000 ? 0.0005f : mul == 100 ? 0.005f : mul == 10 ? 0.05f : 0.00005f) * (num < 0 ? -1 : 1);
 }
