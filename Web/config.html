@@ -7,7 +7,7 @@
 <script type='text/javascript' src='scripts.js'></script>
 <script type="text/javascript">
 window.onload = function() {
-	loadParam("get_Opt(FPMF),get_Opt(UBR),get_Opt(RH),get_Opt(NRW),get_Opt(DT),get_Opt(MR),get_Opt(MD),get_Opt(HIST),get_Opt(BEEP),get_Opt(WSPIF),get_Opt(LOGWS),get_Opt(TIME_CHART),get_Opt(PWMLOG),get_Opt(SGL1W_1),get_Opt(SGL1W_2),get_Opt(SGL1W_3),get_Opt(SGL1W_4),get_Opt(TD),get_Opt(TDS),get_Opt(TAF),get_Opt(LLM),get_Opt(DAR),get_Opt(DBRS),get_Opt(LCP),get_Opt(SD),get_Opt(DAS),get_Opt(MRS),get_Opt(MRW),get_Opt(LH),get_Opt(LHL),get_Opt(MRWS)");
+	loadParam("get_Opt(FPMF),,get_Opt(FPR),get_Opt(UBR),get_Opt(RH),get_Opt(NRW),get_Opt(DT),get_Opt(MR),get_Opt(MD),get_Opt(HIST),get_Opt(BEEP),get_Opt(WSPIF),get_Opt(LOGWS),get_Opt(TIME_CHART),get_Opt(PWMLOG),get_Opt(SGL1W_1),get_Opt(SGL1W_2),get_Opt(SGL1W_3),get_Opt(SGL1W_4),get_Opt(TD),get_Opt(TDS),get_Opt(TAF),get_Opt(LLM),get_Opt(DAR),get_Opt(DBRS),get_Opt(LCP),get_Opt(SD),get_Opt(DAS),get_Opt(MRS),get_Opt(MRW),get_Opt(LH),get_Opt(LHL),get_Opt(MRWS)");
 	loadParam("get_Opt(MWBT),get_Opt(MWBTF),get_Opt(MPOT),get_Opt(DR),get_Opt(PM),get_Opt(PST),get_WSRC,get_WSRSC,get_WST,get_Opt(WRM),get_Opt(TE),get_Opt(FDT),get_Opt(FT),get_Opt(FTT),get_Opt(UBRS),get_Opt(DBR),get_Opt(WE),get_Opt(CET),get_Opt(DA),get_Opt(BWFD),get_Opt(BWMF),get_Opt(RA1),get_Opt(RA2),get_Opt(RSA),get_Opt(MWC),get_Opt(WOM),get_Opt(WOS),LowConsume_Req");
 }; 
 function show_all() {
@@ -25,8 +25,12 @@ function show_all() {
 		<thead><tr><th>Описание</th><th>Значение</th></tr></thead>			
 		<tbody>
 		<tr>
-			<td>Максимальный проток до которого распределяется включение дозатора, лч</td>
-			<td nowrap><input id="get_opt-fpmf" type="number"> <input type="submit" value=">" onclick="setParam('get_Opt(FPMF)');"></td>
+			<td>Производительность дозирующего насоса реагента, лч</td>
+			<td nowrap><input id="get_opt-fpr" type="number" step="0.001"> <input type="submit" value=">" onclick="setParam('get_Opt(FPR)');"></td>
+		</tr>
+		<tr>
+			<td>Расход реагента на 1 л потребления воды, мл</td>
+			<td nowrap><input id="get_opt-fpmf" type="number" step="0.001"> <input type="submit" value=">" onclick="setParam('get_Opt(FPMF)');"></td>
 		</tr>
 		<tr>
 			<td>Минимальное время работы насосной станции, мсек</td>
@@ -96,8 +100,8 @@ function show_all() {
 			<td nowrap><input id="get_opt-wrm" type="number" step="0.01"> <input type="submit" value=">" onclick="setParam('get_Opt(WRM)');"></td>
 		</tr>
 		<tr>
-			<td>Во время обратной промывки - максимальный проток дозатора, лч</td>
-			<td nowrap><input id="get_opt-bwmf" type="number"> <input type="submit" value=">" onclick="setParam('get_Opt(BWMF)');"></td>
+			<td>Во время обратной промывки - расход реагента на 1 л расхода воды, мл</td>
+			<td nowrap><input id="get_opt-bwmf" type="number" step="0.001"> <input type="submit" value=">" onclick="setParam('get_Opt(BWMF)');"></td>
 		</tr>
 		<tr>
 			<td>Во время обратной промывки - задержка включения дозатора, сек</td>
@@ -128,7 +132,6 @@ function show_all() {
 			<td>Через сколько регенераций заканчивается соль (будет тревога)</td>
 			<td nowrap><input id="get_opt-rsa" type="number"> <input type="submit" value=">" onclick="setParam('get_Opt(RSA)');"></td>
 		</tr>
-
 		<tr>
 			<td><b>Накопительный бак</b></td><td></td>
 		</tr>

@@ -21,7 +21,7 @@
 
 // ОПЦИИ КОМПИЛЯЦИИ ПРОЕКТА -------------------------------------------------------
 #define VERSION			  "1.32"			// Версия прошивки
-#define VER_SAVE		  9					// Версия формата сохраняемых данных в I2C память
+#define VER_SAVE		  10				// Версия формата сохраняемых данных в I2C память
 //#define LOG                               // В последовательный порт шлет лог веб сервера (логируются запросы)
 #define FAST_LIB                            // использование допиленной библиотеки езернета
 #define TIME_ZONE         3                 // поправка на часовой пояс по ДЕФОЛТУ
@@ -375,6 +375,7 @@ const char *option_WebOnSPIFlash		= {"WSPIF"};              // флаг, что 
 const char *option_LogWirelessSensors	= {"LOGWS"};              // Логировать обмен между беспроводными датчиками
 const char *option_fDontRegenOnWeekend	= {"NRW"};
 const char *option_FeedPumpMaxFlow		= {"FPMF"};
+const char *option_FeedPumpRate			= {"FPR"};
 const char *option_BackWashFeedPumpMaxFlow= {"BWMF"};
 const char *option_BackWashFeedPumpDelay = {"BWFD"};
 const char *option_RegenHour			= {"RH"};

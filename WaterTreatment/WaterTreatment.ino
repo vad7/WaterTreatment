@@ -1280,6 +1280,13 @@ void vReadSensor(void *)
 			FlowPulseCounterRest = MC.sFrequency[FLOW].PassedRest;
 		}
 		if(passed) {
+			if(!MC.sInput[REG_BACKWASH_ACTIVE].get_Input()) {
+				TimeFeedPump +=	passed * 1000 * TIME_READ_SENSOR / MC.Option.FeedPumpMaxFlow;
+			} else if(++RegBackwashTimer > MC.Option.BackWashFeedPumpDelay) {
+				TimeFeedPump +=	passed * 1000 * TIME_READ_SENSOR / MC.Option.BackWashFeedPumpMaxFlow;
+			}
+
+
 			uint32_t utm = rtcSAM3X8.unixtime();
 			if(MC.sInput[REG_ACTIVE].get_Input() || MC.sInput[REG_BACKWASH_ACTIVE].get_Input() || MC.sInput[REG2_ACTIVE].get_Input()) {
 				MC.RTC_store.UsedRegen += passed;

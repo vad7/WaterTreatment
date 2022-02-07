@@ -166,13 +166,13 @@ struct type_option {
 	uint8_t  FilterTankSoftener;	// Диаметр фильтра умягчителя в дюймах
 	uint16_t flags;					// Флаги опций до 16 флагов
 	uint16_t tChart;				// период графиков в секундах!!
-	uint32_t FeedPumpMaxFlow;		// лч, Максимальный проток до которого распределяется время включения дозатора
+	uint32_t FeedPumpMaxFlow;		// тысячные литров в cек, Расход для постоянного включения дозатора (= FeedRate_ml_sec / Need_ml_sec * 1000)
 	int32_t  WeightScale;			// Коэффициент калибровки весов, десятитысячные (~50.0)
 	int32_t  WeightZero;			// Вес 0, АЦП
 	int32_t  WeightTare;			// Вес тары, десятые грамма
 	int32_t  WeightFull;			// Полный вес реагента без тары, граммы
 	uint32_t DrainAfterNoConsume;	// Через сколько секунд сливать воду при отсутствии потребления
-	uint32_t BackWashFeedPumpMaxFlow; // лч, Во время обратной промывки - максимальный проток до которого распределяется время включения дозатора
+	uint32_t BackWashFeedPumpMaxFlow; // тысячные литров в cек, Расход для постоянного включения дозатора (= FeedRate_ml_sec / Need_ml_sec * 1000)
 	uint16_t BackWashFeedPumpDelay; // в TIME_READ_SENSOR, задержка включения дозатора
 	uint16_t DaysBeforeRegen;		// Дней до регенерации обезжелезивателя, 0 - не проверять
 	uint16_t UsedBeforeRegen;		// Количество литров до регенерации обезжелезивателя, 0 - нет
@@ -211,6 +211,7 @@ struct type_option {
 	int16_t  PWATER_Osmos_Min;		// Минимальное давление для осмоса, когда проток не фиксируется, сотые бара
 	uint8_t  PWATER_Osmos_Step;		// Осмос - Через сколько раз уменьшений давления без протока включать насосную станцию
 	uint8_t  _reserved_;
+	uint32_t FeedPumpRate;			// Производительность дозатора, тысячные милилитров в сек
 	type_DailySwitch DailySwitch[DAILY_SWITCH_MAX];	// дневное периодическое включение
 };
 
