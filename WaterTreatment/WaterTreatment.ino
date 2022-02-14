@@ -1570,8 +1570,6 @@ void vPumps( void * )
 					if(_WaterBoosterCountLrest == -1) goto xWaterBooster_StartFill;
 					l = WaterBoosterCountL * 100 + (WaterBoosterCountLrest - _WaterBoosterCountLrest) * 100 / MC.sFrequency[FLOW].get_kfValue();
 					l += MC.sFrequency[FLOW].get_RawPassed();
-					if(History_BoosterCountL == -1) History_BoosterCountL = l; else History_BoosterCountL += l;
-					MC.ChartWaterBoosterCount.addPoint(l);
 					if((LCD_setup & 0xFF00) != LCD_SetupMenu_FlowCheck && l <= MC.Option.MinWaterBoosterCountL) {
 						CriticalErrors |= ERRC_WaterCounter;
 						if(!vPumpsNewError) vPumpsNewError = ERR_WATER_CNT_FAIL;
@@ -1579,6 +1577,9 @@ void vPumps( void * )
 						MC.dRelay[RDRAIN].set_Relay(fR_StatusAllOff);
 						MC.dRelay[RDRAIN2].set_Relay(fR_StatusAllOff);
 					} else {
+						if(History_BoosterCountL == -1) History_BoosterCountL = l; else History_BoosterCountL += l;
+						if(l > MC.Osmos_PWATER_BoosterMax) MC.Osmos_PWATER_BoosterMax = l;
+						MC.ChartWaterBoosterCount.addPoint(l);
 xWaterBooster_StartFill:
 						MC.dRelay[RBOOSTER1].set_ON();
 						WaterBoosterTimeout = 0;
@@ -1930,16 +1931,28 @@ void vService(void *)
 									&& !MC.NO_Power && !LowConsumeMode ? fR_StatusDaily : -fR_StatusDaily);
 						}
 					}
-					//
-					int16_t pw = MC.sADC[PWATER].get_Value();
-					if(MC.sADC[PWATER].get_Value() < MC.Option.PWATER_Osmos_Min) { // нет протока и давление низкое
-						if(MC.sFrequency[FLOW].get_Value() == 0) {
-							if(pw > MC.Osmos_PWATER_Last) MC.Osmos_PWATER_Cnt -= MC.Osmos_PWATER_Cnt > 0 ? 1 : 0;
-							else if(pw < MC.Osmos_PWATER_Last) MC.Osmos_PWATER_Cnt++;
-						} else MC.Osmos_PWATER_Cnt = 0;
-					} else MC.Osmos_PWATER_Cnt = 0;
-					MC.Osmos_PWATER_Last = pw;
 				}
+			}
+			// every 1 sec
+			{
+				int16_t pw = MC.sADC[PWATER].get_Value();
+				if(MC.sFrequency[FLOW].get_Value() == 0) {
+					if(pw < MC.Option.PWATER_Osmos_Min) { // нет протока и давление низкое
+						if(pw > MC.Osmos_PWATER_Last) MC.Osmos_PWATER_Cnt -= MC.Osmos_PWATER_Cnt > 0 ? 1 : 0;
+						else if(pw < MC.Osmos_PWATER_Last) MC.Osmos_PWATER_Cnt++;
+					} else MC.Osmos_PWATER_Cnt = 0;
+					if(WaterBoosterTimeout > PWATER_OSMOS_WATERBOOSTER_TIMEOUT && MC.Osmos_PWATER_BoosterMax > 100) {
+						int32_t d = MC.Osmos_PWATER_LastFeed - pw;
+						if(d > 1) {
+							TimeFeedPump +=	d * MC.Osmos_PWATER_BoosterMax * 1000 / ((MC.sADC[PWATER].get_maxValue() - MC.sADC[PWATER].get_minValue()) * 100) * TIME_READ_SENSOR / MC.Option.FeedPumpMaxFlow;
+							MC.Osmos_PWATER_LastFeed = pw;
+						}
+					} else MC.Osmos_PWATER_LastFeed = pw;
+				} else {
+					MC.Osmos_PWATER_Cnt = 0;
+					MC.Osmos_PWATER_LastFeed = pw;
+				}
+				MC.Osmos_PWATER_Last = pw;
 			}
 xOtherTask_1min:
 			if(++task_updstat_chars >= MC.get_tChart()) { // пришло время

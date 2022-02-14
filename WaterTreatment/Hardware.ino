@@ -716,12 +716,13 @@ static inline void postTransmission() // Функция вызываемая П�
 		xTaskResumeAll();
 		Modbus_Entered_Critical = 0;
 	}
-    #ifdef PIN_MODBUS_RSE
+	while(!(MODBUS_PORT_NUM.availableForWrite() >= SERIAL_BUFFER_SIZE-1 && (MODBUS_PORT_NUM._pUart->UART_SR & UART_SR_TXEMPTY))) _delay(1);
+  #ifdef PIN_MODBUS_RSE
 	#if MODBUS_TIME_TRANSMISION != 0
     _delay(MODBUS_TIME_TRANSMISION);// Минимальная пауза между командой и ответом 3.5 символа
 	#endif
     digitalWriteDirect(PIN_MODBUS_RSE, LOW);
-    #endif
+  #endif
 }
 
 // Инициализация Modbus без проверки связи связи
@@ -736,6 +737,8 @@ int8_t devModbus::initModbus()
 	#endif
         MODBUS_PORT_NUM.begin(MODBUS_PORT_SPEED,MODBUS_PORT_CONFIG);                 // SERIAL_8N1 - настройки по умолчанию
         RS485.begin(1,MODBUS_PORT_NUM);                                              // Привязать к сериал
+        RS485.ModbusMinTimeBetweenTransaction = MODBUS_TIMEOUT;
+        RS485.ModbusResponseTimeout = MODBUS_MIN_TIME_BETWEEN_TRNS;
         // Назначение функций обратного вызова
         RS485.preTransmission(preTransmission);
         RS485.postTransmission(postTransmission);

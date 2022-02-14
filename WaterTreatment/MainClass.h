@@ -208,7 +208,7 @@ struct type_option {
 	uint8_t  RegenSofteningCntAlarm;// Счетчик регенераций до включения тревоги, 0 - нет
 	uint16_t MinRegenWeightDecreaseSoftening;// Тревога, если за регенерацию умягчителя вес уменьшился меньше, чем задано, граммы
 	uint16_t MinWaterBoosterCountL; // Тревога, если между включениями насосной станции потреблено меньше литров, сотые
-	int16_t  PWATER_Osmos_Min;		// Минимальное давление для осмоса, когда проток не фиксируется, сотые бара
+	int16_t  PWATER_Osmos_Min;		// Минимальное давление для осмоса, когда проток не фиксируется (0 - выкл), сотые бара
 	uint8_t  PWATER_Osmos_Step;		// Осмос - Через сколько раз уменьшений давления без протока включать насосную станцию
 	uint8_t  _reserved_;
 	uint32_t FeedPumpRate;			// Производительность дозатора, тысячные милилитров в сек
@@ -447,6 +447,8 @@ public:
 	uint32_t FilterTankSoftenerSquare;				// m2 * 10000
 	uint8_t  Osmos_PWATER_Cnt;
 	int16_t  Osmos_PWATER_Last;
+	int16_t  Osmos_PWATER_BoosterMax;				// сотые литра
+	int16_t  Osmos_PWATER_LastFeed;
 
 private:
 

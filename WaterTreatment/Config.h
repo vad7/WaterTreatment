@@ -170,7 +170,9 @@ struct History_setup {
     #define MODBUS_PORT_SPEED       9600        // Скорость порта куда прицеплен частотник и счетчик
     #define MODBUS_PORT_CONFIG      SERIAL_8N1  // Конфигурация порта куда прицеплен частотник и счетчик
     #define MODBUS_TIME_WAIT        1000        // Время ожидания захвата мютекса для modbus мсек
-    #define MODBUS_TIME_TRANSMISION 0           // Пауза (msec) между запросом и ответом по модбаc
+	#define MODBUS_TIMEOUT			50			// Таймаут ожидания ответа, мсек
+	#define MODBUS_MIN_TIME_BETWEEN_TRNS 30		// Минимальная пауза между транзакциями, мсек
+	#define MODBUS_TIME_TRANSMISION 0           // Пауза (msec) между запросом и ответом по модбас было 4
     //#define PIN_MODBUS_RSE          22          // Не используется из-за платы UART-RS485! Управление направлением передачи 485 для связи с инвертором по Modbus (1-передача 0-прием)
 	#define PWM_MODBUS_ADR			0xF8		// (248) PZEM-004T V.3 Modbus
 
@@ -466,6 +468,7 @@ struct History_setup {
 	#define DELAY_AFTER_SWITCH_RELAY	250		// Задержка после переключения реле, для сглаживания потребления и уменьшения помех(мс)
 	#define START_REGEN_WAIT_TIME		300		// Сколько ждать начало регенерации, если больше - ошибка, сек
 	#define NOT_CITICAL_ALARM_HOUR		10		// Час не критичных тревог
+	#define	PWATER_OSMOS_WATERBOOSTER_TIMEOUT 10000 // Через сколько времени после выкл. насосной станции начинать контролировать давление при нулевом расходе, мс
 
 	#define CHART_POINT					500		// Максимальное число точек графика, одна точка это 2 байта * число графиков
 	// Статистика по дням
