@@ -499,7 +499,7 @@ struct History_setup {
 			{ STATS_OBJ_FeedPump, 0, "Дозирующий насос, сек" },
 			{ STATS_OBJ_BrineWeight, 0, "Вес раствора, кг" },
 			{ STATS_OBJ_Temp, TAIR, noteTemp[TAIR] },
-			{ STATS_OBJ_Flow, FLOW, noteFrequency[FLOW] },
+			{ STATS_OBJ_Flow, FLOW, "Датчик протока, м³ч" },
 			{ STATS_OBJ_Level, LTANK, "Уровень в баке, %" },
 			{ STATS_OBJ_Power, 0, "Потребление, кВт" },
 			{ STATS_OBJ_Press, PWATER, "Давление, бар" },

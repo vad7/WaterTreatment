@@ -156,6 +156,7 @@ type_WebSecurity WebSec_admin;				// хеш паролей
 #define fDebugToSerial		11				// Расширенная отладка в Serial
 #define fRegenAllowed		12				// Разрешена регенерация обезжелезивателя
 #define fRegenAllowedSoftener 13			// Разрешена регенерация умягчителя
+#define fFeedByPressureAtNoFlow 14			// Подача реагента по давлению при отсутствии расхода
 
 
 // Структура для хранения настроек

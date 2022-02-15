@@ -1941,13 +1941,15 @@ void vService(void *)
 						if(pw > MC.Osmos_PWATER_Last) MC.Osmos_PWATER_Cnt -= MC.Osmos_PWATER_Cnt > 0 ? 1 : 0;
 						else if(pw < MC.Osmos_PWATER_Last) MC.Osmos_PWATER_Cnt++;
 					} else MC.Osmos_PWATER_Cnt = 0;
-					if(WaterBoosterTimeout > PWATER_OSMOS_WATERBOOSTER_TIMEOUT && MC.Osmos_PWATER_BoosterMax > 100) {
-						int32_t d = MC.Osmos_PWATER_LastFeed - pw;
-						if(d > 1) {
-							TimeFeedPump +=	d * MC.Osmos_PWATER_BoosterMax * 1000 / ((MC.sADC[PWATER].get_maxValue() - MC.sADC[PWATER].get_minValue()) * 100) * TIME_READ_SENSOR / MC.Option.FeedPumpMaxFlow;
-							MC.Osmos_PWATER_LastFeed = pw;
-						}
-					} else MC.Osmos_PWATER_LastFeed = pw;
+					if(GETBIT(MC.Option.flags, fFeedByPressureAtNoFlow)) {
+						if(WaterBoosterTimeout > PWATER_OSMOS_WATERBOOSTER_TIMEOUT && MC.Osmos_PWATER_BoosterMax > 100) {
+							int32_t d = MC.Osmos_PWATER_LastFeed - pw;
+							if(d > 1) {
+								TimeFeedPump +=	d * MC.Osmos_PWATER_BoosterMax * 1000 / ((MC.sADC[PWATER].get_maxValue() - MC.sADC[PWATER].get_minValue()) * 100) * TIME_READ_SENSOR / MC.Option.FeedPumpMaxFlow;
+								MC.Osmos_PWATER_LastFeed = pw;
+							}
+						} else MC.Osmos_PWATER_LastFeed = pw;
+					}
 				} else {
 					MC.Osmos_PWATER_Cnt = 0;
 					MC.Osmos_PWATER_LastFeed = pw;

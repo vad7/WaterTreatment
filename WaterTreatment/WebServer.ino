@@ -772,16 +772,11 @@ xSaveStats:		if((i = MC.save_WorkStats()) == OK)
 				strcat(strReturn, "-");
 				l_i32 = WaterBoosterCountLrest - _WaterBoosterCountLrest;
 				if(_WaterBoosterCountLrest != -1 && (l_i32 || WaterBoosterCountL)) _dtoa(strReturn, WaterBoosterCountL * 100 + l_i32 * 100 / MC.sFrequency[FLOW].get_kfValue(), 2); // get_WSB
-			} else if(*str == webWS_Velocity) { // get_WSV
-				l_i32 = MC.sInput[REG_ACTIVE].get_Input() || MC.sInput[REG_BACKWASH_ACTIVE].get_Input();
-				l_i32 |= MC.sInput[REG2_ACTIVE].get_Input() << 1;
-				if(l_i32) { // regen in process
-					strcat(strReturn, "Скорость фильтрации, мч: ");
-					if(l_i32 & 1) {
-						_dtoa(strReturn, MC.CalcFilteringSpeed(MC.FilterTankSquare), 3); // regen Iron in process
-						if(l_i32 & 2) strcat(strReturn, ", ");
-					}
-					if(l_i32 & 2) _dtoa(strReturn, MC.CalcFilteringSpeed(MC.FilterTankSoftenerSquare), 3); // regen Soft in process
+			} else if(*str == webWS_Velocity) { // get_WSV, get_WSV2
+				l_i32 =  MC.CalcFilteringSpeed(*(str+1) == '2' ? MC.FilterTankSoftenerSquare : MC.FilterTankSquare);
+				if(l_i32) {
+					_dtoa(strReturn, MC.CalcFilteringSpeed(l_i32), 3);
+					strcat(strReturn, " мч");
 				}
 			} else if(*str == webWS_Flags) {
 				if(i) {

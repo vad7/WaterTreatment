@@ -376,6 +376,7 @@ const char *option_LogWirelessSensors	= {"LOGWS"};              // Логиро�
 const char *option_fDontRegenOnWeekend	= {"NRW"};
 const char *option_FeedPumpMaxFlow		= {"FPMF"};
 const char *option_FeedPumpRate			= {"FPR"};
+const char *option_fFeedByPressureAtNoFlow= {"FBP"};
 const char *option_BackWashFeedPumpMaxFlow= {"BWMF"};
 const char *option_BackWashFeedPumpDelay = {"BWFD"};
 const char *option_RegenHour			= {"RH"};
