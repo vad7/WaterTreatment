@@ -775,7 +775,7 @@ xSaveStats:		if((i = MC.save_WorkStats()) == OK)
 			} else if(*str == webWS_Velocity) { // get_WSV, get_WSV2
 				l_i32 =  MC.CalcFilteringSpeed(*(str+1) == '2' ? MC.FilterTankSoftenerSquare : MC.FilterTankSquare);
 				if(l_i32) {
-					_dtoa(strReturn, MC.CalcFilteringSpeed(l_i32), 3);
+					_dtoa(strReturn, l_i32, 3);
 					strcat(strReturn, " мч");
 				}
 			} else if(*str == webWS_Flags) {

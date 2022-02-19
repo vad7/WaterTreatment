@@ -1241,7 +1241,7 @@ int8_t MainClass::Prepare_Temp(uint8_t bus)
 // d - inch, ret = m2 * 10000
 uint32_t MainClass::CalcFilterSquare(uint8_t diameter)
 {
-	uint32_t n = (31416UL / 4UL) * diameter * diameter / 100 * 254 / 100 * 254 / 1000;
+	uint32_t n = 31416UL / 4UL * diameter * diameter / 100 * 254 / 100 * 254 / 1000;
 	return (n + 5) / 10;
 }
 
