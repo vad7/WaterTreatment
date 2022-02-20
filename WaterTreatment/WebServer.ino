@@ -1330,7 +1330,17 @@ xSaveStats:		if((i = MC.save_WorkStats()) == OK)
 			// N - номер устройства, D - тип данных, X - адрес, Y - новое значение
 			if(strncmp(str+1, "et_modbus_", 10) == 0) {
 				STORE_DEBUG_INFO(38);
-				if((y = strchr(x, ':'))) {
+				if(str[11] == 'p') { // set_modbus_p(n=x) - установить параметры протокола Modbus
+					l_i32 = pm;
+					if(strcmp(x, "timeout")) { // Таймаут
+						if(str[0] == 's') Modbus.RS485.ModbusResponseTimeout = l_i32; else l_i32 = Modbus.RS485.ModbusResponseTimeout;
+					} else if(strcmp(x, "pause")) { // Пауза между транзакциями
+						if(str[0] == 's') Modbus.RS485.ModbusMinTimeBetweenTransaction = l_i32; else l_i32 = Modbus.RS485.ModbusMinTimeBetweenTransaction;
+					} else goto x_FunctionNotFound;
+					_itoa(l_i32, strReturn);
+					ADD_WEBDELIM(strReturn);
+					continue;
+				} else if((y = strchr(x, ':'))) {
 					*y++ = '\0';
 					uint8_t id = atoi(x);
 					uint16_t par = atoi(y + 2);

@@ -5,7 +5,7 @@
 <script type='text/javascript' src='scripts.js'></script>
 <script type="text/javascript">
 	window.onload = function() {
-		loadParam("get_PWM(NAME),get_PWM(M)");
+		loadParam("get_PWM(NAME),get_PWM(M),get_modbus_p(timeout),get_modbus_p(pause)");
 	};
 	function set_param(e) {
 		var els = e.parentElement.parentElement.getElementsByClassName("mdb");
@@ -52,6 +52,7 @@
 <h1>Modbus RTU</h1>
 <br>
 <span style="font-size: larger;">Адрес устройства на шине RS485: </span><input id="device" type="number" min="0" max="255" step="1" value="1">
+ <b>Таймаут:</b> <input id="get_modbus_p-timeout" type="number"><input type="submit" value=">" onclick="setParam('get_modbus_p(timeout)');"> <b>Пауза:</b> <input id="get_modbus_p-pause" type="number"><input type="submit" value=">" onclick="setParam('get_modbus_p(pause)');">
 <br>
 <span id="get_pwm-name"></span>: <span id="get_pwm-m"></span>. Нумерация адресов с 0.
 <br> 
