@@ -375,6 +375,7 @@ void sensorFrequency::initFrequency(int sensor)
    kfValue=TRANSFLOW[sensor];                     // коэффициент пересчета частоты в значение
    testMode=NORMAL;                               // Значение режима тестирования
    count=0;                                       // число импульсов за базовый период (то что меняется в прерывании)
+   WebCorrectCnt = 0;
    err=OK;                                        // ошибка датчика (работа)
    flags=0x00;                                    // Обнулить флаги
    SETBIT1(flags,fPresent);                       // наличие датчика в текушей конфигурации - датчик всегда есть в концигурвции добавлено для единообразия
@@ -408,7 +409,7 @@ void sensorFrequency::initFrequency(int sensor)
 }
 
 // Получить (точнее обновить) значение датчика, возвращает 1, если новое значение рассчитано
-int8_t sensorFrequency::Read()
+int8_t sensorFrequency::Read(int32_t add_pulses100)
 {
 	uint32_t tickCount;
 	if((tickCount = GetTickCount()) - sTime >= (uint32_t) FREQ_BASE_TIME_READ * 1000) {  // если только пришло время измерения
@@ -429,6 +430,7 @@ int8_t sensorFrequency::Read()
 			PassedRest %= kfValue;
 		} else {
 			cnt *= 100;
+			cnt += add_pulses100;
 			PassedRest += cnt;
 			Passed += PassedRest / kfValue;
 			PassedRest %= kfValue;
