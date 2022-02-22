@@ -175,12 +175,13 @@ public:
   void initFrequency(int sensor);                   // Инициализация частотного датчика
   void reset(void);									// Сброс счетчика
   __attribute__((always_inline)) inline void InterruptHandler(){count++;} // обработчик прерываний
-  int8_t  Read();                                         // Чтение датчика (точнее расчет значения) возвращает ошибку или ОК
+  int8_t  Read(int32_t add_pulses100 = 0);               // Чтение датчика (точнее расчет значения) возвращает ошибку или ОК
   __attribute__((always_inline)) inline uint32_t get_Frequency(){return Frequency;}   // Получить ЧАСТОТУ датчика при последнем чтении
   __attribute__((always_inline)) inline uint16_t get_Value(){return Value;} // Получить Значение датчика при последнем чтении, литры в час
   __attribute__((always_inline)) inline boolean get_present(){return GETBIT(flags,fPresent);} // Наличие датчика в текущей конфигурации
   __attribute__((always_inline)) inline uint16_t get_minValue(){return minValue * 100;}  // Получить минимальное значение датчика, литры в час
   uint32_t get_RawPassed(void) { return count * 10000 / kfValue; }  // Получить сырые не обработанные данные, сотые литра
+  __attribute__((always_inline)) inline uint32_t get_count(void) { return count; }
   void set_minValue(float f);							// Установить минимальное значение датчика
   __attribute__((always_inline)) inline boolean get_checkFlow(){return GETBIT(flags,fcheckRange);}// Проверка граничного значения
   void set_checkFlow(boolean f) { flags = (flags & ~(1<<fcheckRange)) | (f<<fcheckRange); }
@@ -199,6 +200,7 @@ public:
   statChart Chart;                                       // Статистика по датчику
   volatile uint32_t Passed;								 // Счетчик литров
   uint32_t PassedRest;									 // остаток счетчика
+  uint8_t WebCorrectCnt;								// счетчик корректировки для веба, *TIME_READ_SENSOR
     
 private:
    uint32_t Frequency;                                   // значение частоты в тысячных герца
@@ -240,7 +242,7 @@ public:
   __attribute__((always_inline)) inline int8_t  set_OFF(){return set_Relay(-fR_StatusMain);}   // Выключить реле
   int8_t  set_Relay(int8_t r);                           // Установить реле в состояние (0/-1 - выкл основной алгоритм, fR_Status* - включить, -fR_Status* - выключить)
   __attribute__((always_inline)) inline boolean get_Relay(){return Relay;}                    // Прочитать состояние реле
-  __attribute__((always_inline)) inline boolean get_RelayTimerOn(){ return TimerOn ? true : Relay; }                    // Прочитать состояние реле
+  __attribute__((always_inline)) inline boolean get_RelayTimerOn(){ return TimerOn ? true : Relay; } // Прочитать состояние реле
   int8_t  get_pinD(){return pin;}                        // Получить ногу куда прицеплено реле
   char*   get_note(){return note;}                       // Получить наименование реле
   char*   get_name(){return name;}                       // Получить имя реле
