@@ -1352,7 +1352,9 @@ xSaveStats:		if((i = MC.save_WorkStats()) == OK)
 						else if(*y == 'f') i = Modbus.writeHoldingRegistersFloat(id, par, strtol(z, NULL, 0)); // 2 registers (float).
 						else if(*y == 'c') i = Modbus.writeSingleCoil(id, par, atoi(z));	// coil
 						else goto x_FunctionNotFound;
+#ifdef MODBUS_TIME_TRANSMISION
 						_delay(MODBUS_TIME_TRANSMISION * 10); // Задержка перед чтением
+#endif
 					} else if(strncmp(str, "get", 3) == 0) {
 					} else goto x_FunctionNotFound;
 					if(i == OK) {

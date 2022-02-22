@@ -741,7 +741,7 @@ int8_t devModbus::initModbus()
         RS485.begin(1,MODBUS_PORT_NUM);                                              // Привязать к сериал
         RS485.ModbusMinTimeBetweenTransaction = MODBUS_TIMEOUT;
         RS485.ModbusResponseTimeout = MODBUS_MIN_TIME_BETWEEN_TRNS;
-#ifndef MODBUS_TIME_TRANSMISION
+#ifdef MODBUS_TIME_TRANSMISION
         // Назначение функций обратного вызова
         RS485.preTransmission(preTransmission);
         RS485.postTransmission(postTransmission);

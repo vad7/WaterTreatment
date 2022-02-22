@@ -1840,6 +1840,10 @@ void vService(void *)
 							need_regen |= RTC_Work_Regen_F1;
 						} else if(MC.get_NeedRegenSoftening() || (MC.WorkStats.Flags & WS_F_StartRegenSoft)) {
 							need_regen |= RTC_Work_Regen_F2;
+						} else if(MC.get_RegenExpired()) {
+							set_Error(ERR_REGEN_EXPIRED, (char*)__FUNCTION__);
+						} else if(MC.get_RegenExpiredSoftening()) {
+							set_Error(ERR_REGEN2_EXPIRED, (char*)__FUNCTION__);
 						}
 						if(need_regen) {
 #ifdef TANK_ANALOG_LEVEL

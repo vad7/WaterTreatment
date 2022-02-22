@@ -287,9 +287,17 @@ public:
 		return GETBIT(Option.flags, fRegenAllowed) && ((Option.DaysBeforeRegen && WorkStats.DaysFromLastRegen >= Option.DaysBeforeRegen)
 				|| (Option.UsedBeforeRegen && WorkStats.UsedSinceLastRegen + RTC_store.UsedToday >= Option.UsedBeforeRegen));
     }
+    inline bool get_RegenExpired(void) {
+		return ((Option.DaysBeforeRegen && WorkStats.DaysFromLastRegen > Option.DaysBeforeRegen)
+				|| (Option.UsedBeforeRegen && WorkStats.UsedSinceLastRegen + RTC_store.UsedToday > Option.UsedBeforeRegen));
+    }
     inline bool get_NeedRegenSoftening(void) {
     	return GETBIT(Option.flags, fRegenAllowedSoftener) && ((Option.DaysBeforeRegenSoftening && WorkStats.DaysFromLastRegenSoftening >= Option.DaysBeforeRegenSoftening)
     			|| (Option.UsedBeforeRegenSoftening && WorkStats.UsedSinceLastRegenSoftening + RTC_store.UsedToday >= Option.UsedBeforeRegenSoftening));
+    }
+    inline bool get_RegenExpiredSoftening(void) {
+    	return ((Option.DaysBeforeRegenSoftening && WorkStats.DaysFromLastRegenSoftening > Option.DaysBeforeRegenSoftening)
+    			|| (Option.UsedBeforeRegenSoftening && WorkStats.UsedSinceLastRegenSoftening + RTC_store.UsedToday > Option.UsedBeforeRegenSoftening));
     }
 
 	uint32_t get_errorReadTemp();       // Получить число ошибок чтения датчиков температуры
