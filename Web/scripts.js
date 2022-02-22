@@ -104,7 +104,7 @@ function loadParam(paramid, noretry, resultdiv) {
 									}
 									continue;
 								} else if(values[0].indexOf("get_Chart")==0) type = "chart"; // график
-								else if(values[0].indexOf("et_modbus_")==1) type = "tbv"; // таблица значений
+								else if(values[0].indexOf("et_modbus_v")==1) type = "tbv"; // таблица значений
 								else if(/LvL[()]/.test(values[0]) && !!(element = document.getElementById(valueid)).getAttribute("name")) type = "bar";
 								else if(values[0].indexOf("RELOAD")==0) { 
 									location.reload();
