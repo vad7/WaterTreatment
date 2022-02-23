@@ -1758,7 +1758,7 @@ x_get_GADC:						i = MC.sADC[p].get_ADC_Gain();
 							if(strncmp(str, "Flow", 4)==0)           // Функция get_Flow
 							{
 								if (MC.sFrequency[p].get_present()) {         // Если датчик есть в конфигурации то выводим значение
-									if(MC.sFrequency[p].WebCorrectCnt) strcat(strReturn, "+");	// Информация о корректировки
+									if(MC.sFrequency[p].WebCorrectCnt > 1) strcat(strReturn, "+");	// Информация о корректировки
 									_dtoa(strReturn, MC.sFrequency[p].get_Value(), 3);
 								} else strcat(strReturn,"-");               // Датчика нет ставим прочерк
 								ADD_WEBDELIM(strReturn) ;    continue;

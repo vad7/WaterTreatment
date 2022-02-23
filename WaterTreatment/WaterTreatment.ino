@@ -1264,7 +1264,7 @@ void vReadSensor(void *)
 		// Add to FLOW
 		int32_t add_to_flow = 0;
 		int16_t pw = MC.sADC[PWATER].get_Value();
-		if(MC.sFrequency[FLOW].WebCorrectCnt) MC.sFrequency[FLOW].WebCorrectCnt--;	// 1 sec
+		if(MC.sFrequency[FLOW].WebCorrectCnt > 1) MC.sFrequency[FLOW].WebCorrectCnt--;	// 1 sec
 		if(MC.sFrequency[FLOW].get_count() == 0) {
 			if(pw < MC.Option.PWATER_Osmos_Min) { // нет протока и давление низкое
 				if(pw > MC.Osmos_PWATER_Last) MC.Osmos_PWATER_Cnt -= MC.Osmos_PWATER_Cnt > 0 ? 1 : 0;
@@ -1275,7 +1275,7 @@ void vReadSensor(void *)
 					int32_t d = MC.Osmos_PWATER_LastFeed - pw;
 					if(d > 1) {
 						add_to_flow = d * MC.Osmos_PWATER_BoosterMax * 1000 / (MC.sADC[PWATER].get_maxValue() - MC.sADC[PWATER].get_minValue()) * MC.sFrequency[FLOW].get_kfValue() / 10000;
-						MC.sFrequency[FLOW].WebCorrectCnt = (TIMER_TO_SHOW_STATUS + 1000) / TIME_READ_SENSOR;
+						MC.sFrequency[FLOW].WebCorrectCnt = (TIMER_TO_SHOW_STATUS + 1000) / TIME_READ_SENSOR + 1;
 						//TimeFeedPump +=	d * MC.Osmos_PWATER_BoosterMax * 1000 / ((MC.sADC[PWATER].get_maxValue() - MC.sADC[PWATER].get_minValue()) * 100) * TIME_READ_SENSOR / MC.Option.FeedPumpMaxFlow;
 						MC.Osmos_PWATER_LastFeed = pw;
 					}
@@ -1609,7 +1609,8 @@ void vPumps( void * )
 						MC.dRelay[RDRAIN2].set_Relay(fR_StatusAllOff);
 					} else {
 						if(History_BoosterCountL == -1) History_BoosterCountL = l; else History_BoosterCountL += l;
-						if(l > MC.Osmos_PWATER_BoosterMax) MC.Osmos_PWATER_BoosterMax = l;
+						if(l > MC.Osmos_PWATER_BoosterMax && MC.sFrequency[FLOW].WebCorrectCnt) MC.Osmos_PWATER_BoosterMax = l;
+						MC.sFrequency[FLOW].WebCorrectCnt = 0;
 						MC.ChartWaterBoosterCount.addPoint(l);
 xWaterBooster_StartFill:
 						MC.dRelay[RBOOSTER1].set_ON();

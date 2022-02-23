@@ -200,7 +200,7 @@ public:
   statChart Chart;                                       // Статистика по датчику
   volatile uint32_t Passed;								 // Счетчик литров
   uint32_t PassedRest;									 // остаток счетчика
-  uint8_t WebCorrectCnt;								// счетчик корректировки для веба, *TIME_READ_SENSOR
+  uint8_t WebCorrectCnt;								// счетчик корректировки для веба, *TIME_READ_SENSOR, начиная с 1
     
 private:
    uint32_t Frequency;                                   // значение частоты в тысячных герца
