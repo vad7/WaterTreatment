@@ -56,6 +56,7 @@ int32_t History_BoosterCountL = -1;				// L*100
 volatile int32_t Charts_WaterBooster_work = 0;
 volatile int32_t Charts_FeedPump_work = 0;
 volatile int32_t Charts_FillTank_work = 0; 		// %
+uint32_t FeedPumpWork = 0;						// ms
 
 const char stats_file_start[] = "stats_";
 const char stats_file_header[] = "head";

@@ -430,7 +430,7 @@ int8_t sensorFrequency::Read(int32_t add_pulses100)
 			PassedRest %= kfValue;
 		} else {
 			cnt *= 100;
-			cnt += add_pulses100;
+			if(add_pulses100 > 0) cnt += add_pulses100;
 			PassedRest += cnt;
 			Passed += PassedRest / kfValue;
 			PassedRest %= kfValue;

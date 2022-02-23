@@ -1274,7 +1274,9 @@ void vReadSensor(void *)
 				if(WaterBoosterTimeout > PWATER_OSMOS_WATERBOOSTER_TIMEOUT && MC.Osmos_PWATER_BoosterMax > 100) {
 					int32_t d = MC.Osmos_PWATER_LastFeed - pw;
 					if(d > 1) {
-						add_to_flow = d * MC.Osmos_PWATER_BoosterMax * 1000 / (MC.sADC[PWATER].get_maxValue() - MC.sADC[PWATER].get_minValue()) * MC.sFrequency[FLOW].get_kfValue() / 10000;
+						int16_t dd = MC.sADC[PWATER].get_maxValue() - MC.sADC[PWATER].get_minValue();
+						if(d > dd) d = dd;
+						add_to_flow = d * MC.Osmos_PWATER_BoosterMax * 100 / dd * (MC.sFrequency[FLOW].get_kfValue()/10) / 1000;
 						MC.sFrequency[FLOW].WebCorrectCnt = (TIMER_TO_SHOW_STATUS + 1000) / TIME_READ_SENSOR + 1;
 						//TimeFeedPump +=	d * MC.Osmos_PWATER_BoosterMax * 1000 / ((MC.sADC[PWATER].get_maxValue() - MC.sADC[PWATER].get_minValue()) * 100) * TIME_READ_SENSOR / MC.Option.FeedPumpMaxFlow;
 						MC.Osmos_PWATER_LastFeed = pw;
@@ -1609,7 +1611,7 @@ void vPumps( void * )
 						MC.dRelay[RDRAIN2].set_Relay(fR_StatusAllOff);
 					} else {
 						if(History_BoosterCountL == -1) History_BoosterCountL = l; else History_BoosterCountL += l;
-						if(l > MC.Osmos_PWATER_BoosterMax && MC.sFrequency[FLOW].WebCorrectCnt) MC.Osmos_PWATER_BoosterMax = l;
+						if(l > MC.Osmos_PWATER_BoosterMax && MC.sFrequency[FLOW].WebCorrectCnt == 0) MC.Osmos_PWATER_BoosterMax = l;
 						MC.sFrequency[FLOW].WebCorrectCnt = 0;
 						MC.ChartWaterBoosterCount.addPoint(l);
 xWaterBooster_StartFill:
@@ -1645,17 +1647,23 @@ xWaterBooster_OFF:
 		if(MC.dRelay[RFEEDPUMP].get_Relay()) {
 			taskENTER_CRITICAL();
 			if(TimeFeedPump >= TIME_SLICE_PUMPS) {
+				taskENTER_CRITICAL();
 				TimeFeedPump -= TIME_SLICE_PUMPS;
 				Stats_FeedPump_work += TIME_SLICE_PUMPS;
 				History_FeedPump_work += TIME_SLICE_PUMPS;
 				Charts_FeedPump_work += TIME_SLICE_PUMPS;
+				taskEXIT_CRITICAL();
+				if((FeedPumpWork += TIME_SLICE_PUMPS) > FEEDPUMP_MAX_WORK_TIME_ERR) {
+					if(!vPumpsNewError) vPumpsNewError = ERR_FEEDPUMP_TIME;
+					MC.dRelay[RFEEDPUMP].set_OFF();
+				}
 			}
-			taskEXIT_CRITICAL();
 			if(TimeFeedPump < TIME_SLICE_PUMPS) MC.dRelay[RFEEDPUMP].set_OFF();
 		} else if(TimeFeedPump >= MC.Option.MinPumpOnTime) {
 			if(LowConsumeMode && (WaterBoosterStatus || AfterFilledTimer)) {
 				if(WaterBoosterStatus == 2 && WaterBoosterTimeout > WB_LOW_CONSUME_MAX_TIME) goto xWaterBooster_GO_OFF;
-			} else {
+			} else if(FeedPumpWork <= FEEDPUMP_MAX_WORK_TIME_ERR) {
+				FeedPumpWork = 0;
 				MC.dRelay[RFEEDPUMP].set_ON();
 			}
 		}
