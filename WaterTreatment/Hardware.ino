@@ -718,13 +718,15 @@ static inline void postTransmission() // Функция вызываемая П�
 		xTaskResumeAll();
 		Modbus_Entered_Critical = 0;
 	}
+#if MODBUS_TIME_TRANSMISION > 0
 	while(!(MODBUS_PORT_NUM.availableForWrite() >= SERIAL_BUFFER_SIZE-1 && (MODBUS_PORT_NUM._pUart->UART_SR & UART_SR_TXEMPTY))) _delay(1);
-  #ifdef PIN_MODBUS_RSE
+#endif
+#ifdef PIN_MODBUS_RSE
 	#if MODBUS_TIME_TRANSMISION != 0
     _delay(MODBUS_TIME_TRANSMISION);// Минимальная пауза между командой и ответом 3.5 символа
 	#endif
     digitalWriteDirect(PIN_MODBUS_RSE, LOW);
-  #endif
+#endif
 }
 
 // Инициализация Modbus без проверки связи связи
