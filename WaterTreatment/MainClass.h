@@ -82,6 +82,7 @@ uint32_t WaterBoosterTimeout = 0;  // ms
 uint32_t WaterBoosterCountL = 0;
 int32_t  WaterBoosterCountLrest = 0;
 int32_t _WaterBoosterCountLrest = -1;	// -1 - first time
+uint32_t FeedPumpWork = 0;						// ms
 
 //bool 	 WaterBoosterError = false;
 //volatile bool FloodingError = false;
