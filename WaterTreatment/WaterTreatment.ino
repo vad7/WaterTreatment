@@ -71,8 +71,11 @@ PubSubClient w5200_MQTT(ethClient);  	    // клиент MQTT
 
 // I2C eeprom Размер в килобитах, число чипов, страница в байтах, адрес на шине, тип памяти:
 extEEPROM eepromI2C(I2C_SIZE_EEPROM,I2C_MEMORY_TOTAL/I2C_SIZE_EEPROM,I2C_PAGE_EEPROM,I2C_ADR_EEPROM,I2C_FRAM_MEMORY);
-//RTC_clock rtcSAM3X8(RC);                                               // Внутренние часы, используется внутренний RC генератор
+#ifdef USE_RC_CLOCK_SOURCE
+RTC_clock rtcSAM3X8(RC);                                               // Внутренние часы, используется внутренний RC генератор
+#else
 RTC_clock rtcSAM3X8(XTAL);                                               // Внутренние часы, используется часовой кварц
+#endif
 DS3232  rtcI2C;                                                          // Часы 3231 на шине I2C
 static Journal  journal;                                                 // системный журнал, отдельно т.к. должен инициализоваться с начала старта
 static MainClass MC;                                                     // Главный класс
@@ -230,8 +233,8 @@ void setup() {
 		SerialDbg.print("Wrong I2C EEPROM or setup, press KEY[D");
 		SerialDbg.print(PIN_KEY_SAFE);
 		SerialDbg.println("] to continue...");
+		WDT_Restart(WDT);
 		if(!digitalReadDirect(PIN_KEY_SAFE)) {
-			WDT_Restart(WDT);
 			b = I2C_COUNT_EEPROM_HEADER;
 			ret = eepromI2C.write(I2C_COUNT_EEPROM, &b, 1);
 			if(ret) {
@@ -239,7 +242,11 @@ void setup() {
 				SerialDbg.print(ret);
 				SerialDbg.println(" write to EEPROM!");
 			} else SerialDbg.println("Wait...");
+#ifdef TEST_BOARD
+			break;
+#else
 			while(1) ;
+#endif
 		}
 		for(uint8_t i = 0; i < 1000 / TIME_LED_ERR; i++) {
 			digitalWriteDirect(PIN_BEEP, i & 1);
@@ -1645,7 +1652,6 @@ xWaterBooster_OFF:
 
 		// Feed Pump
 		if(MC.dRelay[RFEEDPUMP].get_Relay()) {
-			taskENTER_CRITICAL();
 			if(TimeFeedPump >= TIME_SLICE_PUMPS) {
 				taskENTER_CRITICAL();
 				TimeFeedPump -= TIME_SLICE_PUMPS;

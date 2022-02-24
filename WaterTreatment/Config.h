@@ -112,6 +112,7 @@ struct History_setup {
 
 	#ifdef TEST_BOARD
 		#define DEBUG                   // В последовательный порт шлет сообщения в первую очередь ошибки
+		#define USE_RC_CLOCK_SOURCE		// Использовать RC цепочку для часов
     	//#define DEBUG_NATIVE_USB		// Отладка через второй USB порт (Native)
 		//#define NATIVE_USB_VBUS_CHECK	// Проверка на подключение USB провода через VBUS (работает только с платой Arduino DUE Core), иначе через веб на закладке Тестирование (to do...)
 		#define DEBUG_LEVEL		 2		// 0 - silence, 1 - more...
