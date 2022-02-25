@@ -1067,6 +1067,7 @@ xErrorsProcessing:
 				}
 			} else {
 				lcd.setCursor(0, 0);
+				if(MC.sFrequency[FLOW].WebCorrectCnt > 1) *buf++ = '+';
 				int32_t tmp = MC.sFrequency[FLOW].get_Value();
 				buf = dptoa(buf, tmp, 3);
 				strcpy(buf, " m3h "); buf += 5;
@@ -1280,7 +1281,7 @@ void vReadSensor(void *)
 			if(GETBIT(MC.Option.flags, fFeedByPressureAtNoFlow) && !(MC.RTC_store.Work & RTC_Work_Regen_MASK) && TimerDrainingWater == 0) { // не идет - регенерация/слив
 				if(WaterBoosterTimeout > PWATER_OSMOS_WATERBOOSTER_TIMEOUT && MC.Osmos_PWATER_BoosterMax > 100) {
 					int32_t d = MC.Osmos_PWATER_LastFeed - pw;
-					if(d > 1) {
+					if(d && d >= MC.Option.PWATER_Osmos_Step) {
 						int16_t dd = MC.sADC[PWATER].get_maxValue() - MC.sADC[PWATER].get_minValue();
 						if(d > dd) d = dd;
 						add_to_flow = d * MC.Osmos_PWATER_BoosterMax * 100 / dd * (MC.sFrequency[FLOW].get_kfValue()/10) / 1000;
