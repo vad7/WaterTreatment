@@ -894,7 +894,8 @@ boolean MainClass::set_option(char *var, float xx)
    if(strcmp(var,option_fRegenAllowedSoftener)==0) { Option.flags = (Option.flags & ~(1<<fRegenAllowedSoftener)) | ((x!=0)<<fRegenAllowedSoftener); return true; } else
    if(strcmp(var,option_FeedPumpRate)==0) { Option.FeedPumpRate = rd(xx * 1000, 1000) / 3600; return true; } else
    if(strcmp(var,option_FeedPumpMaxFlow)==0) { Option.FeedPumpMaxFlow = Option.FeedPumpRate * 1000 / rd(xx, 1000); return true; } else
-   if(strcmp(var,option_fFeedByPressureAtNoFlow)==0) { Option.flags = (Option.flags & ~(1<<fFeedByPressureAtNoFlow)) | ((x!=0)<<fFeedByPressureAtNoFlow); return true; } else
+   if(strcmp(var,option_fFlowIncByPressure)==0) { Option.flags = (Option.flags & ~(1<<fFlowIncByPressure)) | ((x!=0)<<fFlowIncByPressure); return true; } else
+   if(strcmp(var,option_FlowIncByPress_MinFlow)==0) { Option.FlowIncByPress_MinFlow = xx * sFrequency[FLOW].get_kfValue() / 100; return true; } else
    if(strcmp(var,option_BackWashFeedPumpMaxFlow)==0){ Option.BackWashFeedPumpMaxFlow = Option.FeedPumpRate * 1000 / rd(xx, 1000); return true; } else
    if(strcmp(var,option_BackWashFeedPumpDelay)==0){ Option.BackWashFeedPumpDelay = x; return true; } else
    if(strcmp(var,option_RegenHour)==0)       { Option.RegenHour = x; return true; } else
@@ -988,7 +989,8 @@ char* MainClass::get_option(char *var, char *ret)
 	if(strcmp(var,option_fRegenAllowedSoftener)==0){ return strcat(ret, (char*)(GETBIT(Option.flags, fRegenAllowedSoftener) ? cOne : cZero)); } else
 	if(strcmp(var,option_FeedPumpRate)==0){ _dtoa(ret, Option.FeedPumpRate * 3600 / 1000, 3); return ret; } else // лч
 	if(strcmp(var,option_FeedPumpMaxFlow)==0){ _dtoa(ret, Option.FeedPumpRate * 1000 / Option.FeedPumpMaxFlow, 3); return ret; } else // мл на 1л расхода
-	if(strcmp(var,option_fFeedByPressureAtNoFlow)==0){ return strcat(ret, (char*)(GETBIT(Option.flags, fFeedByPressureAtNoFlow) ? cOne : cZero)); } else
+	if(strcmp(var,option_fFlowIncByPressure)==0){ return strcat(ret, (char*)(GETBIT(Option.flags, fFlowIncByPressure) ? cOne : cZero)); } else
+	if(strcmp(var,option_FlowIncByPress_MinFlow)==0){ _ftoa(ret, Option.FlowIncByPress_MinFlow * 100.f / sFrequency[FLOW].get_kfValue(), 3); return ret; } else
 	if(strcmp(var,option_BackWashFeedPumpMaxFlow)==0){ _dtoa(ret, Option.FeedPumpRate * 1000 / Option.BackWashFeedPumpMaxFlow, 3); return ret; } else // мл на 1л расхода
 	if(strcmp(var,option_BackWashFeedPumpDelay)==0){ return _itoa(Option.BackWashFeedPumpDelay, ret); } else
 	if(strcmp(var,option_RegenHour)==0){ return _itoa(Option.RegenHour, ret); } else

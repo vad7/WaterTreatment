@@ -20,7 +20,7 @@
 #include "Util.h"
 
 // ОПЦИИ КОМПИЛЯЦИИ ПРОЕКТА -------------------------------------------------------
-#define VERSION			  "1.37"			// Версия прошивки
+#define VERSION			  "1.38"			// Версия прошивки
 #define VER_SAVE		  10				// Версия формата сохраняемых данных в I2C память
 //#define LOG                               // В последовательный порт шлет лог веб сервера (логируются запросы)
 #define FAST_LIB                            // использование допиленной библиотеки езернета
@@ -376,7 +376,8 @@ const char *option_LogWirelessSensors	= {"LOGWS"};              // Логиро�
 const char *option_fDontRegenOnWeekend	= {"NRW"};
 const char *option_FeedPumpMaxFlow		= {"FPMF"};
 const char *option_FeedPumpRate			= {"FPR"};
-const char *option_fFeedByPressureAtNoFlow= {"FBP"};
+const char *option_fFlowIncByPressure	= {"FBP"};
+const char *option_FlowIncByPress_MinFlow= {"FBM"};
 const char *option_BackWashFeedPumpMaxFlow= {"BWMF"};
 const char *option_BackWashFeedPumpDelay = {"BWFD"};
 const char *option_RegenHour			= {"RH"};

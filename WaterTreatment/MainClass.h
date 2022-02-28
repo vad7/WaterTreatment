@@ -157,7 +157,7 @@ type_WebSecurity WebSec_admin;				// хеш паролей
 #define fDebugToSerial		11				// Расширенная отладка в Serial
 #define fRegenAllowed		12				// Разрешена регенерация обезжелезивателя
 #define fRegenAllowedSoftener 13			// Разрешена регенерация умягчителя
-#define fFeedByPressureAtNoFlow 14			// Подача реагента по давлению при отсутствии расхода
+#define fFlowIncByPressure	14				// Добавка к потреблению при низком расходе
 
 
 // Структура для хранения настроек
@@ -215,6 +215,7 @@ struct type_option {
 	uint8_t  _reserved_;
 	uint32_t FeedPumpRate;			// Производительность дозатора, тысячные милилитров в сек
 	type_DailySwitch DailySwitch[DAILY_SWITCH_MAX];	// дневное периодическое включение
+	uint16_t FlowIncByPress_MinFlow;// Минимальный проток меньше которого начинается добавка, число импульсов
 };
 
 //  Работа с отдельными флагами type_DateTime
