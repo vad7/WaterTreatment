@@ -12,7 +12,7 @@
 <script>
 urlupdate = 2000;
 window.onload = function() {
-	loadParam("get_WSUY,get_WSA,get_WSD,get_WSRC,get_WSRD,get_WSRSC,get_WSRSD");
+	loadParam("get_WSUY,get_WSA,get_WSD,get_WSRC,get_WSRD,get_WSRSC,get_WSRSD,get_Opt(DBR),get_Opt(DBRS),get_Opt(UBR),get_Opt(UBRS)");
 	updateParam("get_Relay(RWOFF),get_WDIS,get_Relay(RWON),get_Relay(RDRAIN),get_Relay(RBST2),get_Relay(RFILL),get_Relay(RFEEDP),get_ADCLvL(LTANK),get_Wgt(LvL),get_Opt(LvL),get_Input(REG),get_Input(REGBW),get_Input(REG2),get_Err(B),get_Flow(FLOW),get_ADC(PWATER),get_MODED,get_PWR,get_Temp(AIR),get_WSRS,get_WSRSS,get_WSUD,get_WST,get_WSRL,get_WSRSL,get_WSB,get_WSDD,get_WSV,get_WSV2,get_WSF");
 	updateParam("get_tblErr");
 };
@@ -37,8 +37,32 @@ function ResetSalt() {
 function loadParam_after(paramid) {
 	if(paramid.indexOf("et_WSF") != -1) {
 		var v = Number(document.getElementById("get_wsf").innerText);
-		document.getElementById("planiron").innerHTML = (v & 1) ? "запланировано" : (v & 0x40) ? "ожидается" : "";
-		document.getElementById("plansoft").innerHTML = (v & 2) ? "запланировано" : (v & 0x80) ? "ожидается" : "";
+		element = document.getElementById("planiron");
+		element.innerHTML = (v & 1) ? "запланировано" : (v & 0x40) ? "ожидается" : "";
+		if(element.innerHTML != "") element.style = "color:red";
+		element = document.getElementById("plansoft");
+		element.innerHTML = (v & 2) ? "запланировано" : (v & 0x80) ? "ожидается" : "";
+		if(element.innerHTML != "") element.style = "color:red";
+	}
+	if(paramid.indexOf("et_WSRSS") != -1) {
+		var v1, vday = 0, vlitr = 0;
+		if((v1 = Number(document.getElementById("get_opt-dbr").innerHTML)) > 0) {
+			vday = v1 - Number(document.getElementById("get_wsrd").innerHTML);
+		}
+		if((v1 = Number(document.getElementById("get_opt-ubr").innerHTML)) > 0) {
+			vlitr = (v1 - Number(document.getElementById("get_wsrs").innerHTML) - Number(document.getElementById("get_wsud").innerHTML)) / Number(document.getElementById("get_wsa").innerHTML);
+		}
+		element = document.getElementById("planiron");
+		if(element.innerHTML == "" && (vday > 0 || vlitr > 0)) element.innerHTML = "Следующее через " + Math.round(vlitr > vday ? vlitr : vday) + " дн.";
+		vday = vlitr = 0;
+		if((v1 = Number(document.getElementById("get_opt-dbrs").innerHTML)) > 0) {
+			vday = v1 - Number(document.getElementById("get_wsrsd").innerHTML);
+		}
+		if((v1 = Number(document.getElementById("get_opt-ubrs").innerHTML)) > 0) {
+			vlitr = (v1 - Number(document.getElementById("get_wsrss").innerHTML) - Number(document.getElementById("get_wsud").innerHTML)) / Number(document.getElementById("get_wsa").innerHTML);
+		}
+		element = document.getElementById("plansoft");
+		if(element.innerHTML == "" && (vday > 0 || vlitr > 0)) element.innerHTML = "Следующее через " + Math.round(vlitr > vday ? vlitr : vday) + " дн.";
 	}
 }
 </script>	
@@ -75,9 +99,9 @@ function loadParam_after(paramid) {
 	<tr><td width="22%" style="font-weight: bold;" nowrap>Состояние:</td><td width="11%" nowrap><b><span id="get_moded"></span></b></td><td width="22%" style="font-weight: normal;" nowrap>Электричество, кВт:</td><td width="11%"><span id="get_pwr"></span></td><td width="22%" style="font-weight: normal;">Температура:</td><td width="11%"><span id="get_temp-air">-</span>&deg;</td></tr>
 	<tr><td style="font-weight:normal;" nowrap>Сегодня, л:</td><td id="get_wsud"></td><td style="font-weight: normal;" nowrap>Вчера, л:</td><td id="get_wsuy"></td><td style="font-weight: normal;" nowrap>Среднее за день, л:</td><td id="get_wsa"></td></tr>
 	<tr><td style="font-weight:normal;" nowrap>Бак НС, л:</td><td id="get_wsb"></td><td style="font-weight:normal;" nowrap>Слито (<span id="get_wsdd">-</span>), л:</td><td id="get_wsd"></td><td style="font-weight: normal;" nowrap>Итого, м³:</td><td id="get_wst"></td><td style="font-weight: normal;"></td></tr>
-	<tr><td style="font-weight:bold;" nowrap onclick="SwRegen(1)"><a data-tooltip2="двойной клик - запланировать">Обезжелезивание, рег:</a></td><td id="get_wsrc"></td><td id="planiron" style="color:red"></td><td></td><td></td><td></td></tr>
+	<tr><td style="font-weight:bold;" nowrap onclick="SwRegen(1)"><a data-tooltip2="двойной клик - запланировать">Обезжелезивание, рег:</a></td><td id="get_wsrc"></td><td id="planiron" nowrap></td><td></td><td></td><td></td></tr>
 	<tr><td style="font-weight:normal;" nowrap>C регенерации, дней:</td><td id="get_wsrd"></td><td style="font-weight: normal;" nowrap>C регенерации, л:</td><td id="get_wsrs"></td><td style="font-weight: normal;" nowrap>За регенерацию, л:</td><td id="get_wsrl" nowrap></td></tr>
-	<tr><td style="font-weight:bold;" nowrap onclick="SwRegen(2)"><a data-tooltip2="двойной клик - запланировать">Умягчитель, рег:</a></td><td id="get_wsrsc"></td><td id="plansoft" style="color:red"></td><td></td><td></td><td></td></tr>
+	<tr><td style="font-weight:bold;" nowrap onclick="SwRegen(2)"><a data-tooltip2="двойной клик - запланировать">Умягчитель, рег:</a></td><td id="get_wsrsc"></td><td id="plansoft" nowrap></td><td></td><td></td><td></td></tr>
 	<tr><td style="font-weight:normal;" nowrap>C регенерации, дней:</td><td id="get_wsrsd"></td><td style="font-weight: normal;" nowrap>C регенерации, л:</td><td id="get_wsrss"></td><td style="font-weight: normal;" nowrap>За регенерацию, л:</td><td id="get_wsrsl" nowrap></td></tr>
 	<tr><td style="font-weight:normal;"></td><td></td><td style="font-weight: normal;"></td><td></td><td style="font-weight: normal;"></td><td></td></tr>
 </table>
@@ -91,6 +115,10 @@ function loadParam_after(paramid) {
 </div>
 <br><a class="download" href="service.pdf" download><button>Инструкция по обслуживанию</button></a>
 <span id="get_wsf" style="display:none">0</span>
+<span id="get_opt-dbr" style="display:none">0</span>
+<span id="get_opt-ubr" style="display:none">0</span>
+<span id="get_opt-dbrs" style="display:none">0</span>
+<span id="get_opt-ubrs" style="display:none">0</span>
 </div>
 </body>
 </html>
