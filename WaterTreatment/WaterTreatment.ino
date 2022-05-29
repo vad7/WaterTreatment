@@ -1285,7 +1285,7 @@ void vReadSensor(void *)
 						int16_t dd = MC.sADC[PWATER].get_maxValue() - MC.sADC[PWATER].get_minValue();
 						if(d > dd) d = dd;
 						add_to_flow = d * MC.Osmos_PWATER_BoosterMax * 100 / dd * (MC.sFrequency[FLOW].get_kfValue()/10) / 1000;
-						if(add_to_flow > MC.sFrequency[FLOW].get_count()) add_to_flow -= MC.sFrequency[FLOW].get_count();
+						if(add_to_flow > (int32_t)MC.sFrequency[FLOW].get_count()) add_to_flow -= MC.sFrequency[FLOW].get_count();
 						MC.sFrequency[FLOW].WebCorrectCnt = (TIMER_TO_SHOW_STATUS + 1000) / TIME_READ_SENSOR + 1;
 						//TimeFeedPump +=	d * MC.Osmos_PWATER_BoosterMax * 1000 / ((MC.sADC[PWATER].get_maxValue() - MC.sADC[PWATER].get_minValue()) * 100) * TIME_READ_SENSOR / MC.Option.FeedPumpMaxFlow;
 						MC.Osmos_PWATER_LastFeed = pw;
@@ -1620,7 +1620,7 @@ void vPumps( void * )
 						MC.dRelay[RDRAIN2].set_Relay(fR_StatusAllOff);
 					} else {
 						if(History_BoosterCountL == -1) History_BoosterCountL = l; else History_BoosterCountL += l;
-						if(l > MC.Osmos_PWATER_BoosterMax && MC.sFrequency[FLOW].WebCorrectCnt == 0) MC.Osmos_PWATER_BoosterMax = l;
+						if(l > MC.Osmos_PWATER_BoosterMax && MC.sFrequency[FLOW].WebCorrectCnt == 0 && !reg_active) MC.Osmos_PWATER_BoosterMax = l * PWATER_OSMOS_WATERBOOSTER_MAX_MUL / 10;
 						MC.sFrequency[FLOW].WebCorrectCnt = 0;
 						MC.ChartWaterBoosterCount.addPoint(l);
 xWaterBooster_StartFill:
