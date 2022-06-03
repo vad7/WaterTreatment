@@ -459,7 +459,10 @@ public:
 	uint8_t  Osmos_PWATER_Cnt;
 	int16_t  Osmos_PWATER_Last;
 	int16_t  Osmos_PWATER_BoosterMax;				// сотые литра
+	int16_t  Osmos_PWATER_BoosterMax_Calc;			// для расчета Osmos_PWATER_BoosterMax
+	uint8_t  Osmos_PWATER_BoosterMax_cnt;
 	int16_t  Osmos_PWATER_LastFeed;
+	uint8_t  Osmos_PWATER_Flags;					// b0 - Во время текущего расходования бака насосной станции была добавка для Осмоса.
 
 private:
 
