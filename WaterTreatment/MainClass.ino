@@ -603,6 +603,7 @@ void MainClass::resetSetting()
 	Osmos_PWATER_Cnt = 0;
 	Osmos_PWATER_Last = 0;
 	Osmos_PWATER_BoosterMax = 0;
+	Osmos_PWATER_Flags = 0;
 
 	safeNetwork = false;                            // режим safeNetwork
 

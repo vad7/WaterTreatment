@@ -1037,7 +1037,7 @@ xSaveStats:		if((i = MC.save_WorkStats()) == OK)
 				if((startSupcStatusReg|SUPC_SR_SMS)==SUPC_SR_SMS_PRESENT) strcat(strReturn," bad VDDIN!");
 				strcat(strReturn,";");
 
-				strReturn += m_snprintf(strReturn += strlen(strReturn), 256, "Расчет бака насосной станции|%.2d (%.2d/%d);", MC.Osmos_PWATER_BoosterMax, MC.Osmos_PWATER_BoosterMax_Calc, MC.Osmos_PWATER_BoosterMax_cnt);
+				strReturn += m_snprintf(strReturn += strlen(strReturn), 256, "Расчет бака насосной станции|%.2d (%.2d/%d)%c;", MC.Osmos_PWATER_BoosterMax, MC.Osmos_PWATER_BoosterMax_Calc, MC.Osmos_PWATER_BoosterMax_cnt, GETBIT(MC.Osmos_PWATER_Flags, 0) ? '*' : ' ');
 
 				strReturn += m_snprintf(strReturn += strlen(strReturn), 256, "Площадь фильтрации обезжелезивателя, м2|%.4d;", MC.FilterTankSquare);
 				strReturn += m_snprintf(strReturn += strlen(strReturn), 256, "Площадь фильтрации умягчителя, м2|%.4d;", MC.FilterTankSoftenerSquare);

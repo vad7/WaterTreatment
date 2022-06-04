@@ -1276,10 +1276,7 @@ void vReadSensor(void *)
 		if(MC.sFrequency[FLOW].get_count() <= MC.Option.FlowIncByPress_MinFlow) {
 			if(pw < MC.Option.PWATER_Osmos_Min) { // нет протока и давление низкое
 				if(pw > MC.Osmos_PWATER_Last) MC.Osmos_PWATER_Cnt -= MC.Osmos_PWATER_Cnt > 0 ? 1 : 0;
-				else if(pw < MC.Osmos_PWATER_Last) {
-					MC.Osmos_PWATER_Cnt++;
-					SETBIT1(MC.Osmos_PWATER_Flags, 0);
-				}
+				else if(pw < MC.Osmos_PWATER_Last) MC.Osmos_PWATER_Cnt++;
 			} else MC.Osmos_PWATER_Cnt = 0;
 			if(GETBIT(MC.Option.flags, fFlowIncByPressure) && !(MC.RTC_store.Work & RTC_Work_Regen_MASK) && TimerDrainingWater == 0) { // не идет - регенерация/слив
 				if(WaterBoosterTimeout > PWATER_OSMOS_WATERBOOSTER_TIMEOUT && MC.Osmos_PWATER_BoosterMax > 100) {
@@ -1613,6 +1610,7 @@ void vPumps( void * )
 				// Starting
 				if(!LowConsumeMode || (!MC.dRelay[RFEEDPUMP].get_Relay() && AfterFilledTimer == 0)) {
 					int32_t l;
+					if(MC.Osmos_PWATER_Cnt > MC.Option.PWATER_Osmos_Step) SETBIT1(MC.Osmos_PWATER_Flags, 0);
 					if(_WaterBoosterCountLrest == -1) goto xWaterBooster_StartFill;
 					l = WaterBoosterCountL * 100 + (WaterBoosterCountLrest - _WaterBoosterCountLrest) * 100 / MC.sFrequency[FLOW].get_kfValue();
 					l += MC.sFrequency[FLOW].get_RawPassed();
