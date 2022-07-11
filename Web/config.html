@@ -87,8 +87,8 @@ function show_all() {
 			<td><b>Регенерация</b></td><td></td>
 		</tr>
 		<tr>
-			<td>Час регенерации (0..23)</td>
-			<td nowrap><input id="get_opt-rh" type="number"> <input type="submit" value=">" onclick="setParam('get_Opt(RH)');"></td>
+			<td>Время регенерации, часов начиная с часа (0..23-1..8)</td>
+			<td nowrap><input id="get_opt-rh" type="text" maxlength=4 style="width:50"> <input type="submit" value=">" onclick="setParam('get_Opt(RH)');"></td>
 		</tr>
 		<tr>
 			<td>Не запускать регенерацию в выходные</td>
@@ -237,7 +237,7 @@ function show_all() {
 		</tr>
 		<tr>
 			<td>Периодичность запроса о работе от резервного источника (0 - только при старте), сек</td>
-			<td nowrap><input id="get_opt-lcp" type="text"> <input type="submit" value=">" onclick="setParam('get_Opt(LCP)');"></td>
+			<td nowrap><input id="get_opt-lcp" type="number"> <input type="submit" value=">" onclick="setParam('get_Opt(LCP)');"></td>
 		</tr>
 		<tr>
 			<td>Расположение файлов веб-сервера на SPI Flash (иначе на SD карте)</td>

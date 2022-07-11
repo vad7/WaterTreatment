@@ -47,6 +47,7 @@ struct type_WorkStats {
 
 #define WS_F_StartRegen				0x01	// Запланирована регенерация обезжелезивателя вручную
 #define WS_F_StartRegenSoft			0x02	// Запланирована регенерация умягчителя вручную
+#define WS_F_RegenPreparing			0x04	// Идет подготовка к регенерации
 #define WS_F_MASK					0x3F
 #define WS_F_bNeedRegen				6		// Зарезервировано для вывода в веб
 #define WS_F_bNeedRegenSoft			7		// Зарезервировано для вывода в веб
@@ -163,7 +164,7 @@ type_WebSecurity WebSec_admin;				// хеш паролей
 // Структура для хранения настроек
 struct type_option {
 	uint8_t  ver;					// номер версии для сохранения
-	uint8_t  RegenHour;				// Час регенерации (0..23)
+	uint8_t  RegenHour;				// Час регенерации (0..23) по маске 0x1F, + количество часов (1..7) по маске 0xE0.
 	uint8_t  FilterTank;			// Диаметр фильтра обезжелезивателя в дюймах
 	uint8_t  FilterTankSoftener;	// Диаметр фильтра умягчителя в дюймах
 	uint16_t flags;					// Флаги опций до 16 флагов

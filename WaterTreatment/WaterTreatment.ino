@@ -1867,7 +1867,10 @@ void vService(void *)
 					if(h == NOT_CITICAL_ALARM_HOUR && MC.WorkStats.RegenSofteningCntAlarm == 0 && MC.Option.RegenSofteningCntAlarm && err != ERR_SALT_FINISH) {
 						set_Error(ERR_SALT_FINISH, (char*)__FUNCTION__);
 					}
-					if(!(MC.RTC_store.Work & RTC_Work_Regen_MASK) && !LowConsumeMode && h == MC.Option.RegenHour) {
+					uint8_t end_hour = (MC.Option.RegenHour & 0x1F) + ((MC.Option.RegenHour & 0xE0)>>5);
+					bool hours_ok = h >= (MC.Option.RegenHour & 0x1F) && (h <= end_hour);
+					if(!hours_ok && end_hour >= 24) hours_ok = h <= end_hour - 24;
+					if(!(MC.RTC_store.Work & RTC_Work_Regen_MASK) && !LowConsumeMode && hours_ok) {
 						uint32_t need_regen = 0;
 						if(MC.get_NeedRegen() || (MC.WorkStats.Flags & WS_F_StartRegen)) {
 							need_regen |= RTC_Work_Regen_F1;
@@ -1891,24 +1894,31 @@ void vService(void *)
 										MC.dRelay[RSTARTREG].set_ON();
 										journal.jprintf_date("Regen F1 start\n");
 										if(RegenStarted == 0) RegenStarted = rtcSAM3X8.unixtime();
+										MC.WorkStats.Flags &= ~WS_F_RegenPreparing;
 									} else if(MC.dRelay[RWATERON].get_Relay()) {
 										RWATERON_Switching = RWATERON_TIME;
 										MC.dRelay[RWATERON].set_Relay(fR_StatusAllOff);
+										MC.WorkStats.Flags |= WS_F_RegenPreparing;
 									}
 								} else if((need_regen & RTC_Work_Regen_F2) && !MC.dRelay[RSTARTREG2].get_Relay()) {
 									if(!MC.dRelay[RWATERON].get_Relay() && !RWATERON_Switching) {
 										MC.dRelay[RSTARTREG2].set_ON();
 										journal.jprintf_date("Regen F2 start\n");
 										if(RegenStarted == 0) RegenStarted = rtcSAM3X8.unixtime();
+										MC.WorkStats.Flags &= ~WS_F_RegenPreparing;
 									} else if(MC.dRelay[RWATERON].get_Relay()) {
 										RWATERON_Switching = RWATERON_TIME;
 										MC.dRelay[RWATERON].set_Relay(fR_StatusAllOff);
+										MC.WorkStats.Flags |= WS_F_RegenPreparing;
 									}
 								}
 							} else {
 								MC.dRelay[RFILL].set_ON();	// Start filling tank
 								FillingTankLastLevel = 0;
 							}
+						} if(MC.WorkStats.Flags & WS_F_RegenPreparing) { // Not need to regen while in preparing
+							MC.dRelay[RWATEROFF1].set_OFF();
+							MC.dRelay[RWATERON].set_ON();
 						}
 					}
 				}

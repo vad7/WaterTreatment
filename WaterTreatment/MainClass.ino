@@ -899,7 +899,6 @@ boolean MainClass::set_option(char *var, float xx)
    if(strcmp(var,option_FlowIncByPress_MinFlow)==0) { Option.FlowIncByPress_MinFlow = xx * sFrequency[FLOW].get_kfValue() / 100; return true; } else
    if(strcmp(var,option_BackWashFeedPumpMaxFlow)==0){ Option.BackWashFeedPumpMaxFlow = Option.FeedPumpRate * 1000 / rd(xx, 1000); return true; } else
    if(strcmp(var,option_BackWashFeedPumpDelay)==0){ Option.BackWashFeedPumpDelay = x; return true; } else
-   if(strcmp(var,option_RegenHour)==0)       { Option.RegenHour = x; return true; } else
    if(strcmp(var,option_DaysBeforeRegen)==0) { Option.DaysBeforeRegen = x; return true; } else
    if(strcmp(var,option_DaysBeforeRegenSoftening)==0) { Option.DaysBeforeRegenSoftening = x; return true; } else
    if(strcmp(var,option_UsedBeforeRegen)==0) { Option.UsedBeforeRegen = x; return true; } else
