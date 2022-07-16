@@ -20,7 +20,7 @@
 #include "Util.h"
 
 // ОПЦИИ КОМПИЛЯЦИИ ПРОЕКТА -------------------------------------------------------
-#define VERSION			  "1.39"			// Версия прошивки
+#define VERSION			  "1.40"			// Версия прошивки
 #define VER_SAVE		  10				// Версия формата сохраняемых данных в I2C память
 //#define LOG                               // В последовательный порт шлет лог веб сервера (логируются запросы)
 #define FAST_LIB                            // использование допиленной библиотеки езернета
@@ -422,6 +422,7 @@ const char *option_LTank_AfterFilledTimer={"TAF"};
 const char *option_LTank_Hour_Low		= {"LHL"};
 const char *option_LTank_Hour			= {"LH"};
 const char *option_LowConsumeRequestPeriod={"LCP"};
+const char *option_fLowConsumeReq_OnByErr={"LEO"};
 const char *option_SepticAlarmDebounce  ={"SD"};
 const char *option_RegenSofteningCntAlarm={"RSA"};
 const char option_GetCurrentSaltLevel[] = "LvL";	// get_Opt(LvL)

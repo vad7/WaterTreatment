@@ -760,8 +760,10 @@ void vWeb0(void *)
 				Request_LowConsume = MC.Option.LowConsumeRequestPeriod ? thisTime | 0x1 : 0;
 				int tmp = Send_HTTP_Request(MC.Option.LowConsumeRequest);
 				if(tmp <= -2000000000 && tmp >= -2000000001) Request_LowConsume = (Request_LowConsume - (MC.Option.LowConsumeRequestPeriod > 5 ? MC.Option.LowConsumeRequestPeriod * 1000 - 5000 : 0)) | 0x1;
-				LowConsumeMode = tmp; // if error - set low consume mode
-				if(!LowConsumeMode) AfterFilledTimer = 0;
+				if(GETBIT(MC.Option.flags, fLowConsumeReq_OnByErr) || tmp >= 0) { // if error and allowed - set low consume mode
+					LowConsumeMode = tmp;
+					if(!LowConsumeMode) AfterFilledTimer = 0;
+				}
 				active = false;
 			}
 
@@ -1589,6 +1591,9 @@ void vPumps( void * )
 					MC.dRelay[RWATERON].set_ON();
 					CriticalErrors &= ~ERRC_Flooding;
 					FloodingTime = 0;
+#ifdef TEST_BOARD
+					journal.jprintf("Flooding self recovered\n");
+#endif
 				}
 			} else FloodingTime = 0;
 		}
@@ -1839,7 +1844,7 @@ void vService(void *)
 				Stats.History();                                        // запись истории в файл
 
 				// Water did not consumed a long time ago.
-				if(MC.Option.DrainAfterNoConsume) {
+				if(MC.Option.DrainAfterNoConsume && MC.Option.DrainTime) {
 					uint32_t ut = rtcSAM3X8.unixtime();
 					if(ut - (MC.WorkStats.UsedLastTime > MC.WorkStats.LastDrain ? MC.WorkStats.UsedLastTime : MC.WorkStats.LastDrain ? MC.WorkStats.LastDrain : ut) >= MC.Option.DrainAfterNoConsume && !CriticalErrors) {
 						MC.WorkStats.LastDrain = rtcSAM3X8.unixtime();
@@ -1888,17 +1893,19 @@ void vService(void *)
 							if(MC.sInput[TANK_FULL].get_Input())
 #endif
 							{
-								if((need_regen & RTC_Work_Regen_F1) && !MC.dRelay[RSTARTREG].get_Relay()) {
-									MC.dRelay[RWATEROFF1].set_ON();
-									if(!MC.dRelay[RWATERON].get_Relay() && !RWATERON_Switching) {
-										MC.dRelay[RSTARTREG].set_ON();
-										journal.jprintf_date("Regen F1 start\n");
-										if(RegenStarted == 0) RegenStarted = rtcSAM3X8.unixtime();
-										MC.WorkStats.Flags &= ~WS_F_RegenPreparing;
-									} else if(MC.dRelay[RWATERON].get_Relay()) {
-										RWATERON_Switching = RWATERON_TIME;
-										MC.dRelay[RWATERON].set_Relay(fR_StatusAllOff);
-										MC.WorkStats.Flags |= WS_F_RegenPreparing;
+								if((need_regen & RTC_Work_Regen_F1)) {
+									if(!MC.dRelay[RSTARTREG].get_Relay()) {
+										MC.dRelay[RWATEROFF1].set_ON();
+										if(!MC.dRelay[RWATERON].get_Relay() && !RWATERON_Switching) {
+											MC.dRelay[RSTARTREG].set_ON();
+											journal.jprintf_date("Regen F1 start\n");
+											if(RegenStarted == 0) RegenStarted = rtcSAM3X8.unixtime();
+											MC.WorkStats.Flags &= ~WS_F_RegenPreparing;
+										} else if(MC.dRelay[RWATERON].get_Relay()) {
+											RWATERON_Switching = RWATERON_TIME;
+											MC.dRelay[RWATERON].set_Relay(fR_StatusAllOff);
+											MC.WorkStats.Flags |= WS_F_RegenPreparing;
+										}
 									}
 								} else if((need_regen & RTC_Work_Regen_F2) && !MC.dRelay[RSTARTREG2].get_Relay()) {
 									if(!MC.dRelay[RWATERON].get_Relay() && !RWATERON_Switching) {
@@ -1916,9 +1923,13 @@ void vService(void *)
 								MC.dRelay[RFILL].set_ON();	// Start filling tank
 								FillingTankLastLevel = 0;
 							}
-						} if(MC.WorkStats.Flags & WS_F_RegenPreparing) { // Not need to regen while in preparing
+						} else if(MC.WorkStats.Flags & WS_F_RegenPreparing) { // Not need to regen while in preparing
 							MC.dRelay[RWATEROFF1].set_OFF();
 							MC.dRelay[RWATERON].set_ON();
+							MC.WorkStats.Flags &= ~WS_F_RegenPreparing;
+#ifdef TEST_BOARD
+							journal.jprintf("Not need regen %d\n", MC.WorkStats.Flags);
+#endif
 						}
 					}
 				}
@@ -1947,7 +1958,7 @@ void vService(void *)
 							NeedSaveWorkStats = 1;
 							RegStart_Weight -= Weight_value / 10;
 							journal.jprintf_date("Regen F1 finished, Used: %d, reagent: %d g, time: %d s.\n", MC.WorkStats.UsedLastRegen, RegStart_Weight, rtcSAM3X8.unixtime() - RegenStarted);
-							if((TimerDrainingWaterAfterRegen = MC.Option.DrainingWaterAfterRegen)) MC.dRelay[RDRAIN].set_ON();
+							if(MC.Option.DrainingWaterAfterRegen && (TimerDrainingWaterAfterRegen = MC.Option.DrainingWaterAfterRegen)) MC.dRelay[RDRAIN].set_ON();
 							_delay(100);
 							MC.dRelay[RWATEROFF1].set_OFF();
 							RWATERON_Switching = -(int16_t)TimerDrainingWaterAfterRegen;
@@ -1982,7 +1993,7 @@ void vService(void *)
 							NeedSaveWorkStats = 1;
 							RegStart_Weight -= Weight_value / 10;
 							journal.jprintf_date("Regen F2 finished, Used: %d, reagent: %d g, time: %d s.\n", MC.WorkStats.UsedLastRegenSoftening, RegStart_Weight, rtcSAM3X8.unixtime() - RegenStarted);
-							if((TimerDrainingWaterAfterRegen = MC.Option.DrainingWaterAfterRegenSoftening)) MC.dRelay[RDRAIN2].set_ON();
+							if(MC.Option.DrainingWaterAfterRegenSoftening && (TimerDrainingWaterAfterRegen = MC.Option.DrainingWaterAfterRegenSoftening)) MC.dRelay[RDRAIN2].set_ON();
 							RWATERON_Switching = -(int16_t)TimerDrainingWaterAfterRegen;
 							if(MC.WorkStats.UsedLastRegenSoftening < MC.Option.MinRegenLitersSoftening) {
 								set_Error(ERR_FEW_LITERS_REG, (char*)__FUNCTION__);

@@ -105,7 +105,7 @@ bool	 DebugToJournalOn = false;
 uint32_t FlowPulseCounter;	// L
 uint32_t FlowPulseCounterRest; // L % K
 bool     LowConsumeMode = false; //
-int32_t  AfterFilledTimer = 0;
+int32_t  AfterFilledTimer = 0; // Время после отключения реле заполнения бака до останова глубинного насоса, сек
 uint32_t Request_LowConsume;
 uint32_t RegenStarted = 0;
 
@@ -159,7 +159,7 @@ type_WebSecurity WebSec_admin;				// хеш паролей
 #define fRegenAllowed		12				// Разрешена регенерация обезжелезивателя
 #define fRegenAllowedSoftener 13			// Разрешена регенерация умягчителя
 #define fFlowIncByPressure	14				// Добавка к потреблению при низком расходе
-
+#define fLowConsumeReq_OnByErr 15			// Если нет ответа на LowConsumeRequest HTTP запрос, то считать, что работаем от резерва
 
 // Структура для хранения настроек
 struct type_option {
