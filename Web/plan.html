@@ -53,7 +53,10 @@ function loadParam_after(paramid) {
 			vlitr = (v1 - Number(document.getElementById("get_wsrs").innerHTML) - Number(document.getElementById("get_wsud").innerHTML)) / Number(document.getElementById("get_wsa").innerHTML);
 		}
 		element = document.getElementById("planiron");
-		if(element.innerHTML == "" && (vday > 0 || vlitr > 0)) element.innerHTML = "Следующее через " + Math.round(vlitr > vday ? vlitr : vday) + " дн.";
+		if(element.innerHTML == "") {
+			if(vday > 0 || vlitr > 0) element.innerHTML = "Следующее через " + Math.round(vlitr > vday ? vlitr : vday) + " дн.";
+			else { element.innerHTML = "ожидается"; element.style = "color:red"; }
+		}
 		vday = vlitr = 0;
 		if((v1 = Number(document.getElementById("get_opt-dbrs").innerHTML)) > 0) {
 			vday = v1 - Number(document.getElementById("get_wsrsd").innerHTML);
@@ -62,7 +65,10 @@ function loadParam_after(paramid) {
 			vlitr = (v1 - Number(document.getElementById("get_wsrss").innerHTML) - Number(document.getElementById("get_wsud").innerHTML)) / Number(document.getElementById("get_wsa").innerHTML);
 		}
 		element = document.getElementById("plansoft");
-		if(element.innerHTML == "" && (vday > 0 || vlitr > 0)) element.innerHTML = "Следующее через " + Math.round(vlitr > vday ? vlitr : vday) + " дн.";
+		if(element.innerHTML == "") {
+			if(vday > 0 || vlitr > 0) element.innerHTML = "Следующее через " + Math.round(vlitr > vday ? vlitr : vday) + " дн.";
+			else { element.innerHTML = "ожидается"; element.style = "color:red"; }
+		}
 	}
 }
 </script>	
