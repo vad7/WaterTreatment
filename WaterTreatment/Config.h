@@ -70,7 +70,7 @@ struct History_setup {
 // -----------------------------------------------------------------------------------------------------------------------------------
 //  Arduino DUE Core
 #ifdef CONFIG_1    // Имя и описание конфигурации и ОСОБЕННОСТИ конфигурации -------------------------------
-	#define TEST_BOARD 				// Тестовая плата!
+	//#define TEST_BOARD 				// Тестовая плата!
 
     #define CONFIG_NAME   "vad7"
     #define CONFIG_NOTE   "Водоснабжение, Обезжелезивание Quantum DMI-65, Дозирование хлора, Умягчение"
@@ -309,6 +309,8 @@ struct History_setup {
 	//#define RELAY_WAIT_SWITCH		10	// Заморозить выполнение задач на это время после переключения реле, ms
    	//#define CORRECT_POWER220			// Корректировка потребляемой мощности из электросети, если включены указанные реле, Вт
 	#define RWATERON_TIME			20 	// Время на переключение крана RWATERON, сек
+
+	#define DAILY_RELAY_START_FROM 	RFEEDPUMP	// первое реле для ежесуточных реле
 
 	#ifdef CORRECT_POWER220
     	CORRECT_POWER220_STRUCT correct_power220[] = { {R, 25} }; //

@@ -8,7 +8,7 @@
 <script type="text/javascript">
 window.onload = function() {
 	loadParam("get_Opt(FPMF),get_Opt(FPR),get_Opt(UBR),get_Opt(RH),get_Opt(NRW),get_Opt(DT),get_Opt(MR),get_Opt(MD),get_Opt(HIST),get_Opt(BEEP),get_Opt(WSPIF),get_Opt(LOGWS),get_Opt(TIME_CHART),get_Opt(PWMLOG),get_Opt(SGL1W_1),get_Opt(SGL1W_2),get_Opt(SGL1W_3),get_Opt(SGL1W_4),get_Opt(TD),get_Opt(TDS),get_Opt(TAF),get_Opt(LLM),get_Opt(DAR),get_Opt(DBRS),get_Opt(LCP),get_Opt(SD),get_Opt(DAS),get_Opt(MRS),get_Opt(MRW),get_Opt(LH),get_Opt(LHL),get_Opt(MRWS)");
-	loadParam("get_Opt(MWBT),get_Opt(MWBTF),get_Opt(MPOT),get_Opt(DR),get_Opt(PM),get_Opt(PST),get_WSRC,get_WSRSC,get_WST,get_Opt(WRM),get_Opt(TE),get_Opt(FDT),get_Opt(FT),get_Opt(FTT),get_Opt(UBRS),get_Opt(DBR),get_Opt(WE),get_Opt(CET),get_Opt(DA),get_Opt(BWFD),get_Opt(BWMF),get_Opt(RA1),get_Opt(RA2),get_Opt(RSA),get_Opt(MWC),get_Opt(WOM),get_Opt(WOS),get_Opt(FBP),get_Opt(FBM),LowConsume_Req,get_Opt(LEO)");
+	loadParam("get_Opt(MWBT),get_Opt(MWBTF),get_Opt(MPOT),get_Opt(DR),get_Opt(PM),get_Opt(PST),get_WSRC,get_WSRSC,get_WST,get_Opt(WRM),get_Opt(TE),get_Opt(FDT),get_Opt(FT),get_Opt(FTT),get_Opt(UBRS),get_Opt(DBR),get_Opt(WE),get_Opt(CET),get_Opt(DA),get_Opt(BWFD),get_Opt(BWMF),get_Opt(RA1),get_Opt(RA2),get_Opt(RSA),get_Opt(MWC),get_Opt(WOM),get_Opt(WOS),get_Opt(FBP),get_Opt(FBM),LowConsume_Req,get_Opt(LEO),get_Opt(RFIL)");
 }; 
 function show_all() {
 	var elements = document.getElementsByTagName('input');
@@ -33,6 +33,14 @@ function show_all() {
 			<td nowrap><input id="get_opt-fpmf" type="number" step="0.001"> <input type="submit" value=">" onclick="setParam('get_Opt(FPMF)');"></td>
 		</tr>
 		<tr>
+			<td>Диаметр корпуса фильтра обезжелезивателя, дюймы</td>
+			<td nowrap><input id="get_opt-td" type="number"> <input type="submit" value=">" onclick="setParam('get_Opt(TD)');"></td>
+		</tr>
+		<tr>
+			<td>Диаметр корпуса фильтра умягчителя, дюймы</td>
+			<td nowrap><input id="get_opt-tds" type="number"> <input type="submit" value=">" onclick="setParam('get_Opt(TDS)');"></td>
+		</tr>
+		<tr>
 			<td>Минимальное время работы насосной станции, мсек</td>
 			<td nowrap><input id="get_opt-mwbt" type="number"> <input type="submit" value=">" onclick="setParam('get_Opt(MWBT)');"></td>
 		</tr>
@@ -53,12 +61,8 @@ function show_all() {
 			<td nowrap><input id="get_opt-dt" type="number"> <input type="submit" value=">" onclick="setParam('get_Opt(DT)');"></td>
 		</tr>
 		<tr>
-			<td>Диаметр корпуса фильтра обезжелезивателя, дюймы</td>
-			<td nowrap><input id="get_opt-td" type="number"> <input type="submit" value=">" onclick="setParam('get_Opt(TD)');"></td>
-		</tr>
-		<tr>
-			<td>Диаметр корпуса фильтра умягчителя, дюймы</td>
-			<td nowrap><input id="get_opt-tds" type="number"> <input type="submit" value=">" onclick="setParam('get_Opt(TDS)');"></td>
+			<td>Периодичность выдачи импульса 1 сек на реле заполнения бака для вкл. вытяжного вентилятора, часы</td>
+			<td nowrap><input id="get_opt-rfil" type="number"> <input type="submit" value=">" onclick="setParam('get_Opt(RFIL)');"></td>
 		</tr>
 		<tr>
 			<td>Время работы насоса заполнения бака на гидроаккумулятор, сек</td>

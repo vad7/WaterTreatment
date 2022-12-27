@@ -675,6 +675,7 @@ void MainClass::resetSetting()
 	FilterTankSoftenerSquare = CalcFilterSquare(Option.FilterTankSoftener);
 	Option.LowConsumeRequestPeriod = HTTP_REQ_LowConsume;
 	Option.SepticAlarmDebounce = 30;
+	RFILL_last_time_ON = rtcSAM3X8.unixtime();
 }
 
 // --------------------------------------------------------------------
@@ -936,6 +937,7 @@ boolean MainClass::set_option(char *var, float xx)
    if(strcmp(var,option_DrainingWaterAfterRegen)==0){ Option.DrainingWaterAfterRegen = x; return true; } else
    if(strcmp(var,option_DrainingWaterAfterRegenSoftening)==0){ Option.DrainingWaterAfterRegenSoftening = x; return true; } else
    if(strcmp(var,option_RegenStart)==0){ Option.DrainingWaterAfterRegen = x; return true; } else // Start regenerate
+   if(strcmp(var,option_RFILL_HoursRepeatPulse)==0){ Option.RFILL_HoursRepeatPulse = x; return true; } else // Start regenerate
    if(strcmp(var,option_LowConsumeRequestPeriod)==0){ Option.LowConsumeRequestPeriod = x; Request_LowConsume = xTaskGetTickCount(); return true; } else
    if(strcmp(var,option_fLowConsumeReq_OnByErr)==0) { Option.flags = (Option.flags & ~(1<<fLowConsumeReq_OnByErr)) | ((x!=0)<<fLowConsumeReq_OnByErr); return true; } else
    if(strcmp(var,option_SepticAlarmDebounce)==0){ Option.SepticAlarmDebounce = x; return true; } else
@@ -950,7 +952,7 @@ boolean MainClass::set_option(char *var, float xx)
 		uint32_t i = *(var + 1) - '0';
 		if(i >= DAILY_SWITCH_MAX) return false;
 		if(*var == prof_DailySwitchDevice) {
-			Option.DailySwitch[i].Device = x;
+			Option.DailySwitch[i].Device = x == 0 ? 0 : DAILY_RELAY_START_FROM + x - 1;
 		} else {
 			uint32_t h = x / 10;
 			if(h > 23) h = 23;
@@ -1035,13 +1037,14 @@ char* MainClass::get_option(char *var, char *ret)
 	if(strcmp(var,option_fLowConsumeReq_OnByErr)==0){ return strcat(ret, (char*)(GETBIT(Option.flags, fLowConsumeReq_OnByErr) ? cOne : cZero)); } else
 	if(strcmp(var,option_SepticAlarmDebounce)==0){ return _itoa(Option.SepticAlarmDebounce, ret); } else
 	if(strcmp(var,option_RegenSofteningCntAlarm)==0){ return _itoa(Option.RegenSofteningCntAlarm, ret); } else
+	if(strcmp(var,option_RFILL_HoursRepeatPulse)==0){ return _itoa(Option.RFILL_HoursRepeatPulse, ret); } else
 	if(strcmp(var,option_GetCurrentSaltLevel)==0){ return _itoa(MC.WorkStats.RegenSofteningCntAlarm * 100L / Option.RegenSofteningCntAlarm, ret); } else
 	if(strncmp(var, prof_DailySwitch, sizeof(prof_DailySwitch)-1) == 0) {
 		var += sizeof(prof_DailySwitch)-1;
 		uint8_t i = *(var + 1) - '0';
 		if(i >= DAILY_SWITCH_MAX) return false;
 		if(*var == prof_DailySwitchDevice) {
-		 _itoa(Option.DailySwitch[i].Device, ret);
+		 _itoa(Option.DailySwitch[i].Device == 0 ? 0 : Option.DailySwitch[i].Device - DAILY_RELAY_START_FROM + 1, ret);
 		} else if(*var == prof_DailySwitchOn) {
 		 m_snprintf(ret + m_strlen(ret), 32, "%02d:%d0", Option.DailySwitch[i].TimeOn / 10, Option.DailySwitch[i].TimeOn % 10);
 		} else if(*var == prof_DailySwitchOff) {

@@ -1,5 +1,5 @@
 // Copyright by Vadim Kulakov vad7@yahoo.com, vad711
-var VER_WEB = "1.40";
+var VER_WEB = "1.41";
 var urlcontrol = ''; //  автоопределение (если адрес сервера совпадает с адресом контроллера)
 // адрес и порт контроллера, если адрес сервера отличен от адреса контроллера (не рекомендуется)
 //var urlcontrol = 'http://192.168.0.199';
@@ -391,8 +391,8 @@ function loadParam(paramid, noretry, resultdiv) {
 											var elem = document.getElementById("get_listdsr");
 											for(var j = 0; j < trows.length - 1; j++) {
 												var tflds = trows[j].split(';');
-												content += '<tr><td><select id="get_prof-dsd' + j + '" onchange="setParam(\'get_Prof(DSD' + j + ')\')">' + elem.innerHTML.replace('>' + tflds[0] + '<', ' selected>' + tflds[0] + '<') + '<\select></td><td>' + tflds[1] 
-													+ '</td><td nowrap><input id="get_prof-dss' + j + '" type="text" size="6" value="' + tflds[2] + '"> <input type="submit" value=">" onclick="setDS(\'S\',' + j + ')"></td><td nowrap><input id="get_prof-dse' + j + '" type="text" size="6" value="' + tflds[3] + '"> <input type="submit" value=">" onclick="setDS(\'E\',' + j + ')"></td></tr>';
+												content += '<tr><td><select id="get_opt-dsd' + j + '" onchange="setParam(\'get_Opt(DSD' + j + ')\')">' + elem.innerHTML.replace('>' + tflds[0] + '<', ' selected>' + tflds[0] + '<') + '<\select></td><td>' + tflds[1] 
+													+ '</td><td nowrap><input id="get_opt-dss' + j + '" type="text" size="6" value="' + tflds[2] + '"> <input type="submit" value=">" onclick="setDS(\'S\',' + j + ')"></td><td nowrap><input id="get_opt-dse' + j + '" type="text" size="6" value="' + tflds[3] + '"> <input type="submit" value=">" onclick="setDS(\'E\',' + j + ')"></td></tr>';
 											}
 											document.getElementById(valueid).innerHTML = content;
 										} else {

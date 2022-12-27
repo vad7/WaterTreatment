@@ -1,17 +1,23 @@
 <html lang="ru">
 <head> 
-	<title>Датчики, Реле. Водоподготовка.</title>
-	<meta charset="utf-8" />
-	<meta name="viewport" content="width=device-width, initial-scale=1.0">
-	<link rel="stylesheet" type="text/css" href="style.css">
-	<script type='text/javascript' src='scripts.js'></script>
-	<script type="text/javascript">
-		urlupdate = 2000;
-		window.onload = function() {
-		loadParam("get_tblRelay,get_tblPwrC,LowConsume");
-		loadParam("get_tblInput,get_listDSR,get_tblPDS");
-	};
-	</script>
+<title>Датчики, Реле. Водоподготовка.</title>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="stylesheet" type="text/css" href="style.css">
+<script type='text/javascript' src='scripts.js'></script>
+<script type="text/javascript">
+urlupdate = 2000;
+window.onload = function() {
+	loadParam("get_tblRelay,get_tblPwrC,LowConsume");
+	loadParam("get_tblInput,get_listDSR,get_tblPDS");
+};
+function setDS(v, i) {
+	var val = document.getElementById("get_opt-ds" + v.toLowerCase() + i).value;
+	if(val[2] == ':') setParam("get_Opt(DS" + v + i + "=" + val.replace(":","").substr(0,3) + ")");
+	else setParam("get_Opt(DS" + v + i + "=" + val.toUpperCase() + ")");
+}
+
+</script>
 </head>
 <body class="actuators relay">
 <div id="menu" class="menu"><script src="menu.js"></script></div>

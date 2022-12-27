@@ -213,7 +213,7 @@ struct type_option {
 	uint16_t MinWaterBoosterCountL; // Тревога, если между включениями насосной станции потреблено меньше литров, сотые
 	int16_t  PWATER_Osmos_Min;		// Минимальное давление для осмоса, когда проток не фиксируется (0 - выкл), сотые бара
 	uint8_t  PWATER_Osmos_Step;		// Осмос - Через сколько раз уменьшений давления без протока включать насосную станцию
-	uint8_t  _reserved_;
+	uint8_t  RFILL_HoursRepeatPulse;// Периодичность для импульса (1 сек) реле RFILL, часы
 	uint32_t FeedPumpRate;			// Производительность дозатора, тысячные милилитров в сек
 	type_DailySwitch DailySwitch[DAILY_SWITCH_MAX];	// дневное периодическое включение
 	uint16_t FlowIncByPress_MinFlow;// Минимальный проток меньше которого начинается добавка, число импульсов
@@ -464,6 +464,7 @@ public:
 	uint8_t  Osmos_PWATER_BoosterMax_cnt;
 	int16_t  Osmos_PWATER_LastFeed;
 	uint8_t  Osmos_PWATER_Flags;					// b0 - Во время текущего расходования бака насосной станции была добавка для Осмоса.
+	uint32_t RFILL_last_time_ON;					// время последнего включения реле RFILL, если 0, то RFILL -> OFF
 
 private:
 

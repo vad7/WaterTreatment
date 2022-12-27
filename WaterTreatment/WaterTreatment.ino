@@ -1843,9 +1843,13 @@ void vService(void *)
 				if(task_updstat_countm == 59) MC.save_WorkStats();		// сохранить раз в час
 				Stats.History();                                        // запись истории в файл
 
+				uint32_t ut = rtcSAM3X8.unixtime();
+				if(MC.Option.RFILL_HoursRepeatPulse && ut - MC.RFILL_last_time_ON > (uint32_t) MC.Option.RFILL_HoursRepeatPulse * 60 * 60) {
+					MC.dRelay[RFILL].set_ON();
+					MC.RFILL_last_time_ON = 0;
+				}
 				// Water did not consumed a long time ago.
 				if(MC.Option.DrainAfterNoConsume && MC.Option.DrainTime) {
-					uint32_t ut = rtcSAM3X8.unixtime();
 					if(ut - (MC.WorkStats.UsedLastTime > MC.WorkStats.LastDrain ? MC.WorkStats.UsedLastTime : MC.WorkStats.LastDrain ? MC.WorkStats.LastDrain : ut) >= MC.Option.DrainAfterNoConsume && !CriticalErrors) {
 						MC.WorkStats.LastDrain = rtcSAM3X8.unixtime();
 						TimerDrainingWater = MC.Option.DrainTime;
@@ -1934,6 +1938,10 @@ void vService(void *)
 					}
 				}
 			} else { // Every 1 sec except updstat sec
+				if(MC.RFILL_last_time_ON == 0) {
+					MC.dRelay[RFILL].set_OFF();
+					MC.RFILL_last_time_ON = rtcSAM3X8.unixtime();
+				}
 				if(NeedSaveWorkStats) {
 					if(MC.save_WorkStats() == OK) NeedSaveWorkStats = 0;
 				} else if((NeedSaveRTC & (1<<bRTC_Urgently)) || (NeedSaveRTC && m != task_every_min)) {
@@ -2011,15 +2019,18 @@ void vService(void *)
 							NewRegenStatus = false;
 						}
 					}
-					if(m != task_dailyswitch_countm) {
-						task_dailyswitch_countm = m;
-						uint32_t tt = rtcSAM3X8.get_hours() * 100 + m;
-						for(uint8_t i = 0; i < DAILY_SWITCH_MAX; i++) {
-							if(MC.Option.DailySwitch[i].Device == 0) break;
-							uint32_t st = MC.Option.DailySwitch[i].TimeOn * 10;
-							uint32_t end = MC.Option.DailySwitch[i].TimeOff * 10;
+					uint32_t tt = rtcSAM3X8.get_hours() * 100 + m;
+					for(uint8_t i = 0; i < DAILY_SWITCH_MAX; i++) {
+						if(MC.Option.DailySwitch[i].Device == 0) break;
+						uint32_t st = MC.Option.DailySwitch[i].TimeOn * 10;
+						uint32_t end = MC.Option.DailySwitch[i].TimeOff * 10;
+						uint32_t tmr = MC.dRelay[MC.Option.DailySwitch[i].Device].get_TimerOn();
+						if(st == end && tmr && TIMER_TO_SHOW_STATUS - 1000 > tmr && MC.dRelay[MC.Option.DailySwitch[i].Device].get_Relay()) { // after 1 sec -> off
+							MC.dRelay[MC.Option.DailySwitch[i].Device].set_Relay(-fR_StatusDaily);
+						} else if(m != task_dailyswitch_countm) {
+							task_dailyswitch_countm = m;
 							MC.dRelay[MC.Option.DailySwitch[i].Device].set_Relay(((end >= st && tt >= st && tt <= end) || (end < st && (tt >= st || tt <= end)))
-									&& !MC.NO_Power && !LowConsumeMode ? fR_StatusDaily : -fR_StatusDaily);
+									&& !MC.NO_Power /* && !LowConsumeMode */ ? fR_StatusDaily : -fR_StatusDaily);
 						}
 					}
 				}

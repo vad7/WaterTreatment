@@ -243,6 +243,7 @@ public:
   int8_t  set_Relay(int8_t r);                           // Установить реле в состояние (0/-1 - выкл основной алгоритм, fR_Status* - включить, -fR_Status* - выключить)
   __attribute__((always_inline)) inline boolean get_Relay(){return Relay;}                    // Прочитать состояние реле
   __attribute__((always_inline)) inline boolean get_RelayTimerOn(){ return TimerOn ? true : Relay; } // Прочитать состояние реле
+  __attribute__((always_inline)) inline uint32_t get_TimerOn(){ return TimerOn; }
   int8_t  get_pinD(){return pin;}                        // Получить ногу куда прицеплено реле
   char*   get_note(){return note;}                       // Получить наименование реле
   char*   get_name(){return name;}                       // Получить имя реле

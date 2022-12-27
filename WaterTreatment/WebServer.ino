@@ -567,8 +567,8 @@ void parserGET(uint8_t thread)
 				continue;
 			}
 			if(strcmp(str,"DSR")==0) {    // Функция get_listDSR
-				strcat(strReturn, "---;");
-				for(i = 0; i < RNUMBER; i++) {
+				strcat(strReturn, "---;"); // #0
+				for(i = DAILY_RELAY_START_FROM; i < RNUMBER; i++) { // #1..
 					strcat(strReturn, MC.dRelay[i].get_name()); strcat(strReturn,";");
 				}
 				ADD_WEBDELIM(strReturn);

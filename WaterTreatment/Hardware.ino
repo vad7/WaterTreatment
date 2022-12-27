@@ -525,7 +525,7 @@ int8_t devRelay::set_Relay(int8_t r)
 	}
 	flags = (flags & ~(1 << abs(r))) | ((r > 0) << abs(r));
 	r = (flags & fR_StatusMask) != 0;
-	if(Relay == r) return OK;   // Ничего менять не надо выходим
+	if(Relay == r) return OK;   // Ничего менять не надо - выходим
     Relay = r;                  // Все удачно, сохранить
     if(TimerOn || Relay) TimerOn = TIMER_TO_SHOW_STATUS;
 	if(testMode == NORMAL || testMode == HARD_TEST) {
@@ -543,6 +543,7 @@ int8_t devRelay::set_Relay(int8_t r)
 	if(tasks_suspended) xTaskResumeAll();
 #endif
 	if(number > RFEEDPUMP) journal.jprintfopt_time("%s: %s\n", name, Relay ? "ON" : "OFF");
+	if(number == RFILL && Relay) MC.RFILL_last_time_ON = rtcSAM3X8.unixtime();
 	return OK;
 }
 
