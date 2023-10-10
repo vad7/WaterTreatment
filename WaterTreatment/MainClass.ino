@@ -87,6 +87,7 @@ bool Weight_Read(void)
 //				Weight_NeedRead = false;
 				// Read HX711
 				int32_t adc_val, median3 = Weight.read();
+				if(median3 < MC.Option.WeightZero) return false;
 				// Медианный фильтр
 				if(Weight_adc_median1 <= Weight_adc_median2 && Weight_adc_median1 <= median3) {
 					adc_val = Weight_adc_median2 <= median3 ? Weight_adc_median2 : median3;
