@@ -820,7 +820,7 @@ void vWeb2(void *)
 #define LCD_SetupMenu_Sensors	0x200
 #define LCD_SetupMenu_FlowCheck	0x300
 #define LCD_SetupMenu_Options	0x400
-#define LCD_SetupMenu_Relays_Max 8
+#define LCD_SetupMenu_Relays_Max 8 // сколько помещается на экране
 const char *LCD_SetupMenu[LCD_SetupMenuItems] = { "1. Exit", "2. Relays", "3. Sensors", "4. Flow check", "5. Options" };
 uint32_t LCD_setup = 0; // 0x8000MMII: 8 - Setup active, MМ - Menu item (0..<max LCD_SetupMenuItems-1>) , II - Selecting item (0...)
 
@@ -910,9 +910,7 @@ xSetupExit:
 					}
 				} else if((LCD_setup & 0xFF00) == LCD_SetupMenu_Relays) {
 					LCD_setup++;
-					if((LCD_setup & 0xFF) >= (RNUMBER > LCD_SetupMenu_Relays_Max ? LCD_SetupMenu_Relays_Max : RNUMBER)) {
-						LCD_setup &= ~0xFF;
-					}
+					if((LCD_setup & 0xFF) >= RNUMBER) LCD_setup &= ~0xFF;
 					DisplayTick = ~DisplayTick;
 				} else if((LCD_setup & 0xFF00) == LCD_SetupMenu_Options) { // Options
 					goto xSetupExit;
@@ -971,7 +969,7 @@ xErrorsProcessing:
 						DisplayTick = ~DisplayTick;
 					}
 				} else if((LCD_setup & 0xFF00) == LCD_SetupMenu_Relays) {
-					if((LCD_setup & 0xFF) != 0) LCD_setup--; else LCD_setup |= RNUMBER > LCD_SetupMenu_Relays_Max ? LCD_SetupMenu_Relays_Max-1 : RNUMBER-1;
+					if((LCD_setup & 0xFF) != 0) LCD_setup--; else LCD_setup |= RNUMBER - 1;
 					DisplayTick = ~DisplayTick;
 				} else if((LCD_setup & 0xFF00) == LCD_SetupMenu_Options) { // Options
 					goto xSetupExit;
@@ -991,12 +989,14 @@ xErrorsProcessing:
 			if(LCD_setup) {
 				if((LCD_setup & 0xFF00) == LCD_SetupMenu_Relays) { // Relays
 					lcd.clear();
-					for(uint8_t i = 0; i < (RNUMBER > LCD_SetupMenu_Relays_Max ? LCD_SetupMenu_Relays_Max : RNUMBER) ; i++) {
+					uint8_t ipage = (LCD_setup & 0xFF) / LCD_SetupMenu_Relays_Max;
+					for(uint8_t i = 0; i < LCD_SetupMenu_Relays_Max && ipage * LCD_SetupMenu_Relays_Max + i < RNUMBER; i++) {
 						lcd.setCursor(10 * (i % 2), i / 2);
-						lcd.print(MC.dRelay[i].get_Relay() ? '*' : ' ');
-						lcd.print(MC.dRelay[i].get_name());
+						lcd.print(MC.dRelay[ipage * LCD_SetupMenu_Relays_Max + i].get_Relay() ? '*' : ' ');
+						lcd.print(MC.dRelay[ipage * LCD_SetupMenu_Relays_Max + i].get_name());
 					}
-					lcd.setCursor(10 * ((LCD_setup & 0xFF) % 2), (LCD_setup & 0xFF) / 2);
+					uint8_t item = (LCD_setup & 0xFF) % LCD_SetupMenu_Relays_Max;
+					lcd.setCursor(10 * (item % 2), item / 2);
 				} else if((LCD_setup & 0xFF00) == LCD_SetupMenu_Sensors) { // Sensors
 					lcd.clear();
 					for(uint8_t i = 0; i < (INUMBER > 8 ? 8 : INUMBER) ; i++) {
@@ -1338,6 +1338,11 @@ void vReadSensor(void *)
 					MC.WorkStats.UsedLastTime = utm;
 				}
 				History_WaterUsed_work += passed;
+				UsedForDrainSilt += passed;
+				if(UsedForDrainSilt >= 100 || passed >= 100) {
+					UsedForDrainSilt = 0;
+					if(MC.WorkStats.UsedDrainSiltL100 < 255) MC.WorkStats.UsedDrainSiltL100++;
+				}
 				NeedSaveRTC |= (1<<bRTC_UsedToday);
 			}
 		}
@@ -1741,7 +1746,7 @@ xWaterBooster_OFF:
 				}
 			}
 		}
-#endif // TANK_ANALOG_LEVEL
+#endif  // TANK_ANALOG_LEVEL
 
 		// Regenerating
 		if(reg_active & 1) { // Regen Iron removing filter
@@ -1828,6 +1833,17 @@ void vService(void *)
 				MC.dRelay[RDRAIN].set_OFF();
 				MC.dRelay[RDRAIN2].set_OFF();
 			}
+			// Drain tank's silt
+			if(DrainingSiltNow) {
+				if(DrainingSiltNowTimer == 0) {
+#ifdef RSILT
+					MC.dRelay[RSILT].set_OFF();
+#endif
+					MC.WorkStats.UsedDrainSiltL100 = 0;
+					if(MC.Option.DrainSiltAfterL100 == 0) MC.Option.DrainSiltAfterL100 = 1;
+					DrainingSiltNow = false;
+				} else DrainingSiltNowTimer--;
+			}
 			if(RWATERON_Switching < 0) {
 				if(++RWATERON_Switching == 0) {
 					RWATERON_Switching = RWATERON_TIME;
@@ -1856,6 +1872,16 @@ void vService(void *)
 						MC.WorkStats.UsedDrain = 0;
 						UsedDrainRest = MC.sFrequency[FLOW].PassedRest;
 						MC.dRelay[RDRAIN].set_ON();
+					}
+				}
+				if(GETBIT(MC.Option.flags2, fDrainSiltTank) && !DrainingSiltNow && MC.WorkStats.UsedDrainSiltL100 >= MC.Option.DrainSiltAfterL100) {
+					ut -= MC.WorkStats.UsedLastTime;
+					if(ut > MC.Option.DrainSiltAfterNotUsed * 3600 || MC.WorkStats.UsedDrainSiltL100 >= MC.Option.DrainSiltAfterL100 + MC.Option.DrainSiltAfterL100 / 2 + 1) {
+#ifdef RSILT
+						MC.dRelay[RSILT].set_ON();
+#endif
+						DrainingSiltNowTimer = MC.Option.DrainSiltTime * 10;
+						DrainingSiltNow = true;
 					}
 				}
 
@@ -1891,8 +1917,15 @@ void vService(void *)
 							set_Error(ERR_REGEN2_EXPIRED, (char*)__FUNCTION__);
 						}
 						if(need_regen) {
+							if(!DrainingSiltNow && GETBIT(MC.Option.flags2, fDrainSiltTankBeforeRegen)) {
+#ifdef RSILT
+								MC.dRelay[RSILT].set_ON();
+#endif
+								DrainingSiltNowTimer = MC.Option.DrainSiltTime * 10;
+								DrainingSiltNow = true;
+							}
 #ifdef TANK_ANALOG_LEVEL
-							if(MC.sADC[LTANK].get_Value() >= MC.sADC[LTANK].get_maxValue())
+							if(MC.sADC[LTANK].get_Value() >= MC.sADC[LTANK].get_maxValue() && !DrainingSiltNow)
 #else
 							if(MC.sInput[TANK_FULL].get_Input())
 #endif

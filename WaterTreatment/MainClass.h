@@ -43,6 +43,7 @@ struct type_WorkStats {
 	uint16_t UsedLastRegenSoftening;// Liters
 	uint8_t  Flags;					// WS_F_*
 	uint8_t  RegenSofteningCntAlarm;// Alarm when zero
+	uint8_t  UsedDrainSiltL100;		// How many L * 100 remain before draining silt.
 } __attribute__((packed));
 
 #define WS_F_StartRegen				0x01	// Запланирована регенерация обезжелезивателя вручную
@@ -108,6 +109,9 @@ bool     LowConsumeMode = false; //
 int32_t  AfterFilledTimer = 0; // Время после отключения реле заполнения бака до останова глубинного насоса, сек
 uint32_t Request_LowConsume;
 uint32_t RegenStarted = 0;
+uint8_t  UsedForDrainSilt = 0;	// L
+bool     DrainingSiltNow = false;
+uint16_t DrainingSiltNowTimer = 0;
 
 int16_t  RWATERON_Switching = 0; // >0 - в процессе переключения, <0 - задержка включения, сек
 
@@ -122,6 +126,7 @@ boolean  Weight_adc_flagFull;          			    // буфер полный
 int32_t	 Weight_value = 0;							// десятые грамма
 int16_t  Weight_Percent = 0;						// %, сотые
 int32_t  Weight_Test = 100000;						// десятые грамма, Тест
+uint8_t  Weight_Wrong_ADC_Cnt = 0;
 void Weight_Clear_Averaging(void);
 bool Weight_Read(void);
 
@@ -160,6 +165,9 @@ type_WebSecurity WebSec_admin;				// хеш паролей
 #define fRegenAllowedSoftener 13			// Разрешена регенерация умягчителя
 #define fFlowIncByPressure	14				// Добавка к потреблению при низком расходе
 #define fLowConsumeReq_OnByErr 15			// Если нет ответа на LowConsumeRequest HTTP запрос, то считать, что работаем от резерва
+// type_option.flags2
+#define fDrainSiltTank 	0					// Сливать осадок с бака периодически
+#define fDrainSiltTankBeforeRegen 1			// Сливать осадок с бака перед регенерацией
 
 // Структура для хранения настроек
 struct type_option {
@@ -217,6 +225,10 @@ struct type_option {
 	uint32_t FeedPumpRate;			// Производительность дозатора, тысячные милилитров в сек
 	type_DailySwitch DailySwitch[DAILY_SWITCH_MAX];	// дневное периодическое включение
 	uint16_t FlowIncByPress_MinFlow;// Минимальный проток меньше которого начинается добавка, число импульсов
+	uint16_t flags2;				// Флаги опций #2 до 16 флагов
+	uint8_t  DrainSiltTime;			// Время слива осадка с бака, секунды * 10
+	uint8_t  DrainSiltAfterL100;	// Через сколько литров сливать осадок, литров * 100
+	uint8_t  DrainSiltAfterNotUsed; // Сливать осадок, после отсутствия потребления в течении, часов. Если не получается, то слив будет после DrainSiltL100 * 50%
 };
 
 //  Работа с отдельными флагами type_DateTime
