@@ -305,7 +305,7 @@ struct History_setup {
 
 	#define RDRAIN2					8	// Реле слива после умягчителя
 	#define RFILL					9	// Реле заполнения бака
-	#define RSILT					10	// Реле слива осадка бака
+	#define RSILT					10	// Реле слива осадка бака ULN1 -> N-MOSFET -> DC-DC 5-12V -> Ball Valve CR04 12V
 
     //#define RTIME					10	// Реле по времени
 	//#define RELAY_WAIT_SWITCH		10	// Заморозить выполнение задач на это время после переключения реле, ms
