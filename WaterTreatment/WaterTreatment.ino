@@ -1535,7 +1535,7 @@ void vPumps( void * )
 				CriticalErrors |= ERRC_TankEmpty;
 			} else if((CriticalErrors & ERRC_TankEmpty) && !CriticalErrors_timeout) CriticalErrors &= ~ERRC_TankEmpty;
 			else if(MC.dRelay[RFILL].get_Relay()) {
-				if(MC.Option.FillingTankTimeout) { // Check tank filling speed
+				if(MC.Option.FillingTankTimeout && MC.RFILL_last_time_ON) { // Check tank filling speed
 					// FillingTankLastLevel == 0 - Start watching
 					if(FillingTankLastLevel && WaterBoosterStatus == 0) { // No water consuming from tank
 						if(GetTickCount() - FillingTankTimer >= (uint32_t)(MC.Option.FillingTankTimeout * 1000) && !vPumpsNewError) {
@@ -1797,7 +1797,7 @@ void vService(void *)
 	{
 		if(vPumpsNewError != 0) {
 			set_Error(vPumpsNewError, (char*)"vPumps");
-			if(vPumpsNewError == ERR_TANK_NO_FILLING) journal.jprintf_time(" FILLING %d sec = +%.2d%%!\n", MC.Option.FillingTankTimeout, vPumpsNewErrorData);
+			if(vPumpsNewError == ERR_TANK_NO_FILLING) journal.jprintf_time("FILLING %d sec = +%.2d%%!\n", MC.Option.FillingTankTimeout, vPumpsNewErrorData);
 			vPumpsNewError = 0;
 		}
 		register TickType_t t = xTaskGetTickCount();
