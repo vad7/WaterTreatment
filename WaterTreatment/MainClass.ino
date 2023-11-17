@@ -1053,8 +1053,8 @@ char* MainClass::get_option(char *var, char *ret)
 	if(strcmp(var,option_DrainSiltTime)==0){ return _itoa(Option.DrainSiltTime * 10, ret); } else
 	if(strcmp(var,option_DrainSiltAfterL100)==0){ _itoa(Option.DrainSiltAfterL100 * 100, ret); } else
 	if(strcmp(var,option_DrainSiltAfterNotUsed)==0){ _itoa(Option.DrainSiltAfterNotUsed, ret); } else
-	if(strcmp(var,option_fDrainSiltTank)==0){ strcat(ret, (char*)(GETBIT(Option.flags2, fDrainSiltTank) ? cOne : cZero)); } else
-	if(strcmp(var,option_fDrainSiltTankBeforeRegen)==0){ strcat(ret, (char*)(GETBIT(Option.flags2, fDrainSiltTankBeforeRegen) ? cOne : cZero)); } else
+	if(strcmp(var,option_fDrainSiltTank)==0){ return strcat(ret, (char*)(GETBIT(Option.flags2, fDrainSiltTank) ? cOne : cZero)); } else
+	if(strcmp(var,option_fDrainSiltTankBeforeRegen)==0){ return strcat(ret, (char*)(GETBIT(Option.flags2, fDrainSiltTankBeforeRegen) ? cOne : cZero)); } else
 	if(strncmp(var, prof_DailySwitch, sizeof(prof_DailySwitch)-1) == 0) {
 		var += sizeof(prof_DailySwitch)-1;
 		uint8_t i = *(var + 1) - '0';
