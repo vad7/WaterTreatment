@@ -13,7 +13,7 @@
 urlupdate = 2000;
 window.onload = function() {
 	loadParam("get_WSUY,get_WSA,get_WSD,get_WSRC,get_WSRD,get_WSRSC,get_WSRSD,get_Opt(DBR),get_Opt(DBRS),get_Opt(UBR),get_Opt(UBRS)");
-	updateParam("get_Relay(RWOFF1),get_WDIS,get_Relay(RWON),get_Relay(RDRAIN),get_Relay(RBST2),get_Relay(RFILL),get_Relay(RFEEDP),get_ADCLvL(LTANK),get_Wgt(LvL),get_Opt(LvL),get_Input(REG),get_Input(REGBW),get_Input(REG2),get_Err(B),get_Flow(FLOW),get_ADC(PWATER),get_MODED,get_PWR,get_Temp(AIR),get_WSRS,get_WSRSS,get_WSUD,get_WST,get_WSRL,get_WSRSL,get_WSB,get_WSDD,get_WSV,get_WSV2,get_WSF");
+	updateParam("get_Relay(RWOFF1),get_WDIS,get_Relay(RWON),get_Relay(RDRAIN),get_Relay(RBST2),get_Relay(RFILL),get_Relay(RFEEDP),get_ADCLvL(LTANK),get_Wgt(LvL),get_Opt(LvL),get_Input(REG),get_Input(REGBW),get_Input(REG2),get_Err(B),get_Flow(FLOW),get_ADC(PWATER),get_MODED,get_PWR,get_Temp(AIR),get_WSRSS,get_WSUD,get_WST,get_WSRL,get_WSRSL,get_WSB,get_WSDD,get_WSV,get_WSV2,get_WSF,get_WSRS");
 	updateParam("get_tblErr");
 };
 var mouseclk = [];
@@ -35,14 +35,13 @@ function ResetSalt() {
 	if(confirm("Бак с солью заправлен?")) loadParam("set_Opt(LvL=1)");
 }
 function loadParam_after(paramid) {
+	var el_iron = "", st_iron = "", el_soft = "", st_soft = "";
 	if(paramid.indexOf("et_WSF") != -1) {
 		var v = Number(document.getElementById("get_wsf").innerText);
-		element = document.getElementById("planiron");
-		element.innerHTML = (v & 1) ? "запланировано" : (v & 0x40) ? "ожидается" : "";
-		element.style = element.innerHTML == "" ? "color:inherit" : "color:red";
-		element = document.getElementById("plansoft");
-		element.innerHTML = (v & 2) ? "запланировано" : (v & 0x80) ? "ожидается" : "";
-		element.style = element.innerHTML == "" ? "color:inherit" : "color:red";
+		el_iron = (v & 1) ? "запланировано" : (v & 0x40) ? "ожидается" : "";
+		st_iron = el_iron == "" ? "color:inherit" : "color:red";
+		el_soft = (v & 2) ? "запланировано" : (v & 0x80) ? "ожидается" : "";
+		st_soft = el_soft == "" ? "color:inherit" : "color:red";
 	}
 	if(paramid.indexOf("et_WSRSS") != -1) {
 		var v1, vday = 0, vlitr = 0;
@@ -52,10 +51,9 @@ function loadParam_after(paramid) {
 		if((v1 = Number(document.getElementById("get_opt-ubr").innerHTML)) > 0) {
 			vlitr = (v1 - Number(document.getElementById("get_wsrs").innerHTML) - Number(document.getElementById("get_wsud").innerHTML)) / Number(document.getElementById("get_wsa").innerHTML);
 		}
-		element = document.getElementById("planiron");
-		if(element.innerHTML == "") {
-			if(vday > 0 || vlitr > 0) {	element.innerHTML = "Следующее через " + Math.round(vlitr > vday ? vlitr : vday) + " дн."; element.style = "color:inherit";
-			} else { element.innerHTML = "ожидается"; element.style = "color:red"; }
+		if(el_iron == "") {
+			if(vday > 0 || vlitr > 0) {	el_iron = "Следующее через " + Math.round(vlitr > vday ? vlitr : vday) + " дн."; st_iron = "color:inherit";
+			} else { el_iron = "ожидается"; st_iron = "color:red"; }
 		}
 		vday = vlitr = 0;
 		if((v1 = Number(document.getElementById("get_opt-dbrs").innerHTML)) > 0) {
@@ -64,11 +62,20 @@ function loadParam_after(paramid) {
 		if((v1 = Number(document.getElementById("get_opt-ubrs").innerHTML)) > 0) {
 			vlitr = (v1 - Number(document.getElementById("get_wsrss").innerHTML) - Number(document.getElementById("get_wsud").innerHTML)) / Number(document.getElementById("get_wsa").innerHTML);
 		}
-		element = document.getElementById("plansoft");
-		if(element.innerHTML == "") {
-			if(vday > 0 || vlitr > 0) { element.innerHTML = "Следующее через " + Math.round(vlitr > vday ? vlitr : vday) + " дн."; element.style = "color:inherit";
-			} else { element.innerHTML = "ожидается"; element.style = "color:red"; }
+		if(el_soft == "") {
+			if(vday > 0 || vlitr > 0) { el_soft = "Следующее через " + Math.round(vlitr > vday ? vlitr : vday) + " дн."; st_soft = "color:inherit";
+			} else { el_soft = "ожидается"; st_soft = "color:red"; }
 		}
+	}
+	if(el_iron != "") {
+		element = document.getElementById("planiron");
+		element.innerHTML = el_iron;
+		if(st_iron != "") element.style = st_iron;
+	}
+	if(el_soft != "") {
+		element = document.getElementById("plansoft");
+		element.innerHTML = el_soft;
+		if(st_soft != "") element.style = st_soft;
 	}
 }
 </script>	
