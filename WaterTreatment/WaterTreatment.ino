@@ -549,7 +549,7 @@ x_I2C_init_std_message:
 	// ПРИОРИТЕТ 1 низкий - обслуживание вебморды в несколько потоков
 	// ВНИМАНИЕ первый поток должен иметь больший стек для обработки фоновых сетевых задач
 	// 1 - поток
-	#define STACK_vWebX 190
+	#define STACK_vWebX 200
 	if(xTaskCreate(vWeb0,"Web0", STACK_vWebX+5,NULL,1,&MC.xHandleUpdateWeb0)==errCOULD_NOT_ALLOCATE_REQUIRED_MEMORY) set_Error(ERR_MEM_FREERTOS,(char*)nameFREERTOS);
 	MC.mRTOS=MC.mRTOS+64+4*(STACK_vWebX+5);
 	if(xTaskCreate(vWeb1,"Web1", STACK_vWebX,NULL,1,&MC.xHandleUpdateWeb1)==errCOULD_NOT_ALLOCATE_REQUIRED_MEMORY) set_Error(ERR_MEM_FREERTOS,(char*)nameFREERTOS);
@@ -1345,6 +1345,7 @@ void vReadSensor(void *)
 				}
 				NeedSaveRTC |= (1<<bRTC_UsedToday);
 			}
+			if(DrainingSiltFlag == 2) DrainingSiltFlag = 1;
 		}
 		//
 
@@ -1529,15 +1530,16 @@ void vPumps( void * )
 		if(ADC_has_been_read) {		// Не чаще, чем ADC
 			ADC_has_been_read = false;
 			for(uint8_t i = 0; i < ANUMBER; i++) MC.sADC[i].Read();			// Прочитать данные с аналоговых давления
+			bool RFILL_on = true;
 			tank_empty = tank_empty || (MC.sADC[LTANK].get_Value() < MC.sADC[LTANK].get_minValue());
 			if(tank_empty) {
 				if(!(CriticalErrors & ERRC_TankEmpty)) vPumpsNewError = ERR_TANK_EMPTY;
 				CriticalErrors |= ERRC_TankEmpty;
 			} else if((CriticalErrors & ERRC_TankEmpty) && !CriticalErrors_timeout) CriticalErrors &= ~ERRC_TankEmpty;
-			else if(MC.dRelay[RFILL].get_Relay()) {
+			else if((RFILL_on = MC.dRelay[RFILL].get_Relay())) {
 				if(MC.Option.FillingTankTimeout && MC.RFILL_last_time_ON) { // Check tank filling speed
 					// FillingTankLastLevel == 0 - Start watching
-					if(FillingTankLastLevel && WaterBoosterStatus == 0) { // No water consuming from tank
+					if(FillingTankLastLevel && WaterBoosterStatus == 0 && DrainingSiltFlag) { // No water consuming from tank
 						if(GetTickCount() - FillingTankTimer >= (uint32_t)(MC.Option.FillingTankTimeout * 1000) && !vPumpsNewError) {
 							if(MC.sADC[LTANK].get_Value() - FillingTankLastLevel < FILLING_TANK_STEP) {
 								vPumpsNewErrorData = MC.sADC[LTANK].get_Value() - FillingTankLastLevel;
@@ -1552,6 +1554,7 @@ void vPumps( void * )
 					}
 				}
 			}
+			if(RFILL_on || WaterBoosterStatus) TankLeakageTimer = 255;
 		}
 		uint8_t reg_active = (MC.sInput[REG_ACTIVE].get_Input() || MC.sInput[REG_BACKWASH_ACTIVE].get_Input()) | (MC.sInput[REG2_ACTIVE].get_Input() << 1);
 #ifdef ONLY_ONE_REGEN_AT_TIME
@@ -1586,6 +1589,9 @@ void vPumps( void * )
 				MC.dRelay[RFEEDPUMP].set_Relay(fR_StatusAllOff);
 				MC.dRelay[RWATEROFF1].set_ON();
 				MC.dRelay[RWATERON].set_Relay(fR_StatusAllOff);
+#ifdef RSILT
+				MC.dRelay[RSILT].set_Relay(fR_StatusAllOff);
+#endif
 				CriticalErrors |= ERRC_Flooding;
 				if(WaterBoosterStatus > 0) goto xWaterBooster_GO_OFF;
 			}
@@ -1709,14 +1715,14 @@ xWaterBooster_OFF:
 				Charts_FillTank_work += TIME_SLICE_PUMPS * 100 / 1000; // in percent
 				taskEXIT_CRITICAL();
 			} else if(!(CriticalErrors & ~ERRC_TankEmpty)) {
-				MC.dRelay[RFILL].set_ON();	// Start filling tank
 				FillingTankLastLevel = 0;
+				MC.dRelay[RFILL].set_ON();	// Start filling tank
 			}
 		}
 		if(MC.sInput[TANK_FULL].get_Input()) {
 			if(MC.dRelay[RFILL].get_Relay()) {
-				MC.dRelay[RFILL].set_OFF();	// Stop filling tank
 				FillingTankLastLevel = 0;
+				MC.dRelay[RFILL].set_OFF();	// Stop filling tank
 			}
 		}
 #else
@@ -1728,8 +1734,8 @@ xWaterBooster_OFF:
 				FillingTankLastLevel = 0;
 			} else {
 				if(MC.sADC[LTANK].get_Value() >= MC.sADC[LTANK].get_maxValue()) {
-					MC.dRelay[RFILL].set_OFF();	// Stop filling tank
 					FillingTankLastLevel = 0;
+					MC.dRelay[RFILL].set_OFF();	// Stop filling tank
 				}
 			}
 			//taskENTER_CRITICAL();
@@ -1740,8 +1746,8 @@ xWaterBooster_OFF:
 				if(!(CriticalErrors & ~ERRC_TankEmpty)) {
 					if(!LowConsumeMode || (!MC.dRelay[RFEEDPUMP].get_Relay() && WaterBoosterStatus == 0)) {
 						if(LowConsumeMode && !(MC.RTC_store.Work & (RTC_Work_Regen_F1 | RTC_Work_Regen_F2))) AfterFilledTimer = MC.Option.LTank_AfterFilledTimer * 1000;
-						MC.dRelay[RFILL].set_ON();	// Start filling tank
 						FillingTankLastLevel = 0;
+						MC.dRelay[RFILL].set_ON();	// Start filling tank
 					}
 				}
 			}
@@ -1834,14 +1840,18 @@ void vService(void *)
 				MC.dRelay[RDRAIN2].set_OFF();
 			}
 			// Drain tank's silt
-			if(DrainingSiltNow) {
+			if(DrainingSiltFlag == 0) {
 				if(DrainingSiltNowTimer == 0) {
 #ifdef RSILT
 					MC.dRelay[RSILT].set_OFF();
 #endif
 					MC.WorkStats.UsedDrainSiltL100 = 0;
 					if(MC.Option.DrainSiltAfterL100 == 0) MC.Option.DrainSiltAfterL100 = 1;
-					DrainingSiltNow = false;
+
+					DrainingSiltFlag = 2;
+					FillingTankLastLevel = 0; // начала мониторинга
+					FillingTankLastLevel = MC.sADC[LTANK].get_Value();
+					FillingTankTimer = GetTickCount();
 				} else DrainingSiltNowTimer--;
 			}
 			if(RWATERON_Switching < 0) {
@@ -1874,14 +1884,15 @@ void vService(void *)
 						MC.dRelay[RDRAIN].set_ON();
 					}
 				}
-				if(GETBIT(MC.Option.flags2, fDrainSiltTank) && !DrainingSiltNow && MC.WorkStats.UsedDrainSiltL100 >= MC.Option.DrainSiltAfterL100) {
+				if(GETBIT(MC.Option.flags2, fDrainSiltTank) && DrainingSiltFlag && MC.WorkStats.UsedDrainSiltL100 >= MC.Option.DrainSiltAfterL100
+						&& MC.sADC[LTANK].get_Value() > MC.Option.LTank_LowConsumeMin) {
 					ut -= MC.WorkStats.UsedLastTime;
 					if(ut > MC.Option.DrainSiltAfterNotUsed * 3600 || MC.WorkStats.UsedDrainSiltL100 >= MC.Option.DrainSiltAfterL100 + MC.Option.DrainSiltAfterL100 / 2 + 1) {
+						DrainingSiltFlag = 0;
 #ifdef RSILT
 						MC.dRelay[RSILT].set_ON();
 #endif
 						DrainingSiltNowTimer = MC.Option.DrainSiltTime * 10;
-						DrainingSiltNow = true;
 					}
 				}
 
@@ -1917,25 +1928,38 @@ void vService(void *)
 							set_Error(ERR_REGEN2_EXPIRED, (char*)__FUNCTION__);
 						}
 						if(need_regen) {
-							if(!DrainingSiltNow && GETBIT(MC.Option.flags2, fDrainSiltTankBeforeRegen)) {
+							if(DrainingSiltFlag && MC.WorkStats.UsedDrainSiltL100 > 0 && GETBIT(MC.Option.flags2, fDrainSiltTankBeforeRegen)) {
+								DrainingSiltFlag = 0;
 #ifdef RSILT
 								MC.dRelay[RSILT].set_ON();
 #endif
 								DrainingSiltNowTimer = MC.Option.DrainSiltTime * 10;
-								DrainingSiltNow = true;
 							}
+							if(DrainingSiltFlag) {
 #ifdef TANK_ANALOG_LEVEL
-							if(MC.sADC[LTANK].get_Value() >= MC.sADC[LTANK].get_maxValue() && !DrainingSiltNow)
+								if(MC.sADC[LTANK].get_Value() >= MC.sADC[LTANK].get_maxValue())
 #else
-							if(MC.sInput[TANK_FULL].get_Input())
+								if(MC.sInput[TANK_FULL].get_Input())
 #endif
-							{
-								if((need_regen & RTC_Work_Regen_F1)) {
-									if(!MC.dRelay[RSTARTREG].get_Relay()) {
-										MC.dRelay[RWATEROFF1].set_ON();
+								{
+									if((need_regen & RTC_Work_Regen_F1)) {
+										if(!MC.dRelay[RSTARTREG].get_Relay()) {
+											MC.dRelay[RWATEROFF1].set_ON();
+											if(!MC.dRelay[RWATERON].get_Relay() && !RWATERON_Switching) {
+												MC.dRelay[RSTARTREG].set_ON();
+												journal.jprintf_date("Regen F1 start\n");
+												if(RegenStarted == 0) RegenStarted = rtcSAM3X8.unixtime();
+												MC.WorkStats.Flags &= ~WS_F_RegenPreparing;
+											} else if(MC.dRelay[RWATERON].get_Relay()) {
+												RWATERON_Switching = RWATERON_TIME;
+												MC.dRelay[RWATERON].set_Relay(fR_StatusAllOff);
+												MC.WorkStats.Flags |= WS_F_RegenPreparing;
+											}
+										}
+									} else if((need_regen & RTC_Work_Regen_F2) && !MC.dRelay[RSTARTREG2].get_Relay()) {
 										if(!MC.dRelay[RWATERON].get_Relay() && !RWATERON_Switching) {
-											MC.dRelay[RSTARTREG].set_ON();
-											journal.jprintf_date("Regen F1 start\n");
+											MC.dRelay[RSTARTREG2].set_ON();
+											journal.jprintf_date("Regen F2 start\n");
 											if(RegenStarted == 0) RegenStarted = rtcSAM3X8.unixtime();
 											MC.WorkStats.Flags &= ~WS_F_RegenPreparing;
 										} else if(MC.dRelay[RWATERON].get_Relay()) {
@@ -1944,21 +1968,10 @@ void vService(void *)
 											MC.WorkStats.Flags |= WS_F_RegenPreparing;
 										}
 									}
-								} else if((need_regen & RTC_Work_Regen_F2) && !MC.dRelay[RSTARTREG2].get_Relay()) {
-									if(!MC.dRelay[RWATERON].get_Relay() && !RWATERON_Switching) {
-										MC.dRelay[RSTARTREG2].set_ON();
-										journal.jprintf_date("Regen F2 start\n");
-										if(RegenStarted == 0) RegenStarted = rtcSAM3X8.unixtime();
-										MC.WorkStats.Flags &= ~WS_F_RegenPreparing;
-									} else if(MC.dRelay[RWATERON].get_Relay()) {
-										RWATERON_Switching = RWATERON_TIME;
-										MC.dRelay[RWATERON].set_Relay(fR_StatusAllOff);
-										MC.WorkStats.Flags |= WS_F_RegenPreparing;
-									}
+								} else {
+									MC.dRelay[RFILL].set_ON();	// Start filling tank
+									FillingTankLastLevel = 0;
 								}
-							} else {
-								MC.dRelay[RFILL].set_ON();	// Start filling tank
-								FillingTankLastLevel = 0;
 							}
 						} else if(MC.WorkStats.Flags & WS_F_RegenPreparing) { // Not need to regen while in preparing
 							MC.dRelay[RWATEROFF1].set_OFF();
@@ -2066,6 +2079,11 @@ void vService(void *)
 									&& !MC.NO_Power /* && !LowConsumeMode */ ? fR_StatusDaily : -fR_StatusDaily);
 						}
 					}
+				}
+				if(TankLeakageTimer) {
+					TankLeakageTimer--;
+				} else if(FillingTankLastLevel) {
+
 				}
 			}
 			// every 1 sec

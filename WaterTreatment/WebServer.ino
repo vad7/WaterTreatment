@@ -778,13 +778,13 @@ xSaveStats:		if((i = MC.save_WorkStats()) == OK)
 					_dtoa(strReturn, l_i32, 3);
 					strcat(strReturn, " мч");
 				}
-			} else if(*str == webWS_Flags) {
+			} else if(*str == webWS_Flags) {	// get_WSF
 				if(i) {
 					MC.WorkStats.Flags ^= l_i32 & WS_F_MASK; 		// set_WSF=x (XOR x)
 					NeedSaveWorkStats = 1;
 				}
 				l_i32 = MC.WorkStats.Flags | (MC.get_NeedRegen() << WS_F_bNeedRegen) | (MC.get_NeedRegenSoftening() << WS_F_bNeedRegenSoft);
-				_itoa(l_i32, strReturn);	// get_WSF
+				_itoa(l_i32, strReturn);
 			}
 			ADD_WEBDELIM(strReturn); continue;
 		}
@@ -1011,7 +1011,7 @@ xSaveStats:		if((i = MC.save_WorkStats()) == OK)
 				strcat(strReturn, "Текущая ошибка|");
 				if(MC.get_errcode() == OK) strcat(strReturn, "-"); else _itoa(MC.get_errcode(), strReturn);
 				strcat(strReturn,";");
-				strcat(strReturn, "Источник загрузкки web интерфейса |");
+				strcat(strReturn, "Источник загрузки web интерфейса |");
 				switch (MC.get_SourceWeb())
 				{
 				case pMIN_WEB:   strcat(strReturn,"internal;"); break;
@@ -1042,12 +1042,18 @@ xSaveStats:		if((i = MC.save_WorkStats()) == OK)
 				strReturn += m_snprintf(strReturn += strlen(strReturn), 256, "Площадь фильтрации обезжелезивателя, м2|%.4d;", MC.FilterTankSquare);
 				strReturn += m_snprintf(strReturn += strlen(strReturn), 256, "Площадь фильтрации умягчителя, м2|%.4d;", MC.FilterTankSoftenerSquare);
 
+				strReturn += m_snprintf(strReturn += strlen(strReturn), 256, "Потреблено с последнего слива осадка, л|%d;", MC.WorkStats.UsedDrainSiltL100 * 100);
+
 				STORE_DEBUG_INFO(47);
+
 				strcat(strReturn,"<b> Времена</b>|;");
 				strReturn += m_snprintf(strReturn += strlen(strReturn), 256, "Текущее время [%u]|", GetTickCount());
-					DecodeTimeDate(rtcSAM3X8.unixtime(),strReturn,3); strcat(strReturn,";");
-					strcat(strReturn,"Время сохранения текущих настроек |");DecodeTimeDate(MC.get_saveTime(),strReturn,3);strcat(strReturn,";");
+				DecodeTimeDate(rtcSAM3X8.unixtime(),strReturn,3); strcat(strReturn,";");
+				strcat(strReturn,"Время сохранения текущих настроек |");DecodeTimeDate(MC.get_saveTime(),strReturn,3);strcat(strReturn,";");
+				strcat(strReturn,"Время заполнения бака|");if(MC.RFILL_last_time_ON) DecodeTimeDate(MC.RFILL_last_time_ON,strReturn,3); strcat(strReturn,";");
+				strcat(strReturn,"Время последнего потребления|");DecodeTimeDate(MC.WorkStats.UsedLastTime,strReturn,3);strcat(strReturn,";");
 
+			} else if(strcmp(str, "Info2") == 0) { // "get_sysInfo2" - Функция вывода системной информации для разработчика
 				strcat(strReturn,"<b> Счетчики ошибок</b>|;");
 				strcat(strReturn,"Счетчик \"Потеря связи с "); strcat(strReturn,nameWiznet);strcat(strReturn,"\", повторная инициализация  <sup>3</sup>|");_itoa(MC.num_resW5200,strReturn);strcat(strReturn,";");
 				strcat(strReturn,"Счетчик числа сбросов мютекса захвата шины SPI|");_itoa(MC.num_resMutexSPI,strReturn);strcat(strReturn,";");
@@ -1060,7 +1066,6 @@ xSaveStats:		if((i = MC.save_WorkStats()) == OK)
 
 				strcat(strReturn,"<b> Глобальные счетчики</b>|;");
 				strcat(strReturn,"Время сброса|"); DecodeTimeDate(MC.WorkStats.ResetTime, strReturn, 3); strcat(strReturn,";");
-
 				STORE_DEBUG_INFO(48);
 				strcat(strReturn,"<b> Статистика за день</b>|;");
 				strReturn += strlen(strReturn);

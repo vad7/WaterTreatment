@@ -27,7 +27,7 @@ int8_t set_Error(int8_t _err, char *nam)
 {
 	if(MC.error != _err) {
 		MC.error = _err;
-		strcpy(MC.source_error, nam);
+		strncpy(MC.source_error, nam, sizeof(MC.source_error)-1);
 		m_snprintf(MC.note_error, sizeof(MC.note_error), "%s %s: %s", NowTimeToStr(), nam, noteError[abs(_err)]);
 	}
 	uint32_t i = 0;
