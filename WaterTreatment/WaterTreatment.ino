@@ -1536,25 +1536,6 @@ void vPumps( void * )
 				if(!(CriticalErrors & ERRC_TankEmpty)) vPumpsNewError = ERR_TANK_EMPTY;
 				CriticalErrors |= ERRC_TankEmpty;
 			} else if((CriticalErrors & ERRC_TankEmpty) && !CriticalErrors_timeout) CriticalErrors &= ~ERRC_TankEmpty;
-			else if((RFILL_on = MC.dRelay[RFILL].get_Relay())) {
-				if(MC.Option.FillingTankTimeout && MC.RFILL_last_time_ON) { // Check tank filling speed
-					// FillingTankLastLevel == 0 - Start watching
-					if(FillingTankLastLevel && WaterBoosterStatus == 0 && DrainingSiltFlag) { // No water consuming from tank
-						if(GetTickCount() - FillingTankTimer >= (uint32_t)(MC.Option.FillingTankTimeout * 1000) && !vPumpsNewError) {
-							if(MC.sADC[LTANK].get_Value() - FillingTankLastLevel < FILLING_TANK_STEP) {
-								vPumpsNewErrorData = MC.sADC[LTANK].get_Value() - FillingTankLastLevel;
-								vPumpsNewError = ERR_TANK_NO_FILLING;
-							}
-							FillingTankLastLevel = MC.sADC[LTANK].get_Value();
-							FillingTankTimer = GetTickCount();
-						}
-					} else {
-						FillingTankLastLevel = MC.sADC[LTANK].get_Value();
-						FillingTankTimer = GetTickCount();
-					}
-				}
-			}
-			if(RFILL_on || WaterBoosterStatus) TankLeakageTimer = 255;
 		}
 		uint8_t reg_active = (MC.sInput[REG_ACTIVE].get_Input() || MC.sInput[REG_BACKWASH_ACTIVE].get_Input()) | (MC.sInput[REG2_ACTIVE].get_Input() << 1);
 #ifdef ONLY_ONE_REGEN_AT_TIME
@@ -1969,8 +1950,8 @@ void vService(void *)
 										}
 									}
 								} else {
-									MC.dRelay[RFILL].set_ON();	// Start filling tank
 									FillingTankLastLevel = 0;
+									MC.dRelay[RFILL].set_ON();	// Start filling tank
 								}
 							}
 						} else if(MC.WorkStats.Flags & WS_F_RegenPreparing) { // Not need to regen while in preparing
@@ -2080,11 +2061,43 @@ void vService(void *)
 						}
 					}
 				}
+
 				if(TankLeakageTimer) {
 					TankLeakageTimer--;
 				} else if(FillingTankLastLevel) {
 
 				}
+
+				else if((RFILL_on = MC.dRelay[RFILL].get_Relay())) {
+					if(MC.Option.FillingTankTimeout && MC.RFILL_last_time_ON) { // Check tank filling speed
+						// FillingTankLastLevel == 0 - Start watching
+						if(FillingTankLastLevel && WaterBoosterStatus == 0 && DrainingSiltFlag) { // No water consuming from tank
+							if(GetTickCount() - FillingTankTimer >= (uint32_t)(MC.Option.FillingTankTimeout * 1000) && !vPumpsNewError) {
+								if(MC.sADC[LTANK].get_Value() - FillingTankLastLevel < FILLING_TANK_STEP) {
+									vPumpsNewErrorData = MC.sADC[LTANK].get_Value() - FillingTankLastLevel;
+									vPumpsNewError = ERR_TANK_NO_FILLING;
+								}
+								FillingTankLastLevel = MC.sADC[LTANK].get_Value();
+								FillingTankTimer = GetTickCount();
+							}
+						} else {
+							FillingTankLastLevel = MC.sADC[LTANK].get_Value();
+							FillingTankTimer = GetTickCount();
+						}
+					}
+				}
+				if(RFILL_on || WaterBoosterStatus) TankLeakageTimer = 255;
+
+
+
+
+
+
+
+
+
+
+
 			}
 			// every 1 sec
 xOtherTask_1min:
