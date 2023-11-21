@@ -682,6 +682,7 @@ void MainClass::resetSetting()
 	Option.LowConsumeRequestPeriod = HTTP_REQ_LowConsume;
 	Option.SepticAlarmDebounce = 30;
 	Option.TankCheckPercent = FILLING_TANK_STEP / 100;
+	Option.TankFillingTimeMax = 120;
 	RFILL_last_time_ON = rtcSAM3X8.unixtime();
 }
 
@@ -939,6 +940,7 @@ boolean MainClass::set_option(char *var, float xx)
    if(strcmp(var,option_FloodingTimeout)==0) { Option.FloodingTimeout = x; return true; } else
    if(strcmp(var,option_FillingTankTimeout)==0){ Option.FillingTankTimeout = x; return true; } else
    if(strcmp(var,option_TankCheckPercent)==0){ Option.TankCheckPercent = x; return true; } else
+   if(strcmp(var,option_TankFillingTimeMax)==0){ Option.TankFillingTimeMax = x; return true; } else
    if(strcmp(var,option_CriticalErrorsTimeout)==0){ Option.CriticalErrorsTimeout = x; return true; } else
    if(strcmp(var,option_FilterTank)==0){ FilterTankSquare = CalcFilterSquare(Option.FilterTank = x); return true; } else
    if(strcmp(var,option_FilterTankSoftener)==0){ FilterTankSoftenerSquare = CalcFilterSquare(Option.FilterTankSoftener = x); return true; } else
@@ -1040,6 +1042,7 @@ char* MainClass::get_option(char *var, char *ret)
 	if(strcmp(var,option_FloodingTimeout)==0){ return _itoa(Option.FloodingTimeout, ret); } else
 	if(strcmp(var,option_FillingTankTimeout)==0){ return _itoa(Option.FillingTankTimeout, ret); } else
 	if(strcmp(var,option_TankCheckPercent)==0){ return _itoa(Option.TankCheckPercent, ret); } else
+	if(strcmp(var,option_TankFillingTimeMax)==0){ return _itoa(Option.TankFillingTimeMax, ret); } else
 	if(strcmp(var,option_CriticalErrorsTimeout)==0){ return _itoa(Option.CriticalErrorsTimeout, ret); } else
 	if(strcmp(var,option_FilterTank)==0){ return _itoa(Option.FilterTank, ret); } else
 	if(strcmp(var,option_FilterTankSoftener)==0){ return _itoa(Option.FilterTankSoftener, ret); } else

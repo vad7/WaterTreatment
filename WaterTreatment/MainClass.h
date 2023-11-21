@@ -66,12 +66,13 @@ struct type_RTC_memory { // DS3231/DS3232 used alarm memory, starts from 0x07, m
 } __attribute__((packed));
 
 // Critical errors
-#define	ERRC_WaterBooster	0x01
-#define	ERRC_Flooding		0x02
-#define	ERRC_TankEmpty		0x04
-#define	ERRC_WeightEmpty	0x08
-#define	ERRC_SepticAlarm	0x10
-#define	ERRC_WaterCounter	0x20
+#define	ERRC_WaterBooster		0x01
+#define	ERRC_Flooding			0x02
+#define	ERRC_TankEmpty			0x04
+#define	ERRC_WeightEmpty		0x08
+#define	ERRC_SepticAlarm		0x10
+#define	ERRC_WaterCounter		0x20
+#define	ERRC_TankFillingLong	0x40
 volatile uint32_t CriticalErrors = 0;	// Stop any work when these errors have occurred
 int32_t  vPumpsNewErrorData = 0;
 int8_t   vPumpsNewError = 0;
@@ -231,6 +232,7 @@ struct type_option {
 	uint8_t  DrainSiltAfterL100;	// Через сколько литров сливать осадок, литров * 100
 	uint8_t  DrainSiltAfterNotUsed; // Сливать осадок, после отсутствия потребления в течении, часов. Если не получается, то слив будет после DrainSiltL100 * 50%
 	uint8_t  TankCheckPercent;		// Проверка на утечку/заполняемость бака, тревога, если уровень уменьшится без потребителей на %, либо заполнение бака идет медленно (FillingTankTimeout)
+	uint8_t  TankFillingTimeMax;	// Максимальное время заполнения бака за один раз, минуты
 };
 
 //  Работа с отдельными флагами type_DateTime

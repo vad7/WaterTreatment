@@ -1826,7 +1826,7 @@ void vService(void *)
 #endif
 					MC.WorkStats.UsedDrainSiltL100 = 0;
 					if(MC.Option.DrainSiltAfterL100 == 0) MC.Option.DrainSiltAfterL100 = 1;
-					DrainingSiltFlag = 2;
+					DrainingSiltFlag = 255 - (60); // (..) sec pause before checking leakage
 				} else DrainingSiltNowTimer--;
 			}
 			if(RWATERON_Switching < 0) {
@@ -1848,6 +1848,10 @@ void vService(void *)
 				if(MC.Option.RFILL_HoursRepeatPulse && ut - MC.RFILL_last_time_ON > (uint32_t) MC.Option.RFILL_HoursRepeatPulse * 60 * 60) {
 					MC.dRelay[RFILL].set_ON();
 					MC.RFILL_last_time_ON = 0;
+				} else if(MC.Option.TankFillingTimeMax && MC.dRelay[RFILL].get_Relay() && ut - MC.RFILL_last_time_ON > MC.Option.TankFillingTimeMax * 60) {
+					CriticalErrors |= ERRC_TankFillingLong;
+					set_Error(ERR_TANK_FILLING_LONG, (char*)"vService");
+					MC.dRelay[RFILL].set_Relay(fR_StatusAllOff);
 				}
 				// Water did not consumed a long time ago.
 				if(MC.Option.DrainAfterNoConsume && MC.Option.DrainTime) {

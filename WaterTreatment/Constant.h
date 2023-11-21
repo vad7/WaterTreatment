@@ -412,6 +412,7 @@ const char *option_fRegenAllowed		= {"RA1"};
 const char *option_fRegenAllowedSoftener= {"RA2"};
 const char *option_FillingTankTimeout	= {"FTT"};
 const char *option_TankCheckPercent		= {"TCP"};
+const char *option_TankFillingTimeMax	= {"TFM"};
 const char *option_CriticalErrorsTimeout= {"CET"};
 const char *option_FilterTank           = {"TD"};
 const char *option_FilterTankSoftener   = {"TDS"};
@@ -538,8 +539,9 @@ const char *webWS_UsedLastRegenSoftening  		= { "RSL" };
 #define ERR_REGEN2_EXPIRED	-73			// Регенерация умягчителя долго не запускалась!
 #define ERR_FEEDPUMP_TIME	-74			// Слишком долго работает дозатор!
 #define ERR_TANK_LEAKAGE	-75			// Бак протек
+#define ERR_TANK_FILLING_LONG -76		// Слишком долгое заполнение бака
 
-#define ERR_ERRMAX			-75			// Последняя ошибка
+#define ERR_ERRMAX			-76			// Последняя ошибка
 
 // Предупреждения
 #define WARNING_VALUE        1         // Попытка установить значение за границами диапазона запрос типа SET
@@ -622,6 +624,7 @@ const char *noteError[] = {
 		"Регенерация умягчителя долго не запускалась!",										//-73
 		"Слишком долго работает дозатор!",													//-74
 		"Утечка накопительного бака!",														//-75
+		"Слишком долгое заполнение бака!",													//-76
 
 		"NULL"
 		};
