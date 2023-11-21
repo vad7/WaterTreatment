@@ -1345,7 +1345,6 @@ void vReadSensor(void *)
 				}
 				NeedSaveRTC |= (1<<bRTC_UsedToday);
 			}
-			if(DrainingSiltFlag == 2) DrainingSiltFlag = 1;
 		}
 		//
 
@@ -1512,6 +1511,7 @@ void vPumps( void * )
 			Stats_WaterBooster_work += TIME_SLICE_PUMPS;
 			History_WaterBooster_work += TIME_SLICE_PUMPS;
 			Charts_WaterBooster_work += TIME_SLICE_PUMPS;
+			TankCheckFlag = 2;
 		}
 		if((WaterBoosterTimeout += TIME_SLICE_PUMPS) < TIME_SLICE_PUMPS) WaterBoosterTimeout = 0xFFFFFFFF;
 		if(AfterFilledTimer) if((AfterFilledTimer -= TIME_SLICE_PUMPS) < 0) AfterFilledTimer = 0;
@@ -1530,7 +1530,6 @@ void vPumps( void * )
 		if(ADC_has_been_read) {		// Не чаще, чем ADC
 			ADC_has_been_read = false;
 			for(uint8_t i = 0; i < ANUMBER; i++) MC.sADC[i].Read();			// Прочитать данные с аналоговых давления
-			bool RFILL_on = true;
 			tank_empty = tank_empty || (MC.sADC[LTANK].get_Value() < MC.sADC[LTANK].get_minValue());
 			if(tank_empty) {
 				if(!(CriticalErrors & ERRC_TankEmpty)) vPumpsNewError = ERR_TANK_EMPTY;
@@ -1784,7 +1783,6 @@ void vService(void *)
 	{
 		if(vPumpsNewError != 0) {
 			set_Error(vPumpsNewError, (char*)"vPumps");
-			if(vPumpsNewError == ERR_TANK_NO_FILLING) journal.jprintf_time("FILLING %d sec = +%.2d%%!\n", MC.Option.FillingTankTimeout, vPumpsNewErrorData);
 			vPumpsNewError = 0;
 		}
 		register TickType_t t = xTaskGetTickCount();
@@ -1821,18 +1819,14 @@ void vService(void *)
 				MC.dRelay[RDRAIN2].set_OFF();
 			}
 			// Drain tank's silt
-			if(DrainingSiltFlag == 0) {
+			if(DrainingSiltFlag == 1) {
 				if(DrainingSiltNowTimer == 0) {
 #ifdef RSILT
 					MC.dRelay[RSILT].set_OFF();
 #endif
 					MC.WorkStats.UsedDrainSiltL100 = 0;
 					if(MC.Option.DrainSiltAfterL100 == 0) MC.Option.DrainSiltAfterL100 = 1;
-
 					DrainingSiltFlag = 2;
-					FillingTankLastLevel = 0; // начала мониторинга
-					FillingTankLastLevel = MC.sADC[LTANK].get_Value();
-					FillingTankTimer = GetTickCount();
 				} else DrainingSiltNowTimer--;
 			}
 			if(RWATERON_Switching < 0) {
@@ -1865,11 +1859,11 @@ void vService(void *)
 						MC.dRelay[RDRAIN].set_ON();
 					}
 				}
-				if(GETBIT(MC.Option.flags2, fDrainSiltTank) && DrainingSiltFlag && MC.WorkStats.UsedDrainSiltL100 >= MC.Option.DrainSiltAfterL100
+				if(GETBIT(MC.Option.flags2, fDrainSiltTank) && DrainingSiltFlag == 0 && MC.WorkStats.UsedDrainSiltL100 >= MC.Option.DrainSiltAfterL100
 						&& MC.sADC[LTANK].get_Value() > MC.Option.LTank_LowConsumeMin) {
 					ut -= MC.WorkStats.UsedLastTime;
 					if(ut > MC.Option.DrainSiltAfterNotUsed * 3600 || MC.WorkStats.UsedDrainSiltL100 >= MC.Option.DrainSiltAfterL100 + MC.Option.DrainSiltAfterL100 / 2 + 1) {
-						DrainingSiltFlag = 0;
+						DrainingSiltFlag = 1;
 #ifdef RSILT
 						MC.dRelay[RSILT].set_ON();
 #endif
@@ -1894,7 +1888,7 @@ void vService(void *)
 					if(h == NOT_CITICAL_ALARM_HOUR && MC.WorkStats.RegenSofteningCntAlarm == 0 && MC.Option.RegenSofteningCntAlarm && err != ERR_SALT_FINISH) {
 						set_Error(ERR_SALT_FINISH, (char*)__FUNCTION__);
 					}
-					uint8_t end_hour = (MC.Option.RegenHour & 0x1F) + ((MC.Option.RegenHour & 0xE0)>>5);
+					uint8_t end_hour = (MC.Option.RegenHour & 0x1F) + ((MC.Option.RegenHour/*& 0xE0*/)>>5);
 					bool hours_ok = h >= (MC.Option.RegenHour & 0x1F) && (h <= end_hour);
 					if(!hours_ok && end_hour >= 24) hours_ok = h <= end_hour - 24;
 					if(!(MC.RTC_store.Work & RTC_Work_Regen_MASK) && !LowConsumeMode && hours_ok) {
@@ -1909,14 +1903,14 @@ void vService(void *)
 							set_Error(ERR_REGEN2_EXPIRED, (char*)__FUNCTION__);
 						}
 						if(need_regen) {
-							if(DrainingSiltFlag && MC.WorkStats.UsedDrainSiltL100 > 0 && GETBIT(MC.Option.flags2, fDrainSiltTankBeforeRegen)) {
-								DrainingSiltFlag = 0;
+							if(DrainingSiltFlag == 0 && MC.WorkStats.UsedDrainSiltL100 > 0 && GETBIT(MC.Option.flags2, fDrainSiltTankBeforeRegen)) {
+								DrainingSiltFlag = 1;
 #ifdef RSILT
 								MC.dRelay[RSILT].set_ON();
 #endif
 								DrainingSiltNowTimer = MC.Option.DrainSiltTime * 10;
 							}
-							if(DrainingSiltFlag) {
+							if(DrainingSiltFlag == 0) {
 #ifdef TANK_ANALOG_LEVEL
 								if(MC.sADC[LTANK].get_Value() >= MC.sADC[LTANK].get_maxValue())
 #else
@@ -2061,43 +2055,40 @@ void vService(void *)
 						}
 					}
 				}
-
-				if(TankLeakageTimer) {
-					TankLeakageTimer--;
-				} else if(FillingTankLastLevel) {
-
-				}
-
-				else if((RFILL_on = MC.dRelay[RFILL].get_Relay())) {
+				// Tank fill/leakage check
+				if(MC.dRelay[RFILL].get_Relay()) {
 					if(MC.Option.FillingTankTimeout && MC.RFILL_last_time_ON) { // Check tank filling speed
 						// FillingTankLastLevel == 0 - Start watching
-						if(FillingTankLastLevel && WaterBoosterStatus == 0 && DrainingSiltFlag) { // No water consuming from tank
-							if(GetTickCount() - FillingTankTimer >= (uint32_t)(MC.Option.FillingTankTimeout * 1000) && !vPumpsNewError) {
-								if(MC.sADC[LTANK].get_Value() - FillingTankLastLevel < FILLING_TANK_STEP) {
-									vPumpsNewErrorData = MC.sADC[LTANK].get_Value() - FillingTankLastLevel;
-									vPumpsNewError = ERR_TANK_NO_FILLING;
+						if(TankCheckFlag == 1 && FillingTankLastLevel && DrainingSiltFlag == 0) { // No water consuming from tank
+							if(++FillingTankTimer >= MC.Option.FillingTankTimeout) {
+								int16_t d = MC.sADC[LTANK].get_Value() - FillingTankLastLevel;
+								if(d < (MC.Option.TankCheckPercent ? MC.Option.TankCheckPercent * 100 : FILLING_TANK_STEP)) {
+									set_Error(ERR_TANK_NO_FILLING, (char*)"vService");
+									journal.jprintf_time("FILLING %d sec = +%.2d%%!\n", MC.Option.FillingTankTimeout, d);
 								}
 								FillingTankLastLevel = MC.sADC[LTANK].get_Value();
-								FillingTankTimer = GetTickCount();
+								FillingTankTimer = 0;
 							}
 						} else {
+							TankCheckFlag = 1;
 							FillingTankLastLevel = MC.sADC[LTANK].get_Value();
-							FillingTankTimer = GetTickCount();
+							FillingTankTimer = 0;
 						}
 					}
+				} else if(TankCheckFlag || DrainingSiltFlag) {
+					if(DrainingSiltFlag > 1) DrainingSiltFlag++;
+					TankCheckFlag = 0;
+					FillingTankLastLevel = MC.sADC[LTANK].get_Value();
+					FillingTankTimer = 0;
+				} else if(MC.Option.TankCheckPercent) {
+					int16_t d = FillingTankLastLevel - MC.sADC[LTANK].get_Value();
+ 					if(d > MC.Option.TankCheckPercent * 100) {
+						set_Error(ERR_TANK_LEAKAGE, (char*)"vService");
+						journal.jprintf_time("LEAKAGE %.2d%%!\n", d);
+						DrainingSiltFlag = 2;
+					}
+					if(++FillingTankTimer > LEAKAGE_TANK_RESTART_TIME) DrainingSiltFlag = 255;
 				}
-				if(RFILL_on || WaterBoosterStatus) TankLeakageTimer = 255;
-
-
-
-
-
-
-
-
-
-
-
 			}
 			// every 1 sec
 xOtherTask_1min:

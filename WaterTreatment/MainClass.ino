@@ -681,6 +681,7 @@ void MainClass::resetSetting()
 	FilterTankSoftenerSquare = CalcFilterSquare(Option.FilterTankSoftener);
 	Option.LowConsumeRequestPeriod = HTTP_REQ_LowConsume;
 	Option.SepticAlarmDebounce = 30;
+	Option.TankCheckPercent = FILLING_TANK_STEP / 100;
 	RFILL_last_time_ON = rtcSAM3X8.unixtime();
 }
 
@@ -937,6 +938,7 @@ boolean MainClass::set_option(char *var, float xx)
    if(strcmp(var,option_FloodingDebounceTime)==0){ Option.FloodingDebounceTime = x; return true; } else
    if(strcmp(var,option_FloodingTimeout)==0) { Option.FloodingTimeout = x; return true; } else
    if(strcmp(var,option_FillingTankTimeout)==0){ Option.FillingTankTimeout = x; return true; } else
+   if(strcmp(var,option_TankCheckPercent)==0){ Option.TankCheckPercent = x; return true; } else
    if(strcmp(var,option_CriticalErrorsTimeout)==0){ Option.CriticalErrorsTimeout = x; return true; } else
    if(strcmp(var,option_FilterTank)==0){ FilterTankSquare = CalcFilterSquare(Option.FilterTank = x); return true; } else
    if(strcmp(var,option_FilterTankSoftener)==0){ FilterTankSoftenerSquare = CalcFilterSquare(Option.FilterTankSoftener = x); return true; } else
@@ -1007,7 +1009,6 @@ char* MainClass::get_option(char *var, char *ret)
 	if(strcmp(var,option_FlowIncByPress_MinFlow)==0){ _ftoa(ret, Option.FlowIncByPress_MinFlow * 100.f / sFrequency[FLOW].get_kfValue(), 3); return ret; } else
 	if(strcmp(var,option_BackWashFeedPumpMaxFlow)==0){ _dtoa(ret, Option.FeedPumpRate * 1000 / Option.BackWashFeedPumpMaxFlow, 3); return ret; } else // мл на 1л расхода
 	if(strcmp(var,option_BackWashFeedPumpDelay)==0){ return _itoa(Option.BackWashFeedPumpDelay, ret); } else
-	if(strcmp(var,option_RegenHour)==0){ return _itoa(Option.RegenHour, ret); } else
 	if(strcmp(var,option_DaysBeforeRegen)==0){ return _itoa(Option.DaysBeforeRegen, ret); } else
 	if(strcmp(var,option_DaysBeforeRegenSoftening)==0){ return _itoa(Option.DaysBeforeRegenSoftening, ret); } else
 	if(strcmp(var,option_UsedBeforeRegen)==0){ return _itoa(Option.UsedBeforeRegen, ret); } else
@@ -1038,6 +1039,7 @@ char* MainClass::get_option(char *var, char *ret)
 	if(strcmp(var,option_FloodingDebounceTime)==0){ return _itoa(Option.FloodingDebounceTime, ret); } else
 	if(strcmp(var,option_FloodingTimeout)==0){ return _itoa(Option.FloodingTimeout, ret); } else
 	if(strcmp(var,option_FillingTankTimeout)==0){ return _itoa(Option.FillingTankTimeout, ret); } else
+	if(strcmp(var,option_TankCheckPercent)==0){ return _itoa(Option.TankCheckPercent, ret); } else
 	if(strcmp(var,option_CriticalErrorsTimeout)==0){ return _itoa(Option.CriticalErrorsTimeout, ret); } else
 	if(strcmp(var,option_FilterTank)==0){ return _itoa(Option.FilterTank, ret); } else
 	if(strcmp(var,option_FilterTankSoftener)==0){ return _itoa(Option.FilterTankSoftener, ret); } else

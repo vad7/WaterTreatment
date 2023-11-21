@@ -1323,7 +1323,7 @@ xSaveStats:		if((i = MC.save_WorkStats()) == OK)
 				if(strcmp(x, option_RegenHour)==0) {
 x_get_RH:			_itoa(MC.Option.RegenHour & 0x1F, strReturn);
 					strcat(strReturn, "-");
-					_itoa(((MC.Option.RegenHour & 0xE0)>>5) + 1, strReturn);
+					_itoa(((MC.Option.RegenHour /*& 0xE0*/)>>5) + 1, strReturn);
 				} else MC.get_option(x,strReturn);
 				ADD_WEBDELIM(strReturn); continue;
 			} else if (strcmp(str,"set_Opt")==0)           // Функция set_option - установить значение параметра
