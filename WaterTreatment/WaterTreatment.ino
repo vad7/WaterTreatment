@@ -2060,6 +2060,7 @@ void vService(void *)
 					}
 				}
 				// Tank fill/leakage check
+				if(DrainingSiltFlag > 1) DrainingSiltFlag++;
 				if(MC.dRelay[RFILL].get_Relay()) {
 					if(MC.Option.FillingTankTimeout && MC.RFILL_last_time_ON) { // Check tank filling speed
 						// FillingTankLastLevel == 0 - Start watching
@@ -2080,7 +2081,6 @@ void vService(void *)
 						}
 					}
 				} else if(TankCheckFlag || DrainingSiltFlag) {
-					if(DrainingSiltFlag > 1) DrainingSiltFlag++;
 					TankCheckFlag = 0;
 					FillingTankLastLevel = MC.sADC[LTANK].get_Value();
 					FillingTankTimer = 0;
