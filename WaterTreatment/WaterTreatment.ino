@@ -574,7 +574,9 @@ x_I2C_init_std_message:
 	journal.jprintfopt("OK, size %d bytes\n", MC.mRTOS);
 
 	//journal.jprintfopt("* Send a notification . . .\n");
-	//MC.message.setMessage(pMESSAGE_RESET,(char*)"Контроллер был перезагружен",0);    // сформировать уведомление о загрузке
+	if(rstc_get_reset_cause(RSTC) != RSTC_SOFTWARE_RESET) {
+		MC.message.setMessage(pMESSAGE_RESET,(char*)"Контроллер был перезагружен: ",0);    // сформировать уведомление о загрузке
+	}
 	journal.jprintfopt("* Information:\n");
 	freeRamShow();
 	MC.startRAM=freeRam()-MC.mRTOS;   // оценка свободной памяти до пуска шедулера, поправка на 1054 байта

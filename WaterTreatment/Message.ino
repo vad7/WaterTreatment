@@ -465,9 +465,11 @@ boolean Message::setMessage(MESSAGE ms, char *c, int p1) // может запу�
   sendTime = rtcSAM3X8.unixtime(); // запомнить время отправки
   strcpy(messageData.data, c);
   // в сообщение pMESSAGE_TEMP добавить значение температуры
-  if (ms == pMESSAGE_TEMP) {
-    strcat(messageData.data, " t=");
-    _dtoa(messageData.data, p1, 2);
+  if(ms == pMESSAGE_TEMP) {
+	  strcat(messageData.data, " t=");
+	  _dtoa(messageData.data, p1, 2);
+  } else if(ms == pMESSAGE_RESET) {
+	  strcat(messageData.data, ResetCause());
   }
   messageData.p1 = p1;
   waitSend = true;                // выставить флаг необходимости отправки Уведомления
