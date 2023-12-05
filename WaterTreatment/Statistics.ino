@@ -477,10 +477,10 @@ void Statistics::History()
 			int_to_dec_str(MC.sTemp[HistorySetup[i].number].get_Temp(), 10, &buf, 0); // T (/10), дробная часть выделяется в html
 			break;
 		case STATS_OBJ_Press:		// bar
-			int_to_dec_str(MC.sADC[HistorySetup[i].number].get_Value(), 10, &buf, 0); // P (/10)
+			int_to_dec_str(MC.sADC[HistorySetup[i].number].get_Value(), 1, &buf, 0); // P (/1)
 			break;
 		case STATS_OBJ_Flow:		// m3h
-			int_to_dec_str(MC.sFrequency[HistorySetup[i].number].get_Value(), 1, &buf, 0); // F (/1000)
+			int_to_dec_str(MC.sFrequency[HistorySetup[i].number].get_Value(), 1, &buf, 0); // F (/1)
 			break;
 		case STATS_OBJ_Power:
 			int_to_dec_str((int32_t)MC.dPWM.get_Power(), 1, &buf, 0);  // W (/1000)
@@ -686,8 +686,10 @@ xSkipEmpty:
 	if((val == MIN_INT32_VALUE && Stats_data[i].type == STATS_TYPE_MAX) || (val == MAX_INT32_VALUE && Stats_data[i].type == STATS_TYPE_MIN)) goto xSkipEmpty;
 	switch(Stats_data[i].object) {
 	case STATS_OBJ_Temp:					// C
-	case STATS_OBJ_Press: 					// bar
 		int_to_dec_str(val / 10, 10, ret, 1);
+		break;
+	case STATS_OBJ_Press: 					// bar
+		int_to_dec_str(val, 100, ret, 1);
 		break;
 	case STATS_OBJ_Voltage:					// V
 		int_to_dec_str(val, 10, ret, 0);

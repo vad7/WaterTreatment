@@ -526,8 +526,8 @@ int8_t devRelay::set_Relay(int8_t r)
 	flags = (flags & ~(1 << abs(r))) | ((r > 0) << abs(r));
 	r = (flags & fR_StatusMask) != 0;
 	if(Relay == r) return OK;   // Ничего менять не надо - выходим
-    Relay = r;                  // Все удачно, сохранить
     if(TimerOn || Relay) TimerOn = TIMER_TO_SHOW_STATUS;
+	if(number == RFILL && Relay) MC.RFILL_last_time_ON = rtcSAM3X8.unixtime();
 	if(testMode == NORMAL || testMode == HARD_TEST) {
 #ifndef RELAY_INVERT            // Нет инвертирования реле -  Влючение реле (Relay=true) соответсвует НИЗКИЙ уровень на выходе МК
 		r = !r;
@@ -537,13 +537,13 @@ int8_t devRelay::set_Relay(int8_t r)
 #endif
 		digitalWriteDirect(pin, r);
 	}
+    Relay = r;                  // Все удачно, сохранить
 #ifdef RELAY_WAIT_SWITCH
 	uint8_t tasks_suspended = TaskSuspendAll();
 	delay(RELAY_WAIT_SWITCH);
 	if(tasks_suspended) xTaskResumeAll();
 #endif
 	if(number > RFEEDPUMP) journal.jprintfopt_time("%s: %s\n", name, Relay ? "ON" : "OFF");
-	if(number == RFILL && Relay) MC.RFILL_last_time_ON = rtcSAM3X8.unixtime();
 	return OK;
 }
 

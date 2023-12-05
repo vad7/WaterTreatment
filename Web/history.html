@@ -245,7 +245,7 @@ function createChart() {
 			data: fieldList[fieldIndex].data,
 			index: fieldList[fieldIndex].series,
 			yAxis: ax,
-			tooltip: {valueDecimals: (ax == 'T' || ax == 'P' || ax == 'L') ? 1 : (ax == 'F' || ax == 'M' || ax == 'W') ? 3 : (ax == 'R') ? 2 : 0},
+			tooltip: {valueDecimals: (ax == 'T' || ax == 'L') ? 1 : (ax == 'F' || ax == 'M' || ax == 'W') ? 3 : (ax == 'R' || ax == 'P') ? 2 : 0},
 			//visible:false,
 			name: fieldList[fieldIndex].name
 		});
@@ -325,7 +325,7 @@ function loadChartsGroup(period) {
 				var nf = Number(arr[fi]);
 				if(!isNaN(nf)) {
 					var ax = fieldList[fi - 1].axis;
-					if(ax == 'T' || ax == 'P') nf = nf / 10; else if(ax == 'F' || ax == 'M' || ax == 'W') nf = nf / 1000; else if(ax == 'R') nf = nf / 100;
+					if(ax == 'T') nf = nf / 10; else if(ax == 'F' || ax == 'M' || ax == 'W') nf = nf / 1000; else if(ax == 'R' || ax == 'P') nf = nf / 100;
 					fieldList[fi - 1].data.push([dt, nf]);
 				}
 			}
