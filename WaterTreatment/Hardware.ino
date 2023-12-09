@@ -527,7 +527,7 @@ int8_t devRelay::set_Relay(int8_t r)
 	r = (flags & fR_StatusMask) != 0;
 	if(Relay == r) return OK;   // Ничего менять не надо - выходим
     if(TimerOn || Relay) TimerOn = TIMER_TO_SHOW_STATUS;
-	if(number == RFILL && Relay) MC.RFILL_last_time_ON = rtcSAM3X8.unixtime();
+	if(number == RFILL && r) MC.RFILL_last_time_ON = rtcSAM3X8.unixtime();
 	if(testMode == NORMAL || testMode == HARD_TEST) {
 #ifndef RELAY_INVERT            // Нет инвертирования реле -  Влючение реле (Relay=true) соответсвует НИЗКИЙ уровень на выходе МК
 		r = !r;
