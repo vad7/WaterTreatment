@@ -2002,6 +2002,8 @@ void vService(void *)
 							} else if(RegStart_Weight < MC.Option.MinRegenWeightDecrease) {
 								set_Error(ERR_REG_FEW_WEIGHT_CONSUME, (char*)__FUNCTION__);
 							}
+							UsedForDrainSilt = 0;
+							MC.WorkStats.UsedDrainSiltL100 = MC.Option.DrainSiltAfterL100 - DRAIN_SILT_AFTER_REGEN;
 							SETBIT1(MC.Osmos_PWATER_Flags, 0);
 							RegenStarted = 0;
 						} else if(NewRegenStatus) {
@@ -2035,6 +2037,8 @@ void vService(void *)
 							} else if(RegStart_Weight < MC.Option.MinRegenWeightDecreaseSoftening) {
 								set_Error(ERR_REG_FEW_WEIGHT_CONSUME, (char*)__FUNCTION__);
 							}
+							UsedForDrainSilt = 0;
+							MC.WorkStats.UsedDrainSiltL100 = MC.Option.DrainSiltAfterL100 - DRAIN_SILT_AFTER_REGEN;
 							SETBIT1(MC.Osmos_PWATER_Flags, 0);
 							RegenStarted = 0;
 						} else if(NewRegenStatus) {

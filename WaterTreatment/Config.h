@@ -474,6 +474,8 @@ struct History_setup {
 	#define FILLING_TANK_STEP			200		// По умолчанию или если TankCheckPercent=0, сотые %, На сколько должен заполняться бак за время Option.FillingTankTimeout (2% - 40s, 3% - 60s)
 	#define FILLING_TANK_LOW_CONSUME_TIME 300   // время заполнения бака в режиме работы от резерва, сек
 	#define FILL_TANK_REGEN_DELTA		300		// сотые %, дельта минимального уровня бака от максимума для заполнения его во время обратной промывки
+	#define DRAIN_SILT_AFTER_REGEN		1		// *100L, слив осадка после регенерации через литров (сброс счетчика на)
+
 	#define DELAY_AFTER_SWITCH_RELAY	250		// Задержка после переключения реле, для сглаживания потребления и уменьшения помех(мс)
 	#define START_REGEN_WAIT_TIME		300		// Сколько ждать начало регенерации, если больше - ошибка, сек
 	#define ONLY_ONE_REGEN_AT_TIME				// Только один фильтр может регенерироваться в одно и тоже время
