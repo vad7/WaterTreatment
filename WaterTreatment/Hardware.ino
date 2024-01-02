@@ -425,6 +425,7 @@ int8_t sensorFrequency::Read(int32_t add_pulses100)
 		if(testMode != NORMAL) {    // В режиме теста
 			Value = testValue;
 			cnt = Value * kfValue / 360;
+			if(cnt) flow = 1;
 			Frequency = cnt / 2;
 			PassedRest += cnt / 10 * ticks / 1000;
 			Passed = PassedRest / kfValue;
