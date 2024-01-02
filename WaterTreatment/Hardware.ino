@@ -408,10 +408,11 @@ void sensorFrequency::initFrequency(int sensor)
 #endif
 }
 
-// Получить (точнее обновить) значение датчика, возвращает 1, если новое значение рассчитано
+// Получить (точнее обновить) значение датчика, возвращает 1, если был проток
 int8_t sensorFrequency::Read(int32_t add_pulses100)
 {
 	uint32_t tickCount;
+	int8_t flow = 0;
 	if((tickCount = GetTickCount()) - sTime >= (uint32_t) FREQ_BASE_TIME_READ * 1000) {  // если только пришло время измерения
 		uint32_t cnt;
 		noInterrupts();
@@ -431,6 +432,7 @@ int8_t sensorFrequency::Read(int32_t add_pulses100)
 		} else {
 			cnt *= 100;
 			if(add_pulses100 > 0) cnt += add_pulses100;
+			if(cnt) flow = 1;
 			PassedRest += cnt;
 			Passed += PassedRest / kfValue;
 			PassedRest %= kfValue;
@@ -447,9 +449,8 @@ int8_t sensorFrequency::Read(int32_t add_pulses100)
 			Value = cnt * 360 / kfValue; // ЛИТРЫ В ЧАС (ИЛИ ТЫСЯЧНЫЕ КУБА) частота в тысячных, и коэффициент правим
 		}
 		//journal.jprintfopt("Flow(%d): %d = %d (%d, %d) f: %d\n", ticks, cnt / 100, Value, Passed, PassedRest / 100, Frequency);
-		return 1;
 	}
-	return 0;
+	return flow;
 }
 
 void sensorFrequency::reset(void)

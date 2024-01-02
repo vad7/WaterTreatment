@@ -1308,7 +1308,25 @@ void vReadSensor(void *)
 			MC.Osmos_PWATER_LastFeed = pw;
 		}
 		MC.Osmos_PWATER_Last = pw;
-		MC.sFrequency[FLOW].Read(add_to_flow);			// Получить значения датчиков потока
+		if(MC.sFrequency[FLOW].Read(add_to_flow)) {	// Обновить значения датчика потока, был проток:
+			UsedWaterContinuousCntNot = 0;
+			if(++UsedWaterContinuousCntUsed == USED_WATER_CONTINUOUS_MINTIME) {
+				UsedWaterContinuousTimer++;
+				if(MC.Option.UsedWaterContinuous && UsedWaterContinuousTimer > MC.Option.UsedWaterContinuous * (60000 / TIME_READ_SENSOR / USED_WATER_CONTINUOUS_MINTIME)) {
+					CriticalErrors |= ERRC_LongWaterConsuming;
+					set_Error(ERR_LONG_WATER_CONSUMING, (char*)__FUNCTION__);
+					MC.dRelay[RWATEROFF1].set_ON();
+					MC.dRelay[RWATERON].set_Relay(fR_StatusAllOff);
+				}
+				UsedWaterContinuousCntUsed = 0;
+			}
+		} else {
+			if(++UsedWaterContinuousCntNot == USED_WATER_CONTINUOUS_MINTIME) {
+				UsedWaterContinuousTimer = 0;
+				UsedWaterContinuousCntNot = 0;
+				UsedWaterContinuousCntUsed = 0;
+			}
+		}
 		// Flow water
 		uint32_t passed;
 		{
@@ -1352,21 +1370,7 @@ void vReadSensor(void *)
 					if(MC.WorkStats.UsedDrainSiltL100 < 255) MC.WorkStats.UsedDrainSiltL100++;
 				}
 				NeedSaveRTC |= (1<<bRTC_UsedToday);
-				UsedWaterContinuousCntNot = 0;
-				if(++UsedWaterContinuousCntUsed == USED_WATER_CONTINUOUS_MINTIME) {
-					UsedWaterContinuousTimer++;
-					if(MC.Option.UsedWaterContinuous && UsedWaterContinuousTimer > MC.Option.UsedWaterContinuous * (60000 / TIME_READ_SENSOR / USED_WATER_CONTINUOUS_MINTIME)) {
-						CriticalErrors |= ERRC_LongWaterConsuming;
-						set_Error(ERR_LONG_WATER_CONSUMING, (char*)__FUNCTION__);
-						MC.dRelay[RWATEROFF1].set_ON();
-						MC.dRelay[RWATERON].set_Relay(fR_StatusAllOff);
-					}
-					UsedWaterContinuousCntUsed = 0;
-				}
 			}
-		} else {
-			if(++UsedWaterContinuousCntNot == USED_WATER_CONTINUOUS_MINTIME) UsedWaterContinuousTimer = 0;
-			UsedWaterContinuousCntUsed = 0;
 		}
 		//
 
