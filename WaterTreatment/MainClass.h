@@ -73,6 +73,7 @@ struct type_RTC_memory { // DS3231/DS3232 used alarm memory, starts from 0x07, m
 #define	ERRC_SepticAlarm		0x10
 #define	ERRC_WaterCounter		0x20
 #define	ERRC_TankFillingLong	0x40
+#define	ERRC_LongWaterConsuming	0x80
 volatile uint32_t CriticalErrors = 0;	// Stop any work when these errors have occurred
 int32_t  vPumpsNewErrorData = 0;
 int8_t   vPumpsNewError = 0;
@@ -114,6 +115,9 @@ uint32_t RegenStarted = 0;
 uint8_t  UsedForDrainSilt = 0;	// L
 uint8_t  DrainingSiltFlag = 0;	// 0 - нет/ожидание, 1 - идет слив, 2..255 - закрываемся и ожидаем (сек)
 uint16_t DrainingSiltNowTimer = 0;
+uint8_t  UsedWaterContinuousCntUsed = 0;
+uint8_t  UsedWaterContinuousCntNot = 0;
+uint16_t UsedWaterContinuousTimer = 0;	// /=USED_WATER_CONTINUOUS_MINTIME
 
 int16_t  RWATERON_Switching = 0; // >0 - в процессе переключения, <0 - задержка включения, сек
 
@@ -233,6 +237,7 @@ struct type_option {
 	uint8_t  DrainSiltAfterNotUsed; // Сливать осадок, после отсутствия потребления в течении, часов. Если не получается, то слив будет после DrainSiltL100 * 50%
 	uint8_t  TankCheckPercent;		// Проверка на утечку/заполняемость бака, тревога, если уровень уменьшится без потребителей на %, либо заполнение бака идет медленно (FillingTankTimeout)
 	uint8_t  TankFillingTimeMax;	// Максимальное время заполнения бака за один раз, минуты
+	uint8_t  UsedWaterContinuous;	// Максимальное время непрерывного потребления воды, минуты
 };
 
 //  Работа с отдельными флагами type_DateTime

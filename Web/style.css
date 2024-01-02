@@ -13,11 +13,11 @@ html, body {font-size:12px;padding:0;margin:0; font-family: Arial,'Helvetica Neu
 .dateinfo #get_status > div:before{width:50%;float:left;text-align:right;clear:both;padding-right:5px;font-size:0.9em}
 .dateinfo #get_status > div:nth-child(1){width:100%;margin:0;padding:0;text-align: center;font-size: 2em;}
 .dateinfo #get_status > div:nth-child(2){width:100%;margin:0;padding: 0 0 5px 0;text-align: center;font-size: 1.5em;}
-.dateinfo #SV:before{content:"VERSION"}
-.dateinfo #ST:before{content:"UPTIME"}
-.dateinfo #SC:before{content:"LAST"}
+.dateinfo #SV:before{content:"Version"}
+.dateinfo #ST:before{content:"Uptime"}
+.dateinfo #SC:before{content:"Last"}
+.dateinfo #SF:before{content:"Flow"}
 .dateinfo #SI:before{content:"CPU"}
-.dateinfo #SS:before{content:"STATUS"}
 .menu > ul {list-style:none;margin: 25px 0 ;padding:0;text-transform: uppercase;    clear: both;}
 .menu > ul > li > a, .menu > ul > li > label{height:44px;color: white; text-decoration:none;padding: 0;display:inline-block;line-height:44px; width:220px}
 .menu > ul > li > a > i, .menu > ul > li > label > i{ width: 44px; height: 44px; margin-right:8px; float: left; background: #0A0D0E center center no-repeat}

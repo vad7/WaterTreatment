@@ -20,7 +20,7 @@
 #include "Util.h"
 
 // ОПЦИИ КОМПИЛЯЦИИ ПРОЕКТА -------------------------------------------------------
-#define VERSION			  "1.47"			// Версия прошивки
+#define VERSION			  "1.48"			// Версия прошивки
 #define VER_SAVE		  12				// Версия формата сохраняемых данных в I2C память
 //#define LOG                               // В последовательный порт шлет лог веб сервера (логируются запросы)
 #define FAST_LIB                            // использование допиленной библиотеки езернета
@@ -433,6 +433,7 @@ const char *option_DrainSiltAfterL100	= {"DSL"};
 const char *option_DrainSiltAfterNotUsed= {"DSH"};
 const char *option_fDrainSiltTank		= {"DSF"};
 const char *option_fDrainSiltTankBeforeRegen= {"DSR"};
+const char *option_UsedWaterContinuous= {"UWC"};
 const char option_GetCurrentSaltLevel[] = "LvL";	// get_Opt(LvL)
 const char prof_DailySwitch[] 	= "DS";
 const char prof_DailySwitchDevice = 'D';		// DSD
@@ -540,8 +541,9 @@ const char *webWS_UsedLastRegenSoftening  		= { "RSL" };
 #define ERR_FEEDPUMP_TIME	-74			// Слишком долго работает дозатор!
 #define ERR_TANK_LEAKAGE	-75			// Бак протек
 #define ERR_TANK_FILLING_LONG -76		// Слишком долгое заполнение бака
+#define ERR_LONG_WATER_CONSUMING -77	// Долгое непрерывное потребление воды!
 
-#define ERR_ERRMAX			-76			// Последняя ошибка
+#define ERR_ERRMAX			-77			// Последняя ошибка
 
 // Предупреждения
 #define WARNING_VALUE        1         // Попытка установить значение за границами диапазона запрос типа SET
@@ -625,6 +627,7 @@ const char *noteError[] = {
 		"Слишком долго работает дозатор!",													//-74
 		"Утечка накопительного бака!",														//-75
 		"Слишком долгое заполнение бака!",													//-76
+		"Долгое непрерывное потребление воды!",												//-76
 
 		"NULL"
 		};

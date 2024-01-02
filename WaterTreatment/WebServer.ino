@@ -476,12 +476,14 @@ void parserGET(uint8_t thread)
 			TimeIntervalToStr(MC.get_uptime(),strReturn);
 			strcat(strReturn,"|SC>");
 			uint32_t t = MC.WorkStats.UsedLastTime;
-			if(t) TimeIntervalToStr(rtcSAM3X8.unixtime() - t, strReturn, 1);
-			else strcat(strReturn,"-");
+			if(t) TimeIntervalToStr(rtcSAM3X8.unixtime() - t, strReturn, 1); else strcat(strReturn,"-");
+			strcat(strReturn,"|SF>");
+			if(UsedWaterContinuousTimer) TimeIntervalToStr(UsedWaterContinuousTimer * USED_WATER_CONTINUOUS_MINTIME, strReturn, 1); else strcat(strReturn,"-");
 			strcat(strReturn,"|SI>");
 			_itoa(MC.CPU_LOAD,strReturn);
-			strcat(strReturn,"%");//|SF>");
-			//_itoa(freeRam()+MC.startRAM,strReturn);                          strcat(strReturn,"b|");
+			strcat(strReturn,"%");
+			//|SM>");
+			//_itoa(freeRam()+MC.startRAM,strReturn); strcat(strReturn,"b|");
 			ADD_WEBDELIM(strReturn);
 			continue;
 		}
@@ -641,6 +643,10 @@ void parserGET(uint8_t thread)
 					strcat(strReturn, "Септик!");
 				} else if(CriticalErrors & ERRC_WeightEmpty) {
 					strcat(strReturn, "Реагент!");
+				} else if(CriticalErrors & ERRC_TankFillingLong) {
+					strcat(strReturn, "Бак!");
+				} else if(CriticalErrors & ERRC_LongWaterConsuming) {
+					strcat(strReturn, "Долгое потребление!");
 				} else if(MC.sInput[REG_ACTIVE].get_Input() || MC.sInput[REG_BACKWASH_ACTIVE].get_Input() || MC.sInput[REG2_ACTIVE].get_Input()) {
 					strcat(strReturn, "Регенерация");
 				} else if(MC.get_errcode()) {

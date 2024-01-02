@@ -957,6 +957,7 @@ boolean MainClass::set_option(char *var, float xx)
    if(strcmp(var,option_DrainSiltAfterNotUsed)==0){ Option.DrainSiltAfterNotUsed = x; return true; } else
    if(strcmp(var,option_fDrainSiltTank)==0){ Option.flags2 = (Option.flags2 & ~(1<<fDrainSiltTank)) | ((x!=0)<<fDrainSiltTank); return true; } else
    if(strcmp(var,option_fDrainSiltTankBeforeRegen)==0){ Option.flags2 = (Option.flags2 & ~(1<<fDrainSiltTankBeforeRegen)) | ((x!=0)<<fDrainSiltTankBeforeRegen); return true; } else
+   if(strcmp(var,option_UsedWaterContinuous)==0){ Option.UsedWaterContinuous = x; return true; } else
    if(strcmp(var,option_RegenSofteningCntAlarm)==0){
 	   Option.RegenSofteningCntAlarm = x;
 	   if(x == 0) MC.WorkStats.RegenSofteningCntAlarm = 0; else if(MC.WorkStats.RegenSofteningCntAlarm == 0) MC.WorkStats.RegenSofteningCntAlarm = x;
@@ -1060,6 +1061,7 @@ char* MainClass::get_option(char *var, char *ret)
 	if(strcmp(var,option_DrainSiltAfterNotUsed)==0){ _itoa(Option.DrainSiltAfterNotUsed, ret); } else
 	if(strcmp(var,option_fDrainSiltTank)==0){ return strcat(ret, (char*)(GETBIT(Option.flags2, fDrainSiltTank) ? cOne : cZero)); } else
 	if(strcmp(var,option_fDrainSiltTankBeforeRegen)==0){ return strcat(ret, (char*)(GETBIT(Option.flags2, fDrainSiltTankBeforeRegen) ? cOne : cZero)); } else
+	if(strcmp(var,option_UsedWaterContinuous)==0){ _itoa(Option.UsedWaterContinuous, ret); } else
 	if(strncmp(var, prof_DailySwitch, sizeof(prof_DailySwitch)-1) == 0) {
 		var += sizeof(prof_DailySwitch)-1;
 		uint8_t i = *(var + 1) - '0';
