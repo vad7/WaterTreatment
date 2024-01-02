@@ -1133,10 +1133,10 @@ xErrorsProcessing:
 					strcpy(buf, "BRINE! "); buf += 7;
 					goto xShowWeight;
 				}
-				if((ERRC_TankFillingLong & ERRC_TankFillingLong) && (uint32_t)(buf - buffer) <= sizeof(buffer) - 8) {
+				if((CriticalErrors & ERRC_TankFillingLong) && (uint32_t)(buf - buffer) <= sizeof(buffer) - 8) {
 					strcpy(buf, "FTANK! "); buf += 7;
 				}
-				if((ERRC_TankFillingLong & ERRC_LongWaterConsuming) && (uint32_t)(buf - buffer) <= sizeof(buffer) - 8) {
+				if((CriticalErrors & ERRC_LongWaterConsuming) && (uint32_t)(buf - buffer) <= sizeof(buffer) - 8) {
 					strcpy(buf, "LFLOW! "); buf += 7;
 				}
 				if(MC.get_errcode()) {
