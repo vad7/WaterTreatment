@@ -118,6 +118,7 @@ uint16_t DrainingSiltNowTimer = 0;
 uint8_t  UsedWaterContinuousCntUsed = 0;
 uint8_t  UsedWaterContinuousCntNot = 0;
 uint16_t UsedWaterContinuousTimer = 0;	// /=USED_WATER_CONTINUOUS_MINTIME
+uint16_t UsedWaterContinuousTimerMax = 0;
 
 int16_t  RWATERON_Switching = 0; // >0 - в процессе переключения, <0 - задержка включения, сек
 

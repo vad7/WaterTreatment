@@ -1322,6 +1322,7 @@ void vReadSensor(void *)
 			}
 		} else {
 			if(++UsedWaterContinuousCntNot == USED_WATER_CONTINUOUS_MINTIME) {
+				if(UsedWaterContinuousTimerMax < UsedWaterContinuousTimer) UsedWaterContinuousTimerMax = UsedWaterContinuousTimer;
 				UsedWaterContinuousTimer = 0;
 				UsedWaterContinuousCntNot = 0;
 				UsedWaterContinuousCntUsed = 0;
@@ -1353,8 +1354,9 @@ void vReadSensor(void *)
 				MC.RTC_store.UsedRegen += passed;
 				Stats_WaterRegen_work += passed;
 				History_WaterRegen_work += passed;
-				NeedSaveRTC |= (1<<bRTC_UsedRegen);
 				MC.WorkStats.UsedLastTime = utm;
+				UsedWaterContinuousTimer = 0;
+				NeedSaveRTC |= (1<<bRTC_UsedRegen);
 			} else {
 				if(MC.dRelay[RDRAIN].get_Relay() || MC.WorkStats.LastDrain + MC.Option.DrainTime + (TIME_READ_SENSOR/1000) >= utm) {
 					MC.WorkStats.UsedDrain += passed * 10;

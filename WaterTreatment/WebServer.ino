@@ -1058,6 +1058,7 @@ xSaveStats:		if((i = MC.save_WorkStats()) == OK)
 				strcat(strReturn,"Время сохранения текущих настроек |");DecodeTimeDate(MC.get_saveTime(),strReturn,3);strcat(strReturn,";");
 				strcat(strReturn,"Время заполнения бака|");if(MC.RFILL_last_time_ON) DecodeTimeDate(MC.RFILL_last_time_ON,strReturn,3); strcat(strReturn,";");
 				strcat(strReturn,"Время последнего потребления|");DecodeTimeDate(MC.WorkStats.UsedLastTime,strReturn,3);strcat(strReturn,";");
+				strcat(strReturn,"Максимальное потребление воды за раз|"); TimeIntervalToStr(UsedWaterContinuousTimerMax * USED_WATER_CONTINUOUS_MINTIME, strReturn, 1); strcat(strReturn,";");
 
 			} else if(strcmp(str, "Info2") == 0) { // "get_sysInfo2" - Функция вывода системной информации для разработчика
 				strcat(strReturn,"<b> Счетчики ошибок</b>|;");

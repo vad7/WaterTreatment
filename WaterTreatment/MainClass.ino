@@ -957,7 +957,7 @@ boolean MainClass::set_option(char *var, float xx)
    if(strcmp(var,option_DrainSiltAfterNotUsed)==0){ Option.DrainSiltAfterNotUsed = x; return true; } else
    if(strcmp(var,option_fDrainSiltTank)==0){ Option.flags2 = (Option.flags2 & ~(1<<fDrainSiltTank)) | ((x!=0)<<fDrainSiltTank); return true; } else
    if(strcmp(var,option_fDrainSiltTankBeforeRegen)==0){ Option.flags2 = (Option.flags2 & ~(1<<fDrainSiltTankBeforeRegen)) | ((x!=0)<<fDrainSiltTankBeforeRegen); return true; } else
-   if(strcmp(var,option_UsedWaterContinuous)==0){ Option.UsedWaterContinuous = x; return true; } else
+   if(strcmp(var,option_UsedWaterContinuous)==0){ Option.UsedWaterContinuous = x; UsedWaterContinuousTimerMax = 0; return true; } else
    if(strcmp(var,option_RegenSofteningCntAlarm)==0){
 	   Option.RegenSofteningCntAlarm = x;
 	   if(x == 0) MC.WorkStats.RegenSofteningCntAlarm = 0; else if(MC.WorkStats.RegenSofteningCntAlarm == 0) MC.WorkStats.RegenSofteningCntAlarm = x;
