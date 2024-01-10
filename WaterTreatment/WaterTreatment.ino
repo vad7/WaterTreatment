@@ -637,6 +637,7 @@ extern "C" void vApplicationIdleHook(void)  // FreeRTOS expects C linkage
 		digitalWriteDirect(PIN_BEEP, LOW);
 		digitalWriteDirect(PIN_LED_OK, !digitalReadDirect(PIN_LED_OK));
 #ifdef PIN_LED_SRV_INFO
+
 		digitalWriteDirect(PIN_LED_SRV_INFO, !MC.dRelay[RWATERON].get_Relay());	// горит если RWATERON = OFF
 #endif
 		countLED = ticks;
@@ -659,14 +660,14 @@ extern "C" void vApplicationIdleHook(void)  // FreeRTOS expects C linkage
 // Первый поток веб сервера - дополнительно нагружен различными сервисами
 void vWeb0(void *)
 { //const char *pcTaskName = "Web server is running\r\n";
-	static unsigned long timeResetW5200 = 0;
-	static unsigned long thisTime = 0;
-	static unsigned long resW5200 = 0;
-	static unsigned long iniW5200 = 0;
-	static unsigned long pingt = 0;
+	uint32_t timeResetW5200 = 0;
+	uint32_t thisTime = 0;
+	uint32_t resW5200 = 0;
+	uint32_t iniW5200 = 0;
+	uint32_t pingt = 0;
 #ifdef MQTT
-	static unsigned long narmont=0;
-	static unsigned long mqttt=0;
+	uint32_t narmont=0;
+	uint32_t mqttt=0;
 #endif
 	static boolean active;  // ФЛАГ Одно дополнительное действие за один цикл - распределяем нагрузку
 	static boolean network_last_link = true;
@@ -688,9 +689,7 @@ void vWeb0(void *)
 #ifdef MQTT
 		if (active) active=MC.clMQTT.dnsUpdate();                          // Обновить адреса через dns если надо MQTT
 #endif
-		if(thisTime > xTaskGetTickCount()) thisTime = 0;                         // переполнение счетчика тиков
-		if(xTaskGetTickCount() - thisTime > (uint32_t) 10 * 1000)                // Делим частоту - период 10 сек
-		{
+		if(xTaskGetTickCount() - thisTime > (uint32_t) WEB0_OTHER_FUNC_PERIOD * 1000) { // Другие функции
 			thisTime = xTaskGetTickCount();                                      // Запомнить тики
 			// 1. Проверка захваченого семафора сети ожидаем  3 времен W5200_TIME_WAIT если мютекса не получаем то сбрасывае мютекс
 			if(SemaphoreTake(xWebThreadSemaphore, ((3 + (fWebUploadingFilesTo != 0) * 30) * W5200_TIME_WAIT / portTICK_PERIOD_MS)) == pdFALSE) {
@@ -788,6 +787,9 @@ void vWeb0(void *)
 			}
 #endif   // MQTT
 
+			// Расчет предполагаемой регенерации
+			MC.CalcNextRegenAfterDays(0);	// железо
+			MC.CalcNextRegenAfterDays(1);	// умягчитель
 
 			taskYIELD();
 		} // if (xTaskGetTickCount()-thisTime>10000)
@@ -2043,7 +2045,7 @@ void vService(void *)
 					} else if(MC.RTC_store.Work & RTC_Work_Regen_F2) { // Regen Softening filter
 						if(!MC.sInput[REG2_ACTIVE].get_Input()) { // Finish?
 							MC.WorkStats.UsedLastRegenSoftening = MC.RTC_store.UsedRegen;
-							MC.WorkStats.UsedSinceLastRegen += MC.RTC_store.UsedRegen; // increase iron filter count
+							MC.WorkStats.UsedSinceLastRegen += MC.RTC_store.UsedRegen; // добавим в расход 1-го фильтра
 							MC.RTC_store.UsedRegen = 0;
 							MC.WorkStats.DaysFromLastRegenSoftening = 0;
 							MC.WorkStats.RegCntSoftening++;

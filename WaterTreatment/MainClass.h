@@ -173,8 +173,9 @@ type_WebSecurity WebSec_admin;				// хеш паролей
 #define fFlowIncByPressure	14				// Добавка к потреблению при низком расходе
 #define fLowConsumeReq_OnByErr 15			// Если нет ответа на LowConsumeRequest HTTP запрос, то считать, что работаем от резерва
 // type_option.flags2
-#define fDrainSiltTank 	0					// Сливать осадок с бака периодически
+#define fDrainSiltTank 		0				// Сливать осадок с бака периодически
 #define fDrainSiltTankBeforeRegen 1			// Сливать осадок с бака перед регенерацией
+#define fLED_SRV_INFO_PlanReg	2			// Мигать редко на PIN_LED_SRV_INFO при запланированной регенерации
 
 // Структура для хранения настроек
 struct type_option {
@@ -424,6 +425,7 @@ public:
     uint8_t  get_fSPIFlash() { return fSPIFlash;}   		// Получить флаг наличия РАБОТАЮЩЕГО флеш диска
     void     set_fSPIFlash(uint8_t f) {fSPIFlash=f;}    	// Установить флаг наличия РАБОТАЮЩЕГО флеш диска
     TYPE_SOURSE_WEB get_SourceWeb();                    	// Получить источник загрузки веб морды
+    void	 CalcNextRegenAfterDays(uint8_t what);			// Рассчитать скаолько осталось дней до регенерации
 
 	// Переменные
 	uint8_t CPU_LOAD;                                      // загрузка CPU
@@ -487,6 +489,8 @@ public:
 	int16_t  Osmos_PWATER_LastFeed;
 	uint8_t  Osmos_PWATER_Flags;					// b0 - Во время текущего расходования бака насосной станции была добавка для Осмоса.
 	uint32_t RFILL_last_time_ON;					// время последнего включения реле RFILL, если 0, то RFILL -> OFF
+	uint8_t  NextRegenAfterDays;
+	uint8_t  NextRegenSoftAfterDays;
 
 private:
 
