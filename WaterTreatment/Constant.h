@@ -454,6 +454,8 @@ const char *webWS_RegCntSoftening  				= { "RSC" };
 const char *webWS_DaysFromLastRegenSoftening	= { "RSD" };
 const char *webWS_UsedSinceLastRegenSoftening	= { "RSS" };
 const char *webWS_UsedLastRegenSoftening  		= { "RSL" };
+const char *webWS_NextRegenAfterDays			= { "N" };
+const char *webWS_NextRegenSoftAfterDays		= { "NS" };
 #define		webWS_UsedAverageDay 					'A'
 #define		webWS_WaterBoosterCountL				'B'
 #define		webWS_UsedDrain 	 					'D'

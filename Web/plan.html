@@ -12,8 +12,8 @@
 <script>
 urlupdate = 2000;
 window.onload = function() {
-	loadParam("get_WSUY,get_WSA,get_WSD,get_WSRC,get_WSRD,get_WSRSC,get_WSRSD,get_Opt(DBR),get_Opt(DBRS),get_Opt(UBR),get_Opt(UBRS)");
-	updateParam("get_Relay(RWOFF1),get_WDIS,get_Relay(RWON),get_Relay(RDRAIN),get_Relay(RBST2),get_Relay(RFILL),get_Relay(RFEEDP),get_ADCLvL(LTANK),get_Wgt(LvL),get_Opt(LvL),get_Input(REG),get_Input(REGBW),get_Input(REG2),get_Err(B),get_Flow(FLOW),get_ADC(PWATER),get_MODED,get_PWR,get_Temp(AIR),get_WSRSS,get_WSUD,get_WST,get_WSRL,get_WSRSL,get_WSB,get_WSDD,get_WSV,get_WSV2,get_WSF,get_WSRS");
+	loadParam("get_WSUY,get_WSA,get_WSD,get_WSRC,get_WSRD,get_WSRSC,get_WSRSD");
+	updateParam("get_Relay(RWOFF1),get_WDIS,get_Relay(RWON),get_Relay(RDRAIN),get_Relay(RBST2),get_Relay(RFILL),get_Relay(RFEEDP),get_ADCLvL(LTANK),get_Wgt(LvL),get_Opt(LvL),get_Input(REG),get_Input(REGBW),get_Input(REG2),get_Err(B),get_Flow(FLOW),get_ADC(PWATER),get_MODED,get_PWR,get_Temp(AIR),get_WSRSS,get_WSUD,get_WST,get_WSRL,get_WSRSL,get_WSB,get_WSDD,get_WSV,get_WSV2,get_WSF,get_WSRS,get_WSN,get_WSNS");
 	updateParam("get_tblErr");
 };
 var mouseclk = [];
@@ -43,29 +43,13 @@ function loadParam_after(paramid) {
 		el_soft = (v & 2) ? "запланировано" : (v & 0x80) ? "ожидается" : "";
 		st_soft = el_soft == "" ? "color:inherit" : "color:red";
 	}
-	if(paramid.indexOf("et_WSRSS") != -1) {
-		var v1, vday = 0, vlitr = 0;
-		if((v1 = Number(document.getElementById("get_opt-dbr").innerHTML)) > 0) {
-			vday = v1 - Number(document.getElementById("get_wsrd").innerHTML);
-		}
-		if((v1 = Number(document.getElementById("get_opt-ubr").innerHTML)) > 0) {
-			vlitr = (v1 - Number(document.getElementById("get_wsrs").innerHTML) - Number(document.getElementById("get_wsud").innerHTML)) / Number(document.getElementById("get_wsa").innerHTML);
-		}
-		if(el_iron == "") {
-			if(vday > 0 || vlitr > 0) {	el_iron = "Следующее через " + Math.round(vlitr > vday ? vlitr : vday) + " дн."; st_iron = "color:inherit";
-			} else { el_iron = "ожидается"; st_iron = "color:red"; }
-		}
-		vday = vlitr = 0;
-		if((v1 = Number(document.getElementById("get_opt-dbrs").innerHTML)) > 0) {
-			vday = v1 - Number(document.getElementById("get_wsrsd").innerHTML);
-		}
-		if((v1 = Number(document.getElementById("get_opt-ubrs").innerHTML)) > 0) {
-			vlitr = (v1 - Number(document.getElementById("get_wsrss").innerHTML) - Number(document.getElementById("get_wsud").innerHTML)) / Number(document.getElementById("get_wsa").innerHTML);
-		}
-		if(el_soft == "") {
-			if(vday > 0 || vlitr > 0) { el_soft = "Следующее через " + Math.round(vlitr > vday ? vlitr : vday) + " дн."; st_soft = "color:inherit";
-			} else { el_soft = "ожидается"; st_soft = "color:red"; }
-		}
+	if(paramid.indexOf("et_WSN") != -1) {
+		val s = document.getElementById("get_wsn").innerHTML;
+		if(s == "0") { el_iron = "ожидается"; st_iron = "color:red"; 
+		} else if(s != "") { el_iron = "Следующее через " + s + " дн."; st_iron = "color:inherit"; }
+		s = document.getElementById("get_wsns").innerHTML;
+		if(s == "0") { el_soft = "ожидается"; st_soft = "color:red"; 
+		} else if(s != "") { el_soft = "Следующее через " + s + " дн."; st_soft = "color:inherit"; }
 	}
 	if(el_iron != "") {
 		element = document.getElementById("planiron");
@@ -128,10 +112,8 @@ function loadParam_after(paramid) {
 </div>
 <br><a class="download" href="service.pdf" download><button>Инструкция по обслуживанию</button></a>
 <span id="get_wsf" style="display:none">0</span>
-<span id="get_opt-dbr" style="display:none">0</span>
-<span id="get_opt-ubr" style="display:none">0</span>
-<span id="get_opt-dbrs" style="display:none">0</span>
-<span id="get_opt-ubrs" style="display:none">0</span>
+<span id="get_wsn" style="display:none"></span>
+<span id="get_wsns" style="display:none"></span>
 </div>
 </body>
 </html>

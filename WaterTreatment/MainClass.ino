@@ -1286,7 +1286,6 @@ void MainClass::CalcNextRegenAfterDays(uint8_t what)
 {
 	int16_t td, tl = 32767;
 	uint16_t _DaysBeforeRegen, _DaysFromLastRegen, _UsedBeforeRegen, _UsedSinceLastRegen;
-	int32_t ad = MC.WorkStats.UsedAverageDay / MC.WorkStats.UsedAverageDayNum;
 	if(what) {
 		_DaysBeforeRegen = MC.Option.DaysBeforeRegenSoftening;
 		_DaysFromLastRegen = MC.WorkStats.DaysFromLastRegenSoftening;
@@ -1306,6 +1305,7 @@ void MainClass::CalcNextRegenAfterDays(uint8_t what)
 				int32_t tmp = (int32_t)_UsedBeforeRegen - _UsedSinceLastRegen - MC.RTC_store.UsedToday;
 				if(tmp <= 0) tl = 0;
 				else {
+					int32_t ad = MC.WorkStats.UsedAverageDay / MC.WorkStats.UsedAverageDayNum;
 					if(MC.RTC_store.UsedToday < ad) {
 						tmp = tmp + MC.RTC_store.UsedToday - ad;
 						if(tmp < 0) tmp = 0;
