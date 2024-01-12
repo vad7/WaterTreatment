@@ -1301,24 +1301,21 @@ void MainClass::CalcNextRegenAfterDays(uint8_t what)
 		_UsedBeforeRegen = MC.Option.UsedBeforeRegen;
 		_UsedSinceLastRegen = MC.WorkStats.UsedSinceLastRegen;
 	}
-	if(MC.WorkStats.Flags & WS_F_StartRegen) td = 0;
-	else {
-		if(_DaysBeforeRegen) td = (int32_t)_DaysBeforeRegen - _DaysFromLastRegen; else td = 32767;
-		if(td > 0) {
-			if(_UsedBeforeRegen) {
-				int32_t tmp = (int32_t)_UsedBeforeRegen - _UsedSinceLastRegen - MC.RTC_store.UsedToday;
-				if(tmp <= 0) tl = 0;
-				else {
-					int32_t ad = MC.WorkStats.UsedAverageDay / MC.WorkStats.UsedAverageDayNum;
-					if(MC.RTC_store.UsedToday < ad) {
-						tmp = tmp + MC.RTC_store.UsedToday - ad;
-						if(tmp < 0) tmp = 0;
-					}
-					tl = tmp / ad;
+	if(_DaysBeforeRegen) td = (int32_t)_DaysBeforeRegen - _DaysFromLastRegen; else td = 32767;
+	if(td > 0) {
+		if(_UsedBeforeRegen) {
+			int32_t tmp = (int32_t)_UsedBeforeRegen - _UsedSinceLastRegen - MC.RTC_store.UsedToday;
+			if(tmp <= 0) tl = 0;
+			else {
+				int32_t ad = MC.WorkStats.UsedAverageDay / MC.WorkStats.UsedAverageDayNum;
+				if(MC.RTC_store.UsedToday < ad) {
+					tmp = tmp + MC.RTC_store.UsedToday - ad;
+					if(tmp < 0) tmp = 0;
 				}
+				tl = tmp / ad;
 			}
-		} else td = 0;
-	}
+		}
+	} else td = 0;
 	if(tl < td) td = tl;
 	if(what) MC.NextRegenSoftAfterDays = td; else MC.NextRegenAfterDays = td;
 }

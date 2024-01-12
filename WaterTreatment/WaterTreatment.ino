@@ -795,7 +795,8 @@ void vWeb0(void *)
 			if(!MC.dRelay[RWATERON].get_Relay()) {
 				digitalWriteDirect(PIN_LED_SRV_INFO, 1);
 				PIN_LED_SRV_INFO_timer = 0;
-			} else if((MC.NextRegenAfterDays == 0 || MC.NextRegenSoftAfterDays == 0) && GETBIT(MC.Option.flags2, fLED_SRV_INFO_PlanReg)) {
+			} else if((MC.NextRegenAfterDays == 0 || MC.NextRegenSoftAfterDays == 0 || (MC.WorkStats.Flags & (WS_F_StartRegen | WS_F_StartRegenSoft | WS_F_RegenPreparing)))
+						&& GETBIT(MC.Option.flags2, fLED_SRV_INFO_PlanReg)) {
 				if(PIN_LED_SRV_INFO_timer == 0) {
 					digitalWriteDirect(PIN_LED_SRV_INFO, 1);
 					PIN_LED_SRV_INFO_timer += PIN_LED_SRV_INFO_NEXT_REGEN_PULSE;
