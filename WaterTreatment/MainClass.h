@@ -119,6 +119,7 @@ uint8_t  UsedWaterContinuousCntUsed = 0;
 uint8_t  UsedWaterContinuousCntNot = 0;
 uint16_t UsedWaterContinuousTimer = 0;	// /=USED_WATER_CONTINUOUS_MINTIME
 uint16_t UsedWaterContinuousTimerMax = 0;
+uint8_t  PIN_LED_SRV_INFO_off = 0;		// off value
 
 int16_t  RWATERON_Switching = 0; // >0 - в процессе переключения, <0 - задержка включения, сек
 
@@ -175,7 +176,7 @@ type_WebSecurity WebSec_admin;				// хеш паролей
 // type_option.flags2
 #define fDrainSiltTank 		0				// Сливать осадок с бака периодически
 #define fDrainSiltTankBeforeRegen 1			// Сливать осадок с бака перед регенерацией
-#define fLED_SRV_INFO_PlanReg	2			// Мигать редко на PIN_LED_SRV_INFO при запланированной регенерации
+#define fLED_SRV_INFO_PlanReg 2				// Мигать редко на PIN_LED_SRV_INFO при запланированной регенерации
 
 // Структура для хранения настроек
 struct type_option {

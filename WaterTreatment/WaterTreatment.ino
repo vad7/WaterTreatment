@@ -621,32 +621,28 @@ extern "C" void vApplicationIdleHook(void)  // FreeRTOS expects C linkage
 	// Светодиод мигание в зависимости от ошибки и подача звукового сигнала при ошибке
 	if(MC.get_errcode() != OK) {          // Ошибка
 		if(ticks - countLED > TIME_LED_ERR) {
-			digitalWriteDirect(PIN_LED_OK, !digitalReadDirect(PIN_LED_OK));
-#ifdef PIN_LED_SRV_INFO
-			digitalWriteDirect(PIN_LED_SRV_INFO, !digitalReadDirect(PIN_LED_SRV_INFO));
-#endif
 			countLED = ticks;
+			bool pin = !digitalReadDirect(PIN_LED_OK);
+			digitalWriteDirect(PIN_LED_OK, pin);
+#ifdef PIN_LED_SRV_INFO
+			digitalWriteDirect(PIN_LED_SRV_INFO, pin);
+#endif
 		}
 		if(ticks - countBeep > TIME_BEEP_ERR) {
-			digitalWriteDirect(PIN_BEEP, !MC.get_Beep() || Error_Beep_confirmed ? LOW : !digitalReadDirect(PIN_BEEP)); // звуковой сигнал
 			countBeep = ticks;
+			digitalWriteDirect(PIN_BEEP, !MC.get_Beep() || Error_Beep_confirmed ? LOW : !digitalReadDirect(PIN_BEEP)); // звуковой сигнал
 			if(MC.get_errcode() == ERR_SALT_FINISH && digitalReadDirect(PIN_BEEP)) countBeep -= TIME_BEEP_ERR / 2;
 		}
 	} else if(ticks - countLED > TIME_LED_OK) {   // Ошибок нет и время пришло
+		countLED = ticks;
 		Error_Beep_confirmed = false;
 		digitalWriteDirect(PIN_BEEP, LOW);
 		digitalWriteDirect(PIN_LED_OK, !digitalReadDirect(PIN_LED_OK));
-#ifdef PIN_LED_SRV_INFO
-
-		digitalWriteDirect(PIN_LED_SRV_INFO, !MC.dRelay[RWATERON].get_Relay());	// горит если RWATERON = OFF
-#endif
-		countLED = ticks;
 	}
 //	static uint32_t tst = 1000;
 //	uint32_t tm;
 //	if(--tst < 5) tm = micros();
 	pmc_enable_sleepmode(0);
-	WDT_Restart(WDT);                                                            // Сбросить вачдог
 //	if(tst < 5) {
 //		Serial.print("$"); Serial.print(micros() - tm);	Serial.print("$\n");
 //		if(tst == 0) tst = 1000;
@@ -665,6 +661,7 @@ void vWeb0(void *)
 	uint32_t resW5200 = 0;
 	uint32_t iniW5200 = 0;
 	uint32_t pingt = 0;
+	uint32_t PIN_LED_SRV_INFO_timer = 0;
 #ifdef MQTT
 	uint32_t narmont=0;
 	uint32_t mqttt=0;
@@ -792,7 +789,33 @@ void vWeb0(void *)
 			MC.CalcNextRegenAfterDays(1);	// умягчитель
 
 			taskYIELD();
-		} // if (xTaskGetTickCount()-thisTime>10000)
+		}
+#ifdef PIN_LED_SRV_INFO
+		if(MC.get_errcode() == OK) {
+			if(MC.dRelay[RWATERON].get_Relay()) {
+				digitalWriteDirect(PIN_LED_SRV_INFO, 1);
+				PIN_LED_SRV_INFO_timer = 0;
+			} else if((MC.NextRegenAfterDays == 0 || MC.NextRegenSoftAfterDays == 0) && GETBIT(MC.Option.flags2, fLED_SRV_INFO_PlanReg)) {
+				if(PIN_LED_SRV_INFO_timer == 0) {
+					digitalWriteDirect(PIN_LED_SRV_INFO, 1);
+					PIN_LED_SRV_INFO_timer += PIN_LED_SRV_INFO_NEXT_REGEN_PULSE;
+				} else if(xTaskGetTickCount() > PIN_LED_SRV_INFO_timer) {
+					PIN_LED_SRV_INFO_timer = xTaskGetTickCount();
+					if(digitalReadDirect(PIN_LED_SRV_INFO)) {
+						digitalWriteDirect(PIN_LED_SRV_INFO, 0);
+						PIN_LED_SRV_INFO_timer += PIN_LED_SRV_INFO_NEXT_REGEN_PAUSE;
+					} else {
+						digitalWriteDirect(PIN_LED_SRV_INFO, 1);
+						PIN_LED_SRV_INFO_timer += PIN_LED_SRV_INFO_NEXT_REGEN_PULSE;
+					}
+				}
+				PIN_LED_SRV_INFO_timer |= 1;
+			} else {
+				digitalWriteDirect(PIN_LED_SRV_INFO, 0);
+				PIN_LED_SRV_INFO_timer = 0;
+			}
+		}
+#endif
 
 	} //for
 	vTaskSuspend(NULL);
@@ -2129,6 +2152,9 @@ void vService(void *)
 				}
 			}
 			// every 1 sec
+#ifdef PIN_LED_SRV_INFO
+
+#endif
 xOtherTask_1min:
 			if(++task_updstat_chars >= MC.get_tChart()) { // пришло время
 				task_updstat_chars = 0;
