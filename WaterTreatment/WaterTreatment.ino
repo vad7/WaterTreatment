@@ -792,7 +792,7 @@ void vWeb0(void *)
 		}
 #ifdef PIN_LED_SRV_INFO
 		if(MC.get_errcode() == OK) {
-			if(MC.dRelay[RWATERON].get_Relay()) {
+			if(!MC.dRelay[RWATERON].get_Relay()) {
 				digitalWriteDirect(PIN_LED_SRV_INFO, 1);
 				PIN_LED_SRV_INFO_timer = 0;
 			} else if((MC.NextRegenAfterDays == 0 || MC.NextRegenSoftAfterDays == 0) && GETBIT(MC.Option.flags2, fLED_SRV_INFO_PlanReg)) {
