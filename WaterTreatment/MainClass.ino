@@ -1285,37 +1285,22 @@ uint32_t MainClass::CalcFilteringSpeed(uint32_t square)
 	return 10000UL * sFrequency[FLOW].get_Value() / square;
 }
 
-// Рассчитать скаолько осталось дней до регенерации, 0 - Iron, 1 - Soft
-void MainClass::CalcNextRegenAfterDays(uint8_t what)
+// Рассчитать сколько осталось дней до регенерации, 0 - Iron, 1 - Soft
+uint8_t MainClass::CalcNextRegenAfterDays(int _DaysBeforeRegen, int _DaysFromLastRegen, int _UsedBeforeRegen, int _UsedSinceLastRegen)
 {
-	int16_t td, tl = 32767;
-	uint16_t _DaysBeforeRegen, _DaysFromLastRegen, _UsedBeforeRegen, _UsedSinceLastRegen;
-	if(what) {
-		_DaysBeforeRegen = MC.Option.DaysBeforeRegenSoftening;
-		_DaysFromLastRegen = MC.WorkStats.DaysFromLastRegenSoftening;
-		_UsedBeforeRegen = MC.Option.UsedBeforeRegenSoftening;
-		_UsedSinceLastRegen = MC.WorkStats.UsedSinceLastRegenSoftening;
-	} else {
-		_DaysBeforeRegen = MC.Option.DaysBeforeRegen;
-		_DaysFromLastRegen = MC.WorkStats.DaysFromLastRegen;
-		_UsedBeforeRegen = MC.Option.UsedBeforeRegen;
-		_UsedSinceLastRegen = MC.WorkStats.UsedSinceLastRegen;
-	}
-	if(_DaysBeforeRegen) td = (int32_t)_DaysBeforeRegen - _DaysFromLastRegen; else td = 32767;
-	if(td > 0) {
-		if(_UsedBeforeRegen) {
-			int32_t tmp = (int32_t)_UsedBeforeRegen - _UsedSinceLastRegen - MC.RTC_store.UsedToday;
-			if(tmp <= 0) tl = 0;
-			else {
-				int32_t ad = MC.WorkStats.UsedAverageDay / MC.WorkStats.UsedAverageDayNum;
-				if(MC.RTC_store.UsedToday < ad) {
-					tmp = tmp + MC.RTC_store.UsedToday - ad;
-					if(tmp < 0) tmp = 0;
-				}
-				tl = tmp / ad;
+	if(_DaysBeforeRegen) _DaysBeforeRegen -= _DaysFromLastRegen; else _DaysBeforeRegen = 255;
+	if(_DaysBeforeRegen <= 0) return 0;
+	if(_UsedBeforeRegen) {
+		_UsedBeforeRegen -= _UsedSinceLastRegen + MC.RTC_store.UsedToday;
+		if(_UsedBeforeRegen <= 0) return 0;
+		else {
+			int ad = MC.WorkStats.UsedAverageDay / MC.WorkStats.UsedAverageDayNum;
+			if(MC.RTC_store.UsedToday < ad) {
+				_UsedBeforeRegen = _UsedBeforeRegen + MC.RTC_store.UsedToday - ad;
+				if(_UsedBeforeRegen <= 0) return 0;
 			}
+			_UsedBeforeRegen = _UsedBeforeRegen / ad + 1;
 		}
-	} else td = 0;
-	if(tl < td) td = tl;
-	if(what) MC.NextRegenSoftAfterDays = td; else MC.NextRegenAfterDays = td;
+	} else _UsedBeforeRegen = 255;
+	return _DaysBeforeRegen < _UsedBeforeRegen ? _DaysBeforeRegen : _UsedBeforeRegen;
 }

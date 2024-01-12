@@ -785,8 +785,8 @@ void vWeb0(void *)
 #endif   // MQTT
 
 			// Расчет предполагаемой регенерации
-			MC.CalcNextRegenAfterDays(0);	// железо
-			MC.CalcNextRegenAfterDays(1);	// умягчитель
+			MC.NextRegenAfterDays = MC.CalcNextRegenAfterDays(MC.Option.DaysBeforeRegen, MC.WorkStats.DaysFromLastRegen, MC.Option.UsedBeforeRegen, MC.WorkStats.UsedSinceLastRegen);	// железо
+			MC.NextRegenSoftAfterDays = MC.CalcNextRegenAfterDays(MC.Option.DaysBeforeRegenSoftening, MC.WorkStats.DaysFromLastRegenSoftening, MC.Option.UsedBeforeRegenSoftening, MC.WorkStats.UsedSinceLastRegenSoftening);	// умягчитель
 
 			taskYIELD();
 		}

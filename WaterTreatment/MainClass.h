@@ -426,7 +426,7 @@ public:
     uint8_t  get_fSPIFlash() { return fSPIFlash;}   		// Получить флаг наличия РАБОТАЮЩЕГО флеш диска
     void     set_fSPIFlash(uint8_t f) {fSPIFlash=f;}    	// Установить флаг наличия РАБОТАЮЩЕГО флеш диска
     TYPE_SOURSE_WEB get_SourceWeb();                    	// Получить источник загрузки веб морды
-    void	 CalcNextRegenAfterDays(uint8_t what);			// Рассчитать скаолько осталось дней до регенерации
+    uint8_t CalcNextRegenAfterDays(int _DaysBeforeRegen, int _DaysFromLastRegen, int _UsedBeforeRegen, int _UsedSinceLastRegen);// Рассчитать сколько осталось дней до регенерации
 
 	// Переменные
 	uint8_t CPU_LOAD;                                      // загрузка CPU
