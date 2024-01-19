@@ -550,8 +550,8 @@ x_I2C_init_std_message:
 	// ВНИМАНИЕ первый поток должен иметь больший стек для обработки фоновых сетевых задач
 	// 1 - поток
 	#define STACK_vWebX 200
-	if(xTaskCreate(vWeb0,"Web0", STACK_vWebX+5,NULL,1,&MC.xHandleUpdateWeb0)==errCOULD_NOT_ALLOCATE_REQUIRED_MEMORY) set_Error(ERR_MEM_FREERTOS,(char*)nameFREERTOS);
-	MC.mRTOS=MC.mRTOS+64+4*(STACK_vWebX+5);
+	if(xTaskCreate(vWeb0,"Web0", STACK_vWebX+10,NULL,1,&MC.xHandleUpdateWeb0)==errCOULD_NOT_ALLOCATE_REQUIRED_MEMORY) set_Error(ERR_MEM_FREERTOS,(char*)nameFREERTOS);
+	MC.mRTOS=MC.mRTOS+64+4*(STACK_vWebX+10);
 	if(xTaskCreate(vWeb1,"Web1", STACK_vWebX,NULL,1,&MC.xHandleUpdateWeb1)==errCOULD_NOT_ALLOCATE_REQUIRED_MEMORY) set_Error(ERR_MEM_FREERTOS,(char*)nameFREERTOS);
 	MC.mRTOS=MC.mRTOS+64+4*STACK_vWebX;
 	if(xTaskCreate(vWeb2,"Web2", STACK_vWebX,NULL,1,&MC.xHandleUpdateWeb2)==errCOULD_NOT_ALLOCATE_REQUIRED_MEMORY) set_Error(ERR_MEM_FREERTOS,(char*)nameFREERTOS);
@@ -682,28 +682,33 @@ void vWeb0(void *)
 		// СЕРВИС: Этот поток работает на любых настройках, по этому сюда ставим работу с сетью
 		MC.message.sendMessage();                                            // Отработать отсылку сообщений (внутри скрыта задержка после включения)
 
+		STORE_DEBUG_INFO(39);
+
 		active = MC.message.dnsUpdate();                                       // Обновить адреса через dns если надо Уведомления
+
+		STORE_DEBUG_INFO(18);
+
 #ifdef MQTT
 		if (active) active=MC.clMQTT.dnsUpdate();                          // Обновить адреса через dns если надо MQTT
 #endif
 		if(xTaskGetTickCount() - thisTime > (uint32_t) WEB0_OTHER_FUNC_PERIOD * 1000) { // Другие функции
 			thisTime = xTaskGetTickCount();                                      // Запомнить тики
-			// 1. Проверка захваченого семафора сети ожидаем  3 времен W5200_TIME_WAIT если мютекса не получаем то сбрасывае мютекс
-			if(SemaphoreTake(xWebThreadSemaphore, ((3 + (fWebUploadingFilesTo != 0) * 30) * W5200_TIME_WAIT / portTICK_PERIOD_MS)) == pdFALSE) {
-				SemaphoreGive(xWebThreadSemaphore);
-				journal.jprintf_time("UNLOCK mutex xWebThread\n");
-				active = false;
-				MC.num_resMutexSPI++;
-			} // Захват мютекса SPI или ОЖИДАНИНЕ 2 времен W5200_TIME_WAIT и его освобождение
-			else SemaphoreGive(xWebThreadSemaphore);
-
-			// Проверка и сброс митекса шины I2C  если мютекса не получаем то сбрасывае мютекс
-			if(SemaphoreTake(xI2CSemaphore, (3 * I2C_TIME_WAIT / portTICK_PERIOD_MS)) == pdFALSE) {
-				SemaphoreGive(xI2CSemaphore);
-				journal.jprintf_time("UNLOCK mutex xI2CSemaphore\n");
-				MC.num_resMutexI2C++;
-			} // Захват мютекса I2C или ОЖИДАНИНЕ 3 времен I2C_TIME_WAIT  и его освобождение
-			else SemaphoreGive(xI2CSemaphore);
+//			// 1. Проверка захваченого семафора сети ожидаем  3 времен W5200_TIME_WAIT если мютекса не получаем то сбрасывае мютекс
+//			if(SemaphoreTake(xWebThreadSemaphore, ((3 + (fWebUploadingFilesTo != 0) * 30) * W5200_TIME_WAIT / portTICK_PERIOD_MS)) == pdFALSE) {
+//				SemaphoreGive(xWebThreadSemaphore);
+//				journal.jprintf_time("UNLOCK mutex xWebThread\n");
+//				active = false;
+//				MC.num_resMutexSPI++;
+//			} // Захват мютекса SPI или ОЖИДАНИНЕ 2 времен W5200_TIME_WAIT и его освобождение
+//			else SemaphoreGive(xWebThreadSemaphore);
+//
+//			// Проверка и сброс митекса шины I2C  если мютекса не получаем то сбрасывае мютекс
+//			if(SemaphoreTake(xI2CSemaphore, (3 * I2C_TIME_WAIT / portTICK_PERIOD_MS)) == pdFALSE) {
+//				SemaphoreGive(xI2CSemaphore);
+//				journal.jprintf_time("UNLOCK mutex xI2CSemaphore\n");
+//				MC.num_resMutexI2C++;
+//			} // Захват мютекса I2C или ОЖИДАНИНЕ 3 времен I2C_TIME_WAIT  и его освобождение
+//			else SemaphoreGive(xI2CSemaphore);
 
 			// 2. Чистка сокетов
 			if(MC.time_socketRes() > 0) {
@@ -755,6 +760,7 @@ void vWeb0(void *)
 			}
 
 			if(active && Request_LowConsume && thisTime - Request_LowConsume > MC.Option.LowConsumeRequestPeriod * 1000) {
+				STORE_DEBUG_INFO(8);
 				Request_LowConsume = MC.Option.LowConsumeRequestPeriod ? thisTime | 0x1 : 0;
 				int tmp = Send_HTTP_Request(MC.Option.LowConsumeRequest);
 				if(tmp <= -2000000000 && tmp >= -2000000001) Request_LowConsume = (Request_LowConsume - (MC.Option.LowConsumeRequestPeriod > 5 ? MC.Option.LowConsumeRequestPeriod * 1000 - 5000 : 0)) | 0x1;
@@ -784,12 +790,12 @@ void vWeb0(void *)
 			}
 #endif   // MQTT
 
+			STORE_DEBUG_INFO(9);
 			// Расчет предполагаемой регенерации
 			MC.NextRegenAfterDays = MC.CalcNextRegenAfterDays(MC.Option.DaysBeforeRegen, MC.WorkStats.DaysFromLastRegen, MC.Option.UsedBeforeRegen, MC.WorkStats.UsedSinceLastRegen);	// железо
 			MC.NextRegenSoftAfterDays = MC.CalcNextRegenAfterDays(MC.Option.DaysBeforeRegenSoftening, MC.WorkStats.DaysFromLastRegenSoftening, MC.Option.UsedBeforeRegenSoftening, MC.WorkStats.UsedSinceLastRegenSoftening);	// умягчитель
-
-			taskYIELD();
 		}
+		STORE_DEBUG_INFO(19);
 #ifdef PIN_LED_SRV_INFO
 		if(MC.get_errcode() == OK) {
 			if(!MC.dRelay[RWATERON].get_Relay()) {
@@ -817,7 +823,7 @@ void vWeb0(void *)
 			}
 		}
 #endif
-
+		taskYIELD();
 	} //for
 	vTaskSuspend(NULL);
 }
