@@ -1288,8 +1288,12 @@ uint32_t MainClass::CalcFilteringSpeed(uint32_t square)
 // Рассчитать сколько осталось дней до регенерации, 0 - Iron, 1 - Soft
 uint8_t MainClass::CalcNextRegenAfterDays(int _DaysBeforeRegen, int _DaysFromLastRegen, int _UsedBeforeRegen, int _UsedSinceLastRegen)
 {
-	if(_DaysBeforeRegen) _DaysBeforeRegen -= _DaysFromLastRegen; else _DaysBeforeRegen = 255;
-	if(_DaysBeforeRegen <= 0) return 0;
+	if(_DaysBeforeRegen) {
+		_DaysBeforeRegen -= _DaysFromLastRegen;
+		if(_DaysBeforeRegen == 0) {
+			if(SAM_RTC_HOUR(RTC->RTC_TIMR) <= (MC.Option.RegenHour & 0x1F)) _DaysBeforeRegen = 1;
+		} else if(_DaysBeforeRegen < 0) return 0;
+	} else _DaysBeforeRegen = 255;
 	if(_UsedBeforeRegen) {
 		_UsedBeforeRegen -= _UsedSinceLastRegen + MC.RTC_store.UsedToday;
 		if(_UsedBeforeRegen <= 0) return 0;
