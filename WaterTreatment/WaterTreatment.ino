@@ -1398,10 +1398,12 @@ void vReadSensor(void *)
 					MC.WorkStats.UsedLastTime = utm;
 				}
 				History_WaterUsed_work += passed;
-				UsedForDrainSilt += passed;
-				if(UsedForDrainSilt >= 100 || passed >= 100) {
-					UsedForDrainSilt = 0;
+				Passed100Count += passed;
+				if(Passed100Count >= 100 || passed >= 100) {
+					Passed100Count = 0;
 					if(MC.WorkStats.UsedDrainSiltL100 < 255) MC.WorkStats.UsedDrainSiltL100++;
+					MC.WorkStats.FilterCounter1++;
+					MC.WorkStats.FilterCounter2++;
 				}
 				NeedSaveRTC |= (1<<bRTC_UsedToday);
 			}
@@ -2060,7 +2062,7 @@ void vService(void *)
 							} else if(RegStart_Weight < MC.Option.MinRegenWeightDecrease) {
 								set_Error(ERR_REG_FEW_WEIGHT_CONSUME, (char*)__FUNCTION__);
 							}
-							UsedForDrainSilt = 0;
+							//Passed100Count = 0; <- выключено, будет +1..100л
 							MC.WorkStats.UsedDrainSiltL100 = MC.Option.DrainSiltAfterL100 - DRAIN_SILT_AFTER_REGEN;
 							SETBIT1(MC.Osmos_PWATER_Flags, 0);
 							RegenStarted = 0;
@@ -2095,7 +2097,7 @@ void vService(void *)
 							} else if(RegStart_Weight < MC.Option.MinRegenWeightDecreaseSoftening) {
 								set_Error(ERR_REG_FEW_WEIGHT_CONSUME, (char*)__FUNCTION__);
 							}
-							UsedForDrainSilt = 0;
+							//Passed100Count = 0; <- выключено, будет +1..100л
 							MC.WorkStats.UsedDrainSiltL100 = MC.Option.DrainSiltAfterL100 - DRAIN_SILT_AFTER_REGEN;
 							SETBIT1(MC.Osmos_PWATER_Flags, 0);
 							RegenStarted = 0;

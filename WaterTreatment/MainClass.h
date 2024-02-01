@@ -44,6 +44,8 @@ struct type_WorkStats {
 	uint8_t  Flags;					// WS_F_*
 	uint8_t  RegenSofteningCntAlarm;// Alarm when zero
 	uint8_t  UsedDrainSiltL100;		// How many L * 100 remain before draining silt.
+	uint16_t FilterCounter1;		// * 100L
+	uint16_t FilterCounter2;		// * 100L
 } __attribute__((packed));
 
 #define WS_F_StartRegen				0x01	// Запланирована регенерация обезжелезивателя вручную
@@ -112,7 +114,7 @@ bool     LowConsumeMode = false; //
 int32_t  AfterFilledTimer = 0; // Время после отключения реле заполнения бака до останова глубинного насоса, сек
 uint32_t Request_LowConsume;
 uint32_t RegenStarted = 0;
-uint8_t  UsedForDrainSilt = 0;	// L
+uint8_t  Passed100Count = 0;	// L
 uint8_t  DrainingSiltFlag = 0;	// 0 - нет/ожидание, 1 - идет слив, 2..255 - закрываемся и ожидаем (сек)
 uint16_t DrainingSiltNowTimer = 0;
 uint8_t  UsedWaterContinuousCntUsed = 0;
@@ -241,6 +243,8 @@ struct type_option {
 	uint8_t  TankCheckPercent;		// Проверка на утечку/заполняемость бака, тревога, если уровень уменьшится без потребителей на %, либо заполнение бака идет медленно (FillingTankTimeout)
 	uint8_t  TankFillingTimeMax;	// Максимальное время заполнения бака за один раз, минуты
 	uint8_t  UsedWaterContinuous;	// Максимальное время непрерывного потребления воды, минуты
+	uint16_t FilterCounter1_Max;	// Предел для счетчика 1, *100л
+	uint16_t FilterCounter2_Max;	// Предел для счетчика 2, *100л
 };
 
 //  Работа с отдельными флагами type_DateTime
