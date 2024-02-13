@@ -20,7 +20,7 @@
 #include "Util.h"
 
 // ОПЦИИ КОМПИЛЯЦИИ ПРОЕКТА -------------------------------------------------------
-#define VERSION			  "1.50"			// Версия прошивки
+#define VERSION			  "1.51"			// Версия прошивки
 #define VER_SAVE		  12				// Версия формата сохраняемых данных в I2C память
 //#define LOG                               // В последовательный порт шлет лог веб сервера (логируются запросы)
 #define FAST_LIB                            // использование допиленной библиотеки езернета
@@ -435,6 +435,8 @@ const char *option_DrainSiltAfterNotUsed= {"DSH"};
 const char *option_fDrainSiltTank		= {"DSF"};
 const char *option_fDrainSiltTankBeforeRegen= {"DSR"};
 const char *option_UsedWaterContinuous	= {"UWC"};
+const char *option_FilterCounter1_Max	= {"FC1"};
+const char *option_FilterCounter2_Max	= {"FC2"};
 const char *option_fLED_SRV_INFO_PlanReg= {"LPR"};
 const char option_GetCurrentSaltLevel[] = "LvL";	// get_Opt(LvL)
 const char prof_DailySwitch[] 	= "DS";

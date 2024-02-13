@@ -1402,8 +1402,8 @@ void vReadSensor(void *)
 				if(Passed100Count >= 100 || passed >= 100) {
 					Passed100Count = 0;
 					if(MC.WorkStats.UsedDrainSiltL100 < 255) MC.WorkStats.UsedDrainSiltL100++;
-					MC.WorkStats.FilterCounter1++;
-					MC.WorkStats.FilterCounter2++;
+					if(MC.Option.FilterCounter1_Max) MC.WorkStats.FilterCounter1++;
+					if(MC.Option.FilterCounter2_Max) MC.WorkStats.FilterCounter2++;
 				}
 				NeedSaveRTC |= (1<<bRTC_UsedToday);
 			}

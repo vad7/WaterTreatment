@@ -892,6 +892,12 @@ xSaveStats:		if((i = MC.save_WorkStats()) == OK)
 							MC.WorkStats.UsedAverageDayNum = l_i32;
 						}
 					}
+				} else if(strcmp(str, "FC1") == 0) {	// RESET_CNT_FC1
+					MC.WorkStats.FilterCounter1 = 0;
+					NeedSaveWorkStats = 1;
+				} else if(strcmp(str, "FC2") == 0) {	// RESET_CNT_FC2
+					MC.WorkStats.FilterCounter2 = 0;
+					NeedSaveWorkStats = 1;
 				} else {
 					journal.jprintf("Clear All Counters!\n");
 					//strcat(strReturn,"Сброс счетчиков ");
@@ -1075,6 +1081,12 @@ xSaveStats:		if((i = MC.save_WorkStats()) == OK)
 
 				strcat(strReturn,"<b> Глобальные счетчики</b>|;");
 				strcat(strReturn,"Время сброса|"); DecodeTimeDate(MC.WorkStats.ResetTime, strReturn, 3); strcat(strReturn,";");
+				strcat(strReturn,"Счетчик фильтра 1, л|"); _itoa(MC.WorkStats.FilterCounter1 * 100, strReturn);
+				if(MC.WorkStats.FilterCounter1 > MC.Option.FilterCounter1_Max) strcat(strReturn," - превышен!");
+				strcat(strReturn,";");
+				strcat(strReturn,"Счетчик фильтра 2, л|"); _itoa(MC.WorkStats.FilterCounter2 * 100, strReturn);
+				if(MC.WorkStats.FilterCounter2 > MC.Option.FilterCounter2_Max) strcat(strReturn," - превышен!");
+				strcat(strReturn,";");
 				STORE_DEBUG_INFO(48);
 				strcat(strReturn,"<b> Статистика за день</b>|;");
 				strReturn += strlen(strReturn);
@@ -1159,6 +1171,8 @@ xSaveStats:		if((i = MC.save_WorkStats()) == OK)
 					DecodeTimeDate(ErrorsTime[i], strReturn, 3);
 					strReturn += m_snprintf(strReturn += m_strlen(strReturn), 128, "|%d|%s\n", Errors[i], noteError[abs(Errors[i])]);
 				}
+				if(MC.WorkStats.FilterCounter1 > MC.Option.FilterCounter1_Max) strReturn += m_snprintf(strReturn += m_strlen(strReturn), 128, "-|%dл|Выработан ресурс фильтра 1\n", MC.WorkStats.FilterCounter1 * 100);
+				if(MC.WorkStats.FilterCounter2 > MC.Option.FilterCounter2_Max) strReturn += m_snprintf(strReturn += m_strlen(strReturn), 128, "-|%dл|Выработан ресурс фильтра 1\n", MC.WorkStats.FilterCounter1 * 100);
 			} else goto x_FunctionNotFound;
 			ADD_WEBDELIM(strReturn);
 			continue;

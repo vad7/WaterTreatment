@@ -960,6 +960,8 @@ boolean MainClass::set_option(char *var, float xx)
    if(strcmp(var,option_fDrainSiltTank)==0){ Option.flags2 = (Option.flags2 & ~(1<<fDrainSiltTank)) | ((x!=0)<<fDrainSiltTank); return true; } else
    if(strcmp(var,option_fDrainSiltTankBeforeRegen)==0){ Option.flags2 = (Option.flags2 & ~(1<<fDrainSiltTankBeforeRegen)) | ((x!=0)<<fDrainSiltTankBeforeRegen); return true; } else
    if(strcmp(var,option_UsedWaterContinuous)==0){ Option.UsedWaterContinuous = x; UsedWaterContinuousTimerMax = 0; return true; } else
+   if(strcmp(var,option_FilterCounter1_Max)==0){ Option.FilterCounter1_Max = x / 100; return true; } else
+   if(strcmp(var,option_FilterCounter2_Max)==0){ Option.FilterCounter2_Max = x / 100; return true; } else
    if(strcmp(var,option_fLED_SRV_INFO_PlanReg)==0){ Option.flags2 = (Option.flags2 & ~(1<<fLED_SRV_INFO_PlanReg)) | ((x!=0)<<fLED_SRV_INFO_PlanReg); return true; } else
    if(strcmp(var,option_RegenSofteningCntAlarm)==0){
 	   Option.RegenSofteningCntAlarm = x;
@@ -1065,6 +1067,8 @@ char* MainClass::get_option(char *var, char *ret)
 	if(strcmp(var,option_fDrainSiltTank)==0){ return strcat(ret, (char*)(GETBIT(Option.flags2, fDrainSiltTank) ? cOne : cZero)); } else
 	if(strcmp(var,option_fDrainSiltTankBeforeRegen)==0){ return strcat(ret, (char*)(GETBIT(Option.flags2, fDrainSiltTankBeforeRegen) ? cOne : cZero)); } else
 	if(strcmp(var,option_UsedWaterContinuous)==0){ _itoa(Option.UsedWaterContinuous, ret); } else
+	if(strcmp(var,option_FilterCounter1_Max)==0){ _itoa(Option.FilterCounter1_Max * 100, ret); } else
+	if(strcmp(var,option_FilterCounter2_Max)==0){ _itoa(Option.FilterCounter2_Max * 100, ret); } else
 	if(strcmp(var,option_fLED_SRV_INFO_PlanReg)==0){ return strcat(ret, (char*)(GETBIT(Option.flags2, fLED_SRV_INFO_PlanReg) ? cOne : cZero)); } else
 	if(strncmp(var, prof_DailySwitch, sizeof(prof_DailySwitch)-1) == 0) {
 		var += sizeof(prof_DailySwitch)-1;
