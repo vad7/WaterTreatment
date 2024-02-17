@@ -1295,19 +1295,15 @@ uint8_t MainClass::CalcNextRegenAfterDays(int _DaysBeforeRegen, int _DaysFromLas
 	if(_DaysBeforeRegen) {
 		_DaysBeforeRegen -= _DaysFromLastRegen;
 		if(_DaysBeforeRegen == 0) {
-			if(SAM_RTC_HOUR(RTC->RTC_TIMR) <= (MC.Option.RegenHour & 0x1F)) _DaysBeforeRegen = 1;
+			if(SAM_RTC_HOUR(RTC->RTC_TIMR) <= (MC.Option.RegenHour & 0x1F)) _DaysBeforeRegen = 1;	// current_hour <= x
 		} else if(_DaysBeforeRegen < 0) return 0;
 	} else _DaysBeforeRegen = 255;
 	if(_UsedBeforeRegen) {
-		_UsedBeforeRegen -= _UsedSinceLastRegen + MC.RTC_store.UsedToday;
-		if(_UsedBeforeRegen <= 0) return 0;
+		_UsedBeforeRegen -= _UsedSinceLastRegen;
+		if(_UsedBeforeRegen <= MC.RTC_store.UsedToday) return 0;
 		else {
-			int ad = MC.WorkStats.UsedAverageDay / MC.WorkStats.UsedAverageDayNum;
-			if(MC.RTC_store.UsedToday < ad) {
-				_UsedBeforeRegen = _UsedBeforeRegen + MC.RTC_store.UsedToday - ad;
-				if(_UsedBeforeRegen <= 0) return 0;
-			}
-			_UsedBeforeRegen = _UsedBeforeRegen / ad + 1;
+			_UsedBeforeRegen = _UsedBeforeRegen / (MC.WorkStats.UsedAverageDay / MC.WorkStats.UsedAverageDayNum);
+			if(_UsedBeforeRegen <= 0) return 1;
 		}
 	} else _UsedBeforeRegen = 255;
 	return _DaysBeforeRegen < _UsedBeforeRegen ? _DaysBeforeRegen : _UsedBeforeRegen;

@@ -487,6 +487,7 @@ struct History_setup {
 	#define USED_WATER_CONTINUOUS_MINTIME 10	// Минимальный квант времени для контроля непрерывного потребления (делитель (60000/TIME_READ_SENSOR) без остатка), сек
 	#define PIN_LED_SRV_INFO_NEXT_REGEN_PULSE 70UL // Длительность вспышки светодиода при запланированной регенерации
 	#define PIN_LED_SRV_INFO_NEXT_REGEN_PAUSE 3500UL // Длительность паузы светодиода при запланированной регенерации
+	#define PIN_LED_SRV_INFO_NEXT_REGEN_BEGIN_HOUR 21 // Начальный час мигания
 
 	#define CHART_POINT					500		// Максимальное число точек графика, одна точка это 2 байта * число графиков
 	// Статистика по дням
