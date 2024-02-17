@@ -295,6 +295,7 @@ void Statistics::CheckCreateNewFile()
 	if(!MC.get_fSD()) return;
 	if(NewYearFlag) {
 		if(!(sem = SemaphoreTake(xWebThreadSemaphore, 0))) return;
+		SaveStats(1);
 		SaveHistory(1);
 		// Truncate stats
 		strcpy(filename, stats_file_start);

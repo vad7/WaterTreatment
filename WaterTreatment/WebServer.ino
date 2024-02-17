@@ -876,9 +876,9 @@ xSaveStats:		if((i = MC.save_WorkStats()) == OK)
 				update_RTC_store_memory();
 				ResetDUE_countdown = 3;
 				strcat(strReturn, "OK");
-			} else if(strncmp(str, "CNT", 3) == 0) { // Команда RESET_CNT
+			} else if(strncmp(str, "CNT_", 4) == 0) { // Команда RESET_CNT_*
 				str += 3;
-				if(strncmp(str, "_VAR_", 5) == 0) {	// RESET_CNT_VAR_xx=n
+				if(strncmp(str, "VAR_", 4) == 0) {	// RESET_CNT_VAR_xx=n
 					str += 5;
 					*(str + 2) = '\0';
 					if((l_i32 = strtol(str + 3, NULL, 0)) != LONG_MAX) { // NO REENTRANT FUNCTION!
@@ -898,7 +898,7 @@ xSaveStats:		if((i = MC.save_WorkStats()) == OK)
 				} else if(strcmp(str, "FC2") == 0) {	// RESET_CNT_FC2
 					MC.WorkStats.FilterCounter2 = 0;
 					NeedSaveWorkStats = 1;
-				} else {
+				} else if(strcmp(str, "ALL") == 0) {	// RESET_CNT_ALL
 					journal.jprintf("Clear All Counters!\n");
 					//strcat(strReturn,"Сброс счетчиков ");
 					memset(&MC.RTC_store, 0, sizeof(MC.RTC_store));
@@ -1171,8 +1171,8 @@ xSaveStats:		if((i = MC.save_WorkStats()) == OK)
 					DecodeTimeDate(ErrorsTime[i], strReturn, 3);
 					strReturn += m_snprintf(strReturn += m_strlen(strReturn), 128, "|%d|%s\n", Errors[i], noteError[abs(Errors[i])]);
 				}
-				if(MC.WorkStats.FilterCounter1 > MC.Option.FilterCounter1_Max) strReturn += m_snprintf(strReturn += m_strlen(strReturn), 128, "-|%dл|Выработан ресурс фильтра 1\n", MC.WorkStats.FilterCounter1 * 100);
-				if(MC.WorkStats.FilterCounter2 > MC.Option.FilterCounter2_Max) strReturn += m_snprintf(strReturn += m_strlen(strReturn), 128, "-|%dл|Выработан ресурс фильтра 1\n", MC.WorkStats.FilterCounter1 * 100);
+				if(MC.WorkStats.FilterCounter1 > MC.Option.FilterCounter1_Max) strReturn += m_snprintf(strReturn += m_strlen(strReturn), 128, "-|%dл|Выработан ресурс фильтра %c\n", MC.WorkStats.FilterCounter1 * 100, '1');
+				if(MC.WorkStats.FilterCounter2 > MC.Option.FilterCounter2_Max) strReturn += m_snprintf(strReturn += m_strlen(strReturn), 128, "-|%dл|Выработан ресурс фильтра %c\n", MC.WorkStats.FilterCounter1 * 100, '2');
 			} else goto x_FunctionNotFound;
 			ADD_WEBDELIM(strReturn);
 			continue;
