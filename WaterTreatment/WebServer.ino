@@ -939,11 +939,24 @@ xSaveStats:		if((i = MC.save_WorkStats()) == OK)
 			strcat(strReturn,"I2C_SPEED|Частота работы шины I2C (кГц)|"); _itoa(I2C_SPEED/1000,strReturn); strcat(strReturn,";");
 			strcat(strReturn,"UART_SPEED|Скорость отладочного порта (бод)|");_itoa(UART_SPEED,strReturn);strcat(strReturn,";");
 			strcat(strReturn,"WDT_TIME|Период сторожевого таймера, 0 - нет (сек)|");_itoa(WDT_TIME,strReturn);strcat(strReturn,";");
-			strcat(strReturn,"MODBUS_PORT_NUM|Используемый порт для обмена по Modbus RTU|Serial");
-			if(&MODBUS_PORT_NUM==&Serial1) strcat(strReturn,cOne);
-			else if(&MODBUS_PORT_NUM==&Serial2) strcat(strReturn,"2");
-			else if(&MODBUS_PORT_NUM==&Serial3) strcat(strReturn,"3");
+			strcat(strReturn,"MODBUS_PORT|Modbus RTU порт основной|Serial");
+			if(&MODBUS_PORT==&Serial1) strcat(strReturn,cOne);
+			else if(&MODBUS_PORT==&Serial2) strcat(strReturn,"2");
+			else if(&MODBUS_PORT==&Serial3) strcat(strReturn,"3");
+	#ifdef USE_SERIAL4
+			else if(&MODBUS_PORT==&Serial4) strcat(strReturn,"4");
+	#endif
 			else strcat(strReturn,"?");
+#ifdef MODBUS_PUMP_SERIAL
+			strcat(strReturn,"MODBUS_PUMP_SERIAL|Modbus RTU порт для насосов|Serial");
+			if(&MODBUS_PUMP_SERIAL==&Serial1) strcat(strReturn,cOne);
+			else if(&MODBUS_PUMP_SERIAL==&Serial2) strcat(strReturn,"2");
+			else if(&MODBUS_PUMP_SERIAL==&Serial3) strcat(strReturn,"3");
+	#ifdef USE_SERIAL4
+			else if(&MODBUS_PUMP_SERIAL==&Serial4) strcat(strReturn,"4");
+	#endif
+			else strcat(strReturn,"?");
+#endif
 			strcat(strReturn,";");
 			strcat(strReturn,"MODBUS_PORT_SPEED|Скорость обмена (бод)|");_itoa(MODBUS_PORT_SPEED,strReturn);strcat(strReturn,";");
 			strcat(strReturn,"MODBUS_PORT_CONFIG|Конфигурация порта|8N1;");

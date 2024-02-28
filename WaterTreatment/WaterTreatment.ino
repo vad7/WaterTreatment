@@ -80,6 +80,9 @@ DS3232  rtcI2C;                                                          // Ча
 static Journal  journal;                                                 // системный журнал, отдельно т.к. должен инициализоваться с начала старта
 static MainClass MC;                                                     // Главный класс
 static devModbus Modbus;                                                 // Класс модбас - управление инвертором
+#ifdef MODBUS_PUMP_SERIAL
+	devModbus ModbusPump;
+#endif
 SdFat card;                                                              // Карта памяти
 
 // Use the Arduino core to set-up the unused USART2 on Serial4 (without serial events)
@@ -2160,6 +2163,33 @@ void vService(void *)
 					}
 					if(++FillingTankTimer > LEAKAGE_TANK_RESTART_TIME) DrainingSiltFlag = 255;
 				}
+#ifdef CHECK_DRAIN_PUMP
+				if(GETBIT(MC.Option.flags2, fCheckDrainPump)) {
+					PumpReadCounter++;
+	#ifdef MODBUS_SEPTIC_PUMP_ADDR
+					if(PumpReadCounter == MODBUS_PUMP_PERIOD / 2) {
+						// to do...
+					} else
+	#endif
+					if(PumpReadCounter >= MODBUS_PUMP_PERIOD) {
+						PumpReadCounter = 0;
+						uint32_t tmp;
+						int8_t err = Modbus.readInputRegisters32(MODBUS_DRAIN_PUMP_ADDR, PWM_POWER, &tmp);
+						if(err == OK) {
+							DrainPumpPower = tmp / 10;
+							if(DrainPumpPower > 10) DrainPumpTimeLast = rtcSAM3X8.unixtime();
+							DrainPumpErrCnt = 0;
+						} else {
+							PumpReadCounter = MODBUS_PUMP_PERIOD - 1;
+							if(++DrainPumpErrCnt > MODBUS_PUMP_MAX_ERRORS) {
+
+
+
+							}
+						}
+					}
+				}
+#endif
 			}
 			// every 1 sec
 #ifdef PIN_LED_SRV_INFO

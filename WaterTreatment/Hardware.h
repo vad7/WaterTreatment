@@ -322,7 +322,7 @@ class devPWM
 class devModbus
   {
   public:  
-    int8_t initModbus();                                                                // Инициализация Modbus и проверка связи возвращает ошибку
+    int8_t initModbus(uint8_t ADR, USARTClass serial);                                     // Инициализация Modbus и проверка связи возвращает ошибку
      __attribute__((always_inline)) inline boolean get_present(){return GETBIT(flags,fModbus);} // Наличие Modbus в текущей конфигурации
     int8_t readInputRegisters16(uint8_t id, uint16_t cmd, uint16_t *ret);
     int8_t readInputRegisters32(uint8_t id, uint16_t cmd, uint32_t *ret);				   // LITTLE-ENDIAN!

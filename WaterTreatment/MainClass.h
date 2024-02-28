@@ -95,6 +95,14 @@ uint32_t FeedPumpWork = 0;						// ms
 //bool	 TankEmpty = false;
 uint32_t FloodingTime = 0;
 uint32_t SepticAlarmTime;
+#ifdef CHECK_DRAIN_PUMP
+uint8_t  PumpReadCounter = 0;
+uint32_t DrainPumpTimeLast = 0;	// time
+uint16_t DrainPumpPower = 0; // W
+uint8_t  DrainPumpErrCnt = 0;
+//uint32_t SepticPumpTimeLast = 0;
+//uint16_t SepticPumpPower = 0; // W
+#endif
 uint16_t FillingTankTimer = 0;
 int16_t  FillingTankLastLevel = 0;	// in 0.01%
 uint8_t  TankCheckFlag = 0;			// 0 - проверка на герметичность, 1 - проверка на скорость заполнения, 2 - сброс
@@ -179,6 +187,7 @@ type_WebSecurity WebSec_admin;				// хеш паролей
 #define fDrainSiltTank 		0				// Сливать осадок с бака периодически
 #define fDrainSiltTankBeforeRegen 1			// Сливать осадок с бака перед регенерацией
 #define fLED_SRV_INFO_PlanReg 2				// Мигать редко на PIN_LED_SRV_INFO при запланированной регенерации
+#define fCheckDrainPump		3				// Проверять работу дренажного насоса
 
 // Структура для хранения настроек
 struct type_option {
@@ -245,6 +254,7 @@ struct type_option {
 	uint8_t  UsedWaterContinuous;	// Максимальное время непрерывного потребления воды, минуты
 	uint16_t FilterCounter1_Max;	// Предел для счетчика 1, *100л
 	uint16_t FilterCounter2_Max;	// Предел для счетчика 2, *100л
+	uint8_t  DrainPumpMaxTime;		// Максимальное время работы дренажного насоса, 0 - нет, сек * 10
 };
 
 //  Работа с отдельными флагами type_DateTime
