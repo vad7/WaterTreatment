@@ -718,13 +718,15 @@ xSaveStats:		if((i = MC.save_WorkStats()) == OK)
 				ADD_WEBDELIM(strReturn); continue;
 			}
 		}
-		if (strcmp(str,"get_tDS")==0)  // Функция get_tDS  - получение температуры DS3231
+		if(strcmp(str,"get_tDS")==0)  // Функция get_tDS  - получение температуры DS3231
 		{
 			_dtoa(strReturn, getTemp_RtcI2C(), 2); ADD_WEBDELIM(strReturn); continue;
 		}
-		if (strcmp(str,"get_PWR") == 0)
-		{
-			_dtoa(strReturn, MC.dPWM.get_Power(), 3); ADD_WEBDELIM(strReturn); continue;
+		if(strncmp(str,"get_PWR", 7) == 0) {
+			str += 7;
+			if(*str == 'D') _dtoa(strReturn, DrainPumpPower, 3); // get_PWRD (Drain pump)
+			else _dtoa(strReturn, MC.dPWM.get_Power(), 3);
+			ADD_WEBDELIM(strReturn); continue;
 		}
 		if(strcmp(str, "get_WDIS") == 0) { // Выход воды отключен
 			strcat(strReturn, MC.dRelay[RWATEROFF1].get_Relay() || !MC.dRelay[RWATERON].get_Relay() ? "1" : "0"); // MC.sInput[REG2_ACTIVE].get_Input()
@@ -1080,6 +1082,7 @@ xSaveStats:		if((i = MC.save_WorkStats()) == OK)
 				strcat(strReturn,"Время заполнения бака|");if(MC.RFILL_last_time_ON) DecodeTimeDate(MC.RFILL_last_time_ON,strReturn,3); strcat(strReturn,";");
 				strcat(strReturn,"Время последнего потребления|");DecodeTimeDate(MC.WorkStats.UsedLastTime,strReturn,3);strcat(strReturn,";");
 				strcat(strReturn,"Максимальное потребление воды за раз|"); TimeIntervalToStr(UsedWaterContinuousTimerMax * USED_WATER_CONTINUOUS_MINTIME, strReturn, 1); strcat(strReturn,";");
+				strcat(strReturn,"Последнее включение дренажного насоса|"); DecodeTimeDate(DrainPumpTimeLast, strReturn, 3); strcat(strReturn,";");
 
 			} else if(strcmp(str, "Info2") == 0) { // "get_sysInfo2" - Функция вывода системной информации для разработчика
 				strcat(strReturn,"<b> Счетчики ошибок</b>|;");

@@ -99,7 +99,6 @@ void USART2_Handler(void)   // Interrupt handler for UART2
 #endif
 
 // Мютексы блокираторы железа
-SemaphoreHandle_t xModbusSemaphore;                 // Семафор Modbus, инвертор запас на счетчик
 SemaphoreHandle_t xWebThreadSemaphore;              // Семафор потоки вебсервера,  деление сетевой карты
 SemaphoreHandle_t xI2CSemaphore;                    // Семафор шины I2C, часы, память, мастер OneWire
 SemaphoreHandle_t xSPISemaphore;                    // Семафор шины SPI  сетевая карта, память. SD карта // пока не используется
@@ -569,11 +568,6 @@ x_I2C_init_std_message:
 	//vSemaphoreCreateBinary(xSPISemaphore);                     // Создание мютекса
 	//if (xSPISemaphore==NULL) set_Error(ERR_MEM_FREERTOS,(char*)nameFREERTOS);
 	// Дополнительные семафоры (почему то именно здесь) Создается когда есть модбас
-	if(Modbus.get_present())
-	{
-		vSemaphoreCreateBinary(xModbusSemaphore);                       // Создание мютекса
-		if (xModbusSemaphore==NULL) set_Error(ERR_MEM_FREERTOS,(char*)nameFREERTOS);
-	}
 	journal.jprintfopt("OK, size %d bytes\n", MC.mRTOS);
 
 	//journal.jprintfopt("* Send a notification . . .\n");
@@ -1844,6 +1838,7 @@ void vService(void *)
 	static uint8_t  task_dailyswitch_countm = task_updstat_countm;
 	static uint8_t  task_every_min = task_updstat_countm;
 	static TickType_t timer_sec = GetTickCount(), timer_idle = 0, timer_total = 0;
+	static uint32_t tmp;
 
 	for(;;)
 	{
@@ -1952,7 +1947,7 @@ void vService(void *)
 					goto xOtherTask_1min;
 				}
 				if(!CriticalErrors) {
-					int err = MC.get_errcode();
+					int8_t err = MC.get_errcode();
 					if((err == ERR_FLOODING || err == ERR_TANK_EMPTY) && Errors[1] == 0) MC.clear_error();
 					uint8_t h = rtcSAM3X8.get_hours();
 					if(h == NOT_CITICAL_ALARM_HOUR && MC.WorkStats.RegenSofteningCntAlarm == 0 && MC.Option.RegenSofteningCntAlarm && err != ERR_SALT_FINISH) {
@@ -2139,7 +2134,7 @@ void vService(void *)
 								int16_t d = MC.sADC[LTANK].get_Value() - FillingTankLastLevel;
 								if(d < (MC.Option.TankCheckPercent ? MC.Option.TankCheckPercent * 100 : FILLING_TANK_STEP)) {
 									set_Error(ERR_TANK_NO_FILLING, (char*)"vService");
-									journal.jprintf_time("FILLING %d sec = +%.2d%%!\n", MC.Option.FillingTankTimeout, d);
+									journal.jprintf("FILLING %d sec = +%.2d%%!\n", MC.Option.FillingTankTimeout, d);
 								}
 								FillingTankLastLevel = MC.sADC[LTANK].get_Value();
 								FillingTankTimer = 0;
@@ -2158,7 +2153,7 @@ void vService(void *)
 					int16_t d = FillingTankLastLevel - MC.sADC[LTANK].get_Value();
  					if(d > MC.Option.TankCheckPercent * 100) {
 						set_Error(ERR_TANK_LEAKAGE, (char*)"vService");
-						journal.jprintf_time("LEAKAGE %.2d%%!\n", d);
+						journal.jprintf("LEAKAGE %.2d%%!\n", d);
 						DrainingSiltFlag = 2;
 					}
 					if(++FillingTankTimer > LEAKAGE_TANK_RESTART_TIME) DrainingSiltFlag = 255;
@@ -2173,19 +2168,28 @@ void vService(void *)
 	#endif
 					if(PumpReadCounter >= MODBUS_PUMP_PERIOD) {
 						PumpReadCounter = 0;
-						uint32_t tmp;
-						int8_t err = Modbus.readInputRegisters32(MODBUS_DRAIN_PUMP_ADDR, PWM_POWER, &tmp);
+						int8_t err = ModbusPump.readInputRegisters32(MODBUS_DRAIN_PUMP_ADDR, PWM_POWER, &tmp);
 						if(err == OK) {
-							DrainPumpPower = tmp / 10;
-							if(DrainPumpPower > 10) DrainPumpTimeLast = rtcSAM3X8.unixtime();
+							tmp /= 10;
+							if(tmp > 10) { // работает
+								if(DrainPumpPower <= 10) DrainPumpTimeLast = rtcSAM3X8.unixtime(); // время включения
+								else if(MC.Option.DrainPumpMaxTime && rtcSAM3X8.unixtime() - DrainPumpTimeLast > MC.Option.DrainPumpMaxTime * 10) {
+									set_Error(ERR_DRAIN_PUMP_TOOLONG, (char*)"vService");
+#ifdef MODBUS_DRAIN_PUMP_OFF_CMD
+									ModbusPump.MODBUS_PUMP_FUNC(MODBUS_DRAIN_PUMP_RELAY_ADDR, MODBUS_DRAIN_PUMP_RELAY_ID, MODBUS_DRAIN_PUMP_OFF_CMD);
+									journal.jprintf("DRAIN PUMP -> OFF!\n", err);
+#endif
+								}
+							}
+							DrainPumpPower = tmp;
 							DrainPumpErrCnt = 0;
 						} else {
 							PumpReadCounter = MODBUS_PUMP_PERIOD - 1;
-							if(++DrainPumpErrCnt > MODBUS_PUMP_MAX_ERRORS) {
-
-
-
-							}
+							if(++DrainPumpErrCnt == MODBUS_PUMP_MAX_ERRORS) {
+								if(MC.get_errcode() != ERR_DRAIN_PUMP_LINK) journal.jprintf("PUMP Link Error %d!\n", err);
+								set_Error(ERR_DRAIN_PUMP_LINK, (char*)"vService");
+								//DrainPumpErrCnt = 0;
+							} else if(GETBIT(MC.Option.flags, fPWMLogErrors)) journal.jprintf_time("PUMP Read Error %d\n", err);
 						}
 					}
 				}

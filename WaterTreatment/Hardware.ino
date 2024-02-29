@@ -737,22 +737,26 @@ int8_t devModbus::initModbus(uint8_t ADR, USARTClass serial)
      {
 #ifdef MODBUS_PORT_SPEED
         flags=0x00;
-        SETBIT1(flags,fModbus);                                                      // модбас присутствует
 	#ifdef PIN_MODBUS_RSE
         pinMode(PIN_MODBUS_RSE , OUTPUT);                                            // Подготовка управлением полудуплексом
         digitalWriteDirect(PIN_MODBUS_RSE , LOW);
 	#endif
-        serial.begin(MODBUS_PORT_SPEED, MODBUS_PORT_CONFIG);
-        RS485.begin(ADR, serial);
-        RS485.ModbusMinTimeBetweenTransaction = MODBUS_TIMEOUT;
-        RS485.ModbusResponseTimeout = MODBUS_MIN_TIME_BETWEEN_TRNS;
-#ifdef MODBUS_TIME_TRANSMISION
-        // Назначение функций обратного вызова
-        RS485.preTransmission(preTransmission);
-        RS485.postTransmission(postTransmission);
-#endif
-        RS485.idle(idle);
-        err=OK;                                                                      // Связь есть
+		vSemaphoreCreateBinary(xModbusSemaphore);                       // Создание мютекса
+		if(xModbusSemaphore==NULL) set_Error(ERR_MEM_FREERTOS,(char*)__FUNCTION__);
+		else {
+			serial.begin(MODBUS_PORT_SPEED, MODBUS_PORT_CONFIG);
+			RS485.begin(ADR, serial);
+			RS485.ModbusMinTimeBetweenTransaction = MODBUS_TIMEOUT;
+			RS485.ModbusResponseTimeout = MODBUS_MIN_TIME_BETWEEN_TRNS;
+	#ifdef MODBUS_TIME_TRANSMISION
+			// Назначение функций обратного вызова
+			RS485.preTransmission(preTransmission);
+			RS485.postTransmission(postTransmission);
+	#endif
+			RS485.idle(idle);
+	        SETBIT1(flags,fModbus);                                                      // модбас присутствует
+			err=OK;                                                                      // Связь есть
+		}
 #else
         flags=0x00;
         SETBIT0(flags,fModbus);                                                     // модбас отсутвует
@@ -894,104 +898,133 @@ int8_t devModbus::readHoldingRegistersFloat(uint8_t id, uint16_t cmd, float *ret
 
 
 // Получить значение N регистров c cmd (2*N байта) МХ2 в виде целого  числа (uint16_t *buf) при ошибке возвращает err
-int8_t devModbus::readHoldingRegistersNN(uint8_t id,uint16_t cmd, uint16_t num, uint16_t *buf) 
+int8_t devModbus::readHoldingRegistersNN(uint8_t id, uint16_t cmd, uint16_t num, uint16_t *buf)
 {
-    // Если шедулер запущен то захватываем семафор
-    if(SemaphoreTake(xModbusSemaphore,(MODBUS_TIME_WAIT/portTICK_PERIOD_MS))==pdFALSE)     // Захват мютекса потока или ОЖИДАНИНЕ MODBUS_TIME_WAIT
-    { journal.jprintf((char*)cErrorMutex,__FUNCTION__,MutexModbusBuzy);return err = ERR_485_BUZY;}
-      RS485.set_slave(id);
-      uint8_t result = RS485.readHoldingRegisters(cmd,num);                                           // послать запрос,
-      if (result == RS485.ku8MBSuccess) 
-      { 
-        for (int16_t i=0;i<num;i++)   buf[i]=RS485.getResponseBuffer(i);
-        err=OK; 
-        SemaphoreGive(xModbusSemaphore);
-        return err; 
-       }  
-      else {err=translateErr(result); SemaphoreGive(xModbusSemaphore); return err;}
+	// Если шедулер запущен то захватываем семафор
+	if(SemaphoreTake(xModbusSemaphore, (MODBUS_TIME_WAIT / portTICK_PERIOD_MS)) == pdFALSE) // Захват мютекса потока или ОЖИДАНИНЕ MODBUS_TIME_WAIT
+	{
+		journal.jprintf((char*) cErrorMutex, __FUNCTION__, MutexModbusBuzy);
+		return err = ERR_485_BUZY;
+	}
+	RS485.set_slave(id);
+	uint8_t result = RS485.readHoldingRegisters(cmd, num);                                           // послать запрос,
+	if(result == RS485.ku8MBSuccess) {
+		for(int16_t i = 0; i < num; i++)
+			buf[i] = RS485.getResponseBuffer(i);
+		err = OK;
+		SemaphoreGive (xModbusSemaphore);
+		return err;
+	} else {
+		err = translateErr(result);
+		SemaphoreGive (xModbusSemaphore);
+		return err;
+	}
 }
 
 // прочитать отдельный бит возвращает ошибку Modbus function 0x01 Read Coils.
-int8_t  devModbus::readCoil(uint8_t id,uint16_t cmd, boolean *ret)                    
+int8_t devModbus::readCoil(uint8_t id, uint16_t cmd, boolean *ret)
 {
-uint8_t result;
+	uint8_t result;
 // Если шедулер запущен то захватываем семафор
-if(SemaphoreTake(xModbusSemaphore,(MODBUS_TIME_WAIT/portTICK_PERIOD_MS))==pdFALSE)            // Захват мютекса потока или ОЖИДАНИНЕ MODBUS_TIME_WAIT
-{ journal.jprintf((char*)cErrorMutex,__FUNCTION__,MutexModbusBuzy);return err = ERR_485_BUZY;}
-  RS485.set_slave(id); 
-  result = RS485.readCoils(cmd,1);                                                              // послать запрос, Нумерация регистров с НУЛЯ!!!!
-  if (result == RS485.ku8MBSuccess) { err=OK; SemaphoreGive(xModbusSemaphore); if (RS485.getResponseBuffer(0)) *ret=true; else *ret=false; return err;}
-  else                              { err=translateErr(result); SemaphoreGive(xModbusSemaphore); return err;}
-  }
-
+	if(SemaphoreTake(xModbusSemaphore, (MODBUS_TIME_WAIT / portTICK_PERIOD_MS)) == pdFALSE) // Захват мютекса потока или ОЖИДАНИНЕ MODBUS_TIME_WAIT
+	{
+		journal.jprintf((char*) cErrorMutex, __FUNCTION__, MutexModbusBuzy);
+		return err = ERR_485_BUZY;
+	}
+	RS485.set_slave(id);
+	result = RS485.readCoils(cmd, 1);                                  // послать запрос, Нумерация регистров с НУЛЯ!!!!
+	if(result == RS485.ku8MBSuccess) {
+		err = OK;
+		SemaphoreGive (xModbusSemaphore);
+		if(RS485.getResponseBuffer(0)) *ret = true;
+		else *ret = false;
+		return err;
+	} else {
+		err = translateErr(result);
+		SemaphoreGive (xModbusSemaphore);
+		return err;
+	}
+}
 
 // ФУНКЦИИ ЗАПИСИ ----------------------------------------------------------------------------------------------
 // установить битовый вход функция Modbus function 0x05 Write Single Coil.
-int8_t devModbus::writeSingleCoil(uint8_t id,uint16_t cmd, uint8_t u8State)
+int8_t devModbus::writeSingleCoil(uint8_t id, uint16_t cmd, uint8_t u8State)
 {
-    uint8_t result;
-    // Если шедулер запущен то захватываем семафор
-    if(SemaphoreTake(xModbusSemaphore,(MODBUS_TIME_WAIT/portTICK_PERIOD_MS))==pdFALSE)     // Захват мютекса потока или ОЖИДАНИНЕ MODBUS_TIME_WAIT
-    { journal.jprintf((char*)cErrorMutex,__FUNCTION__,MutexModbusBuzy);return err = ERR_485_BUZY;}
-      RS485.set_slave(id);
-      result = RS485.writeSingleCoil(cmd,u8State);                                         // послать запрос,
-      if (result == RS485.ku8MBSuccess) 
-      { 
-        err=OK; 
-        SemaphoreGive(xModbusSemaphore);
-        return err; 
-       }  
-      else {err=translateErr(result); SemaphoreGive(xModbusSemaphore); return err;}
+	uint8_t result;
+	// Если шедулер запущен то захватываем семафор
+	if(SemaphoreTake(xModbusSemaphore, (MODBUS_TIME_WAIT / portTICK_PERIOD_MS)) == pdFALSE) // Захват мютекса потока или ОЖИДАНИНЕ MODBUS_TIME_WAIT
+	{
+		journal.jprintf((char*) cErrorMutex, __FUNCTION__, MutexModbusBuzy);
+		return err = ERR_485_BUZY;
+	}
+	RS485.set_slave(id);
+	result = RS485.writeSingleCoil(cmd, u8State);                                         // послать запрос,
+	if(result == RS485.ku8MBSuccess) {
+		err = OK;
+	} else {
+		err = translateErr(result);
+	}
+	SemaphoreGive(xModbusSemaphore);
+	return err;
 }
 // Установить значение регистра (2 байта) МХ2 в виде целого  числа возвращает код ошибки данные data
-int8_t   devModbus::writeHoldingRegisters16(uint8_t id, uint16_t cmd, uint16_t data)
+int8_t devModbus::writeHoldingRegisters16(uint8_t id, uint16_t cmd, uint16_t data)
 {
-    // Если шедулер запущен то захватываем семафор
-    if(SemaphoreTake(xModbusSemaphore,(MODBUS_TIME_WAIT/portTICK_PERIOD_MS))==pdFALSE)            // Захват мютекса потока или ОЖИДАНИНЕ MODBUS_TIME_WAIT
-    { journal.jprintf((char*)cErrorMutex,__FUNCTION__,MutexModbusBuzy); return err = ERR_485_BUZY;}
+	// Если шедулер запущен то захватываем семафор
+	if(SemaphoreTake(xModbusSemaphore, (MODBUS_TIME_WAIT / portTICK_PERIOD_MS)) == pdFALSE) // Захват мютекса потока или ОЖИДАНИНЕ MODBUS_TIME_WAIT
+	{
+		journal.jprintf((char*) cErrorMutex, __FUNCTION__, MutexModbusBuzy);
+		return err = ERR_485_BUZY;
+	}
 
-      RS485.set_slave(id);
-      uint8_t result = RS485.writeSingleRegister(cmd,data);                                               // послать запрос,
-      SemaphoreGive(xModbusSemaphore);
-      return err = translateErr(result);
-  
+	RS485.set_slave(id);
+	uint8_t result = RS485.writeSingleRegister(cmd, data);                                            // послать запрос,
+	SemaphoreGive(xModbusSemaphore);
+	return err = translateErr(result);
+
 }
 
 // Записать 2 регистра подряд возвращает код ошибки, BIG-ENDIAN!
 int8_t devModbus::writeHoldingRegisters32(uint8_t id, uint16_t cmd, uint32_t data)
 {
-   uint8_t result;
-    // Если шедулер запущен то захватываем семафор
-    if(SemaphoreTake(xModbusSemaphore,(MODBUS_TIME_WAIT/portTICK_PERIOD_MS))==pdFALSE)            // Захват мютекса потока или ОЖИДАНИНЕ MODBUS_TIME_WAIT
-    { journal.jprintf((char*)cErrorMutex,__FUNCTION__,MutexModbusBuzy);return err = ERR_485_BUZY;}
-      RS485.set_slave(id);
-      RS485.setTransmitBuffer(0, data >> 16);
-      RS485.setTransmitBuffer(1, data & 0xFFFF);
-      result = RS485.writeMultipleRegisters(cmd,2);                                                 // послать запрос,
-      SemaphoreGive(xModbusSemaphore);
-      return err = translateErr(result);
+	uint8_t result;
+	// Если шедулер запущен то захватываем семафор
+	if(SemaphoreTake(xModbusSemaphore, (MODBUS_TIME_WAIT / portTICK_PERIOD_MS)) == pdFALSE) // Захват мютекса потока или ОЖИДАНИНЕ MODBUS_TIME_WAIT
+	{
+		journal.jprintf((char*) cErrorMutex, __FUNCTION__, MutexModbusBuzy);
+		return err = ERR_485_BUZY;
+	}
+	RS485.set_slave(id);
+	RS485.setTransmitBuffer(0, data >> 16);
+	RS485.setTransmitBuffer(1, data & 0xFFFF);
+	result = RS485.writeMultipleRegisters(cmd, 2);                                                 // послать запрос,
+	SemaphoreGive(xModbusSemaphore);
+	return err = translateErr(result);
 }
 
 // Записать float как 2 регистра числа возвращает код ошибки данные dat
-int8_t   devModbus::writeHoldingRegistersFloat(uint8_t id, uint16_t cmd, float dat)
+int8_t devModbus::writeHoldingRegistersFloat(uint8_t id, uint16_t cmd, float dat)
 {
-  union  {
-          float f;
-          uint16_t i[2];
-         } float_map = { .f = dat }; 
-    uint8_t result;
-    // Если шедулер запущен то захватываем семафор
-    if(SemaphoreTake(xModbusSemaphore,(MODBUS_TIME_WAIT/portTICK_PERIOD_MS))==pdFALSE)            // Захват мютекса потока или ОЖИДАНИНЕ MODBUS_TIME_WAIT
-    { journal.jprintf((char*)cErrorMutex,__FUNCTION__,MutexModbusBuzy);return err = ERR_485_BUZY;}
+	union {
+		float f;
+		uint16_t i[2];
+	} float_map = { .f = dat };
+	uint8_t result;
+	// Если шедулер запущен то захватываем семафор
+	if(SemaphoreTake(xModbusSemaphore, (MODBUS_TIME_WAIT / portTICK_PERIOD_MS)) == pdFALSE) // Захват мютекса потока или ОЖИДАНИНЕ MODBUS_TIME_WAIT
+	{
+		journal.jprintf((char*) cErrorMutex, __FUNCTION__, MutexModbusBuzy);
+		return err = ERR_485_BUZY;
+	}
 
-      RS485.set_slave(id);
-      RS485.setTransmitBuffer(0,float_map.i[1]);
-      RS485.setTransmitBuffer(1,float_map.i[0]);
-     result = RS485.writeMultipleRegisters(cmd,2);
-   //   result = RS485.writeSingleRegister(cmd,dat);                                               // послать запрос,
-       SemaphoreGive(xModbusSemaphore);
-      return err = translateErr(result);
-  
+	RS485.set_slave(id);
+	RS485.setTransmitBuffer(0, float_map.i[1]);
+	RS485.setTransmitBuffer(1, float_map.i[0]);
+	result = RS485.writeMultipleRegisters(cmd, 2);
+	//   result = RS485.writeSingleRegister(cmd,dat);                                               // послать запрос,
+	SemaphoreGive(xModbusSemaphore);
+	return err = translateErr(result);
+
 }
 
 // Перевод ошибки протокола Модбас (что дает либа)

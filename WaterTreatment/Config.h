@@ -183,13 +183,15 @@ struct History_setup {
 		#define MODBUS_PUMP_SERIAL			Serial2
 		#define MODBUS_DRAIN_PUMP_ADDR		2	// Адрес дренажного насоса
 		#define MODBUS_DRAIN_PUMP_RELAY_ADDR	3	// Адрес реле дренажного насоса
+		#define MODBUS_DRAIN_PUMP_RELAY_ID		0	// Номер реле (нумерация с 0)
+		#define MODBUS_DRAIN_PUMP_OFF_CMD		1
 		//#define MODBUS_SEPTIC_PUMP_ADDR		3	// Адрес насоса септика
 		//#define MODBUS_SEPTIC_PUMP_RELAY_ADDR	4	// Адрес отключения дренажного насоса
 		#define MODBUS_PUMP_PERIOD			10	// Период опроса, сек (не меньше 2)
 		#define MODBUS_PUMP_MAX_ERRORS		5	// Подряд ошибок, чтобы выдать ошибку
 
 		//const byte MODBUS_PUMP_ON_CMD[] 	= { 0x05, 0x00, 0x00, 0xFF, 0x00 };	// команда включения насоса
-		const byte MODBUS_PUMP_OFF_CMD[]	= { 0x05, 0x00, 0x00, 0xFF, 0x00 };	// команда отключения насоса
+		#define MODBUS_PUMP_FUNC(ID,CMD,ST) writeSingleCoil(ID,CMD,ST)
 
 #if MODBUS_PUMP_PERIOD < 2
 	#error "MODBUS_PUMP_PERIOD must be greater than 1"

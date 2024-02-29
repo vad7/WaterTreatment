@@ -338,6 +338,7 @@ class devModbus
     int8_t writeHoldingRegisters32(uint8_t id,uint16_t cmd, uint32_t data); 			   // BIG-ENDIAN! Записать 2 регистра подряд возвращает код ошибки
     int8_t get_err() {return err;}                                                         // Получить код ошибки
     ModbusMaster RS485;                     // Класс модбас 485
+    SemaphoreHandle_t xModbusSemaphore;     // Семафор Modbus
 private:
     // Переменные
     int8_t flags;                           // Флаги

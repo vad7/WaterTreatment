@@ -437,7 +437,9 @@ const char *option_fDrainSiltTankBeforeRegen= {"DSR"};
 const char *option_UsedWaterContinuous	= {"UWC"};
 const char *option_FilterCounter1_Max	= {"FC1"};
 const char *option_FilterCounter2_Max	= {"FC2"};
+const char *option_DrainPumpMaxTime		= {"DPT"};
 const char *option_fLED_SRV_INFO_PlanReg= {"LPR"};
+const char *option_fCheckDrainPump		= {"CDP"};
 const char option_GetCurrentSaltLevel[] = "LvL";	// get_Opt(LvL)
 const char prof_DailySwitch[] 	= "DS";
 const char prof_DailySwitchDevice = 'D';		// DSD
@@ -548,8 +550,10 @@ const char *webWS_NextRegenSoftAfterDays		= { "NS" };
 #define ERR_TANK_LEAKAGE	-75			// Бак протек
 #define ERR_TANK_FILLING_LONG -76		// Слишком долгое заполнение бака
 #define ERR_LONG_WATER_CONSUMING -77	// Долгое непрерывное потребление воды!
+#define ERR_DRAIN_PUMP_LINK	 -78		// Ошибка связи со счетчиком насоса
+#define ERR_DRAIN_PUMP_TOOLONG -79		// Слишком долго работает насос
 
-#define ERR_ERRMAX			-77			// Последняя ошибка
+#define ERR_ERRMAX			-79			// Последняя ошибка
 
 // Предупреждения
 #define WARNING_VALUE        1         // Попытка установить значение за границами диапазона запрос типа SET
@@ -633,7 +637,9 @@ const char *noteError[] = {
 		"Слишком долго работает дозатор!",													//-74
 		"Утечка накопительного бака!",														//-75
 		"Слишком долгое заполнение бака!",													//-76
-		"Долгое непрерывное потребление воды!",												//-76
+		"Долгое непрерывное потребление воды!",												//-77
+		"Ошибка связи со счетчиком насоса дренажа",											//-78
+		"Слишком долго работает насос дренажа",												//-79
 
 		"NULL"
 		};
