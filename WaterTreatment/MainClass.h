@@ -258,7 +258,7 @@ struct type_option {
 	uint8_t  UsedWaterContinuous;	// Максимальное время непрерывного потребления воды, минуты
 	uint16_t FilterCounter1_Max;	// Предел для счетчика 1, *100л
 	uint16_t FilterCounter2_Max;	// Предел для счетчика 2, *100л
-	uint8_t  DrainPumpMaxTime;		// Максимальное время работы дренажного насоса, 0 - нет, сек * 10
+	uint8_t  DrainPumpMaxTime;		// Максимальное время работы дренажного насоса, 0 - нет, сек * 30
 };
 
 //  Работа с отдельными флагами type_DateTime

@@ -484,7 +484,7 @@ void Statistics::History()
 			int_to_dec_str(MC.sFrequency[HistorySetup[i].number].get_Value(), 1, &buf, 0); // F (/1)
 			break;
 		case STATS_OBJ_Power:
-			int_to_dec_str((int32_t)MC.dPWM.get_Power(), 1, &buf, 0);  // W (/1000)
+			int_to_dec_str((int32_t)(HistorySetup[i].number == 0 ? (int32_t)MC.dPWM.get_Power() : DrainPumpPower), 1, &buf, 0);  // W (/1000)
 			break;
 		case STATS_OBJ_WaterUsed: {
 				int32_t tmp = History_WaterUsed_work;
