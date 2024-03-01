@@ -96,10 +96,13 @@ uint32_t FeedPumpWork = 0;						// ms
 uint32_t FloodingTime = 0;
 uint32_t SepticAlarmTime;
 #ifdef CHECK_DRAIN_PUMP
-uint8_t  PumpReadCounter = 0;
+#define  DRAIN_PUMP_CMD_ON	255		// -> PumpReadCounter
+#define  DRAIN_PUMP_CMD_OFF	254		// -> PumpReadCounter
+uint8_t  PumpReadCounter = DRAIN_PUMP_CMD_ON;
 uint32_t DrainPumpTimeLast = 0;	// time
 uint16_t DrainPumpPower = 0; // W
 uint8_t  DrainPumpErrCnt = 0;
+uint8_t  DrainPumpRelayErrCnt = 0;
 //uint32_t SepticPumpTimeLast = 0;
 //uint16_t SepticPumpPower = 0; // W
 #endif
@@ -188,6 +191,7 @@ type_WebSecurity WebSec_admin;				// хеш паролей
 #define fDrainSiltTankBeforeRegen 1			// Сливать осадок с бака перед регенерацией
 #define fLED_SRV_INFO_PlanReg 2				// Мигать редко на PIN_LED_SRV_INFO при запланированной регенерации
 #define fCheckDrainPump		3				// Проверять работу дренажного насоса
+#define fDrainPumpRelay		4				// Использовать реле отключения насоса
 
 // Структура для хранения настроек
 struct type_option {

@@ -1389,55 +1389,118 @@ x_get_RH:			_itoa(MC.Option.RegenHour & 0x1F, strReturn);
 			// код обработки установки значений модбас
 			// get_modbus_val(N:D:X), set_modbus_val(N:D:X=YYY)
 			// N - номер устройства, D - тип данных, X - адрес, Y - новое значение
-			if(strncmp(str+1, "et_modbus_", 10) == 0) {
-				STORE_DEBUG_INFO(38);
-				if(str[11] == 'p') { // set_modbus_p(n=x) - установить параметры протокола Modbus
-					l_i32 = pm;
-					if(strcmp(x, "timeout")) { // Таймаут
-						if(str[0] == 's') Modbus.RS485.ModbusResponseTimeout = l_i32; else l_i32 = Modbus.RS485.ModbusResponseTimeout;
-					} else if(strcmp(x, "pause")) { // Пауза между транзакциями
-						if(str[0] == 's') Modbus.RS485.ModbusMinTimeBetweenTransaction = l_i32; else l_i32 = Modbus.RS485.ModbusMinTimeBetweenTransaction;
-					} else goto x_FunctionNotFound;
-					_itoa(l_i32, strReturn);
-					ADD_WEBDELIM(strReturn);
-					continue;
-				} else if((y = strchr(x, ':'))) {
-					*y++ = '\0';
-					uint8_t id = atoi(x);
-					uint16_t par = atoi(y + 2);
-					i = OK;
-					if(strncmp(str, "set", 3) == 0) {
-						// strtol - NO REENTRANT FUNCTION!
-						if(*y == 'h') i = Modbus.writeHoldingRegisters16(id, par, strtol(z, NULL, 0)); // 1 register (int16).
-						//else if(*y == 'u') i = Modbus.writeHoldingRegisters32(id, par, strtol(z, NULL, 0)); // 2 registers (int32).
-						else if(*y == 'f') i = Modbus.writeHoldingRegistersFloat(id, par, strtol(z, NULL, 0)); // 2 registers (float).
-						else if(*y == 'c') i = Modbus.writeSingleCoil(id, par, atoi(z));	// coil
-						else goto x_FunctionNotFound;
-#ifdef MODBUS_TIME_TRANSMISION
-						_delay(MODBUS_TIME_TRANSMISION * 10); // Задержка перед чтением
-#endif
-					} else if(strncmp(str, "get", 3) == 0) {
-					} else goto x_FunctionNotFound;
-					if(i == OK) {
-						if(*y == 'w') {
-							if((i = Modbus.readInputRegisters16(id, par, &par)) == OK) _itoa(par, strReturn);
-						} else if(*y == 'l') {
-							if((i = Modbus.readInputRegisters32(id, par, (uint32_t *)&l_i32)) == OK) _itoa(l_i32, strReturn);
-						} else if(*y == 'i') {
-							if((i = Modbus.readInputRegistersFloat(id, par, &pm)) == OK) _ftoa(strReturn, pm, 2);
-						} else if(*y == 'h') {
-							if((i = Modbus.readHoldingRegisters16(id, par, &par)) == OK) _itoa(par, strReturn);
-						} else if(*y == 'f') {
-							if((i = Modbus.readHoldingRegistersFloat(id, par, &pm)) == OK) _ftoa(strReturn, pm, 2);
-						} else if(*y == 'c') {
-							if((i = Modbus.readCoil(id, par, (boolean *)&par)) == OK) _itoa(par, strReturn);
+			if(strncmp(str+1, "et_modbus", 9) == 0) {
+				if(strncmp(str+1, "et_modbus_", 10) == 0) {
+					STORE_DEBUG_INFO(38);
+					if(str[11] == 'p') { // set_modbus_p(n=x) - установить параметры протокола Modbus
+						l_i32 = pm;
+						if(strcmp(x, "timeout")) { // Таймаут
+							if(str[0] == 's') Modbus.RS485.ModbusResponseTimeout = l_i32; else l_i32 = Modbus.RS485.ModbusResponseTimeout;
+						} else if(strcmp(x, "pause")) { // Пауза между транзакциями
+							if(str[0] == 's') Modbus.RS485.ModbusMinTimeBetweenTransaction = l_i32; else l_i32 = Modbus.RS485.ModbusMinTimeBetweenTransaction;
 						} else goto x_FunctionNotFound;
+						_itoa(l_i32, strReturn);
+						ADD_WEBDELIM(strReturn);
+						continue;
+					} else if((y = strchr(x, ':'))) {
+						*y++ = '\0';
+						uint8_t id = atoi(x);
+						uint16_t par = atoi(y + 2);
+						i = OK;
+						if(strncmp(str, "set", 3) == 0) {
+							// strtol - NO REENTRANT FUNCTION!
+							if(*y == 'h') i = Modbus.writeHoldingRegisters16(id, par, strtol(z, NULL, 0)); // 1 register (int16).
+							//else if(*y == 'u') i = Modbus.writeHoldingRegisters32(id, par, strtol(z, NULL, 0)); // 2 registers (int32).
+							else if(*y == 'f') i = Modbus.writeHoldingRegistersFloat(id, par, strtol(z, NULL, 0)); // 2 registers (float).
+							else if(*y == 'c') i = Modbus.writeSingleCoil(id, par, atoi(z));	// coil
+							else goto x_FunctionNotFound;
+#ifdef MODBUS_TIME_TRANSMISION
+							_delay(MODBUS_TIME_TRANSMISION * 10); // Задержка перед чтением
+#endif
+						} else if(strncmp(str, "get", 3) == 0) {
+						} else goto x_FunctionNotFound;
+						if(i == OK) {
+							if(*y == 'w') {
+								if((i = Modbus.readInputRegisters16(id, par, &par)) == OK) _itoa(par, strReturn);
+							} else if(*y == 'l') {
+								if((i = Modbus.readInputRegisters32(id, par, (uint32_t *)&l_i32)) == OK) _itoa(l_i32, strReturn);
+							} else if(*y == 'i') {
+								if((i = Modbus.readInputRegistersFloat(id, par, &pm)) == OK) _ftoa(strReturn, pm, 2);
+							} else if(*y == 'h') {
+								if((i = Modbus.readHoldingRegisters16(id, par, &par)) == OK) _itoa(par, strReturn);
+							} else if(*y == 'f') {
+								if((i = Modbus.readHoldingRegistersFloat(id, par, &pm)) == OK) _ftoa(strReturn, pm, 2);
+							} else if(*y == 'c') {
+								if((i = Modbus.readCoil(id, par, (boolean *)&par)) == OK) _itoa(par, strReturn);
+							} else goto x_FunctionNotFound;
+						}
+						if(i != OK) {
+							strcat(strReturn, "E"); _itoa(i, strReturn);
+						}
+						ADD_WEBDELIM(strReturn);
+						continue;
 					}
-					if(i != OK) {
-						strcat(strReturn, "E"); _itoa(i, strReturn);
+				} else if(strncmp(str+1, "et_modbu2_", 10) == 0) { // get_modbu2_val, set_modbu2_val
+#ifdef MODBUS_PUMP_SERIAL
+					STORE_DEBUG_INFO(38);
+					if(str[11] == 'p') { // set_modbus_p(n=x) - установить параметры протокола Modbus
+						l_i32 = pm;
+						if(strcmp(x, "timeout")) { // Таймаут
+							if(str[0] == 's') ModbusPump.RS485.ModbusResponseTimeout = l_i32; else l_i32 = ModbusPump.RS485.ModbusResponseTimeout;
+						} else if(strcmp(x, "pause")) { // Пауза между транзакциями
+							if(str[0] == 's') ModbusPump.RS485.ModbusMinTimeBetweenTransaction = l_i32; else l_i32 = ModbusPump.RS485.ModbusMinTimeBetweenTransaction;
+						} else if(strcmp(x, "id")) { // id устройств
+							strcat(strReturn, "насос: ");
+							_itoa(MODBUS_DRAIN_PUMP_ADDR, strReturn);
+#ifdef MODBUS_DRAIN_PUMP_RELAY_ADDR
+							strcat(strReturn, ", реле: ");
+							_itoa(MODBUS_DRAIN_PUMP_RELAY_ADDR, strReturn);
+#endif
+							ADD_WEBDELIM(strReturn);
+							continue;
+						} else goto x_FunctionNotFound;
+						_itoa(l_i32, strReturn);
+						ADD_WEBDELIM(strReturn);
+						continue;
+					} else if((y = strchr(x, ':'))) {
+						*y++ = '\0';
+						uint8_t id = atoi(x);
+						uint16_t par = atoi(y + 2);
+						i = OK;
+						if(strncmp(str, "set", 3) == 0) {
+							// strtol - NO REENTRANT FUNCTION!
+							if(*y == 'h') i = ModbusPump.writeHoldingRegisters16(id, par, strtol(z, NULL, 0)); // 1 register (int16).
+							//else if(*y == 'u') i = ModbusPump.writeHoldingRegisters32(id, par, strtol(z, NULL, 0)); // 2 registers (int32).
+							else if(*y == 'f') i = ModbusPump.writeHoldingRegistersFloat(id, par, strtol(z, NULL, 0)); // 2 registers (float).
+							else if(*y == 'c') i = ModbusPump.writeSingleCoil(id, par, atoi(z));	// coil
+							else goto x_FunctionNotFound;
+#ifdef MODBUS_TIME_TRANSMISION
+							_delay(MODBUS_TIME_TRANSMISION * 10); // Задержка перед чтением
+#endif
+						} else if(strncmp(str, "get", 3) == 0) {
+						} else goto x_FunctionNotFound;
+						if(i == OK) {
+							if(*y == 'w') {
+								if((i = ModbusPump.readInputRegisters16(id, par, &par)) == OK) _itoa(par, strReturn);
+							} else if(*y == 'l') {
+								if((i = ModbusPump.readInputRegisters32(id, par, (uint32_t *)&l_i32)) == OK) _itoa(l_i32, strReturn);
+							} else if(*y == 'i') {
+								if((i = ModbusPump.readInputRegistersFloat(id, par, &pm)) == OK) _ftoa(strReturn, pm, 2);
+							} else if(*y == 'h') {
+								if((i = ModbusPump.readHoldingRegisters16(id, par, &par)) == OK) _itoa(par, strReturn);
+							} else if(*y == 'f') {
+								if((i = ModbusPump.readHoldingRegistersFloat(id, par, &pm)) == OK) _ftoa(strReturn, pm, 2);
+							} else if(*y == 'c') {
+								if((i = ModbusPump.readCoil(id, par, (boolean *)&par)) == OK) _itoa(par, strReturn);
+							} else goto x_FunctionNotFound;
+						}
+						if(i != OK) {
+							strcat(strReturn, "E"); _itoa(i, strReturn);
+						}
+						ADD_WEBDELIM(strReturn);
+						continue;
 					}
-					ADD_WEBDELIM(strReturn);
-					continue;
+#endif //MODBUS_PUMP_SERIAL
 				}
 			}
 

@@ -184,6 +184,7 @@ struct History_setup {
 		#define MODBUS_DRAIN_PUMP_ADDR		2	// Адрес дренажного насоса
 		#define MODBUS_DRAIN_PUMP_RELAY_ADDR	3	// Адрес реле дренажного насоса
 		#define MODBUS_DRAIN_PUMP_RELAY_ID		0	// Номер реле (нумерация с 0)
+		#define MODBUS_DRAIN_PUMP_ON_CMD		0
 		#define MODBUS_DRAIN_PUMP_OFF_CMD		1
 		//#define MODBUS_SEPTIC_PUMP_ADDR		3	// Адрес насоса септика
 		//#define MODBUS_SEPTIC_PUMP_RELAY_ADDR	4	// Адрес отключения дренажного насоса

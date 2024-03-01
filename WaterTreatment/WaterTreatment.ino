@@ -2160,12 +2160,26 @@ void vService(void *)
 				}
 #ifdef CHECK_DRAIN_PUMP
 				if(GETBIT(MC.Option.flags2, fCheckDrainPump)) {
-					PumpReadCounter++;
-	#ifdef MODBUS_SEPTIC_PUMP_ADDR
+					if(PumpReadCounter == DRAIN_PUMP_CMD_ON || PumpReadCounter == DRAIN_PUMP_CMD_OFF) {
+						if(GETBIT(MC.Option.flags2, fDrainPumpRelay)) {
+#ifdef MODBUS_DRAIN_PUMP_RELAY_ADDR
+							int8_t err = ModbusPump.MODBUS_PUMP_FUNC(MODBUS_DRAIN_PUMP_RELAY_ADDR, MODBUS_DRAIN_PUMP_RELAY_ID,
+											PumpReadCounter == DRAIN_PUMP_CMD_ON ? MODBUS_DRAIN_PUMP_ON_CMD : MODBUS_DRAIN_PUMP_OFF_CMD);
+							if(err) {
+								if(++DrainPumpRelayErrCnt == MODBUS_PUMP_MAX_ERRORS) {
+									if(MC.get_errcode() != ERR_DRAIN_PUMP_RELAY_LINK) journal.jprintf("PUMP Relay Link Error %d!\n", err);
+									set_Error(ERR_DRAIN_PUMP_RELAY_LINK, (char*)"vService");
+								}
+							} else if(PumpReadCounter == DRAIN_PUMP_CMD_OFF) journal.jprintf_time("DRAIN PUMP -> OFF!\n", err);
+#endif
+						}
+						PumpReadCounter = 0;
+					} else PumpReadCounter++;
+#ifdef MODBUS_SEPTIC_PUMP_ADDR
 					if(PumpReadCounter == MODBUS_PUMP_PERIOD / 2) {
 						// to do...
 					} else
-	#endif
+#endif
 					if(PumpReadCounter >= MODBUS_PUMP_PERIOD) {
 						PumpReadCounter = 0;
 						int8_t err = ModbusPump.readInputRegisters32(MODBUS_DRAIN_PUMP_ADDR, PWM_POWER, &tmp);
@@ -2175,10 +2189,7 @@ void vService(void *)
 								if(DrainPumpPower <= 10) DrainPumpTimeLast = rtcSAM3X8.unixtime(); // время включения
 								else if(MC.Option.DrainPumpMaxTime && rtcSAM3X8.unixtime() - DrainPumpTimeLast > MC.Option.DrainPumpMaxTime * 10) {
 									set_Error(ERR_DRAIN_PUMP_TOOLONG, (char*)"vService");
-#ifdef MODBUS_DRAIN_PUMP_OFF_CMD
-									ModbusPump.MODBUS_PUMP_FUNC(MODBUS_DRAIN_PUMP_RELAY_ADDR, MODBUS_DRAIN_PUMP_RELAY_ID, MODBUS_DRAIN_PUMP_OFF_CMD);
-									journal.jprintf("DRAIN PUMP -> OFF!\n", err);
-#endif
+									PumpReadCounter = DRAIN_PUMP_CMD_OFF;
 								}
 							}
 							DrainPumpPower = tmp;

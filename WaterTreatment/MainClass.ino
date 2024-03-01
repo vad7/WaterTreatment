@@ -177,9 +177,15 @@ void MainClass::clear_error()
 // стереть все ошибки
 void MainClass::clear_all_errors()
 {
-	if(error == ERR_SALT_FINISH) {
-		MC.WorkStats.RegenSofteningCntAlarm = MC.Option.RegenSofteningCntAlarm;
-		NeedSaveWorkStats = 1;
+	for(uint8_t i = 0; i < sizeof(Errors)/sizeof(Errors[0]); i++) {
+		if(error == ERR_SALT_FINISH) {
+			MC.WorkStats.RegenSofteningCntAlarm = MC.Option.RegenSofteningCntAlarm;
+			NeedSaveWorkStats = 1;
+#ifdef CHECK_DRAIN_PUMP
+		} else if(error == ERR_DRAIN_PUMP_TOOLONG) {
+			PumpReadCounter = DRAIN_PUMP_CMD_ON;
+#endif
+		}
 	}
 	memset(Errors, 0, sizeof(Errors));
 	memset(ErrorsTime, 0, sizeof(ErrorsTime));
@@ -968,6 +974,7 @@ boolean MainClass::set_option(char *var, float xx)
    if(strcmp(var,option_DrainPumpMaxTime)==0){ Option.DrainPumpMaxTime = x / 10; return true; } else
    if(strcmp(var,option_fLED_SRV_INFO_PlanReg)==0){ Option.flags2 = (Option.flags2 & ~(1<<fLED_SRV_INFO_PlanReg)) | ((x!=0)<<fLED_SRV_INFO_PlanReg); return true; } else
    if(strcmp(var,option_fCheckDrainPump)==0){ Option.flags2 = (Option.flags2 & ~(1<<fCheckDrainPump)) | ((x!=0)<<fCheckDrainPump); return true; } else
+   if(strcmp(var,option_fDrainPumpRelay)==0){ Option.flags2 = (Option.flags2 & ~(1<<fDrainPumpRelay)) | ((x!=0)<<fDrainPumpRelay); return true; } else
    if(strcmp(var,option_RegenSofteningCntAlarm)==0){
 	   Option.RegenSofteningCntAlarm = x;
 	   if(x == 0) MC.WorkStats.RegenSofteningCntAlarm = 0; else if(MC.WorkStats.RegenSofteningCntAlarm == 0) MC.WorkStats.RegenSofteningCntAlarm = x;
@@ -1077,6 +1084,7 @@ char* MainClass::get_option(char *var, char *ret)
 	if(strcmp(var,option_DrainPumpMaxTime)==0){ _itoa(Option.DrainPumpMaxTime * 10, ret); } else
 	if(strcmp(var,option_fLED_SRV_INFO_PlanReg)==0){ return strcat(ret, (char*)(GETBIT(Option.flags2, fLED_SRV_INFO_PlanReg) ? cOne : cZero)); } else
 	if(strcmp(var,option_fCheckDrainPump)==0){ return strcat(ret, (char*)(GETBIT(Option.flags2, fCheckDrainPump) ? cOne : cZero)); } else
+	if(strcmp(var,option_fDrainPumpRelay)==0){ return strcat(ret, (char*)(GETBIT(Option.flags2, fDrainPumpRelay) ? cOne : cZero)); } else
 	if(strncmp(var, prof_DailySwitch, sizeof(prof_DailySwitch)-1) == 0) {
 		var += sizeof(prof_DailySwitch)-1;
 		uint8_t i = *(var + 1) - '0';

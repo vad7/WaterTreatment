@@ -1,9 +1,8 @@
-﻿document.write('<a href="plan.html" class="logo"></a>');
-document.write('<br>\
+﻿document.getElementById("menu").innerHTML= '<a href="plan.html" class="logo"></a>\
+<br>\
 <div class="menu-profiles">\
 	<b><span id="get_mode"></span></b><br>\
-</div>');
-document.write('\
+</div>\
 <ul class="cd-accordion-menu">\
 <li class="plan"><a href="plan.html"><i></i>Схема</a></li>\
 <li class="stats history has-children">\
@@ -45,17 +44,17 @@ document.write('\
 		<li class="charts"><a href="charts.html">Графики</a></li>\
 		<li class="test"><a href="test.html">Тестирование</a></li>\
 		<li class="modbus"><a href="modbus.html">Modbus</a></li>\
+		<li class="modbus2"><a href="modbus2.html">Modbus 2</a></li>\
 		<li class="log"><a href="log.html">Журнал</a></li>\
 		<li class="freertos"><a href="freertos.html">ОС RTOS</a></li>\
 	</ul>\
 </li>\
 <li class="about"><a href="about.html"><i></i>О контроллере</a></li>\
 <li name="USR" id="mlogin" hidden><a href="planf.html" onclick="NeedLogin=0"><i></i>Логин</a></li>\
-</ul>');
-document.write('\
+</ul>\
 <div class="dateinfo">\
 	<div id="get_status"></div>\
-</div>');
+</div>';
 var extract = new RegExp('[a-z0-9-]+\.html'); 
 var pathname = location.pathname;
 pathmath = pathname.match(extract);
