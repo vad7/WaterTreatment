@@ -80,9 +80,6 @@ DS3232  rtcI2C;                                                          // Ча
 static Journal  journal;                                                 // системный журнал, отдельно т.к. должен инициализоваться с начала старта
 static MainClass MC;                                                     // Главный класс
 static devModbus Modbus;                                                 // Класс модбас - управление инвертором
-#ifdef MODBUS_PUMP_SERIAL
-	devModbus ModbusPump;
-#endif
 SdFat card;                                                              // Карта памяти
 
 // Use the Arduino core to set-up the unused USART2 on Serial4 (without serial events)
@@ -274,7 +271,7 @@ void setup() {
 	//getIDchip((char*)Socket[0].inBuf);
 	//journal.jprintfopt("Chip ID SAM3X8E: %s\n", Socket[0].inBuf);// информация об серийном номере чипа
 	if(GPBR->SYS_GPBR[0] & 0x80000000) GPBR->SYS_GPBR[0] = 0; else GPBR->SYS_GPBR[0] |= 0x80000000; // очистка старой причины
-	lastErrorFreeRtosCode = GPBR->SYS_GPBR[0] & 0x7FFFFFFF;         // Сохранение кода ошибки при страте (причину перегрузки)
+	lastErrorFreeRtosCode = GPBR->SYS_GPBR[0] & 0x7FFFFFFF;         // Сохранение кода ошибки при старте (причину перегрузки)
 	journal.jprintf("\n# RESET: %s, 0x%04x", ResetCause(), lastErrorFreeRtosCode);
 	if(GPBR->SYS_GPBR[4]) journal.jprintf(" %d", GPBR->SYS_GPBR[4]);
 	journal.jprintf("\n");
@@ -1838,7 +1835,9 @@ void vService(void *)
 	static uint8_t  task_dailyswitch_countm = task_updstat_countm;
 	static uint8_t  task_every_min = task_updstat_countm;
 	static TickType_t timer_sec = GetTickCount(), timer_idle = 0, timer_total = 0;
+#ifdef CHECK_DRAIN_PUMP
 	static uint32_t tmp;
+#endif
 
 	for(;;)
 	{

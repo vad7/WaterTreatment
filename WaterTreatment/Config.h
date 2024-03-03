@@ -166,22 +166,23 @@ struct History_setup {
     // ЖЕЛЕЗО  - привязка к ногам контроллера  В зависимости от конкретной схемы и платы
     // Для каждой конфигурации теперь свои определения!!!
     // --------------------------------------------------------------------------------
-    // Конфигурирование Modbus электро счетчика
-	#define MODBUS_PORT		        Serial1     // Аппаратный порт куда прицеплен Modbus
-	#define MODBUS_ADDR				1
-    #define MODBUS_PORT_SPEED       9600        // Скорость порта куда прицеплен частотник и счетчик
-    #define MODBUS_PORT_CONFIG      SERIAL_8N1  // Конфигурация порта куда прицеплен частотник и счетчик
-    #define MODBUS_TIME_WAIT        1000        // Время ожидания захвата мютекса для modbus мсек
-	#define MODBUS_TIMEOUT			100			// Таймаут ожидания ответа, мсек
+	#define PWM_DEDICATED_SERIAL		Serial1		// Использовать выделенный порт для счетчика
+	#define PWM_DEDICATED_SERIAL_SPEED	9600
+	#define PWM_MODBUS_ADR				0xF8		// (248) PZEM-004T V.3 Modbus
+	// Конфигурирование Modbus
+	#define MODBUS_PORT_NUM	        	Serial2     // Аппаратный порт куда прицеплен Modbus
+	#define MODBUS_ADDR					1
+    #define MODBUS_PORT_SPEED       	9600        // Скорость порта куда прицеплен частотник и счетчик
+    #define MODBUS_PORT_CONFIG      	SERIAL_8N1  // Конфигурация порта куда прицеплен частотник и счетчик
+    #define MODBUS_TIME_WAIT        	1000        // Время ожидания захвата мютекса для modbus мсек
+	#define MODBUS_TIMEOUT				100			// Таймаут ожидания ответа, мсек
 	#define MODBUS_MIN_TIME_BETWEEN_TRNS 50		// Минимальная пауза между транзакциями, мсек
-	#define MODBUS_TIME_TRANSMISION 0           // Пауза (msec) между запросом и ответом по модбас было 4, если заремарено, то паузы между отправко и получением - нет.
-    //#define PIN_MODBUS_RSE          22          // Не используется из-за платы UART-RS485! Управление направлением передачи 485 для связи с инвертором по Modbus (1-передача 0-прием)
-	#define PWM_MODBUS_ADR			0xF8		// (248) PZEM-004T V.3 Modbus
+	#define MODBUS_TIME_TRANSMISION 	0           // Пауза (msec) между запросом и ответом по модбас было 4, если заремарено, то паузы между отправко и получением - нет.
+    //#define PIN_MODBUS_RSE          	22          // Не используется из-за платы UART-RS485! Управление направлением передачи 485 для связи с инвертором по Modbus (1-передача 0-прием)
 
 	#define CHECK_DRAIN_PUMP			// Контроль и отключение дренажного насоса (в дренаж идет регенерация)
 	#ifdef CHECK_DRAIN_PUMP
-		#define MODBUS_PUMP_SERIAL			Serial2
-		#define MODBUS_DRAIN_PUMP_ADDR		2	// Адрес дренажного насоса
+		#define MODBUS_DRAIN_PUMP_ADDR			2	// Адрес дренажного насоса
 		#define MODBUS_DRAIN_PUMP_RELAY_ADDR	3	// Адрес реле дренажного насоса
 		#define MODBUS_DRAIN_PUMP_RELAY_ID		0	// Номер реле (нумерация с 0)
 		#define MODBUS_DRAIN_PUMP_ON_CMD		0
@@ -189,9 +190,9 @@ struct History_setup {
 		#define MODBUS_DRAIN_PUMP_ON_PULSE			// Если активно, то импульс 1 сек для выключения (N замыкается на GND для срабатывания УЗО)
 		//#define MODBUS_SEPTIC_PUMP_ADDR		3	// Адрес насоса септика
 		//#define MODBUS_SEPTIC_PUMP_RELAY_ADDR	4	// Адрес отключения дренажного насоса
-		#define MODBUS_PUMP_PERIOD			10	// Период опроса, сек (не меньше 2)
-		#define MODBUS_PUMP_MAX_ERRORS		5	// Подряд ошибок, чтобы выдать ошибку
-		#define MODBUS_PUMP_FUNC(ID,CMD,ST) writeSingleCoil(ID,CMD,ST)
+		#define MODBUS_PUMP_PERIOD				10	// Период опроса, сек (не меньше 2)
+		#define MODBUS_PUMP_MAX_ERRORS			5	// Подряд ошибок, чтобы выдать ошибку
+		#define MODBUS_PUMP_FUNC(ID,CMD,ST) 	writeSingleCoil(ID,CMD,ST)
 
 #if MODBUS_PUMP_PERIOD < 2
 	#error "MODBUS_PUMP_PERIOD must be greater than 1"
@@ -231,9 +232,9 @@ struct History_setup {
 
     // Контактные датчики (sInput[]------------------------------------------------------------------
 #ifndef TANK_ANALOG_LEVEL
-    #define INUMBER             8   	// Число контактных датчиков цифровые входы
+    #define INUMBER             9   	// Число контактных датчиков цифровые входы
 #else
-	#define INUMBER             6   	// Число контактных датчиков цифровые входы
+	#define INUMBER             7   	// Число контактных датчиков цифровые входы
 #endif
     // Имена индексов
 	#define REG_ACTIVE			0        // Активна регенерация (INP2) (белый+/коричневый)
@@ -242,16 +243,17 @@ struct History_setup {
 	#define FLOODING			3        // Затопление (INP5 [D23])
 	#define LEAK				4        // Протечка (INP6 [D24])
 	#define SEPTIC_ALARM		5        // Авария септика (REL8 [D5])
+	#define SEPTIC_LOW_TEMP		6        // Низкая температура в септике (ULN3 [D49]) активный = 0
 #ifndef TANK_ANALOG_LEVEL
-    #define TANK_LOW			6        // Нужен долив бака 500л
-	#define TANK_FULL			7        // Емкость полна (REL8 [D5])
+    #define TANK_LOW			7        // Нужен долив бака 500л
+	#define TANK_FULL			8        // Емкость полна (REL8 [D5])
 #endif
 //	#define TANK_EMPTY			8        // Емкость пуста (INP6)
 
 	// Массив ног
-	const uint8_t pinsInput[INUMBER] = { 56, 43, 54, 23, 24, 5
+	const uint8_t pinsInput[INUMBER] = { 56, 43, 54, 23, 24, 5, 49
 #ifndef TANK_ANALOG_LEVEL
-			, x, 5
+			, x, x
 #endif
 		};
       // Описание датчиков
@@ -260,7 +262,8 @@ struct History_setup {
 										"Идет регенерация умягчителя",
 										"Затопление",
 										"Протечка",
-										"Авария септика"
+										"Авария септика",
+										"Низкая температура септика"
 #ifndef TANK_ANALOG_LEVEL
 
 										,"Долив бака",
@@ -273,7 +276,8 @@ struct History_setup {
 										"REG2",
 										"FLOOD",
 										"LEAK",
-										"SEPTIC"
+										"SEPTIC",
+										"SLowT"
 #ifndef TANK_ANALOG_LEVEL
 										,"LOW",
 										"FULL"
@@ -281,15 +285,15 @@ struct History_setup {
                                      };
      
 #ifndef TANK_ANALOG_LEVEL
-    const bool TESTINPUT[INUMBER]        = { 0, 0, 0, 0, 0, 0, 0, 0 };    // Значения датчиков при тестировании  опция TEST
-    const bool LEVELINPUT[INUMBER]       = { 0, 0, 0, 1, 0, 0, 0, 0 };    // Значение датчика, когда сработал
-    const bool PULLUPINPUT[INUMBER]      = { 0, 0, 0, 0, 0, 0, 0, 0 };    // если 1 - то на порту выставляется подтяжка к VCC.
-    const int8_t SENSOR_ERROR[INUMBER]   = { 0, 0, 0, 0, ERR_TANK_EMPTY, 0, 0, 0 };  // При срабатывании генерить ошибку с заданным кодом, если не 0
+    const bool TESTINPUT[INUMBER]        = { 0, 0, 0, 0, 0, 0, 0, 0, 0 };    // Значения датчиков при тестировании  опция TEST
+    const bool LEVELINPUT[INUMBER]       = { 0, 0, 0, 1, 0, 0, 0, 0, 0 };    // Значение датчика, когда сработал
+    const bool PULLUPINPUT[INUMBER]      = { 0, 0, 0, 0, 0, 0, 0, 0, 1 };    // если 1 - то на порту выставляется подтяжка к VCC.
+    const int8_t SENSOR_ERROR[INUMBER]   = { 0, 0, 0, 0, ERR_TANK_EMPTY, 0, 0, 0, 0 };  // При срабатывании генерить ошибку с заданным кодом, если не 0
 #else
-      const bool TESTINPUT[INUMBER]        = { 0, 0, 0, 0, 0, 0 };    // Значения датчиков при тестировании  опция TEST
-      const bool LEVELINPUT[INUMBER]       = { 0, 0, 0, 1, 1, 1 };    // Значение датчика, когда сработал
-      const bool PULLUPINPUT[INUMBER]      = { 0, 0, 0, 0, 0, 0 };    // если 1 - то на порту выставляется подтяжка к VCC.
-      const int8_t SENSOR_ERROR[INUMBER]   = { 0, 0, 0, 0, 0, 0 };    // При срабатывании генерить ошибку с заданным кодом, если не 0
+      const bool TESTINPUT[INUMBER]        = { 0, 0, 0, 0, 0, 0, 0 };    // Значения датчиков при тестировании  опция TEST
+      const bool LEVELINPUT[INUMBER]       = { 0, 0, 0, 1, 1, 1, 0 };    // Значение датчика, когда сработал
+      const bool PULLUPINPUT[INUMBER]      = { 0, 0, 0, 0, 0, 0, 1 };    // если 1 - то на порту выставляется подтяжка к VCC.
+      const int8_t SENSOR_ERROR[INUMBER]   = { 0, 0, 0, 0, 0, 0, 0 };    // При срабатывании генерить ошибку с заданным кодом, если не 0
 #endif
     // ---------------------------------------------------------------------------------------------------------------------------------------
     // Частотные датчики ------------------------------------------------------------------

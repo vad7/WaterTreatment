@@ -733,7 +733,7 @@ static inline void postTransmission() // Функция вызываемая П�
 }
 
 // Инициализация Modbus без проверки связи
-int8_t devModbus::initModbus(uint8_t ADR, USARTClass serial)
+int8_t devModbus::initModbus()
      {
 #ifdef MODBUS_PORT_SPEED
         flags=0x00;
@@ -744,8 +744,9 @@ int8_t devModbus::initModbus(uint8_t ADR, USARTClass serial)
 		vSemaphoreCreateBinary(xModbusSemaphore);                       // Создание мютекса
 		if(xModbusSemaphore==NULL) set_Error(ERR_MEM_FREERTOS,(char*)__FUNCTION__);
 		else {
-			serial.begin(MODBUS_PORT_SPEED, MODBUS_PORT_CONFIG);
-			RS485.begin(ADR, serial);
+	        MODBUS_PORT_NUM.begin(MODBUS_PORT_SPEED,MODBUS_PORT_CONFIG);                 // SERIAL_8N1 - настройки по умолчанию
+	        //MODBUS_PORT_NUM.setInterruptPriority(1);
+	        RS485.begin(MODBUS_ADDR, MODBUS_PORT_NUM);                                              // Привязать к сериал
 			RS485.ModbusMinTimeBetweenTransaction = MODBUS_TIMEOUT;
 			RS485.ModbusResponseTimeout = MODBUS_MIN_TIME_BETWEEN_TRNS;
 	#ifdef MODBUS_TIME_TRANSMISION

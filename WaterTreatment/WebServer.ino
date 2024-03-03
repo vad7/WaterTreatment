@@ -724,8 +724,11 @@ xSaveStats:		if((i = MC.save_WorkStats()) == OK)
 		}
 		if(strncmp(str,"get_PWR", 7) == 0) {
 			str += 7;
+#ifdef CHECK_DRAIN_PUMP
 			if(*str == 'D') _dtoa(strReturn, DrainPumpPower, 3); // get_PWRD (Drain pump)
-			else _dtoa(strReturn, MC.dPWM.get_Power(), 3);
+			else
+#endif
+				_dtoa(strReturn, MC.dPWM.get_Power(), 3);
 			ADD_WEBDELIM(strReturn); continue;
 		}
 		if(strcmp(str, "get_WDIS") == 0) { // Выход воды отключен
@@ -1082,7 +1085,9 @@ xSaveStats:		if((i = MC.save_WorkStats()) == OK)
 				strcat(strReturn,"Время заполнения бака|");if(MC.RFILL_last_time_ON) DecodeTimeDate(MC.RFILL_last_time_ON,strReturn,3); strcat(strReturn,";");
 				strcat(strReturn,"Время последнего потребления|");DecodeTimeDate(MC.WorkStats.UsedLastTime,strReturn,3);strcat(strReturn,";");
 				strcat(strReturn,"Максимальное потребление воды за раз|"); TimeIntervalToStr(UsedWaterContinuousTimerMax * USED_WATER_CONTINUOUS_MINTIME, strReturn, 1); strcat(strReturn,";");
+#ifdef CHECK_DRAIN_PUMP
 				strcat(strReturn,"Последнее включение дренажного насоса|"); DecodeTimeDate(DrainPumpTimeLast, strReturn, 3); strcat(strReturn,";");
+#endif
 
 			} else if(strcmp(str, "Info2") == 0) { // "get_sysInfo2" - Функция вывода системной информации для разработчика
 				strcat(strReturn,"<b> Счетчики ошибок</b>|;");

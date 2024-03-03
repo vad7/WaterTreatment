@@ -322,7 +322,7 @@ class devPWM
 class devModbus
   {
   public:  
-    int8_t initModbus(uint8_t ADR, USARTClass serial);                                     // Инициализация Modbus и проверка связи возвращает ошибку
+    int8_t initModbus();                             								        // Инициализация Modbus
      __attribute__((always_inline)) inline boolean get_present(){return GETBIT(flags,fModbus);} // Наличие Modbus в текущей конфигурации
     int8_t readInputRegisters16(uint8_t id, uint16_t cmd, uint16_t *ret);
     int8_t readInputRegisters32(uint8_t id, uint16_t cmd, uint32_t *ret);				   // LITTLE-ENDIAN!
@@ -338,9 +338,9 @@ class devModbus
     int8_t writeHoldingRegisters32(uint8_t id,uint16_t cmd, uint32_t data); 			   // BIG-ENDIAN! Записать 2 регистра подряд возвращает код ошибки
     int8_t get_err() {return err;}                                                         // Получить код ошибки
     ModbusMaster RS485;                     // Класс модбас 485
-    SemaphoreHandle_t xModbusSemaphore;     // Семафор Modbus
 private:
     // Переменные
+    SemaphoreHandle_t xModbusSemaphore;     // Семафор Modbus
     int8_t flags;                           // Флаги
     int8_t err;                             // Ошибки модбас
     int8_t translateErr(uint8_t result);    // Перевод ошибки протокола Модбас

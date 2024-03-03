@@ -587,7 +587,7 @@ uint8_t initSpiDisk(boolean)
 // расчитать хеш для пользователя
 void calc_WebSec_hash(type_WebSecurity *ws, char *login, char *pass, char *buf)
 {
-	journal.jprintf(" Hash %s: ", login);
+	journal.jprintfopt(" Hash %s: ", login);
 	if(ws->hash) free(ws->hash);
 	strcpy(buf, login);
 	strcat(buf, ":");
@@ -601,7 +601,7 @@ void calc_WebSec_hash(type_WebSecurity *ws, char *login, char *pass, char *buf)
 	else {
 		memcpy(ws->hash, buf, ws->len);
 		*(ws->hash + ws->len) = '\0';
-		journal.jprintf("%s\n", ws->hash);
+		journal.jprintfopt("%s\n", ws->hash);
 	}
 }
 

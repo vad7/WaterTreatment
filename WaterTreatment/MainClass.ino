@@ -146,10 +146,7 @@ void MainClass::init()
 
 	dRelay[RWATERON].set_ON();
 
-	Modbus.initModbus(MODBUS_ADDR, MODBUS_PORT);
-#ifdef MODBUS_PUMP_SERIAL
-	ModbusPump.initModbus(255, MODBUS_PUMP_SERIAL);
-#endif
+	Modbus.initModbus();
 
 	dPWM.initPWM();                                           // инициализация счетчика
 	message.initMessage(MAIN_WEB_TASK);                       // Инициализация Уведомлений, параметр - номер потока сервера в котором идет отправка

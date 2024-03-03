@@ -106,21 +106,27 @@ boolean linkStatusWiznet(boolean show)
 // show - нужен вывод в консль или нет, возврат true- связь есть
 boolean resetWiznet(boolean show)
 {
-    uint8_t i;
-    uint16_t t;
-    for (i = 0; i <  W5200_NUM_LINK; i++)  // делается несколько попыток связи до появления LINK с задержкой
-    { 
-     WDT_Restart(WDT);
-     digitalWriteDirect(PIN_ETH_RES, LOW); _delay(5);digitalWriteDirect(PIN_ETH_RES, HIGH);                        // Аппаратный сброс чипа (если он завис вдруг это помогает)
-     W5100.init();                                                                                                 // Программная инициализация чипа (программный сброс и программирование)
-     for (t = 0; t <  W5200_TIME_LINK; t=t+50)                                                                     // Ожидание установления связи но не более W5200_TIME_LINK мсек
-       {
-       _delay(50);                                                                                                 
-       if (linkStatusWiznet(false)) { if(show)journal.jprintfopt(" %s: link OK (time %d mc)\n",(char*)__FUNCTION__, t);return true;}  // link есть, едим дальше
-       }
-     if (show) journal.jprintfopt(" %s: no link\n",(char*)__FUNCTION__);
-    }
-  return false;                                                                                                     // линка нет
+	uint8_t i;
+	uint16_t t;
+	for(i = 0; i < W5200_NUM_LINK; i++)  // делается несколько попыток связи до появления LINK с задержкой
+	{
+		WDT_Restart(WDT);
+		digitalWriteDirect(PIN_ETH_RES, LOW);
+		_delay(5);
+		digitalWriteDirect(PIN_ETH_RES, HIGH);               // Аппаратный сброс чипа (если он завис вдруг это помогает)
+		W5100.init();                           // Программная инициализация чипа (программный сброс и программирование)
+		for(t = 0; t < W5200_TIME_LINK; t = t + 50)      // Ожидание установления связи но не более W5200_TIME_LINK мсек
+		{
+			WDT_Restart(WDT);
+			_delay(50);
+			if(linkStatusWiznet(false)) {
+				if(show) journal.jprintfopt(" %s: link OK (time %d mc)\n", (char*) __FUNCTION__, t);
+				return true;
+			}  // link есть, едим дальше
+		}
+		if(show) journal.jprintfopt(" %s: no link\n", (char*) __FUNCTION__);
+	}
+	return false;                                                                                           // линка нет
 }
 // Инициализация сети
 // flag true - полный вывод на консоль false - скоращенный вывод на консоль
