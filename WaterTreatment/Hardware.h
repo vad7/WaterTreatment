@@ -280,7 +280,7 @@ const char *notePWM = {"Электрический счетчик"};       // О
 #define PWM_ALARM            0x0009			// 0xFFFF - Alarm, 0 - ok
 // Holding Registers
 #define PWM_ALARM_THRESHOLD  0x0001			// 1W
-#define PWM_MODBUS_ADDR      0x0002			// 1..F7
+#define PWM_MODBUS_ADDR      0x0002			// 1..F7 (F8 - fixed)
 // Special command
 #define PWM_RESET_ENERGY	 0x42
 
@@ -318,7 +318,9 @@ class devPWM
 
 
 // Класс устройство Модбас  -----------------------------------------------------------------------------------------------
+//flags:
 #define fModbus    			0               // флаг наличие modbus
+#define fModbus_Serial2		1				// Следующая команда: 0 - Serial1, 1 - Serial2
 class devModbus
   {
   public:  

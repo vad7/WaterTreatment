@@ -106,6 +106,9 @@ uint8_t  DrainPumpRelayErrCnt = 0;
 //uint32_t SepticPumpTimeLast = 0;
 //uint16_t SepticPumpPower = 0; // W
 #endif
+#ifdef MODBUS_SEPTIC_HEAT_RELAY_ADDR
+uint8_t  SepticRelayStatus = 0;	// 0 - off, 1 - on
+#endif
 uint16_t FillingTankTimer = 0;
 int16_t  FillingTankLastLevel = 0;	// in 0.01%
 uint8_t  TankCheckFlag = 0;			// 0 - проверка на герметичность, 1 - проверка на скорость заполнения, 2 - сброс
@@ -233,7 +236,7 @@ struct type_option {
 	uint16_t DaysBeforeRegenSoftening;// Дней до регенерации умягчителя, 0 - не проверять
 	uint16_t LTank_LowConsumeMin;	// Низкий уровень бака при низком потреблении ( от резервного источника), сотые %
 	uint16_t LTank_AfterFilledTimer;// Время после отключения реле заполнения бака до останова глубинного насоса, сек
-	char     LowConsumeRequest[64];	// HTTP запрос о режиме низкого потребления, формат server/request, возврат после '=': 0 - нет, 1 - да
+	char     LowConsumeRequest[64];	// HTTP GET запрос о режиме низкого потребления, формат server/request, возврат после '=': 0 - нет, 1 - да
 	uint16_t LowConsumeRequestPeriod;// Периодичность запроса о режиме низкого потребления, если 0, то только при старте, сек
 	uint16_t SepticAlarmDebounce;	// Время исключения помех датчика аварии септика, сек
 	uint16_t MinRegenLitersSoftening;// Тревога, если за регенерацию умягчителя израсходовано меньше литров
@@ -259,6 +262,7 @@ struct type_option {
 	uint16_t FilterCounter1_Max;	// Предел для счетчика 1, *100л
 	uint16_t FilterCounter2_Max;	// Предел для счетчика 2, *100л
 	uint8_t  DrainPumpMaxTime;		// Максимальное время работы дренажного насоса, 0 - нет, сек * 30
+	char     SepticHeatRelay_HTTP[64];	// HTTP GET запрос вкл(1)/выкл(0) реле, формат server/request, возврат после '=': 0 - нет, 1 - да
 };
 
 //  Работа с отдельными флагами type_DateTime

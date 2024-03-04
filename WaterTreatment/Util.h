@@ -26,20 +26,21 @@ struct type_WebSecurity
 	uint8_t len;
 	char *hash;
 };
-void calc_WebSec_hash(type_WebSecurity *ws, char *login, char *pass, char *buf);
+void	calc_WebSec_hash(type_WebSecurity *ws, char *login, char *pass, char *buf);
 
 uint16_t calc_crc16(unsigned char * pcBlock, unsigned short len, uint16_t crc = 0xFFFF);
-void    int_to_dec_str(int32_t value, int32_t div, char **ret, uint8_t maxfract);
-uint8_t calc_bits_in_mask(uint32_t mask);
-int32_t round_div_int32(int32_t value, int16_t div);
-void    getIDchip(char *outstr);
+void	int_to_dec_str(int32_t value, int32_t div, char **ret, uint8_t maxfract);
+uint8_t	calc_bits_in_mask(uint32_t mask);
+int32_t	round_div_int32(int32_t value, int16_t div);
+void	getIDchip(char *outstr);
 uint8_t update_RTC_store_memory(void);
-char* _itoa( int value, char *string);
+char*	_itoa( int value, char *string);
 uint8_t _ftoa(char *outstr, float val, unsigned char precision);
-void _dtoa(char *outstr, int val, int precision);
+void 	_dtoa(char *outstr, int val, int precision);
 //void LCD_print(char *buf);
-void buffer_space_padding(char * buf, int add);
-char* NowTimeToStr(char *buf = NULL);
-char* NowDateToStr(char *buf = NULL);
+void 	buffer_space_padding(char * buf, int add);
+char* 	NowTimeToStr(char *buf = NULL);
+char* 	NowDateToStr(char *buf = NULL);
+uint8_t	GetSerialNum(USARTClass serial);
 
 #endif

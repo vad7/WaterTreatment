@@ -1046,6 +1046,17 @@ void buffer_space_padding(char * buf, int add)
 	}
 }
 
+uint8_t GetSerialNum(USARTClass serial)
+{
+	if(&serial == &Serial1) return 1;
+	else if(&serial == &Serial2) return 2;
+	else if(&serial == &Serial3) return 3;
+#ifdef USE_SERIAL4
+	else if(&serial == &Serial4) return 4;
+#endif
+	else return 0;
+}
+
 // Send string to LCD with waiting delay 1ms between chars
 //void LCD_print(char *buf)
 //{

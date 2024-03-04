@@ -166,14 +166,14 @@ struct History_setup {
     // ЖЕЛЕЗО  - привязка к ногам контроллера  В зависимости от конкретной схемы и платы
     // Для каждой конфигурации теперь свои определения!!!
     // --------------------------------------------------------------------------------
-	#define PWM_DEDICATED_SERIAL		Serial1		// Использовать выделенный порт для счетчика
-	#define PWM_DEDICATED_SERIAL_SPEED	9600
 	#define PWM_MODBUS_ADR				0xF8		// (248) PZEM-004T V.3 Modbus
 	// Конфигурирование Modbus
-	#define MODBUS_PORT_NUM	        	Serial2     // Аппаратный порт куда прицеплен Modbus
-	#define MODBUS_ADDR					1
-    #define MODBUS_PORT_SPEED       	9600        // Скорость порта куда прицеплен частотник и счетчик
-    #define MODBUS_PORT_CONFIG      	SERIAL_8N1  // Конфигурация порта куда прицеплен частотник и счетчик
+	#define MODBUS_SERIAL1	        	Serial1     // Modbus порт для счетчика насосной станции
+	#define MODBUS_SERIAL1_SPEED		9600
+	#define MODBUS_SERIAL1_ADDR_GE		0xF8		// Если ADDR устройства больше или равен этому, то выбирается Serial1 иначе Serial2
+	#define MODBUS_SERIAL2				Serial2		// Modbus порт для прочих устройств - насоса и реле
+    #define MODBUS_SERIAL2_SPEED       	9600        // Скорость порта
+    #define MODBUS_PORT_CONFIG      	SERIAL_8N1  // Конфигурация портов
     #define MODBUS_TIME_WAIT        	1000        // Время ожидания захвата мютекса для modbus мсек
 	#define MODBUS_TIMEOUT				100			// Таймаут ожидания ответа, мсек
 	#define MODBUS_MIN_TIME_BETWEEN_TRNS 50		// Минимальная пауза между транзакциями, мсек
@@ -194,8 +194,14 @@ struct History_setup {
 		#define MODBUS_PUMP_MAX_ERRORS			5	// Подряд ошибок, чтобы выдать ошибку
 		#define MODBUS_PUMP_FUNC(ID,CMD,ST) 	writeSingleCoil(ID,CMD,ST)
 
+		#define MODBUS_SEPTIC_HEAT_RELAY_ADDR	MODBUS_DRAIN_PUMP_RELAY_ADDR	// Адрес реде нагрева септика, если сработал sInput(SEPTIC_LOW_TEMP)
+		#define MODBUS_SEPTIC_HEAT_RELAY_ID		1	// Номер реле (нумерация с 0)
+		#define MODBUS_SEPTIC_HEAT_RELAY_ON		1
+		#define MODBUS_SEPTIC_HEAT_RELAY_OFF	0
+		#define MODBUS_SEPTIC_HEAT_FUNC(ID,CMD,ST) writeSingleCoil(ID,CMD,ST)
+
 #if MODBUS_PUMP_PERIOD < 2
-	#error "MODBUS_PUMP_PERIOD must be greater than 1"
+		#error "MODBUS_PUMP_PERIOD must be greater than 1"
 #endif
 	#endif
 

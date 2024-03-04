@@ -2053,7 +2053,7 @@ void vService(void *)
 							RegStart_Weight -= Weight_value / 10;
 							journal.jprintf_date("Regen F1 finished, Used: %d, reagent: %d g, time: %d s.\n", MC.WorkStats.UsedLastRegen, RegStart_Weight, rtcSAM3X8.unixtime() - RegenStarted);
 							if(MC.Option.DrainingWaterAfterRegen) {
-								TimerDrainingWaterAfterRegen = MC.Option.DrainingWaterAfterRegen
+								TimerDrainingWaterAfterRegen = MC.Option.DrainingWaterAfterRegen;
 								MC.dRelay[RDRAIN].set_ON();
 							}
 							RWATERON_Switching = -(int16_t)TimerDrainingWaterAfterRegen - 1;
@@ -2163,11 +2163,13 @@ void vService(void *)
 					if(++FillingTankTimer > LEAKAGE_TANK_RESTART_TIME) DrainingSiltFlag = 255;
 				}
 #ifdef CHECK_DRAIN_PUMP
+				bool skip_this_iteration = false;
 				if(GETBIT(MC.Option.flags2, fCheckDrainPump)) {
 					if(PumpReadCounter == DRAIN_PUMP_CMD_ON || PumpReadCounter == DRAIN_PUMP_CMD_OFF) {
 						if(GETBIT(MC.Option.flags2, fDrainPumpRelay)) {
 #ifdef MODBUS_DRAIN_PUMP_RELAY_ADDR
-							int8_t err = ModbusPump.MODBUS_PUMP_FUNC(MODBUS_DRAIN_PUMP_RELAY_ADDR, MODBUS_DRAIN_PUMP_RELAY_ID,
+							skip_this_iteration = true;
+							int8_t err = Modbus.MODBUS_PUMP_FUNC(MODBUS_DRAIN_PUMP_RELAY_ADDR, MODBUS_DRAIN_PUMP_RELAY_ID,
 											PumpReadCounter == DRAIN_PUMP_CMD_ON ? MODBUS_DRAIN_PUMP_ON_CMD : MODBUS_DRAIN_PUMP_OFF_CMD);
 							if(err) {
 								if(++DrainPumpRelayErrCnt == MODBUS_PUMP_MAX_ERRORS) {
@@ -2177,9 +2179,9 @@ void vService(void *)
 								PumpReadCounter = 0;
 							} else if(PumpReadCounter == DRAIN_PUMP_CMD_OFF) {
 								journal.jprintf_time("DRAIN PUMP -> OFF!\n", err);
-#ifdef MODBUS_DRAIN_PUMP_ON_PULSE
+	#ifdef MODBUS_DRAIN_PUMP_ON_PULSE
 								PumpReadCounter = DRAIN_PUMP_CMD_ON;	// Pulse 1 sec
-#endif
+	#endif
 							} else PumpReadCounter = 0;
 #endif
 						}
@@ -2192,7 +2194,8 @@ void vService(void *)
 #endif
 						if(PumpReadCounter >= MODBUS_PUMP_PERIOD) {
 							PumpReadCounter = 0;
-							int8_t err = ModbusPump.readInputRegisters32(MODBUS_DRAIN_PUMP_ADDR, PWM_POWER, &tmp);
+							skip_this_iteration = true;
+							int8_t err = Modbus.readInputRegisters32(MODBUS_DRAIN_PUMP_ADDR, PWM_POWER, &tmp);
 							if(err == OK) {
 								tmp /= 10;
 								if(tmp > 10) { // работает
@@ -2215,7 +2218,21 @@ void vService(void *)
 						}
 					}
 				}
-#endif
+				if(!skip_this_iteration)
+#endif //CHECK_DRAIN_PUMP
+				{
+
+
+
+
+
+
+
+
+
+
+
+				}
 			}
 			// every 1 sec
 #ifdef PIN_LED_SRV_INFO
