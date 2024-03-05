@@ -685,14 +685,12 @@ char* devPWM::get_param(char *var, char *ret)
 }
 
 // Установить параметр счетчика в виде строки
-boolean devPWM::set_param(char *var, float f)
+boolean devPWM::set_param(char *var, int32_t f)
 {
    if(strcmp(var, pwm_RESET) == 0) {
-	   Modbus.RS485.beginTransmission(PWM_MODBUS_ADR);
-	   Modbus.RS485.send((uint8_t) PWM_RESET_ENERGY);
-	   uint8_t st = Modbus.RS485.ModbusMasterTransaction(ku8MBCustomRequest);
+	   uint8_t st = Modbus.CustomRequest(PWM_MODBUS_ADR, PWM_RESET_ENERGY);
 	   if(st) journal.jprintf("PWM energy reset error %d!\n", st); else journal.jprintf("PWM energy reseted!\n");
-	   return true;
+	   return st;
    } else if(strcmp(var, pwm_TestPower) == 0) {
 	   TestPower = f;
 	   return true;
@@ -781,7 +779,7 @@ int8_t devModbus::readInputRegistersFloat(uint8_t id, uint16_t cmd, float *ret)
 		journal.jprintf((char*) cErrorMutex, __FUNCTION__, MutexModbusBuzy);
 		return err = ERR_485_BUZY;
 	}
-	RS485.begin(0, id >= MODBUS_SERIAL1_ADDR_GE ? MODBUS_SERIAL1 : MODBUS_SERIAL2);	// установка сериала и адреса устройства
+	RS485.begin(id, id >= MODBUS_SERIAL1_ADDR_GE ? MODBUS_SERIAL1 : MODBUS_SERIAL2);	// установка сериала и адреса устройства
 	//RS485.set_slave(id);
 	uint8_t result = RS485.readInputRegisters(cmd, 2);                                               // послать запрос,
 	if(result == RS485.ku8MBSuccess) {
@@ -804,7 +802,7 @@ int8_t devModbus::readInputRegisters16(uint8_t id, uint16_t cmd, uint16_t *ret)
 		journal.jprintf((char*) cErrorMutex, __FUNCTION__, MutexModbusBuzy);
 		return err = ERR_485_BUZY;
 	}
-	RS485.begin(0, id >= MODBUS_SERIAL1_ADDR_GE ? MODBUS_SERIAL1 : MODBUS_SERIAL2);	// установка сериала и адреса устройства
+	RS485.begin(id, id >= MODBUS_SERIAL1_ADDR_GE ? MODBUS_SERIAL1 : MODBUS_SERIAL2);	// установка сериала и адреса устройства
 	uint8_t result = RS485.readInputRegisters(cmd, 1);
 	if(result == RS485.ku8MBSuccess) {
 		*ret = RS485.getResponseBuffer(0);
@@ -825,7 +823,7 @@ int8_t devModbus::readInputRegisters32(uint8_t id, uint16_t cmd, uint32_t *ret)
 		journal.jprintf((char*) cErrorMutex, __FUNCTION__, MutexModbusBuzy);
 		return err = ERR_485_BUZY;
 	}
-	RS485.begin(0, id >= MODBUS_SERIAL1_ADDR_GE ? MODBUS_SERIAL1 : MODBUS_SERIAL2);	// установка сериала и адреса устройства
+	RS485.begin(id, id >= MODBUS_SERIAL1_ADDR_GE ? MODBUS_SERIAL1 : MODBUS_SERIAL2);	// установка сериала и адреса устройства
 	uint8_t result = RS485.readInputRegisters(cmd, 2);
 	if(result == RS485.ku8MBSuccess) {
 		*ret = (RS485.getResponseBuffer(1) << 16) | RS485.getResponseBuffer(0);
@@ -846,7 +844,7 @@ int8_t devModbus::readHoldingRegisters16(uint8_t id, uint16_t cmd, uint16_t *ret
 		journal.jprintf((char*) cErrorMutex, __FUNCTION__, MutexModbusBuzy);
 		return err = ERR_485_BUZY;
 	}
-	RS485.begin(0, id >= MODBUS_SERIAL1_ADDR_GE ? MODBUS_SERIAL1 : MODBUS_SERIAL2);	// установка сериала и адреса устройства
+	RS485.begin(id, id >= MODBUS_SERIAL1_ADDR_GE ? MODBUS_SERIAL1 : MODBUS_SERIAL2);	// установка сериала и адреса устройства
 	uint8_t result = RS485.readHoldingRegisters(cmd, 1);                                                   // послать запрос,
 	if(result == RS485.ku8MBSuccess) {
 		*ret = RS485.getResponseBuffer(0);
@@ -868,7 +866,7 @@ int8_t devModbus::readHoldingRegisters32(uint8_t id, uint16_t cmd, uint32_t *ret
 		journal.jprintf((char*) cErrorMutex, __FUNCTION__, MutexModbusBuzy);
 		return err = ERR_485_BUZY;
 	}
-	RS485.begin(0, id >= MODBUS_SERIAL1_ADDR_GE ? MODBUS_SERIAL1 : MODBUS_SERIAL2);	// установка сериала и адреса устройства
+	RS485.begin(id, id >= MODBUS_SERIAL1_ADDR_GE ? MODBUS_SERIAL1 : MODBUS_SERIAL2);	// установка сериала и адреса устройства
 	uint8_t result = RS485.readHoldingRegisters(cmd, 2);                                             // послать запрос,
 	if(result == RS485.ku8MBSuccess) {
 		*ret = (RS485.getResponseBuffer(0) << 16) | RS485.getResponseBuffer(1);
@@ -890,7 +888,7 @@ int8_t devModbus::readHoldingRegistersFloat(uint8_t id, uint16_t cmd, float *ret
 		journal.jprintf((char*) cErrorMutex, __FUNCTION__, MutexModbusBuzy);
 		return err = ERR_485_BUZY;
 	}
-	RS485.begin(0, id >= MODBUS_SERIAL1_ADDR_GE ? MODBUS_SERIAL1 : MODBUS_SERIAL2);	// установка сериала и адреса устройства
+	RS485.begin(id, id >= MODBUS_SERIAL1_ADDR_GE ? MODBUS_SERIAL1 : MODBUS_SERIAL2);	// установка сериала и адреса устройства
 	uint8_t result = RS485.readHoldingRegisters(cmd, 2);                                             // послать запрос,
 	if(result == RS485.ku8MBSuccess) {
 		err = OK;
@@ -913,7 +911,7 @@ int8_t devModbus::readHoldingRegistersNN(uint8_t id, uint16_t cmd, uint16_t num,
 		journal.jprintf((char*) cErrorMutex, __FUNCTION__, MutexModbusBuzy);
 		return err = ERR_485_BUZY;
 	}
-	RS485.begin(0, id >= MODBUS_SERIAL1_ADDR_GE ? MODBUS_SERIAL1 : MODBUS_SERIAL2);	// установка сериала и адреса устройства
+	RS485.begin(id, id >= MODBUS_SERIAL1_ADDR_GE ? MODBUS_SERIAL1 : MODBUS_SERIAL2);	// установка сериала и адреса устройства
 	uint8_t result = RS485.readHoldingRegisters(cmd, num);                                           // послать запрос,
 	if(result == RS485.ku8MBSuccess) {
 		for(int16_t i = 0; i < num; i++)
@@ -938,7 +936,7 @@ int8_t devModbus::readCoil(uint8_t id, uint16_t cmd, boolean *ret)
 		journal.jprintf((char*) cErrorMutex, __FUNCTION__, MutexModbusBuzy);
 		return err = ERR_485_BUZY;
 	}
-	RS485.begin(0, id >= MODBUS_SERIAL1_ADDR_GE ? MODBUS_SERIAL1 : MODBUS_SERIAL2);	// установка сериала и адреса устройства
+	RS485.begin(id, id >= MODBUS_SERIAL1_ADDR_GE ? MODBUS_SERIAL1 : MODBUS_SERIAL2);	// установка сериала и адреса устройства
 	result = RS485.readCoils(cmd, 1);                                  // послать запрос, Нумерация регистров с НУЛЯ!!!!
 	if(result == RS485.ku8MBSuccess) {
 		err = OK;
@@ -964,7 +962,7 @@ int8_t devModbus::writeSingleCoil(uint8_t id, uint16_t cmd, uint8_t u8State)
 		journal.jprintf((char*) cErrorMutex, __FUNCTION__, MutexModbusBuzy);
 		return err = ERR_485_BUZY;
 	}
-	RS485.begin(0, id >= MODBUS_SERIAL1_ADDR_GE ? MODBUS_SERIAL1 : MODBUS_SERIAL2);	// установка сериала и адреса устройства
+	RS485.begin(id, id >= MODBUS_SERIAL1_ADDR_GE ? MODBUS_SERIAL1 : MODBUS_SERIAL2);	// установка сериала и адреса устройства
 	result = RS485.writeSingleCoil(cmd, u8State);                                         // послать запрос,
 	if(result == RS485.ku8MBSuccess) {
 		err = OK;
@@ -983,7 +981,7 @@ int8_t devModbus::writeHoldingRegisters16(uint8_t id, uint16_t cmd, uint16_t dat
 		journal.jprintf((char*) cErrorMutex, __FUNCTION__, MutexModbusBuzy);
 		return err = ERR_485_BUZY;
 	}
-	RS485.begin(0, id >= MODBUS_SERIAL1_ADDR_GE ? MODBUS_SERIAL1 : MODBUS_SERIAL2);	// установка сериала и адреса устройства
+	RS485.begin(id, id >= MODBUS_SERIAL1_ADDR_GE ? MODBUS_SERIAL1 : MODBUS_SERIAL2);	// установка сериала и адреса устройства
 	uint8_t result = RS485.writeSingleRegister(cmd, data);                                            // послать запрос,
 	SemaphoreGive(xModbusSemaphore);
 	return err = translateErr(result);
@@ -1000,7 +998,7 @@ int8_t devModbus::writeHoldingRegisters32(uint8_t id, uint16_t cmd, uint32_t dat
 		journal.jprintf((char*) cErrorMutex, __FUNCTION__, MutexModbusBuzy);
 		return err = ERR_485_BUZY;
 	}
-	RS485.begin(0, id >= MODBUS_SERIAL1_ADDR_GE ? MODBUS_SERIAL1 : MODBUS_SERIAL2);	// установка сериала и адреса устройства
+	RS485.begin(id, id >= MODBUS_SERIAL1_ADDR_GE ? MODBUS_SERIAL1 : MODBUS_SERIAL2);	// установка сериала и адреса устройства
 	RS485.setTransmitBuffer(0, data >> 16);
 	RS485.setTransmitBuffer(1, data & 0xFFFF);
 	result = RS485.writeMultipleRegisters(cmd, 2);                                                 // послать запрос,
@@ -1022,7 +1020,7 @@ int8_t devModbus::writeHoldingRegistersFloat(uint8_t id, uint16_t cmd, float dat
 		journal.jprintf((char*) cErrorMutex, __FUNCTION__, MutexModbusBuzy);
 		return err = ERR_485_BUZY;
 	}
-	RS485.begin(0, id >= MODBUS_SERIAL1_ADDR_GE ? MODBUS_SERIAL1 : MODBUS_SERIAL2);	// установка сериала и адреса устройства
+	RS485.begin(id, id >= MODBUS_SERIAL1_ADDR_GE ? MODBUS_SERIAL1 : MODBUS_SERIAL2);	// установка сериала и адреса устройства
 	RS485.setTransmitBuffer(0, float_map.i[1]);
 	RS485.setTransmitBuffer(1, float_map.i[0]);
 	result = RS485.writeMultipleRegisters(cmd, 2);
@@ -1030,6 +1028,22 @@ int8_t devModbus::writeHoldingRegistersFloat(uint8_t id, uint16_t cmd, float dat
 	SemaphoreGive(xModbusSemaphore);
 	return err = translateErr(result);
 
+}
+
+// Специальная функция
+int8_t devModbus::CustomRequest(uint8_t id, uint8_t cmd)
+{
+	// Если шедулер запущен то захватываем семафор
+	if(SemaphoreTake(xModbusSemaphore, (MODBUS_TIME_WAIT / portTICK_PERIOD_MS)) == pdFALSE) // Захват мютекса потока или ОЖИДАНИНЕ MODBUS_TIME_WAIT
+	{
+		journal.jprintf((char*) cErrorMutex, __FUNCTION__, MutexModbusBuzy);
+		return err = ERR_485_BUZY;
+	}
+	RS485.begin(id, id >= MODBUS_SERIAL1_ADDR_GE ? MODBUS_SERIAL1 : MODBUS_SERIAL2);	// установка сериала и адреса устройства
+	RS485.send(cmd);
+	uint8_t result = RS485.ModbusMasterTransaction(ku8MBCustomRequest);
+	SemaphoreGive(xModbusSemaphore);
+	return err = translateErr(result);
 }
 
 // Перевод ошибки протокола Модбас (что дает либа)

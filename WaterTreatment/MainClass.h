@@ -107,7 +107,8 @@ uint8_t  DrainPumpRelayErrCnt = 0;
 //uint16_t SepticPumpPower = 0; // W
 #endif
 #ifdef MODBUS_SEPTIC_HEAT_RELAY_ADDR
-uint8_t  SepticRelayStatus = 0;	// 0 - off, 1 - on
+int8_t   SepticRelayStatus = 0;	// 0 - off, 1 - need to switch on, 2 - on, -1 - need to switch off
+uint8_t  SepticRelayErrCnt = 0;
 #endif
 uint16_t FillingTankTimer = 0;
 int16_t  FillingTankLastLevel = 0;	// in 0.01%
@@ -195,6 +196,7 @@ type_WebSecurity WebSec_admin;				// хеш паролей
 #define fLED_SRV_INFO_PlanReg 2				// Мигать редко на PIN_LED_SRV_INFO при запланированной регенерации
 #define fCheckDrainPump		3				// Проверять работу дренажного насоса
 #define fDrainPumpRelay		4				// Использовать реле отключения насоса
+#define fSepticHeatRelay	5				// Использовать реле нагрева септика
 
 // Структура для хранения настроек
 struct type_option {
@@ -262,7 +264,6 @@ struct type_option {
 	uint16_t FilterCounter1_Max;	// Предел для счетчика 1, *100л
 	uint16_t FilterCounter2_Max;	// Предел для счетчика 2, *100л
 	uint8_t  DrainPumpMaxTime;		// Максимальное время работы дренажного насоса, 0 - нет, сек * 30
-	char     SepticHeatRelay_HTTP[64];	// HTTP GET запрос вкл(1)/выкл(0) реле, формат server/request, возврат после '=': 0 - нет, 1 - да
 };
 
 //  Работа с отдельными флагами type_DateTime

@@ -298,7 +298,7 @@ class devPWM
       uint16_t get_Voltage(){ return Voltage; }
 
       char* get_param(char *var, char *ret);           // Получить параметр PWM в виде строки
-      boolean set_param(char *var, float f);
+      boolean set_param(char *var, int32_t f);
       
        // Графики из счетчика
       statChart ChartVoltage;                          // Статистика по напряжению
@@ -338,6 +338,7 @@ class devModbus
     int8_t writeHoldingRegisters16(uint8_t id, uint16_t cmd, uint16_t data);               // Установить значение регистра (2 байта) МХ2 в виде целого  числа возвращает код ошибки данные data
     int8_t writeHoldingRegistersFloat(uint8_t id, uint16_t cmd, float dat);                // Записать float как 2 регистра числа возвращает код ошибки данные data
     int8_t writeHoldingRegisters32(uint8_t id,uint16_t cmd, uint32_t data); 			   // BIG-ENDIAN! Записать 2 регистра подряд возвращает код ошибки
+    int8_t CustomRequest(uint8_t id, uint8_t cmd);											// Отправка произвольной комманды (8 бит)
     int8_t get_err() {return err;}                                                         // Получить код ошибки
     ModbusMaster RS485;                     // Класс модбас 485
 private:

@@ -441,6 +441,7 @@ const char *option_DrainPumpMaxTime		= {"DPT"};
 const char *option_fLED_SRV_INFO_PlanReg= {"LPR"};
 const char *option_fCheckDrainPump		= {"CDP"};
 const char *option_fDrainPumpRelay		= {"DPR"};
+const char *option_fSepticHeatRelay		= {"SHR"};
 const char option_GetCurrentSaltLevel[] = "LvL";	// get_Opt(LvL)
 const char prof_DailySwitch[] 	= "DS";
 const char prof_DailySwitchDevice = 'D';		// DSD
@@ -554,8 +555,9 @@ const char *webWS_NextRegenSoftAfterDays		= { "NS" };
 #define ERR_DRAIN_PUMP_LINK	 -78		// Ошибка связи со счетчиком насоса
 #define ERR_DRAIN_PUMP_RELAY_LINK -79	// Ошибка связи с реле насоса
 #define ERR_DRAIN_PUMP_TOOLONG -80		// Слишком долго работает насос
+#define ERR_SEPTIC_RELAY_LINK -81		// Ошибка связи с реле нагрева септика
 
-#define ERR_ERRMAX			-80			// Последняя ошибка
+#define ERR_ERRMAX			-81			// Последняя ошибка
 
 // Предупреждения
 #define WARNING_VALUE        1         // Попытка установить значение за границами диапазона запрос типа SET
@@ -643,6 +645,7 @@ const char *noteError[] = {
 		"Ошибка связи со счетчиком насоса дренажа",											//-78
 		"Ошибка связи с реле насоса дренажа",												//-79
 		"Слишком долго работает насос дренажа",												//-80
+		"Ошибка связи с реле нагрева септика",												//-81
 
 		"NULL"
 		};

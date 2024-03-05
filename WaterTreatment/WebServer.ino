@@ -1302,7 +1302,7 @@ xSaveStats:		if((i = MC.save_WorkStats()) == OK)
 				MC.dPWM.get_param(x, strReturn);
 				ADD_WEBDELIM(strReturn); continue;
 			} else if(strcmp(str, "set_PWM") == 0) {          // Функция записать настройки счетчика
-				if(MC.dPWM.set_param(x, pm)) MC.dPWM.get_param(x, strReturn); // преобразование удачно
+				if(MC.dPWM.set_param(x, (int32_t)pm)) MC.dPWM.get_param(x, strReturn); // преобразование удачно
 				else strcat(strReturn, "E31");            // ошибка преобразования строки
 				ADD_WEBDELIM(strReturn); continue;
 			}
@@ -1432,6 +1432,7 @@ x_get_RH:			_itoa(MC.Option.RegenHour & 0x1F, strReturn);
 						//else if(*y == 'u') i = Modbus.writeHoldingRegisters32(id, par, strtol(z, NULL, 0)); // 2 registers (int32).
 						else if(*y == 'f') i = Modbus.writeHoldingRegistersFloat(id, par, strtol(z, NULL, 0)); // 2 registers (float).
 						else if(*y == 'c') i = Modbus.writeSingleCoil(id, par, atoi(z));	// coil
+						else if(*y == 'z') i = Modbus.CustomRequest(id, par);				// Custom = [ id, par ]
 						else goto x_FunctionNotFound;
 #ifdef MODBUS_TIME_TRANSMISION
 						_delay(MODBUS_TIME_TRANSMISION * 10); // Задержка перед чтением

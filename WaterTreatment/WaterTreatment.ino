@@ -2172,17 +2172,23 @@ void vService(void *)
 							int8_t err = Modbus.MODBUS_PUMP_FUNC(MODBUS_DRAIN_PUMP_RELAY_ADDR, MODBUS_DRAIN_PUMP_RELAY_ID,
 											PumpReadCounter == DRAIN_PUMP_CMD_ON ? MODBUS_DRAIN_PUMP_ON_CMD : MODBUS_DRAIN_PUMP_OFF_CMD);
 							if(err) {
-								if(++DrainPumpRelayErrCnt == MODBUS_PUMP_MAX_ERRORS) {
-									if(MC.get_errcode() != ERR_DRAIN_PUMP_RELAY_LINK) journal.jprintf("PUMP Relay Link Error %d!\n", err);
+								if(++DrainPumpRelayErrCnt == MODBUS_OTHER_MAX_ERRORS) {
+									if(MC.get_errcode() != ERR_DRAIN_PUMP_RELAY_LINK) journal.jprintf("%s Link Error %d!\n", "PUMP Relay", err);
 									set_Error(ERR_DRAIN_PUMP_RELAY_LINK, (char*)"vService");
-								}
+								} else if(GETBIT(MC.Option.flags, fPWMLogErrors)) journal.jprintf_time("%s Read Error %d\n", "PUMP Relay", err);
 								PumpReadCounter = 0;
-							} else if(PumpReadCounter == DRAIN_PUMP_CMD_OFF) {
-								journal.jprintf_time("DRAIN PUMP -> OFF!\n", err);
+							} else {
+								DrainPumpRelayErrCnt = 0;
+								if(PumpReadCounter == DRAIN_PUMP_CMD_OFF) {
+									if(MC.get_errcode() != ERR_DRAIN_PUMP_TOOLONG) journal.jprintf_time("DRAIN PUMP -> OFF!\n", err);
 	#ifdef MODBUS_DRAIN_PUMP_ON_PULSE
-								PumpReadCounter = DRAIN_PUMP_CMD_ON;	// Pulse 1 sec
+									PumpReadCounter = DRAIN_PUMP_CMD_ON;	// Pulse 1 sec
 	#endif
-							} else PumpReadCounter = 0;
+								} else {
+									journal.jprintfopt_time("%s Relay: %s\n", "PUMP", PumpReadCounter == DRAIN_PUMP_CMD_ON ? "ON" : "OFF");
+									PumpReadCounter = 0;
+								}
+							}
 #endif
 						}
 					} else {
@@ -2209,30 +2215,38 @@ void vService(void *)
 								DrainPumpErrCnt = 0;
 							} else {
 								PumpReadCounter = MODBUS_PUMP_PERIOD - 1;
-								if(++DrainPumpErrCnt == MODBUS_PUMP_MAX_ERRORS) {
-									if(MC.get_errcode() != ERR_DRAIN_PUMP_LINK) journal.jprintf("PUMP Link Error %d!\n", err);
+								if(++DrainPumpErrCnt == MODBUS_OTHER_MAX_ERRORS) {
+									if(MC.get_errcode() != ERR_DRAIN_PUMP_LINK) journal.jprintf("%s Link Error %d!\n", "PUMP", err);
 									set_Error(ERR_DRAIN_PUMP_LINK, (char*)"vService");
 									//DrainPumpErrCnt = 0;
-								} else if(GETBIT(MC.Option.flags, fPWMLogErrors)) journal.jprintf_time("PUMP Read Error %d\n", err);
+								} else if(GETBIT(MC.Option.flags, fPWMLogErrors)) journal.jprintf_time("%s Read Error %d\n", "PUMP", err);
 							}
 						}
 					}
 				}
 				if(!skip_this_iteration)
 #endif //CHECK_DRAIN_PUMP
-				{
-
-
-
-
-
-
-
-
-
-
-
+#if defined(MODBUS_SEPTIC_HEAT_RELAY_ADDR) && defined(SEPTIC_LOW_TEMP)
+				if(GETBIT(MC.Option.flags2, fSepticHeatRelay)) {
+					bool input = MC.sInput[SEPTIC_LOW_TEMP].get_Input();
+					if(input != SepticRelayStatus) { // -> ON/OFF
+						int8_t err = Modbus.MODBUS_SEPTIC_HEAT_FUNC(MODBUS_SEPTIC_HEAT_RELAY_ADDR, MODBUS_SEPTIC_HEAT_RELAY_ID,
+								input ? MODBUS_SEPTIC_HEAT_RELAY_ON : MODBUS_SEPTIC_HEAT_RELAY_OFF);
+						if(err) {
+							if(++SepticRelayErrCnt == MODBUS_OTHER_MAX_ERRORS) {
+								if(MC.get_errcode() != ERR_SEPTIC_RELAY_LINK) journal.jprintf("%s Link Error %d!\n", "SEPTIC Relay", err);
+								set_Error(ERR_SEPTIC_RELAY_LINK, (char*)"vService");
+							} else if(GETBIT(MC.Option.flags, fPWMLogErrors)) journal.jprintf_time("%s Read Error %d\n", "SEPTIC Relay", err);
+						} else {
+							SepticRelayStatus = input;
+							SepticRelayErrCnt = 0;
+							journal.jprintfopt_time("%s Relay: %s\n", "SEPTIC", input ? "ON" : "OFF");
+						}
+					}
 				}
+#else
+				;
+#endif
 			}
 			// every 1 sec
 #ifdef PIN_LED_SRV_INFO
