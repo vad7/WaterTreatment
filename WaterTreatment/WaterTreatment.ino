@@ -565,6 +565,8 @@ x_I2C_init_std_message:
 	//vSemaphoreCreateBinary(xSPISemaphore);                     // Создание мютекса
 	//if (xSPISemaphore==NULL) set_Error(ERR_MEM_FREERTOS,(char*)nameFREERTOS);
 	// Дополнительные семафоры (почему то именно здесь) Создается когда есть модбас
+	Modbus.initModbus();
+	//
 	journal.jprintfopt("OK, size %d bytes\n", MC.mRTOS);
 
 	//journal.jprintfopt("* Send a notification . . .\n");

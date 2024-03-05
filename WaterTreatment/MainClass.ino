@@ -146,8 +146,6 @@ void MainClass::init()
 
 	dRelay[RWATERON].set_ON();
 
-	Modbus.initModbus();
-
 	dPWM.initPWM();                                           // инициализация счетчика
 	message.initMessage(MAIN_WEB_TASK);                       // Инициализация Уведомлений, параметр - номер потока сервера в котором идет отправка
 #ifdef MQTT

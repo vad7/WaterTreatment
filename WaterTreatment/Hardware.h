@@ -343,9 +343,9 @@ class devModbus
     ModbusMaster RS485;                     // Класс модбас 485
 private:
     // Переменные
-    SemaphoreHandle_t xModbusSemaphore;     // Семафор Modbus
     int8_t flags;                           // Флаги
     int8_t err;                             // Ошибки модбас
+    SemaphoreHandle_t xModbusSemaphore; 	// Семафор Modbus
     int8_t translateErr(uint8_t result);    // Перевод ошибки протокола Модбас
   }; // End class
 
