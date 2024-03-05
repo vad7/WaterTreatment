@@ -1452,6 +1452,7 @@ x_get_RH:			_itoa(MC.Option.RegenHour & 0x1F, strReturn);
 							if((i = Modbus.readHoldingRegistersFloat(id, par, &pm)) == OK) _ftoa(strReturn, pm, 2);
 						} else if(*y == 'c') {
 							if((i = Modbus.readCoil(id, par, (boolean *)&par)) == OK) _itoa(par, strReturn);
+						} else if(*y == 'z') {
 						} else goto x_FunctionNotFound;
 					}
 					if(i != OK) {
