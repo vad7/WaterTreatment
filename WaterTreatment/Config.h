@@ -70,7 +70,7 @@ struct History_setup {
 // -----------------------------------------------------------------------------------------------------------------------------------
 //  Arduino DUE Core
 #ifdef CONFIG_1    // Имя и описание конфигурации и ОСОБЕННОСТИ конфигурации -------------------------------
-	//#define TEST_BOARD 				// Тестовая плата!
+	#define TEST_BOARD 				// Тестовая плата!
 
     #define CONFIG_NAME   "vad7"
     #define CONFIG_NOTE   "Водоснабжение, Обезжелезивание Quantum DMI-65, Дозирование хлора, Умягчение"
@@ -126,6 +126,7 @@ struct History_setup {
 		#define I2C_EEPROM_64KB	        // Размер I2C памяти (одна страница)
 		#define I2C_FRAM_MEMORY  0		// 1 - FRAM память
 		#define DONT_LOG_SUCCESS_PING	// Не логировать в журнал успешные пинги
+		#define REBOOT_ON_I2C_ERRORS				// Soft RESET при постоянной ошибке I2C
 	#endif
 	#ifdef  I2C_EEPROM_64KB                    // AT24C512C. В зависимости от типа чипа.
 		#define I2C_ADR_EEPROM    0x50         // Адрес чипа на шине I2C
@@ -133,12 +134,18 @@ struct History_setup {
   		#define I2C_MEMORY_TOTAL  512   	   // Итоговый размер I2C памяти в килобитах
 		#define I2C_PAGE_EEPROM   128           // Размер страницы для чтения, байты
 	#else // все остальное
-		#define I2C_ADR_EEPROM    0x57         // Адрес чипа на шине I2C
-		#define I2C_SIZE_EEPROM   32	       // Объем чипа в килобитах
-		#define I2C_MEMORY_TOTAL  I2C_SIZE_EEPROM // Итоговый размер I2C памяти в килобитах
-		#define I2C_PAGE_EEPROM   32           // Размер страницы для чтения, байты
+		#ifdef TEST_BOARD
+			#define I2C_ADR_EEPROM    0x50         // Адрес чипа на шине I2C
+			#define I2C_SIZE_EEPROM   64	       // Объем чипа в килобитах
+			#define I2C_MEMORY_TOTAL  I2C_SIZE_EEPROM // Итоговый размер I2C памяти в килобитах
+			#define I2C_PAGE_EEPROM   32           // Размер страницы для чтения, байты
+		#else
+			#define I2C_ADR_EEPROM    0x57         // Адрес чипа на шине I2C
+			#define I2C_SIZE_EEPROM   32	       // Объем чипа в килобитах
+			#define I2C_MEMORY_TOTAL  I2C_SIZE_EEPROM // Итоговый размер I2C памяти в килобитах
+			#define I2C_PAGE_EEPROM   32           // Размер страницы для чтения, байты
+		#endif
 	#endif
-	#define REBOOT_ON_I2C_ERRORS				// Soft RESET при постоянной ошибке I2C
 
 	//#define MQTT                             // признак использования MQTT, при неиспользовании необходимо закоментировать
 
@@ -154,7 +161,7 @@ struct History_setup {
 		uint8_t SPI_RATE 			  = 6;	// делитель для SPI шины, 2=42MHz, 3=28MHz, 4=21MHz, 6=14MHz
 		#define SD_CLOCK				20	// частота SPI для SD карты в МГц
 		const boolean   defaultDHCP	=	true;
-		const IPAddress defaultIP		(192, 168, 0, 199);
+		const IPAddress defaultIP		(192, 168, 0, 	221);
 		const IPAddress defaultSDNS		(192, 168, 0,   10);
 		const IPAddress defaultGateway	(192, 168, 0,   10);
 	#endif
@@ -214,8 +221,8 @@ struct History_setup {
     #define PIN_ETH_RES			55          // ETH-RES Сброс сетевого чипа w5500 активный low нормально high
 #ifdef TEST_BOARD
 	#define PIN_LED_OK			13          // Зеленый светодиод Выход на светодиод мигает 0.5 герца - ОК  с частотой 2 герца ошибка
-	#undef PIN_SPI_CS_SD
-	#define PIN_SPI_CS_SD		4
+	//#undef PIN_SPI_CS_SD
+	//#define PIN_SPI_CS_SD		4
 #else
 	#define PIN_LED_OK			42          // Зеленый светодиод Выход на светодиод мигает 0.5 герца - ОК  с частотой 2 герца ошибка
 #endif

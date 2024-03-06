@@ -153,7 +153,7 @@ int16_t  Weight_Percent = 0;						// %, сотые
 int32_t  Weight_Test = 100000;						// десятые грамма, Тест
 uint8_t  Weight_Wrong_ADC_Cnt = 0;
 void Weight_Clear_Averaging(void);
-bool Weight_Read(void);
+bool Weight_Read(bool skip_error = 0);
 
 #define  bRTC_UsedToday		0
 #define  bRTC_UsedRegen		1

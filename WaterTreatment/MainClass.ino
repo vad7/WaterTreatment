@@ -74,7 +74,7 @@ void Weight_Clear_Averaging(void)
 }
 
 // Read successfully - true
-bool Weight_Read(void)
+bool Weight_Read(bool skip_error)
 {
 //		if(Weight_NeedRead) { // allways
 			if(MC.get_testMode() != NORMAL) {
@@ -117,14 +117,16 @@ bool Weight_Read(void)
 				Weight_value = (int64_t)(adc_val - MC.Option.WeightZero) * 10000 / MC.Option.WeightScale - MC.Option.WeightTare;
 				Weight_Percent = Weight_value * 1000 / MC.Option.WeightFull;
 				if(Weight_Percent < 0) Weight_Percent = 0; else if(Weight_Percent > 10000) Weight_Percent = 10000;
-				if(Weight_Percent < MC.Option.Weight_Low) {
-					if(!(CriticalErrors & ERRC_WeightEmpty)) {
-						if(Weight_Percent <= 10) {
-							CriticalErrors |= ERRC_WeightEmpty;
-							set_Error(ERR_WEIGHT_EMPTY, (char*)__FUNCTION__);
-						} else set_Error(ERR_WEIGHT_LOW, (char*)__FUNCTION__);
-					}
-				} else if(CriticalErrors & ERRC_WeightEmpty) CriticalErrors &= ~ERRC_WeightEmpty;
+				if(!skip_error) {
+					if(Weight_Percent < MC.Option.Weight_Low) {
+						if(!(CriticalErrors & ERRC_WeightEmpty)) {
+							if(Weight_Percent <= 10) {
+								CriticalErrors |= ERRC_WeightEmpty;
+								set_Error(ERR_WEIGHT_EMPTY, (char*)__FUNCTION__);
+							} else set_Error(ERR_WEIGHT_LOW, (char*)__FUNCTION__);
+						}
+					} else if(CriticalErrors & ERRC_WeightEmpty) CriticalErrors &= ~ERRC_WeightEmpty;
+				}
 				return true;
 			}
 //		}

@@ -506,7 +506,7 @@ x_I2C_init_std_message:
 	int cnt = 4, t = 100;
 	while(cnt) {
 		WDT_Restart(WDT);
-		if(Weight_Read()) cnt--;
+		if(Weight_Read(1)) cnt--;
 		delay(10);
 		if(--t == 0) break;
 	}
