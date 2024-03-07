@@ -1,5 +1,5 @@
 // Copyright by Vadim Kulakov vad7@yahoo.com, vad711
-var VER_WEB = "1.52";
+var VER_WEB = "1.53";
 var urlcontrol = ''; //  автоопределение (если адрес сервера совпадает с адресом контроллера)
 // адрес и порт контроллера, если адрес сервера отличен от адреса контроллера (не рекомендуется)
 //var urlcontrol = 'http://192.168.0.199';
@@ -104,7 +104,7 @@ function loadParam(paramid, noretry, resultdiv) {
 									}
 									continue;
 								} else if(values[0].indexOf("get_Chart")==0) type = "chart"; // график
-								else if(/^.et_modbu._v/.test(values[0])) type = "tbv"; // таблица значений
+								else if(values[0].indexOf("et_modbus_v")==1) type = "tbv"; // таблица значений
 								else if(/LvL[()]/.test(values[0]) && !!(element = document.getElementById(valueid)).getAttribute("name")) type = "bar";
 								else if(values[0].indexOf("RELOAD")==0) { 
 									location.reload();
@@ -447,7 +447,9 @@ function loadParam(paramid, noretry, resultdiv) {
 									} else {
 										if(element2) element2.innerHTML = "OK";
 										if((element = document.getElementById(valueid))) {
-											element.value = values[1];
+											var val = values[1];
+											if(element.className.substring(0,3) == "Div") val = Number(val) / Number(element.className.substring(3));
+											if(element.tagName == "INPUT") element.value = val; else element.innerHTML = val;
 											element2 = document.getElementById(valueid.replace("val", "hex"));
 											if(element2) element2.value = "0x" + Number(values[1]).toString(16).toUpperCase();
 										}

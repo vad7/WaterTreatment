@@ -1046,7 +1046,7 @@ void buffer_space_padding(char * buf, int add)
 	}
 }
 
-uint8_t GetSerialNum(USARTClass serial)
+uint8_t GetSerialNum(USARTClass &serial)
 {
 	if(&serial == &Serial1) return 1;
 	else if(&serial == &Serial2) return 2;

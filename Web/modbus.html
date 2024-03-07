@@ -5,7 +5,7 @@
 <script type='text/javascript' src='scripts.js'></script>
 <script type="text/javascript">
 	window.onload = function() {
-		loadParam("get_PWM(NAME),get_PWM(M),get_modbus_p(timeout),get_modbus_p(pause)");
+		loadParam("get_PWM(NAME),get_PWM(M),get_modbus_p(id),get_modbus_p(timeout),get_modbus_p(pause)");
 	};
 	function set_param(e) {
 		var els = e.parentElement.parentElement.getElementsByClassName("mdb");
@@ -51,7 +51,7 @@
 <div class="content">
 <h1>Modbus RTU</h1>
 <br>
-<b>ID устройств - <span id="get_modbu2_p-id"></span>. Нумерация адресов с 0.</b><br>
+<b>Адреса устройств на шинах <span id="get_modbus_p-id"></span>. Нумерация ячеек(адресов) с 0.</b><br>
 Счетчики: PZEM-004T v3</span><br>
 <b>Адреса 4...</b><br>
 VOLTAGE - 0 (W, 0.1V)<br>

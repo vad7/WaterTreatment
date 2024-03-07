@@ -223,6 +223,8 @@ struct History_setup {
 	#define PIN_LED_OK			13          // Зеленый светодиод Выход на светодиод мигает 0.5 герца - ОК  с частотой 2 герца ошибка
 	//#undef PIN_SPI_CS_SD
 	//#define PIN_SPI_CS_SD		4
+	#undef PIN_ETH_RES
+	#define PIN_ETH_RES			8
 #else
 	#define PIN_LED_OK			42          // Зеленый светодиод Выход на светодиод мигает 0.5 герца - ОК  с частотой 2 герца ошибка
 #endif

@@ -37,14 +37,13 @@
 		<li class="files"><a href="files.html">Файлы</a></li>\
 	</ul>\
 </li>\
-<li name="USR" class="charts test modbus modbus2 log freertos has-children">\
+<li name="USR" class="charts test modbus log freertos has-children">\
 	<input type="checkbox" name="group-5" id="group-5">\
 	<label for="group-5"><i></i>Отладка</label>\
 	<ul>\
 		<li class="charts"><a href="charts.html">Графики</a></li>\
 		<li class="test"><a href="test.html">Тестирование</a></li>\
 		<li class="modbus"><a href="modbus.html">Modbus</a></li>\
-		<li class="modbus2"><a href="modbus2.html">Modbus 2</a></li>\
 		<li class="log"><a href="log.html">Журнал</a></li>\
 		<li class="freertos"><a href="freertos.html">ОС RTOS</a></li>\
 	</ul>\

@@ -41,6 +41,6 @@ void 	_dtoa(char *outstr, int val, int precision);
 void 	buffer_space_padding(char * buf, int add);
 char* 	NowTimeToStr(char *buf = NULL);
 char* 	NowDateToStr(char *buf = NULL);
-uint8_t	GetSerialNum(USARTClass serial);
+uint8_t	GetSerialNum(USARTClass &serial);
 
 #endif

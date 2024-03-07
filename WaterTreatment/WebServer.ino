@@ -1390,29 +1390,29 @@ x_get_RH:			_itoa(MC.Option.RegenHour & 0x1F, strReturn);
 				STORE_DEBUG_INFO(38);
 				if(str[11] == 'p') { // set_modbus_p(n=x) - установить параметры протокола Modbus
 					l_i32 = pm;
-					if(strcmp(x, "timeout")) { // Таймаут
+					if(strcmp(x, "timeout") == 0) { // Таймаут
 						if(str[0] == 's') Modbus.RS485.ModbusResponseTimeout = l_i32; else l_i32 = Modbus.RS485.ModbusResponseTimeout;
-					} else if(strcmp(x, "pause")) { // Пауза между транзакциями
+					} else if(strcmp(x, "pause") == 0) { // Пауза между транзакциями
 						if(str[0] == 's') Modbus.RS485.ModbusMinTimeBetweenTransaction = l_i32; else l_i32 = Modbus.RS485.ModbusMinTimeBetweenTransaction;
-					} else if(strcmp(x, "id")) { // id устройств
-						strcat(strReturn, "SER#");
+					} else if(strcmp(x, "id") == 0) { // id устройств
+						strcat(strReturn, "Serial");
 #if PWM_MODBUS_ADR >= MODBUS_SERIAL1_ADDR_LESS
 						_itoa(GetSerialNum(MODBUS_SERIAL1), strReturn);
 #else
 						_itoa(GetSerialNum(MODBUS_SERIAL2), strReturn);
 #endif
-						strcat(strReturn, ": Счетчик = ");
+						strcat(strReturn, ": Счетчик - ");
 						_itoa(PWM_MODBUS_ADR, strReturn);
-						strcat(strReturn, ". SER#");
+						strcat(strReturn, ". Serial");
 #if PWM_MODBUS_ADR < MODBUS_SERIAL1_ADDR_LESS
 						_itoa(GetSerialNum(MODBUS_SERIAL1), strReturn);
 #else
 						_itoa(GetSerialNum(MODBUS_SERIAL2), strReturn);
 #endif
-						strcat(strReturn, ": Насос = ");
+						strcat(strReturn, ": Насос - ");
 						_itoa(MODBUS_DRAIN_PUMP_ADDR, strReturn);
 #ifdef MODBUS_DRAIN_PUMP_RELAY_ADDR
-						strcat(strReturn, ", Реле = ");
+						strcat(strReturn, ", Реле - ");
 						_itoa(MODBUS_DRAIN_PUMP_RELAY_ADDR, strReturn);
 #endif
 						ADD_WEBDELIM(strReturn);
