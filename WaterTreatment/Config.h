@@ -126,7 +126,7 @@ struct History_setup {
 		#define I2C_EEPROM_64KB	        // Размер I2C памяти (одна страница)
 		#define I2C_FRAM_MEMORY  0		// 1 - FRAM память
 		#define DONT_LOG_SUCCESS_PING	// Не логировать в журнал успешные пинги
-		#define REBOOT_ON_I2C_ERRORS				// Soft RESET при постоянной ошибке I2C
+		#define REBOOT_ON_I2C_ERRORS	// Soft RESET при постоянной ошибке I2C
 	#endif
 	#ifdef  I2C_EEPROM_64KB                    // AT24C512C. В зависимости от типа чипа.
 		#define I2C_ADR_EEPROM    0x50         // Адрес чипа на шине I2C

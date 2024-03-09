@@ -178,9 +178,9 @@ void MainClass::clear_all_errors()
 		if(error == ERR_SALT_FINISH) {
 			MC.WorkStats.RegenSofteningCntAlarm = MC.Option.RegenSofteningCntAlarm;
 			NeedSaveWorkStats = 1;
-#ifdef CHECK_DRAIN_PUMP
+#if defined(CHECK_DRAIN_PUMP) && !defined(MODBUS_DRAIN_PUMP_ON_PULSE)
 		} else if(error == ERR_DRAIN_PUMP_TOOLONG) {
-			PumpReadCounter = DRAIN_PUMP_CMD_ON;
+			DrainPumpRelayStatus = MODBUS_RELAY_CMD_ON;
 #endif
 		}
 	}

@@ -669,7 +669,7 @@ char* devPWM::get_param(char *var, char *ret)
 		}
 	} else if(strcmp(var, pwm_ACENERGY) == 0) {
 		if(Modbus.readInputRegisters32(PWM_MODBUS_ADR, PWM_ENERGY, &tmp) == OK) {
-			_dtoa(ret, tmp, 0);
+			_dtoa(ret, tmp, 3);
 			return ret;
 		}
 	} else if(strcmp(var, pwm_NAME) == 0) {

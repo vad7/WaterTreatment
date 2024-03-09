@@ -2061,8 +2061,13 @@ void vService(void *)
 							RWATERON_Switching = -(int16_t)TimerDrainingWaterAfterRegen - 1;
 							if(MC.WorkStats.UsedLastRegen < MC.Option.MinRegenLiters) {
 								set_Error(ERR_FEW_LITERS_REG, (char*)__FUNCTION__);
-							} else if(RegStart_Weight < MC.Option.MinRegenWeightDecrease) {
-								set_Error(ERR_REG_FEW_WEIGHT_CONSUME, (char*)__FUNCTION__);
+							} else {
+								if(GETBIT(MC.Option.flags2, fCheckDrainPump) && DrainPumpTimeLast < RegenStarted) {
+									set_Error(ERR_DRAIN_PUMP_NOT_WORK, (char*)__FUNCTION__);
+								}
+								if(RegStart_Weight < MC.Option.MinRegenWeightDecrease) {
+									set_Error(ERR_REG_FEW_WEIGHT_CONSUME, (char*)__FUNCTION__);
+								}
 							}
 							//Passed100Count = 0; <- выключено, будет +1..100л
 							MC.WorkStats.UsedDrainSiltL100 = MC.Option.DrainSiltAfterL100 - DRAIN_SILT_AFTER_REGEN;
@@ -2099,8 +2104,13 @@ void vService(void *)
 							RWATERON_Switching = -(int16_t)TimerDrainingWaterAfterRegen - 1;
 							if(MC.WorkStats.UsedLastRegenSoftening < MC.Option.MinRegenLitersSoftening) {
 								set_Error(ERR_FEW_LITERS_REG, (char*)__FUNCTION__);
-							} else if(RegStart_Weight < MC.Option.MinRegenWeightDecreaseSoftening) {
-								set_Error(ERR_REG_FEW_WEIGHT_CONSUME, (char*)__FUNCTION__);
+							} else {
+								if(GETBIT(MC.Option.flags2, fCheckDrainPump) && DrainPumpTimeLast < RegenStarted) {
+									set_Error(ERR_DRAIN_PUMP_NOT_WORK, (char*)__FUNCTION__);
+								}
+								if(RegStart_Weight < MC.Option.MinRegenWeightDecreaseSoftening) {
+									set_Error(ERR_REG_FEW_WEIGHT_CONSUME, (char*)__FUNCTION__);
+								}
 							}
 							//Passed100Count = 0; <- выключено, будет +1..100л
 							MC.WorkStats.UsedDrainSiltL100 = MC.Option.DrainSiltAfterL100 - DRAIN_SILT_AFTER_REGEN;
@@ -2167,29 +2177,29 @@ void vService(void *)
 #ifdef CHECK_DRAIN_PUMP
 				bool skip_this_iteration = false;
 				if(GETBIT(MC.Option.flags2, fCheckDrainPump)) {
-					if(PumpReadCounter == DRAIN_PUMP_CMD_ON || PumpReadCounter == DRAIN_PUMP_CMD_OFF) {
-						if(GETBIT(MC.Option.flags2, fDrainPumpRelay)) {
+					if(GETBIT(MC.Option.flags2, fDrainPumpRelay) &&
+							(DrainPumpRelayStatus == MODBUS_RELAY_CMD_ON || DrainPumpRelayStatus == MODBUS_RELAY_CMD_OFF)) {
 #ifdef MODBUS_DRAIN_PUMP_RELAY_ADDR
-							skip_this_iteration = true;
-							int8_t err = Modbus.MODBUS_PUMP_FUNC(MODBUS_DRAIN_PUMP_RELAY_ADDR, MODBUS_DRAIN_PUMP_RELAY_ID,
-											PumpReadCounter == DRAIN_PUMP_CMD_ON ? MODBUS_DRAIN_PUMP_ON_CMD : MODBUS_DRAIN_PUMP_OFF_CMD);
-							if(err) {
-								if(++DrainPumpRelayErrCnt == MODBUS_OTHER_MAX_ERRORS) {
-									if(MC.get_errcode() != ERR_DRAIN_PUMP_RELAY_LINK) journal.jprintf("%s Link Error %d!\n", "PUMP Relay", err);
-									set_Error(ERR_DRAIN_PUMP_RELAY_LINK, (char*)"vService");
-								} else if(GETBIT(MC.Option.flags, fPWMLogErrors)) journal.jprintf_time("%s Read Error %d\n", "PUMP Relay", err);
-								PumpReadCounter = 0;
+						skip_this_iteration = true;
+						int8_t err = Modbus.MODBUS_PUMP_FUNC(MODBUS_DRAIN_PUMP_RELAY_ADDR, MODBUS_DRAIN_PUMP_RELAY_ID,
+									DrainPumpRelayStatus == MODBUS_RELAY_CMD_ON ? MODBUS_DRAIN_PUMP_ON_CMD : MODBUS_DRAIN_PUMP_OFF_CMD);
+						if(err) {
+							if(++DrainPumpRelayErrCnt == MODBUS_OTHER_MAX_ERRORS) {
+								if(MC.get_errcode() != ERR_DRAIN_PUMP_RELAY_LINK) journal.jprintf("%s Link Error %d!\n", "PUMP Relay", err);
+								set_Error(ERR_DRAIN_PUMP_RELAY_LINK, (char*)"vService");
+							} else if(GETBIT(MC.Option.flags, fPWMLogErrors)) journal.jprintf_time("%s Read Error %d\n", "PUMP Relay", err);
+						} else {
+							DrainPumpRelayErrCnt = 0;
+							if(DrainPumpRelayStatus == MODBUS_RELAY_CMD_OFF) {
+								if(MC.get_errcode() != ERR_DRAIN_PUMP_TOOLONG) journal.jprintf_time("DRAIN PUMP -> OFF!\n", err);
+#ifdef MODBUS_DRAIN_PUMP_ON_PULSE
+								DrainPumpRelayStatus = MODBUS_RELAY_CMD_ON;	// Pulse 1 sec
+#else
+								DrainPumpRelayStatus = MODBUS_RELAY_OFF;
+#endif
 							} else {
-								DrainPumpRelayErrCnt = 0;
-								if(PumpReadCounter == DRAIN_PUMP_CMD_OFF) {
-									if(MC.get_errcode() != ERR_DRAIN_PUMP_TOOLONG) journal.jprintf_time("DRAIN PUMP -> OFF!\n", err);
-	#ifdef MODBUS_DRAIN_PUMP_ON_PULSE
-									PumpReadCounter = DRAIN_PUMP_CMD_ON;	// Pulse 1 sec
-	#endif
-								} else {
-									journal.jprintfopt_time("%s Relay: %s\n", "PUMP", PumpReadCounter == DRAIN_PUMP_CMD_ON ? "ON" : "OFF");
-									PumpReadCounter = 0;
-								}
+								DrainPumpRelayStatus = MODBUS_RELAY_ON;
+								journal.jprintfopt_time("%s Relay: %s\n", "PUMP", DrainPumpRelayStatus == MODBUS_RELAY_CMD_ON ? "ON" : "OFF");
 							}
 #endif
 						}
@@ -2210,7 +2220,7 @@ void vService(void *)
 									if(DrainPumpPower <= 10) DrainPumpTimeLast = rtcSAM3X8.unixtime(); // время включения
 									else if(MC.Option.DrainPumpMaxTime && rtcSAM3X8.unixtime() - DrainPumpTimeLast > MC.Option.DrainPumpMaxTime * 10) {
 										set_Error(ERR_DRAIN_PUMP_TOOLONG, (char*)"vService");
-										PumpReadCounter = DRAIN_PUMP_CMD_OFF;
+										DrainPumpRelayStatus = MODBUS_RELAY_CMD_OFF;
 									}
 								}
 								DrainPumpPower = tmp;

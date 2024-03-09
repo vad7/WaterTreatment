@@ -944,16 +944,18 @@ xSaveStats:		if((i = MC.save_WorkStats()) == OK)
 			strcat(strReturn,"I2C_SPEED|Частота работы шины I2C (кГц)|"); _itoa(I2C_SPEED/1000,strReturn); strcat(strReturn,";");
 			strcat(strReturn,"UART_SPEED|Скорость отладочного порта (бод)|");_itoa(UART_SPEED,strReturn);strcat(strReturn,";");
 			strcat(strReturn,"WDT_TIME|Период сторожевого таймера, 0 - нет (сек)|");_itoa(WDT_TIME,strReturn);strcat(strReturn,";");
-			strcat(strReturn,"|Modbus RTU порт счетчика насосной станции|Serial");
 #if PWM_MODBUS_ADR >= MODBUS_SERIAL1_ADDR_LESS
+			strcat(strReturn,"MODBUS_SERIAL1|Modbus RTU порт счетчика насосной станции|Serial");
 			m_snprintf(strReturn + strlen(strReturn), 128, "%d (%d);", GetSerialNum(MODBUS_SERIAL1), MODBUS_SERIAL1_SPEED);
 #else
+			strcat(strReturn,"MODBUS_SERIAL2|Modbus RTU порт счетчика насосной станции|Serial");
 			m_snprintf(strReturn + strlen(strReturn), 128, "%d (%d);", GetSerialNum(MODBUS_SERIAL2), MODBUS_SERIAL2_SPEED);
 #endif
-			strcat(strReturn,"|Modbus RTU порт для насосов|Serial");
 #if PWM_MODBUS_ADR < MODBUS_SERIAL1_ADDR_LESS
+			strcat(strReturn,"MODBUS_SERIAL1|Modbus RTU порт для насосов|Serial");
 			m_snprintf(strReturn + strlen(strReturn), 128, "%d (%d);", GetSerialNum(MODBUS_SERIAL1), MODBUS_SERIAL1_SPEED);
 #else
+			strcat(strReturn,"MODBUS_SERIAL2|Modbus RTU порт для насосов|Serial");
 			m_snprintf(strReturn + strlen(strReturn), 128, "%d (%d);", GetSerialNum(MODBUS_SERIAL2), MODBUS_SERIAL2_SPEED);
 #endif
 			strcat(strReturn,"MODBUS_PORT_CONFIG|Конфигурация порта|8N1;");
