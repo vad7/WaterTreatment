@@ -984,6 +984,9 @@ xSaveStats:		if((i = MC.save_WorkStats()) == OK)
 
 		if (strcmp(str,"CONST1")==0)   // Команда CONST1 Информация очень большая по этому разбито на 2 запроса CONST CONST1
 		{
+#ifdef MODBUS_PUMP_PERIOD
+			strcat(strReturn,"MODBUS_PUMP_PERIOD|Период опроса насосов (сек)|"); _itoa(MODBUS_PUMP_PERIOD,strReturn); strcat(strReturn,";");
+#endif
 			strcat(strReturn,"TIME_WEB_SERVER|Период опроса web сервера "); strcat(strReturn,nameWiznet);strcat(strReturn," (мсек)|");_itoa(TIME_WEB_SERVER,strReturn);strcat(strReturn,";");
 			strcat(strReturn,"TIME_I2C_UPDATE |Период синхронизации внутренних часов с I2C часами (мсек)|");_itoa(TIME_I2C_UPDATE,strReturn);strcat(strReturn,";");
 			// i2c
