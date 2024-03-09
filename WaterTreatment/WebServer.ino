@@ -1069,7 +1069,13 @@ xSaveStats:		if((i = MC.save_WorkStats()) == OK)
 				strReturn += m_snprintf(strReturn += strlen(strReturn), 256, "Площадь фильтрации умягчителя, м2|%.4d;", MC.FilterTankSoftenerSquare);
 
 				strReturn += m_snprintf(strReturn += strlen(strReturn), 256, "Потреблено с последнего слива осадка, л|%d;", MC.WorkStats.UsedDrainSiltL100 * 100);
-
+#ifdef MODBUS_DRAIN_PUMP_RELAY_ADDR
+				strcat(strReturn, "Состояние реле дренажного насоса|");
+				if(GETBIT(MC.Option.flags2, fDrainPumpRelay)) {
+					strReturn += m_snprintf(strReturn += strlen(strReturn), 256, "%s %s;", abs(DrainPumpRelayStatus) == 1 ? "go ->" : "",
+																							DrainPumpRelayStatus > 0 ? "ON" : "OFF");
+				} else strcat(strReturn, "DISABLED;");
+#endif
 				STORE_DEBUG_INFO(47);
 
 				strcat(strReturn,"<b> Времена</b>|;");
