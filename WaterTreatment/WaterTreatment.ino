@@ -2216,8 +2216,8 @@ void vService(void *)
 							int8_t err = Modbus.readInputRegisters32(MODBUS_DRAIN_PUMP_ADDR, PWM_POWER, &tmp);
 							if(err == OK) {
 								tmp /= 10;
-								if(tmp > 10) { // работает
-									if(DrainPumpPower <= 10) DrainPumpTimeLast = rtcSAM3X8.unixtime(); // время включения
+								if(tmp > MC.Option.DrainPumpMinPower * 10) { // работает
+									if(DrainPumpPower <= MC.Option.DrainPumpMinPower * 10) DrainPumpTimeLast = rtcSAM3X8.unixtime(); // время включения
 									else if(MC.Option.DrainPumpMaxTime && rtcSAM3X8.unixtime() - DrainPumpTimeLast > MC.Option.DrainPumpMaxTime * 10) {
 										set_Error(ERR_DRAIN_PUMP_TOOLONG, (char*)"vService");
 										DrainPumpRelayStatus = MODBUS_RELAY_CMD_OFF;

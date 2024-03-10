@@ -275,6 +275,7 @@ struct type_option {
 	uint16_t FilterCounter1_Max;	// Предел для счетчика 1, *100л
 	uint16_t FilterCounter2_Max;	// Предел для счетчика 2, *100л
 	uint8_t  DrainPumpMaxTime;		// Максимальное время работы дренажного насоса, 0 - нет, сек * 30
+	uint8_t  DrainPumpMinPower;		// Минимальная мощность дренажного насоса для определения его работы, W * 10
 };
 
 //  Работа с отдельными флагами type_DateTime

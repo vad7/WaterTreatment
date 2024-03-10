@@ -9,7 +9,7 @@
 window.onload = function() {
 	loadParam("get_Opt(FPMF),get_Opt(FPR),get_Opt(UBR),get_Opt(RH),get_Opt(NRW),get_Opt(DT),get_Opt(MR),get_Opt(MD),get_Opt(HIST),get_Opt(BEEP),get_Opt(WSPIF),get_Opt(LOGWS),get_Opt(TIME_CHART),get_Opt(PWMLOG),get_Opt(SGL1W_1),get_Opt(SGL1W_2),get_Opt(SGL1W_3),get_Opt(SGL1W_4),get_Opt(TD),get_Opt(TDS),get_Opt(TAF),get_Opt(LLM),get_Opt(DAR),get_Opt(DBRS),get_Opt(LCP),get_Opt(SD),get_Opt(DAS),get_Opt(MRS),get_Opt(MRW),get_Opt(LH),get_Opt(LHL),get_Opt(MRWS)");
 	loadParam("get_Opt(MWBT),get_Opt(MWBTF),get_Opt(MPOT),get_Opt(DR),get_Opt(PM),get_Opt(PST),get_WSRC,get_WSRSC,get_WST,get_Opt(WRM),get_Opt(TE),get_Opt(FDT),get_Opt(FT),get_Opt(FTT),get_Opt(UBRS),get_Opt(DBR),get_Opt(WE),get_Opt(CET),get_Opt(DA),get_Opt(BWFD),get_Opt(BWMF),get_Opt(RA1),get_Opt(RA2),get_Opt(RSA),get_Opt(MWC),get_Opt(WOM),get_Opt(WOS),get_Opt(FBP),get_Opt(FBM),LowConsume_Req,get_Opt(LEO),get_Opt(RFIL)");
-	loadParam("get_Opt(DSF),get_Opt(DST),get_Opt(DSL),get_Opt(DSH),get_Opt(DSR),get_Opt(TCP),get_Opt(TFM),get_Opt(UWC),get_Opt(LPR),get_Opt(FC1),get_Opt(FC2),get_Opt(CDP),get_Opt(DPT),get_Opt(DPR),get_Opt(SHR)");
+	loadParam("get_Opt(DSF),get_Opt(DST),get_Opt(DSL),get_Opt(DSH),get_Opt(DSR),get_Opt(TCP),get_Opt(TFM),get_Opt(UWC),get_Opt(LPR),get_Opt(FC1),get_Opt(FC2),get_Opt(CDP),get_Opt(DPT),get_Opt(DPR),get_Opt(DPM),get_Opt(SHR)");
 }; 
 function show_all() {
 	var elements = document.getElementsByTagName('input');
@@ -224,6 +224,10 @@ function show_all() {
 		<tr>
 			<td>Максимальное время работы дренажного насоса, сек</td>
 			<td nowrap><input id="get_opt-dpt" type="number"> <input type="submit" value=">" onclick="setParam('get_Opt(DPT)');"></td>
+		</tr>
+		<tr>
+			<td>Минимальная мощность дренажного насоса для определения его работы, Вт</td>
+			<td nowrap><input id="get_opt-dpm" type="number"> <input type="submit" value=">" onclick="setParam('get_Opt(DPM)');"></td>
 		</tr>
 		<tr>
 			<td>Использовать реле отключения насоса</td>

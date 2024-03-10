@@ -969,6 +969,7 @@ boolean MainClass::set_option(char *var, float xx)
    if(strcmp(var,option_FilterCounter1_Max)==0){ Option.FilterCounter1_Max = x / 100; return true; } else
    if(strcmp(var,option_FilterCounter2_Max)==0){ Option.FilterCounter2_Max = x / 100; return true; } else
    if(strcmp(var,option_DrainPumpMaxTime)==0){ Option.DrainPumpMaxTime = x / 30; return true; } else
+   if(strcmp(var,option_DrainPumpMinPower)==0){ Option.DrainPumpMinPower = x / 10; return true; } else
    if(strcmp(var,option_fLED_SRV_INFO_PlanReg)==0){ Option.flags2 = (Option.flags2 & ~(1<<fLED_SRV_INFO_PlanReg)) | ((x!=0)<<fLED_SRV_INFO_PlanReg); return true; } else
    if(strcmp(var,option_fCheckDrainPump)==0){ Option.flags2 = (Option.flags2 & ~(1<<fCheckDrainPump)) | ((x!=0)<<fCheckDrainPump); return true; } else
    if(strcmp(var,option_fDrainPumpRelay)==0){ Option.flags2 = (Option.flags2 & ~(1<<fDrainPumpRelay)) | ((x!=0)<<fDrainPumpRelay); return true; } else
@@ -1080,6 +1081,7 @@ char* MainClass::get_option(char *var, char *ret)
 	if(strcmp(var,option_FilterCounter1_Max)==0){ _itoa(Option.FilterCounter1_Max * 100, ret); } else
 	if(strcmp(var,option_FilterCounter2_Max)==0){ _itoa(Option.FilterCounter2_Max * 100, ret); } else
 	if(strcmp(var,option_DrainPumpMaxTime)==0){ _itoa(Option.DrainPumpMaxTime * 30, ret); } else
+	if(strcmp(var,option_DrainPumpMinPower)==0){ _itoa(Option.DrainPumpMinPower * 10, ret); } else
 	if(strcmp(var,option_fLED_SRV_INFO_PlanReg)==0){ return strcat(ret, (char*)(GETBIT(Option.flags2, fLED_SRV_INFO_PlanReg) ? cOne : cZero)); } else
 	if(strcmp(var,option_fCheckDrainPump)==0){ return strcat(ret, (char*)(GETBIT(Option.flags2, fCheckDrainPump) ? cOne : cZero)); } else
 	if(strcmp(var,option_fDrainPumpRelay)==0){ return strcat(ret, (char*)(GETBIT(Option.flags2, fDrainPumpRelay) ? cOne : cZero)); } else
