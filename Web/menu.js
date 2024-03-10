@@ -23,16 +23,16 @@
 		<li class="setsensors"><a href="setsensors.html">Привязка датчиков</a></li>\
 	</ul>\
 </li>\
-<li name="USR" class="lan config system files time notice mqtt const has-children">\
+<li name="USR" class="system config lan files time notice mqtt const has-children">\
 	<input type="checkbox" name="group-4" id="group-4">\
 	<label for="group-4"><i></i>Сервис</label>\
 	<ul>\
+		<li class="system"><a href="system.html">Система</a></li>\
 		<li class="config"><a href="config.html">Настройки</a></li>\
 		<li class="lan"><a href="lan.html">Сеть</a></li>\
 		<li class="time"><a href="time.html">Дата/Время</a></li>\
 		<li class="notice"><a href="notice.html">Уведомления</a></li>\
 		<li class="mqtt"><a href="mqtt.html">MQTT</a></li>\
-		<li class="system"><a href="system.html">Система</a></li>\
 		<li class="const"><a href="const.html"><i></i>Константы</a></li>\
 		<li class="files"><a href="files.html">Файлы</a></li>\
 	</ul>\
