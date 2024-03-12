@@ -1,6 +1,6 @@
 /*
 Доработка библиотеки для "Народного контроллера теплового насоса"
-Автор pav2000  firstlast2007@gmail.com
+pav2000  firstlast2007@gmail.com
 Добавлены изменения для работы с инвертором Omron MX2
 - поддерживается функция проверки связи (код функции 0х08)
 для проверки функции используйте   LinkTestOmronMX2Only(code)
@@ -10,7 +10,7 @@
 при этом возвращается состяние ku8MBErrorOmronMX2,
 первый элемент буфера при этом содержит код ошибки
 *
-* Some additional - vad7@yahoo.com
+* Доработки - vad7@yahoo.com
 */
 
 /**
@@ -52,8 +52,6 @@ Arduino library for communicating with Modbus slaves over RS232/485 (via RTU pro
 #include "FreeRTOS_ARM.h"                // поддержка многозадачности
 #endif
 
-#define MIN_TIME_BETWEEN_TRANSACTION	30 // ms
-
 // Коды функций Modbus
 // Modbus function codes for bit access
 #define ku8MBReadCoils                  0x01 ///< Modbus function 0x01 Read Coils
@@ -69,8 +67,8 @@ Arduino library for communicating with Modbus slaves over RS232/485 (via RTU pro
 #define ku8MBMaskWriteRegister          0x16 ///< Modbus function 0x16 Mask Write Register
 #define ku8MBReadWriteMultipleRegisters 0x17 ///< Modbus function 0x17 Read Write Multiple Registers
 #define ku8MBLinkTestOmronMX2Only       0x08 ///< Modbus function 0x08 Тест связи с инвертром Omron MX2 функция только для него
-// 8 bit
-#define ku8MBCustomRequest				0x09 // Custom request, prepare send buffer - send(uint8_t) //vad7
+//
+#define ku8MBCustomRequest				0x09 // Custom request, prepare send buffer //vad7
 
 /**
 Arduino class library for communicating with Modbus slaves over 
@@ -222,7 +220,6 @@ class ModbusMaster
     uint8_t available(void);
     uint16_t receive(void);
     
-    
     uint8_t  readCoils(uint16_t, uint16_t);
     uint8_t  readDiscreteInputs(uint16_t, uint16_t);
     uint8_t  readHoldingRegisters(uint16_t, uint16_t);
@@ -239,7 +236,10 @@ class ModbusMaster
     uint8_t  LinkTestOmronMX2Only(uint16_t);
 
     // master function that conducts Modbus transactions
-    uint8_t ModbusMasterTransaction(uint8_t u8MBFunction);
+    uint8_t ModbusMasterTransaction(uint8_t);
+	uint8_t ModbusMinTimeBetweenTransaction; // ms
+    // Modbus timeout [milliseconds] Depend on serial speed
+	uint8_t ModbusResponseTimeout; // < Modbus timeout, every byte [milliseconds]
     
   private:
     Stream* _serial;                                             ///< reference to serial port object
@@ -259,9 +259,6 @@ class ModbusMaster
     uint8_t _u8ResponseBufferLength;
     uint32_t last_transaction_time;
 
-    // Modbus timeout [milliseconds] Depend on serial speed
-    static const uint16_t ku16MBResponseTimeout          = 100;   ///< Modbus timeout, every byte [milliseconds]
-    
     // idle callback function; gets called during idle time between TX and RX
     void (*_idle)();
     // preTransmission callback function; gets called before writing a Modbus message
