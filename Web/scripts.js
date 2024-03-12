@@ -1,5 +1,5 @@
 // Copyright by Vadim Kulakov vad7@yahoo.com, vad711
-var VER_WEB = "1.53";
+var VER_WEB = "1.54";
 var urlcontrol = ''; //  автоопределение (если адрес сервера совпадает с адресом контроллера)
 // адрес и порт контроллера, если адрес сервера отличен от адреса контроллера (не рекомендуется)
 //var urlcontrol = 'http://192.168.0.199';
@@ -140,11 +140,14 @@ function loadParam(paramid, noretry, resultdiv) {
 										if(values[1] == "wait response") {
 											setTimeout(loadParam('get_Message(scan_MAIL)'), 2000);
 										} else alert(values[1]);
-									} else if(values[0] != null && values[0] != 0 && values[1] != null && values[1] != 0) {
-										var content = "<tr><td>" + values[1].replace(/\:/g, "</td><td>").replace(/(\;)/g, "</td></tr><tr><td>") + "</td></tr>";
-										document.getElementById(values[0].toLowerCase()).innerHTML = content;
-										content = values[1].replace(/:[^;]+/g, "").replace(/;$/g, "");
-										var cont2 = content.split(';');
+									} else {
+										var cont2 = [];
+										if(values[0] != null && values[0] != 0 && values[1] != null && values[1] != 0) {
+											var content = "<tr><td>" + values[1].replace(/\:/g, "</td><td>").replace(/(\;)/g, "</td></tr><tr><td>") + "</td></tr>";
+											document.getElementById(values[0].toLowerCase()).innerHTML = content;
+											content = values[1].replace(/:[^;]+/g, "").replace(/;$/g, "");
+											cont2 = content.split(';');
+										}
 										var elems = document.getElementById("scan_table").getElementsByTagName('select');
 										for(var j = 0; j < elems.length; j++) {
 											elems[j].options.length = 0

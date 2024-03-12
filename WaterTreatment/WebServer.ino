@@ -1443,7 +1443,7 @@ x_get_RH:			_itoa(MC.Option.RegenHour & 0x1F, strReturn);
 						//else if(*y == 'u') i = Modbus.writeHoldingRegisters32(id, par, strtol(z, NULL, 0)); // 2 registers (int32).
 						else if(*y == 'f') i = Modbus.writeHoldingRegistersFloat(id, par, strtol(z, NULL, 0)); // 2 registers (float).
 						else if(*y == 'c') i = Modbus.writeSingleCoil(id, par, atoi(z));	// coil
-						else if(*y == 'z') i = Modbus.CustomRequest(id, par);				// Custom = [ id, par ]
+						else if(*y == 'z') i = Modbus.CustomRequestData(id, y + 2); // Custom = [ id, par ]
 						else goto x_FunctionNotFound;
 #ifdef MODBUS_TIME_TRANSMISION
 						_delay(MODBUS_TIME_TRANSMISION * 10); // Задержка перед чтением
@@ -1464,6 +1464,7 @@ x_get_RH:			_itoa(MC.Option.RegenHour & 0x1F, strReturn);
 						} else if(*y == 'c') {
 							if((i = Modbus.readCoil(id, par, (boolean *)&par)) == OK) _itoa(par, strReturn);
 						} else if(*y == 'z') {
+							if((i = Modbus.CustomRequestData(id, y + 2)) == OK) ; // Custom = [ id, par ]
 						} else goto x_FunctionNotFound;
 					}
 					if(i != OK) {

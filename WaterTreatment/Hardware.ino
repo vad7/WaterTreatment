@@ -1046,6 +1046,28 @@ int8_t devModbus::CustomRequest(uint8_t id, uint8_t cmd)
 	return err = translateErr(result);
 }
 
+// Отправка данных в виде строки чисел (hex - 0x...)
+int8_t devModbus::CustomRequestData(uint8_t id, char *str)
+{
+	// Если шедулер запущен то захватываем семафор
+	if(SemaphoreTake(xModbusSemaphore, (MODBUS_TIME_WAIT / portTICK_PERIOD_MS)) == pdFALSE) // Захват мютекса потока или ОЖИДАНИНЕ MODBUS_TIME_WAIT
+	{
+		journal.jprintf((char*) cErrorMutex, __FUNCTION__, MutexModbusBuzy);
+		return err = ERR_485_BUZY;
+	}
+	RS485.begin(id, id >= MODBUS_SERIAL1_ADDR_GE ? MODBUS_SERIAL1 : MODBUS_SERIAL2);	// установка сериала и адреса устройства
+	char *tail;
+	do {
+		uint8_t b = strtol(str, &tail, 0);
+		if(tail == str) break;
+		RS485.send(b);
+		str = tail;
+	} while(str && *str);
+	uint8_t result = RS485.ModbusMasterTransaction(ku8MBCustomRequest);
+	SemaphoreGive(xModbusSemaphore);
+	return err = translateErr(result);
+}
+
 // Перевод ошибки протокола Модбас (что дает либа)
 int8_t devModbus::translateErr(uint8_t result)
 {

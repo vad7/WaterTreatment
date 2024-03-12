@@ -70,7 +70,7 @@ struct History_setup {
 // -----------------------------------------------------------------------------------------------------------------------------------
 //  Arduino DUE Core
 #ifdef CONFIG_1    // Имя и описание конфигурации и ОСОБЕННОСТИ конфигурации -------------------------------
-	//#define TEST_BOARD 				// Тестовая плата!
+	#define TEST_BOARD 				// Тестовая плата!
 
     #define CONFIG_NAME   "vad7"
     #define CONFIG_NOTE   "Водоснабжение, Обезжелезивание Quantum DMI-65, Дозирование хлора, Умягчение"
@@ -173,8 +173,12 @@ struct History_setup {
     // ЖЕЛЕЗО  - привязка к ногам контроллера  В зависимости от конкретной схемы и платы
     // Для каждой конфигурации теперь свои определения!!!
     // --------------------------------------------------------------------------------
-	#define PWM_MODBUS_ADR				0xF8		// (248) PZEM-004T V.3 Modbus
 	// Конфигурирование Modbus
+	#define PWM_MODBUS_ADR				0xF8		// (248) PZEM-004T V.3 Modbus
+	#define PWM_READ_PERIOD				(3*1000)    // Время опроса не критичных параметров счетчика, ms
+	#define PWM_NUM_READ				2           // Число попыток чтения счетчика (подряд) до ошибки
+	#define PWM_DELAY_REPEAT			50          // мсек Время между ПОВТОРНЫМИ попытками чтения
+
 	#define MODBUS_SERIAL1	        	Serial1     // Modbus порт для счетчика насосной станции
 	#define MODBUS_SERIAL1_SPEED		9600
 	#define MODBUS_SERIAL1_ADDR_GE		0xF8		// Если ADDR устройства больше или равен этому, то выбирается Serial1 иначе Serial2
@@ -206,11 +210,14 @@ struct History_setup {
 		#define MODBUS_PUMP_PERIOD				10	// Период опроса, сек (не меньше 2)
 		#define MODBUS_PUMP_FUNC(ID,CMD,ST) 	writeSingleCoil(ID,CMD,ST)
 
-
 #if MODBUS_PUMP_PERIOD < 2
 		#error "MODBUS_PUMP_PERIOD must be greater than 1"
 #endif
 	#endif
+#ifdef  TEST_BOARD
+	#undef PWM_READ_PERIOD
+	#define PWM_READ_PERIOD		(60*1000)		// ms
+#endif
 
     // SPI шина управление отдельными устройствами до 3-х устройств (активный уровень низкий)
     #define PIN_SPI_CS_W5XXX	10		// ETH-CS   сигнал CS управление сетевым чипом w5500

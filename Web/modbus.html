@@ -9,7 +9,10 @@
 	};
 	function set_param(e) {
 		var els = e.parentElement.parentElement.getElementsByClassName("mdb");
-		for(var i = 1; i < els.length; i++) els[i].id = els[i].id.replace(/\d+$/, '') + parseInt(els[0].value);
+		for(var i = 1; i < els.length; i++) {
+			var p = els[i].id.lastIndexOf(":");
+			els[i].id = els[i].id.substr(0,p+1) + (els[i].id[p-1] == 'z' ? els[0].value : parseInt(els[0].value));
+		}
 		loadParam(els[1].id.replace(/-/, '(') + ')');
 	}
 	function set_value(e) {
