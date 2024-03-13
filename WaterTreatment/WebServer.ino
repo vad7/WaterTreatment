@@ -1462,9 +1462,13 @@ x_get_RH:			_itoa(MC.Option.RegenHour & 0x1F, strReturn);
 						} else if(*y == 'f') {
 							if((i = Modbus.readHoldingRegistersFloat(id, par, &pm)) == OK) _ftoa(strReturn, pm, 2);
 						} else if(*y == 'c') {
-							if((i = Modbus.readCoil(id, par, (boolean *)&par)) == OK) _itoa(par, strReturn);
+							l_i32 = 8;
+							if((i = Modbus.readCoils(id, par / 8, (uint8_t *)&l_i32)) == OK) _itoa((l_i32 & (1<<par)) != 0, strReturn);
+						} else if(*y == 'd') {
+							l_i32 = 8;
+							if((i = Modbus.readDiscreteInputs(id, par / 8, (uint8_t *)&l_i32)) == OK) _itoa((l_i32 & (1<<par)) != 0, strReturn);
 						} else if(*y == 'z') {
-							if((i = Modbus.CustomRequestData(id, y + 2)) == OK) ; // Custom = [ id, par ]
+							i = Modbus.CustomRequestData(id, y + 2); // Custom = [ id, par ]
 						} else goto x_FunctionNotFound;
 					}
 					if(i != OK) {

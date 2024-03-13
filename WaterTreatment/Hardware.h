@@ -334,7 +334,8 @@ class devModbus
     int8_t readHoldingRegistersFloat(uint8_t id, uint16_t cmd, float *ret);                // Получить значение 2-x регистров (4 байта) в виде float возвращает код ошибки данные кладутся в ret
     int8_t readHoldingRegistersNN(uint8_t id, uint16_t cmd, uint16_t num,uint16_t *buf);   // Получить значение N регистров (2*N байта) (положить в buf) возвращает код ошибки
     int8_t writeSingleCoil(uint8_t id,uint16_t cmd, uint8_t u8State);                      // установить битовый вход, возвращает код ошибки Modbus function 0x05 Write Single Coil.
-    int8_t readCoil(uint8_t id,uint16_t cmd, boolean *ret);                                // прочитать отдельный бит, возвращает ошибку Modbus function 0x01 Read Coils.
+    int8_t readCoils(uint8_t id,uint16_t cmd, uint8_t *num_ret);                           // прочитать Coils, возвращает ошибку Modbus function 0x01 Read Coils.
+    int8_t readDiscreteInputs(uint8_t id, uint16_t cmd, uint8_t *num_ret);					// прочитать дискретные входы
     int8_t writeHoldingRegisters16(uint8_t id, uint16_t cmd, uint16_t data);               // Установить значение регистра (2 байта) МХ2 в виде целого  числа возвращает код ошибки данные data
     int8_t writeHoldingRegistersFloat(uint8_t id, uint16_t cmd, float dat);                // Записать float как 2 регистра числа возвращает код ошибки данные data
     int8_t writeHoldingRegisters32(uint8_t id,uint16_t cmd, uint32_t data); 			   // BIG-ENDIAN! Записать 2 регистра подряд возвращает код ошибки

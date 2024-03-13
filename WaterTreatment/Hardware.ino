@@ -926,8 +926,8 @@ int8_t devModbus::readHoldingRegistersNN(uint8_t id, uint16_t cmd, uint16_t num,
 	}
 }
 
-// прочитать отдельный бит возвращает ошибку Modbus function 0x01 Read Coils.
-int8_t devModbus::readCoil(uint8_t id, uint16_t cmd, boolean *ret)
+// прочитать Coils, возвращает ошибку, количество в num_ret, макс 8, Modbus function 0x01 Read Coils.
+int8_t devModbus::readCoils(uint8_t id, uint16_t cmd, uint8_t *num_ret)
 {
 	uint8_t result;
 // Если шедулер запущен то захватываем семафор
@@ -937,12 +937,35 @@ int8_t devModbus::readCoil(uint8_t id, uint16_t cmd, boolean *ret)
 		return err = ERR_485_BUZY;
 	}
 	RS485.begin(id, id >= MODBUS_SERIAL1_ADDR_GE ? MODBUS_SERIAL1 : MODBUS_SERIAL2);	// установка сериала и адреса устройства
-	result = RS485.readCoils(cmd, 1);                                  // послать запрос, Нумерация регистров с НУЛЯ!!!!
+	result = RS485.readCoils(cmd, *num_ret);                                  // послать запрос, Нумерация регистров с НУЛЯ!!!!
 	if(result == RS485.ku8MBSuccess) {
 		err = OK;
 		SemaphoreGive (xModbusSemaphore);
-		if(RS485.getResponseBuffer(0)) *ret = true;
-		else *ret = false;
+		*num_ret = RS485.getResponseBuffer(0);
+		return err;
+	} else {
+		err = translateErr(result);
+		SemaphoreGive (xModbusSemaphore);
+		return err;
+	}
+}
+
+// прочитать дискретные входы, возвращает ошибку, количество в num_ret, макс 8, Modbus function 0x01 Read Coils.
+int8_t devModbus::readDiscreteInputs(uint8_t id, uint16_t cmd, uint8_t *num_ret)
+{
+	uint8_t result;
+// Если шедулер запущен то захватываем семафор
+	if(SemaphoreTake(xModbusSemaphore, (MODBUS_TIME_WAIT / portTICK_PERIOD_MS)) == pdFALSE) // Захват мютекса потока или ОЖИДАНИНЕ MODBUS_TIME_WAIT
+	{
+		journal.jprintf((char*) cErrorMutex, __FUNCTION__, MutexModbusBuzy);
+		return err = ERR_485_BUZY;
+	}
+	RS485.begin(id, id >= MODBUS_SERIAL1_ADDR_GE ? MODBUS_SERIAL1 : MODBUS_SERIAL2);	// установка сериала и адреса устройства
+	result = RS485.readDiscreteInputs(cmd, *num_ret);                                  // послать запрос, Нумерация регистров с НУЛЯ!!!!
+	if(result == RS485.ku8MBSuccess) {
+		err = OK;
+		SemaphoreGive (xModbusSemaphore);
+		*num_ret = RS485.getResponseBuffer(0);
 		return err;
 	} else {
 		err = translateErr(result);

@@ -36,7 +36,7 @@
 		var i = 1;
 		for(; i < els.length; i++) {
 			var id = els[i].getElementsByClassName("mdb")[1].id;
-			if(id.substr(-2) != ":0") pars += id.replace(/-/, '(') + ')' + (i < els.length - 1 ? ',' : '');
+			pars += id.replace(/-/, '(') + ')' + (i < els.length - 1 ? ',' : '');
 		}
 		if(pars.length){
 			urltimeout = 500 * i;
@@ -72,7 +72,7 @@ RESET_ENERGY - 0x42<br>
 <span style="font-size: larger;">Адрес устройства на шине RS485: </span><input id="device" type="number" min="0" max="255" step="1" value="1">
  <b>Таймаут:</b> <input id="get_modbus_p-timeout" type="number"><input type="submit" value=">" onclick="setParam('get_modbus_p(timeout)');"> <b>Пауза:</b> <input id="get_modbus_p-pause" type="number"><input type="submit" value=">" onclick="setParam('get_modbus_p(pause)');">
 <br>
-<h3>Чтение, Адреса 4...: <input type="submit" value="+ W(16bit)" onclick="add_new_modbus_row('w')"> <input type="submit" value="+ L(32bit)" onclick="add_new_modbus_row('l')"> <input type="submit" value="+ F(Float)" onclick="add_new_modbus_row('f')"> Запись, Адреса 3...: <input type="submit" value="+ H(16bit)" onclick="add_new_modbus_row('h')"> <input type="submit" value="+ I(Float)" onclick="add_new_modbus_row('i')"> <input type="submit" value="+ C(Coil)" onclick="add_new_modbus_row('c')"> <input type="submit" value="+ Z(Custom)" onclick="add_new_modbus_row('z')"> <input type="submit" value="Обновить, авто:" onclick="refresh_all()"> <input type="checkbox" id="refresh_auto"></h3> 
+<h3>Чтение, Адреса 4...: <input type="submit" value="+ W(16bit)" onclick="add_new_modbus_row('w')"> <input type="submit" value="+ L(32bit)" onclick="add_new_modbus_row('l')"> <input type="submit" value="+ F(Float)" onclick="add_new_modbus_row('f')"> <input type="submit" value="+ D(Bit)" onclick="add_new_modbus_row('d')"> Запись, Адреса 3...: <input type="submit" value="+ H(16bit)" onclick="add_new_modbus_row('h')"> <input type="submit" value="+ I(Float)" onclick="add_new_modbus_row('i')"> <input type="submit" value="+ C(Coil8)" onclick="add_new_modbus_row('c')"> <input type="submit" value="+ Z(Custom)" onclick="add_new_modbus_row('z')"> <input type="submit" value="Обновить, авто:" onclick="refresh_all()"> <input type="checkbox" id="refresh_auto"></h3> 
 <table id="tbl_modbus">
 	<tr>
 		<th>Устройство</th>
