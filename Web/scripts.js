@@ -2,7 +2,7 @@
 var VER_WEB = "1.54";
 var urlcontrol = ''; //  автоопределение (если адрес сервера совпадает с адресом контроллера)
 // адрес и порт контроллера, если адрес сервера отличен от адреса контроллера (не рекомендуется)
-var urlcontrol = 'http://192.168.0.198';
+//var urlcontrol = 'http://192.168.0.198';
 //var urlcontrol = 'http://192.168.0.8';
 var urltimeout = 1800; // таймаут ожидание ответа от контроллера. Чем хуже интернет, тем выше значения. Но не более времени обновления параметров
 var urlupdate = 4000; // время обновления параметров в миллисекундах
@@ -446,7 +446,13 @@ function loadParam(paramid, noretry, resultdiv) {
 								} else if(type == 'tbv') {
 									var element2 = document.getElementById(valueid.replace("val", "err"));
 									if(values[1].match(/^E-?\d/)) {
-										if(element2) element2.innerHTML = values[1]; 
+										if(element2) {
+											if(values[1] == "E-29") element2.innerHTML = "ERR ID";
+											else if(values[1] == "E-30") element2.innerHTML = "ERR Func";
+											else if(values[1] == "E-31") element2.innerHTML = "ERR Timeout";
+											else if(values[1] == "E-32") element2.innerHTML = "ERR CRC";
+											else element2.innerHTML = values[1];
+										}
 									} else {
 										if(element2) element2.innerHTML = "OK";
 										if((element = document.getElementById(valueid))) {

@@ -70,7 +70,7 @@ struct History_setup {
 // -----------------------------------------------------------------------------------------------------------------------------------
 //  Arduino DUE Core
 #ifdef CONFIG_1    // Имя и описание конфигурации и ОСОБЕННОСТИ конфигурации -------------------------------
-	#define TEST_BOARD 				// Тестовая плата!
+	//#define TEST_BOARD 				// Тестовая плата!
 
     #define CONFIG_NAME   "vad7"
     #define CONFIG_NOTE   "Водоснабжение, Обезжелезивание Quantum DMI-65, Дозирование хлора, Умягчение"
@@ -195,20 +195,20 @@ struct History_setup {
 	#define MODBUS_SEPTIC_HEAT_RELAY_ID		1		// Номер реле (нумерация с 0)
 	#define MODBUS_SEPTIC_HEAT_RELAY_ON		1
 	#define MODBUS_SEPTIC_HEAT_RELAY_OFF	0
-	#define MODBUS_SEPTIC_HEAT_FUNC(ID,CMD,ST) writeSingleCoil(ID,CMD,ST)
+	#define MODBUS_SEPTIC_HEAT_FUNC(ADDR,ID,ST) writeSingleCoil(ADDR,ID,ST)
 
 	#define CHECK_DRAIN_PUMP			// Контроль и отключение дренажного насоса (в дренаж идет регенерация)
 	#ifdef CHECK_DRAIN_PUMP
 		#define MODBUS_DRAIN_PUMP_ADDR			2	// Адрес дренажного насоса
 		#define MODBUS_DRAIN_PUMP_RELAY_ADDR	3	// Адрес реле дренажного насоса
 		#define MODBUS_DRAIN_PUMP_RELAY_ID		0	// Номер реле (нумерация с 0)
-		#define MODBUS_DRAIN_PUMP_ON_CMD		0
-		#define MODBUS_DRAIN_PUMP_OFF_CMD		1
+		#define MODBUS_DRAIN_PUMP_ON_CMD		0	// Команда - насос может работать
+		#define MODBUS_DRAIN_PUMP_OFF_CMD		1	// Команда отключения питания насоса при аварии
 		#define MODBUS_DRAIN_PUMP_ON_PULSE			// Если активно, то импульс 1 сек для выключения (N замыкается на GND для срабатывания УЗО)
 		//#define MODBUS_SEPTIC_PUMP_ADDR		3	// Адрес насоса септика
 		//#define MODBUS_SEPTIC_PUMP_RELAY_ADDR	4	// Адрес отключения дренажного насоса
 		#define MODBUS_PUMP_PERIOD				10	// Период опроса, сек (не меньше 2)
-		#define MODBUS_PUMP_FUNC(ID,CMD,ST) 	writeSingleCoil(ID,CMD,ST)
+		#define MODBUS_PUMP_FUNC(ADDR,ID,ST) 	writeSingleCoil(ADDR,ID,ST)
 
 #if MODBUS_PUMP_PERIOD < 2
 		#error "MODBUS_PUMP_PERIOD must be greater than 1"

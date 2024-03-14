@@ -55,24 +55,39 @@
 <h1>Modbus RTU</h1>
 <br>
 <b>Адреса устройств на шинах <span id="get_modbus_p-id"></span>. Нумерация ячеек(адресов) с 0.</b><br>
-Счетчики: PZEM-004T v3</span><br>
-<b>Адреса 4...</b><br>
-VOLTAGE - 0 (W, 0.1V)<br>
-CURRENT - 1 (L, 0.001A)<br>
-POWER - 3 (L, 0.1W)<br>
-ENERGY - 5	(L, 1Wh)<br>
-FREQ - 7 (W, 0.1Hz)<br>
-PFACTOR - 8 (W, 0.01)<br>
-ALARM  - 9	(W, 0xFFFF - Alarm, 0 - Ok)<br>
-<b>Адреса 3...</b><br>
-ALARM_THRESHOLD - 1	(H, 1W)<br>
-MODBUS_ADDR - 2	(H, 1..F7, F8 - fixed)<br>
-RESET_ENERGY - 0x42<br>
+<table style="width:40%">
+<tr><td><b>Счетчики PZEM-004T v3</b></td><td><b>Реле Modbus RTU</b></td></tr>
+<tr><td>
+<b>Функция 4... Read Input Registers</b><br>
+Voltage - 0 (W, 0.1V)<br>
+Current - 1 (L, 0.001A)<br>
+Power - 3 (L, 0.1W)<br>
+Energy - 5	(L, 1Wh)<br>
+Freq - 7 (W, 0.1Hz)<br>
+Pfactor - 8 (W, 0.01)<br>
+Alarm  - 9 (W, 0xFFFF - Alarm, 0 - Ok)<br>
+<b>Функция 3... Read Holding Registers</b><br>
+Alarm threshold - 1	(H, 1W)<br>
+Modbus address - 2 (H, 1..F7, F8 - fixed)<br>
+<b>Другие (+Z)</b><br>
+Reset Energy - 0x42<br>
+</td>
+<td>
+<b>Функция 1... Read Coils</b><br>
+Relay status - 0..7<br>
+<b>Функция 2... Read Discrete Inputs</b><br>
+Optocoupler - 0..7<br>
+<b>Функция 5... Write Coil</b><br>
+Relay - 0..7<br>
+<b>Другие (+Z)</b><br>
+Modbus address - "0 16 0 0 0 1 2 0 n"<br>
+</td>
+</tr></table>
 <br> 
 <span style="font-size: larger;">Адрес устройства на шине RS485: </span><input id="device" type="number" min="0" max="255" step="1" value="1">
  <b>Таймаут:</b> <input id="get_modbus_p-timeout" type="number"><input type="submit" value=">" onclick="setParam('get_modbus_p(timeout)');"> <b>Пауза:</b> <input id="get_modbus_p-pause" type="number"><input type="submit" value=">" onclick="setParam('get_modbus_p(pause)');">
 <br>
-<h3>Чтение, Адреса 4...: <input type="submit" value="+ W(16bit)" onclick="add_new_modbus_row('w')"> <input type="submit" value="+ L(32bit)" onclick="add_new_modbus_row('l')"> <input type="submit" value="+ F(Float)" onclick="add_new_modbus_row('f')"> <input type="submit" value="+ D(Bit)" onclick="add_new_modbus_row('d')"> Запись, Адреса 3...: <input type="submit" value="+ H(16bit)" onclick="add_new_modbus_row('h')"> <input type="submit" value="+ I(Float)" onclick="add_new_modbus_row('i')"> <input type="submit" value="+ C(Coil8)" onclick="add_new_modbus_row('c')"> <input type="submit" value="+ Z(Custom)" onclick="add_new_modbus_row('z')"> <input type="submit" value="Обновить, авто:" onclick="refresh_all()"> <input type="checkbox" id="refresh_auto"></h3> 
+<h3>Чтение, 4...: <input type="submit" value="+ W(16bit)" onclick="add_new_modbus_row('w')"> <input type="submit" value="+ L(32bit)" onclick="add_new_modbus_row('l')"> <input type="submit" value="+ F(Float)" onclick="add_new_modbus_row('f')"> 2...: <input type="submit" value="+ D(Bit)" onclick="add_new_modbus_row('d')"> Запись, 3...: <input type="submit" value="+ H(16bit)" onclick="add_new_modbus_row('h')"> <input type="submit" value="+ I(Float)" onclick="add_new_modbus_row('i')"> 1/5...: <input type="submit" value="+ C(Coil8)" onclick="add_new_modbus_row('c')">. <input type="submit" value="+ Z(Custom)" onclick="add_new_modbus_row('z')"> <input type="submit" value="Обновить, авто:" onclick="refresh_all()"> <input type="checkbox" id="refresh_auto"></h3> 
 <table id="tbl_modbus">
 	<tr>
 		<th>Устройство</th>
