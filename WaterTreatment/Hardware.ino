@@ -750,8 +750,8 @@ int8_t devModbus::initModbus()
 #endif
 	        //MODBUS_SERIAL1.setInterruptPriority(1);
 	        //RS485.begin(0, MODBUS_SERIAL1);	// установка сериала и адреса устройства
-			RS485.ModbusMinTimeBetweenTransaction = MODBUS_TIMEOUT;
-			RS485.ModbusResponseTimeout = MODBUS_MIN_TIME_BETWEEN_TRNS;
+			RS485.ModbusMinTimeBetweenTransaction = MODBUS_MIN_TIME_BETWEEN_TRNS;
+			RS485.ModbusResponseTimeout = MODBUS_TIMEOUT;
 	#ifdef MODBUS_TIME_TRANSMISION
 			// Назначение функций обратного вызова
 			RS485.preTransmission(preTransmission);

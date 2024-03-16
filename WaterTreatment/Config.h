@@ -186,7 +186,7 @@ struct History_setup {
     #define MODBUS_SERIAL2_SPEED       	9600        // Скорость порта
     #define MODBUS_PORT_CONFIG      	SERIAL_8N1  // Конфигурация портов
     #define MODBUS_TIME_WAIT        	1000        // Время ожидания захвата мютекса для modbus мсек
-	#define MODBUS_TIMEOUT				100			// Таймаут ожидания ответа, мсек
+	#define MODBUS_TIMEOUT				80			// Таймаут ожидания ответа, мсек
 	#define MODBUS_MIN_TIME_BETWEEN_TRNS 50			// Минимальная пауза между транзакциями, мсек
 	#define MODBUS_TIME_TRANSMISION 	0           // Пауза (msec) между запросом и ответом по модбас было 4, если заремарено, то паузы между отправко и получением - нет.
 	#define MODBUS_OTHER_MAX_ERRORS		5			// Подряд ошибок, чтобы выдать ошибку
