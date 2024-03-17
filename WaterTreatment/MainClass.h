@@ -132,8 +132,8 @@ int32_t  UsedDrainRest = 0;
 volatile bool NewRegenStatus = false;
 volatile uint32_t RegBackwashTimer = 0;	// sec
 int16_t  RegStart_Weight;
-uint16_t RegMaxFlow;		// l*h
-uint16_t RegMinPress;		// bar*100
+uint16_t RegMaxFlow = 0;			// l*h
+uint16_t RegMinPress = 0xFFFF;		// bar*100
 uint32_t ResetDUE_countdown = 0;
 bool	 DebugToJournalOn = false;
 uint32_t FlowPulseCounter;	// L
