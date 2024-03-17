@@ -1049,7 +1049,7 @@ xSaveStats:		if((i = MC.save_WorkStats()) == OK)
 				default:         strcat(strReturn,"unknown;"); break;
 				}
 
-				strcat(strReturn, "Входное напряжение питания контроллера, V:|");
+				strcat(strReturn, "Напряжение питания контроллера, V:|");
 				strReturn += m_snprintf(strReturn += strlen(strReturn), 256, "если ниже %.1d - сброс;", ((SUPC->SUPC_SMMR & SUPC_SMMR_SMTH_Msk) >> SUPC_SMMR_SMTH_Pos) + 19);
 				strReturn += m_snprintf(strReturn += strlen(strReturn), 256, "Режим safeNetwork (%sадрес:%d.%d.%d.%d ", defaultDHCP ?"DHCP, ":"",defaultIP[0],defaultIP[1],defaultIP[2],defaultIP[3]);
 				strReturn += m_snprintf(strReturn += strlen(strReturn), 256, "шлюз:%d.%d.%d.%d)|%s;", defaultGateway[0],defaultGateway[1],defaultGateway[2],defaultGateway[3],MC.safeNetwork ?cYes:cNo);
@@ -1072,6 +1072,8 @@ xSaveStats:		if((i = MC.save_WorkStats()) == OK)
 				strReturn += m_snprintf(strReturn += strlen(strReturn), 256, "Площадь фильтрации умягчителя, м2|%.4d;", MC.FilterTankSoftenerSquare);
 
 				strReturn += m_snprintf(strReturn += strlen(strReturn), 256, "Потреблено с последнего слива осадка, л|%d;", MC.WorkStats.UsedDrainSiltL100 * 100);
+				if(RegMaxFlow) strReturn += m_snprintf(strReturn += strlen(strReturn), 256, "Макс проток за регенерацию, м3ч|%.3d;", RegMaxFlow);
+				if(RegMinPress != 0xFFFF) strReturn += m_snprintf(strReturn += strlen(strReturn), 256, "Мин давление при регенерации, атм|%.2;", RegMinPress);
 #ifdef MODBUS_DRAIN_PUMP_RELAY_ADDR
 				strcat(strReturn, "Состояние реле дренажного насоса|");
 				if(GETBIT(MC.Option.flags2, fDrainPumpRelay)) {

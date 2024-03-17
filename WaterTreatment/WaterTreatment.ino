@@ -1380,6 +1380,9 @@ void vReadSensor(void *)
 			}
 			uint32_t utm = rtcSAM3X8.unixtime();
 			if(MC.sInput[REG_ACTIVE].get_Input() || MC.sInput[REG_BACKWASH_ACTIVE].get_Input() || MC.sInput[REG2_ACTIVE].get_Input()) {
+				// Regen
+				if(RegMaxFlow < MC.sFrequency[FLOW].get_Value()) RegMaxFlow = MC.sFrequency[FLOW].get_Value();
+				if(RegMinPress > pw) RegMinPress = pw;
 				MC.RTC_store.UsedRegen += passed;
 				Stats_WaterRegen_work += passed;
 				History_WaterRegen_work += passed;
@@ -1805,6 +1808,8 @@ xWaterBooster_OFF:
 				MC.dRelay[RWATERON].set_Relay(fR_StatusAllOff);
 				RegBackwashTimer = MC.Option.BackWashFeedPumpDelay;
 				RegStart_Weight = Weight_value / 10;
+				RegMaxFlow = 0;
+				RegMinPress = 0xFFFF;
 				NewRegenStatus = true;
 				MC.RTC_store.UsedRegen = 0;
 				NeedSaveRTC = RTC_SaveAll;
@@ -2053,7 +2058,8 @@ void vService(void *)
 							taskEXIT_CRITICAL();
 							NeedSaveWorkStats = 1;
 							RegStart_Weight -= Weight_value / 10;
-							journal.jprintf_date("Regen F1 finished, Used: %d, reagent: %d g, time: %d s.\n", MC.WorkStats.UsedLastRegen, RegStart_Weight, rtcSAM3X8.unixtime() - RegenStarted);
+							journal.jprintf_date("Regen F1 finished, Used: %d, reagent: %d g, time: %d s. ", MC.WorkStats.UsedLastRegen, RegStart_Weight, rtcSAM3X8.unixtime() - RegenStarted);
+							journal.jprintf("Max flow: %.3d (%.3d mh), Min press: %.2d\n", RegMaxFlow, MC.CalcFilteringSpeed(MC.FilterTankSquare), RegMinPress);
 							if(MC.Option.DrainingWaterAfterRegen) {
 								TimerDrainingWaterAfterRegen = MC.Option.DrainingWaterAfterRegen;
 								MC.dRelay[RDRAIN].set_ON();
@@ -2097,6 +2103,7 @@ void vService(void *)
 							NeedSaveWorkStats = 1;
 							RegStart_Weight -= Weight_value / 10;
 							journal.jprintf_date("Regen F2 finished, Used: %d, reagent: %d g, time: %d s.\n", MC.WorkStats.UsedLastRegenSoftening, RegStart_Weight, rtcSAM3X8.unixtime() - RegenStarted);
+							journal.jprintf("Max flow: %.3d (%.3d mh), Min press: %.2d\n", RegMaxFlow, MC.CalcFilteringSpeed(MC.FilterTankSoftenerSquare), RegMinPress);
 							if(MC.Option.DrainingWaterAfterRegenSoftening) {
 								TimerDrainingWaterAfterRegen = MC.Option.DrainingWaterAfterRegenSoftening;
 								MC.dRelay[RDRAIN2].set_ON();
