@@ -2198,7 +2198,7 @@ void vService(void *)
 						} else {
 							DrainPumpRelayErrCnt = 0;
 							if(DrainPumpRelayStatus == MODBUS_RELAY_CMD_OFF) {
-								if(MC.get_errcode() != ERR_DRAIN_PUMP_TOOLONG) journal.jprintf_time("DRAIN PUMP -> OFF!\n", err);
+								journal.jprintf_time("DRAIN PUMP -> OFF!\n", err);
 #ifdef MODBUS_DRAIN_PUMP_ON_PULSE
 								DrainPumpRelayStatus = MODBUS_RELAY_CMD_ON;	// Pulse 1 sec
 #else
@@ -2225,7 +2225,8 @@ void vService(void *)
 								tmp /= 10;
 								if(tmp > MC.Option.DrainPumpMinPower * 10) { // работает
 									if(DrainPumpPower <= MC.Option.DrainPumpMinPower * 10) DrainPumpTimeLast = rtcSAM3X8.unixtime(); // время включения
-									else if(MC.Option.DrainPumpMaxTime && rtcSAM3X8.unixtime() - DrainPumpTimeLast > MC.Option.DrainPumpMaxTime * 10) {
+									else if(MC.Option.DrainPumpMaxTime && MC.get_errcode() != ERR_DRAIN_PUMP_TOOLONG
+											&& rtcSAM3X8.unixtime() - DrainPumpTimeLast > MC.Option.DrainPumpMaxTime * 30) {
 										set_Error(ERR_DRAIN_PUMP_TOOLONG, (char*)"vService");
 										DrainPumpRelayStatus = MODBUS_RELAY_CMD_OFF;
 									}
