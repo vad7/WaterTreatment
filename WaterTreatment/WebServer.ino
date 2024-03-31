@@ -1888,7 +1888,7 @@ x_get_GADC:						i = MC.sADC[p].get_ADC_Gain();
 							if(strncmp(str, "cF", 2)==0)           // Функция get_cFlow
 							{
 								if (MC.sFrequency[p].get_present())          // Если датчик есть в конфигурации то выводим значение
-									_itoa(MC.sFrequency[p].get_FlowCalcPeriodValue(), strReturn);
+									_itoa(MC.sFrequency[p].get_FlowCalcPeriodValue() * FREQ_BASE_TIME_READ / 1000, strReturn);
 								else strcat(strReturn,"-");               // Датчика нет ставим прочерк
 								ADD_WEBDELIM(strReturn) ;    continue;
 							}
@@ -1927,8 +1927,10 @@ x_get_GADC:						i = MC.sADC[p].get_ADC_Gain();
 								ADD_WEBDELIM(strReturn); continue;
 							}
 							if(strncmp(str, "cF", 2) == 0) {          // Функция set_cFlow
-								MC.sFrequency[p].set_FlowCalcPeriodValue(pm);    // Установить значение
-								_itoa(MC.sFrequency[p].get_FlowCalcPeriodValue(), strReturn);
+								l_i32 = int(pm) * 1000 / FREQ_BASE_TIME_READ;
+								if(l_i32 < 1) l_i32 = 1;
+								MC.sFrequency[p].set_FlowCalcPeriodValue(l_i32);    // Установить значение
+								_itoa(MC.sFrequency[p].get_FlowCalcPeriodValue() * FREQ_BASE_TIME_READ / 1000, strReturn);
 								ADD_WEBDELIM(strReturn); continue;
 							}
 						}
