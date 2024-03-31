@@ -444,7 +444,7 @@ int8_t sensorFrequency::Read(int32_t add_pulses100)
 			} else {
 				cnt += count_Flow;
 				if(++FlowCalcCnt >= FlowCalcPeriod) {
-					cnt *= 10; // ТЫСЯЧНЫЕ ГЦ
+					cnt = cnt * 10 / FlowCalcCnt; // ТЫСЯЧНЫЕ ГЦ
 					Frequency = cnt / 2;
 					Value = cnt * 360 / kfValue; // ЛИТРЫ В ЧАС (ИЛИ ТЫСЯЧНЫЕ КУБА) частота в тысячных, и коэффициент правим
 					FlowCalcCnt = 0;
