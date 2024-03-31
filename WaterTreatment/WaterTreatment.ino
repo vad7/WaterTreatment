@@ -2059,7 +2059,7 @@ void vService(void *)
 							NeedSaveWorkStats = 1;
 							RegStart_Weight -= Weight_value / 10;
 							journal.jprintf_date("Regen F1 finished, Used: %d, reagent: %d g, time: %d s. ", MC.WorkStats.UsedLastRegen, RegStart_Weight, rtcSAM3X8.unixtime() - RegenStarted);
-							journal.jprintf("Max flow: %.3d (%.3d mh), Min press: %.2d\n", RegMaxFlow, MC.CalcFilteringSpeed(MC.FilterTankSquare), RegMinPress);
+							journal.jprintf("Max flow: %.3d (%.3d mh), Min press: %.2d\n", RegMaxFlow, 10000UL * RegMaxFlow / MC.FilterTankSquare, RegMinPress);
 							if(MC.Option.DrainingWaterAfterRegen) {
 								TimerDrainingWaterAfterRegen = MC.Option.DrainingWaterAfterRegen;
 								MC.dRelay[RDRAIN].set_ON();
@@ -2103,7 +2103,7 @@ void vService(void *)
 							NeedSaveWorkStats = 1;
 							RegStart_Weight -= Weight_value / 10;
 							journal.jprintf_date("Regen F2 finished, Used: %d, reagent: %d g, time: %d s.\n", MC.WorkStats.UsedLastRegenSoftening, RegStart_Weight, rtcSAM3X8.unixtime() - RegenStarted);
-							journal.jprintf("Max flow: %.3d (%.3d mh), Min press: %.2d\n", RegMaxFlow, MC.CalcFilteringSpeed(MC.FilterTankSoftenerSquare), RegMinPress);
+							journal.jprintf("Max flow: %.3d (%.3d mh), Min press: %.2d\n", RegMaxFlow, 10000UL * RegMaxFlow / MC.FilterTankSoftenerSquare, RegMinPress);
 							if(MC.Option.DrainingWaterAfterRegenSoftening) {
 								TimerDrainingWaterAfterRegen = MC.Option.DrainingWaterAfterRegenSoftening;
 								MC.dRelay[RDRAIN2].set_ON();

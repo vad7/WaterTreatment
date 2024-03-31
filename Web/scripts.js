@@ -345,18 +345,17 @@ function loadParam(paramid, noretry, resultdiv) {
 											var count = values[1].split(';');
 											for(var j = 0; j < count.length - 1; j++) {
 												input = count[j].toLowerCase();
-												loadsens = loadsens + "get_nFlow(" + count[j] + "),get_Flow(" + count[j] + "),get_checkFlow(" + count[j] + "),get_minFlow(" + count[j] + "),get_kfFlow(" + count[j] + "),get_cFlow(" + count[j] + "),get_frFlow(" + count[j] + "),get_testFlow(" + count[j] + "),get_pinFlow(" + count[j] + "),get_eFlow(" + count[j] + "),";
-												upsens = upsens + "get_Flow(" + count[j] + "),get_frFlow(" + count[j] + "),get_eFlow(" + count[j] + "),";
+												loadsens = loadsens + "get_nFlow(" + count[j] + "),get_Flow(" + count[j] + "),get_kfFlow(" + count[j] + "),get_cFlow(" + count[j] + "),get_frFlow(" + count[j] + "),get_testFlow(" + count[j] + "),get_pinFlow(" + count[j] + "),get_eFlow(" + count[j] + "),";
+												upsens = upsens + "get_Flow(" + count[j] + "),get_frFlow(" + count[j] + ")";
 												content = content + '<tr>';
 												content = content + '<td>' + count[j] + '</td>';
 												content = content + '<td id="get_nflow-' + input + '">-</td>';
 												content = content + '<td nowrap><span id="get_flow-' + input + '">-</span> <input id="ClcFlow' + input + '" type="submit" value="*" onclick="CalcAvgValue(\''+ input + '\')"></td>';
-												//content = content + '<td nowrap><input id="get_checkflow-' + input + '" type="checkbox" onChange="setParam(\'get_checkFlow(' + count[j] + ')\');"><input id="get_minflow-' + input + '" type="number" max="25.5" step="0.1"><input type="submit" value=">" onclick="setParam(\'get_minFlow(' + count[j] + ')\');"></td>';
-												content = content + '<td nowrap><input id="get_kfflow-' + input + '" type="number" step="0.01" style="max-width:70px;" value=""><input type="submit" value=">"  onclick="setParam(\'get_kfFlow(' + count[j] + ')\');"></td>';
+												content = content + '<td nowrap><input id="get_kfflow-' + input + '" type="number" step="0.01" style="max-width:70px;" value=""><input type="submit" value=">" onclick="setParam(\'get_kfFlow(' + count[j] + ')\');"></td>';
+												content = content + '<td nowrap><input id="get_cflow-' + input + '" type="number"><input type="submit" value=">" onclick="setParam(\'get_cFlow(' + count[j] + ')\');"></td>';
 												content = content + '<td id="get_frflow-' + input + '">-</td>';
 												content = content + '<td nowrap><input id="get_testflow-' + input + '" type="number" step="0.001" value=""><input type="submit" value=">"  onclick="setParam(\'get_testFlow(' + count[j] + ')\');"></td>';
 												content = content + '<td id="get_pinflow-' + input + '">-</td>';
-												content = content + '<td id="get_eflow-' + input + '">-</td>';
 												content = content + '</tr>';
 											}
 											document.getElementById(valueid).innerHTML = content;

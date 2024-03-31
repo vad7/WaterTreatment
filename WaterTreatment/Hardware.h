@@ -178,47 +178,44 @@ public:
   int8_t  Read(int32_t add_pulses100 = 0);               // Чтение датчика (точнее расчет значения) возвращает ошибку или ОК
   __attribute__((always_inline)) inline uint32_t get_Frequency(){return Frequency;}   // Получить ЧАСТОТУ датчика при последнем чтении
   __attribute__((always_inline)) inline uint16_t get_Value(){return Value;} // Получить Значение датчика при последнем чтении, литры в час
-  __attribute__((always_inline)) inline boolean get_present(){return GETBIT(flags,fPresent);} // Наличие датчика в текущей конфигурации
-  __attribute__((always_inline)) inline uint16_t get_minValue(){return minValue * 100;}  // Получить минимальное значение датчика, литры в час
+  __attribute__((always_inline)) inline boolean get_present(){return kfValue > 0;} // Наличие датчика в текущей конфигурации
   uint32_t get_RawPassed(void) { return count * 10000 / kfValue; }  // Получить сырые не обработанные данные, сотые литра
   __attribute__((always_inline)) inline uint32_t get_count(void) { return count; }
-  void set_minValue(float f);							// Установить минимальное значение датчика
-  __attribute__((always_inline)) inline boolean get_checkFlow(){return GETBIT(flags,fcheckRange);}// Проверка граничного значения
-  void set_checkFlow(boolean f) { flags = (flags & ~(1<<fcheckRange)) | (f<<fcheckRange); }
-  int8_t  get_lastErr(){return err;}                     // Получить последнюю ошибку
+//  int8_t  get_lastErr(){return err;}                     // Получить последнюю ошибку
   char*   get_note(){return note;}                       // Получить описание датчика
   char*   get_name(){return name;}                       // Получить имя датчика
   uint16_t get_testValue(){return testValue;}            // Получить Состояние датчика в режиме теста
   int8_t  set_testValue(int16_t i);                      // Установить Состояние датчика в режиме теста
-  void    set_testMode(TEST_MODE t){testMode=t;}         // Установить значение текущий режим работы
   inline uint16_t get_kfValue(){return kfValue;}         // Получить коэффициент пересчета, сотые
   void    set_kfValue(uint16_t f) { kfValue=f; }         // Установить коэффициент пересчета
+  uint8_t get_FlowCalcPeriodValue(){return FlowCalcPeriod;}
+  void    set_FlowCalcPeriodValue(uint8_t n) { FlowCalcPeriod = n; }
   int8_t set_Capacity(uint16_t c);                       // Установить теплоемкость больше 5000 не устанавливается
   inline int8_t  get_pinF(){return pin;}                 // Получить ногу куда прицеплен датчик
   uint8_t *get_save_addr(void) { return (uint8_t *)&number; } // Адрес структуры сохранения
-  uint16_t get_save_size(void) { return (byte*)&minValue - (byte*)&number + sizeof(minValue); } // Размер структуры сохранения
+  uint16_t get_save_size(void) { return (byte*)&_reserved - (byte*)&number + sizeof(_reserved); } // Размер структуры сохранения
   statChart Chart;                                       // Статистика по датчику
   volatile uint32_t Passed;								 // Счетчик литров
   uint32_t PassedRest;									 // остаток счетчика
   uint8_t WebCorrectCnt;								// счетчик корректировки для веба, *TIME_READ_SENSOR, начиная с 1
     
 private:
-   uint32_t Frequency;                                   // значение частоты в тысячных герца
-   uint32_t Value;                                       // значение датчика ЛИТРЫ В ЧАС (ИЛИ ТЫСЯЧНЫЕ КУБА)
-   struct { // SAVE GROUP, number the first
-	   uint8_t  number;										 // номер
-	   uint16_t testValue;                                   // !save! Состояние датчика в режиме теста
-	   uint16_t kfValue; 								 	 // коэффициент пересчета частоты в значение, изменений уровня на литр, сотые
-	   uint8_t  flags;                                       // флаги  датчика
-	   uint8_t  minValue;							     	 // десятые m3/h (0..25,5)
-   } __attribute__((packed));// END SAVE GROUP, minValue the last
-   volatile uint32_t count;                              // число импульсов за базовый период (то что меняется в прерывании)
-   TEST_MODE testMode;                                  // Значение режима тестирования
-   uint32_t sTime;                                       // время начала базового периода в тиках
-   int8_t err;                                           // ошибка датчика (работа)
-   uint8_t  pin;                                         // Ножка куда прицеплен датчик
-   char *note;                                           // наименование датчика
-   char *name;                                           // Имя датчика
+  volatile uint32_t count;                              // число импульсов за базовый период (то что меняется в прерывании)
+  uint32_t sTime;                                       // время начала базового периода в тиках
+  uint32_t count_Flow;									// буфер для расчета протока и частоты
+  uint32_t Frequency;                                   // значение частоты в тысячных герца
+  uint32_t Value;                                       // значение датчика ЛИТРЫ В ЧАС (ИЛИ ТЫСЯЧНЫЕ КУБА)
+  char *note;                                           // наименование датчика
+  char *name;                                           // Имя датчика
+  struct { // SAVE GROUP, number the first
+      uint8_t  number;									 // номер
+      uint16_t testValue;                               // !save! Состояние датчика в режиме теста
+      uint16_t kfValue; 							 	 // коэффициент пересчета частоты в значение, изменений уровня на литр, сотые
+      uint8_t  FlowCalcPeriod;                          // через сколько FREQ_BASE_TIME_READ расчитывать проток
+      uint8_t  _reserved;						     	 //
+  } __attribute__((packed));// END SAVE GROUP, the last
+  uint8_t FlowCalcCnt;                                  // счетчик расчета протока
+  uint8_t pin;                                         // Ножка куда прицеплен датчик
 };
 
 

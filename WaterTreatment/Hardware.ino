@@ -368,39 +368,32 @@ void InterruptFreq4() { MC.sFrequency[4].InterruptHandler(); }
 // Инициализация частотного датчика, на входе номер сенсора по порядку
 void sensorFrequency::initFrequency(int sensor)                     
 {
-   number = sensor;
-   Frequency=0;                                   // значение частоты
-   Value=0;                                       // значение датчика в ТЫСЯЧНЫХ (умножать на 1000)
-   testValue=TESTFLOW[sensor];                    // Состояние датчика в режиме теста
-   kfValue=TRANSFLOW[sensor];                     // коэффициент пересчета частоты в значение
-   testMode=NORMAL;                               // Значение режима тестирования
-   count=0;                                       // число импульсов за базовый период (то что меняется в прерывании)
-   WebCorrectCnt = 0;
-   err=OK;                                        // ошибка датчика (работа)
-   flags=0x00;                                    // Обнулить флаги
-   SETBIT1(flags,fPresent);                       // наличие датчика в текушей конфигурации - датчик всегда есть в концигурвции добавлено для единообразия
-   pin=pinsFrequency[sensor];                     // Ножка куда прицеплен датчик
-   note=(char*)noteFrequency[sensor];             // наименование датчика
-   name=(char*)nameFrequency[sensor];             // Имя датчика
-   Chart.init();                              // инициалазация статистики
-   reset();
-   // Привязывание обработчика преваний к методу конкретного класса
-   //   LOW вызывает прерывание, когда на порту LOW
-   //   CHANGE прерывание вызывается при смене значения на порту, с LOW на HIGH и наоборот
-   //   RISING прерывание вызывается только при смене значения на порту с LOW на HIGH
-   //   FALLING прерывание вызывается только при смене значения на порту с HIGH на LOW
-   PIO_SetInput(g_APinDescription[pin].pPort, g_APinDescription[pin].ulPin, PIO_DEGLITCH);
-   //PIO_SetDebounceFilter(g_APinDescription[pin].pPort, g_APinDescription[pin].ulPin, 1); // PIO_DEBOUNCE - Cutoff freq in Hz
+	number = sensor;
+	reset();
+	testValue=TESTFLOW[sensor];                    // Состояние датчика в режиме теста
+	kfValue=TRANSFLOW[sensor];                     // коэффициент пересчета частоты в значение
+//	err=OK;                                        // ошибка датчика (работа)
+	pin=pinsFrequency[sensor];                     // Ножка куда прицеплен датчик
+	note=(char*)noteFrequency[sensor];             // наименование датчика
+	name=(char*)nameFrequency[sensor];             // Имя датчика
+	Chart.init();                              // инициалазация статистики
+	// Привязывание обработчика преваний к методу конкретного класса
+	//   LOW вызывает прерывание, когда на порту LOW
+	//   CHANGE прерывание вызывается при смене значения на порту, с LOW на HIGH и наоборот
+	//   RISING прерывание вызывается только при смене значения на порту с LOW на HIGH
+	//   FALLING прерывание вызывается только при смене значения на порту с HIGH на LOW
+	PIO_SetInput(g_APinDescription[pin].pPort, g_APinDescription[pin].ulPin, PIO_DEGLITCH);
+	//PIO_SetDebounceFilter(g_APinDescription[pin].pPort, g_APinDescription[pin].ulPin, 1); // PIO_DEBOUNCE - Cutoff freq in Hz
 #if FNUMBER > 0
-   if(sensor == 0) attachInterrupt(pin, InterruptFreq0, CHANGE);
+	if(sensor == 0) attachInterrupt(pin, InterruptFreq0, CHANGE);
 #if FNUMBER > 1
-   else if(sensor == 1) attachInterrupt(pin, InterruptFreq1, CHANGE);
+	else if(sensor == 1) attachInterrupt(pin, InterruptFreq1, CHANGE);
 #if FNUMBER > 2
-   else if(sensor == 2) attachInterrupt(pin, InterruptFreq2, CHANGE);
+	else if(sensor == 2) attachInterrupt(pin, InterruptFreq2, CHANGE);
 #if FNUMBER > 3
-   else if(sensor == 3) attachInterrupt(pin, InterruptFreq3, CHANGE);
+	else if(sensor == 3) attachInterrupt(pin, InterruptFreq3, CHANGE);
 #if FNUMBER > 4
-   else if(sensor == 4) attachInterrupt(pin, InterruptFreq4, CHANGE);
+	else if(sensor == 4) attachInterrupt(pin, InterruptFreq4, CHANGE);
 #endif
 #endif
 #endif
@@ -413,7 +406,7 @@ int8_t sensorFrequency::Read(int32_t add_pulses100)
 {
 	uint32_t tickCount;
 	int8_t flow = 0;
-	if((tickCount = GetTickCount()) - sTime >= (uint32_t) FREQ_BASE_TIME_READ * 1000) {  // если только пришло время измерения
+	if((tickCount = GetTickCount()) - sTime >= (uint32_t) FREQ_BASE_TIME_READ) {  // если только пришло время измерения
 		uint32_t cnt;
 		noInterrupts();
 		cnt = count;
@@ -422,12 +415,12 @@ int8_t sensorFrequency::Read(int32_t add_pulses100)
 		//__asm__ volatile ("" ::: "memory");0
 		uint32_t ticks = tickCount - sTime;
 		sTime = tickCount;
-		if(testMode != NORMAL) {    // В режиме теста
+		if(MC.testMode != NORMAL) {    // В режиме теста
 			Value = testValue;
 			cnt = Value * kfValue / 360;
 			if(cnt) flow = 1;
 			Frequency = cnt / 2;
-			PassedRest += cnt / 10 * ticks / 1000;
+			PassedRest += cnt / 10 * ticks / FREQ_BASE_TIME_READ;
 			Passed = PassedRest / kfValue;
 			PassedRest %= kfValue;
 		} else {
@@ -437,17 +430,21 @@ int8_t sensorFrequency::Read(int32_t add_pulses100)
 			PassedRest += cnt;
 			Passed += PassedRest / kfValue;
 			PassedRest %= kfValue;
-			if(ticks == FREQ_BASE_TIME_READ * 1000) {
-				cnt *= 10;
-			} else if(cnt > 858900) { // will overflow u32
-				cnt = (cnt * 100) / ticks * 100;
-			} else {
-				cnt = (cnt * 10 * 1000) / ticks; // ТЫСЯЧНЫЕ ГЦ время в миллисекундах частота в тысячных герца
+			count_Flow += cnt;
+			if(++FlowCalcCnt >= FlowCalcPeriod) {
+				if(ticks == FREQ_BASE_TIME_READ) {
+					count_Flow *= 10;
+				} else if(cnt > 0xFFFFFFFF / FREQ_BASE_TIME_READ / 10) { // will overflow u32
+					count_Flow = (count_Flow * (10 * FREQ_BASE_TIME_READ / 100)) / ticks * 100;
+				} else {
+					count_Flow = (count_Flow * 10 * FREQ_BASE_TIME_READ) / ticks; // ТЫСЯЧНЫЕ ГЦ время в миллисекундах частота в тысячных герца
+				}
+				Frequency = count_Flow / 2;
+				//   Value=60.0*Frequency/kfValue/1000.0;               // Frequency/kfValue  литры в минуту а нужны кубы
+				//       Value=((float)Frequency/1000.0)/((float)kfValue/360000.0);          // ЛИТРЫ В ЧАС (ИЛИ ТЫСЯЧНЫЕ КУБА) частота в тысячных, и коэффициент правим
+				Value = count_Flow * 360 / kfValue; // ЛИТРЫ В ЧАС (ИЛИ ТЫСЯЧНЫЕ КУБА) частота в тысячных, и коэффициент правим
+				count_Flow = 0;
 			}
-			Frequency = cnt / 2;
-			//   Value=60.0*Frequency/kfValue/1000.0;               // Frequency/kfValue  литры в минуту а нужны кубы
-			//       Value=((float)Frequency/1000.0)/((float)kfValue/360000.0);          // ЛИТРЫ В ЧАС (ИЛИ ТЫСЯЧНЫЕ КУБА) частота в тысячных, и коэффициент правим
-			Value = cnt * 360 / kfValue; // ЛИТРЫ В ЧАС (ИЛИ ТЫСЯЧНЫЕ КУБА) частота в тысячных, и коэффициент правим
 		}
 		//journal.jprintfopt("Flow(%d): %d = %d (%d, %d) f: %d\n", ticks, cnt / 100, Value, Passed, PassedRest / 100, Frequency);
 	}
@@ -456,11 +453,15 @@ int8_t sensorFrequency::Read(int32_t add_pulses100)
 
 void sensorFrequency::reset(void)
 {
-
 	sTime = GetTickCount();
 	count = 0;
+	count_Flow = 0;
 	Passed = 0;
 	PassedRest = 0;
+	FlowCalcCnt = 0;
+	WebCorrectCnt = 0;
+	Frequency=0;                                   // значение частоты
+	Value=0;                                       // значение датчика в ТЫСЯЧНЫХ (умножать на 1000)
 }
 
 // Установить Состояние датчика в режиме теста
@@ -468,12 +469,6 @@ int8_t  sensorFrequency::set_testValue(int16_t i)
 {
    testValue=i;
    return OK;
-}
-
-	// Установить минимальное значение датчика
-void sensorFrequency::set_minValue(float f)
-{
-	minValue = rd(f, 10);
 }
 
 // ------------------------------------------------------------------------------------------

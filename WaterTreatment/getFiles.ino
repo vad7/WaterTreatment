@@ -347,10 +347,9 @@ void get_txtSettings(uint8_t thread)
           strcat(Socket[thread].outBuf,MC.sFrequency[i].get_note());  strcat(Socket[thread].outBuf,": ");
           if (MC.sFrequency[i].get_present())
           {
-             strcat(Socket[thread].outBuf," Контроль мин. потока: ");  if (MC.sFrequency[i].get_checkFlow())  strcat(Socket[thread].outBuf,(char*)cOne);else strcat(Socket[thread].outBuf,(char*)cZero);
-             strcat(Socket[thread].outBuf,", Минимальный поток (куб/ч)="); _ftoa(Socket[thread].outBuf,(float)MC.sFrequency[i].get_minValue()/1000.0f,3);
-             strcat(Socket[thread].outBuf,", Коэффициент (имп*л)=");       _ftoa(Socket[thread].outBuf,(float)MC.sFrequency[i].get_kfValue()/100.0f,3);
-             strcat(Socket[thread].outBuf,", Тест (куб/ч)="); _ftoa(Socket[thread].outBuf,(float)MC.sFrequency[i].get_testValue()/1000.0f,3);
+             strcat(Socket[thread].outBuf," : ");
+             strcat(Socket[thread].outBuf,", Коэффициент (имп*л)=");       _dtoa(Socket[thread].outBuf,MC.sFrequency[i].get_kfValue(),2);
+             strcat(Socket[thread].outBuf,", Тест (куб/ч)="); _dtoa(Socket[thread].outBuf,MC.sFrequency[i].get_testValue(),3);
           } else strcat(Socket[thread].outBuf," absent");
           STR_END;
        }

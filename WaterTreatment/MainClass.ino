@@ -293,7 +293,6 @@ void MainClass::set_testMode(TEST_MODE b)
 	for(i = 0; i < TNUMBER; i++) sTemp[i].set_testMode(b);         // датчики температуры
 	for(i = 0; i < ANUMBER; i++) sADC[i].set_testMode(b);          // Датчик давления
 	for(i = 0; i < INUMBER; i++) sInput[i].set_testMode(b);        // Датчики сухой контакт
-	for(i = 0; i < FNUMBER; i++) sFrequency[i].set_testMode(b);    // Частотные датчики
 	for(i = 0; i < RNUMBER; i++) dRelay[i].set_testMode(b);        // Реле
 #ifndef TEST_BOARD
 	if(testMode > STAT_TEST && b <= STAT_TEST) {

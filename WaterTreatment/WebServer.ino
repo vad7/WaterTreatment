@@ -1878,17 +1878,17 @@ x_get_GADC:						i = MC.sADC[p].get_ADC_Gain();
 								else strcat(strReturn,"-");               // Датчика нет ставим прочерк
 								ADD_WEBDELIM(strReturn) ;    continue;
 							}
-							if(strncmp(str, "min", 3)==0)           // Функция get_minFlow
-							{
-								if (MC.sFrequency[p].get_present())          // Если датчик есть в конфигурации то выводим значение
-									_dtoa(strReturn, MC.sFrequency[p].get_minValue(), 3);
-								else strcat(strReturn,"-");               // Датчика нет ставим прочерк
-								ADD_WEBDELIM(strReturn) ;    continue;
-							}
 							if(strncmp(str, "kfF", 3)==0)           // Функция get_kfFlow
 							{
 								if (MC.sFrequency[p].get_present())          // Если датчик есть в конфигурации то выводим значение
 									_dtoa(strReturn, MC.sFrequency[p].get_kfValue(), 2);
+								else strcat(strReturn,"-");               // Датчика нет ставим прочерк
+								ADD_WEBDELIM(strReturn) ;    continue;
+							}
+							if(strncmp(str, "cF", 2)==0)           // Функция get_cFlow
+							{
+								if (MC.sFrequency[p].get_present())          // Если датчик есть в конфигурации то выводим значение
+									_itoa(MC.sFrequency[p].get_FlowCalcPeriodValue(), strReturn);
 								else strcat(strReturn,"-");               // Датчика нет ставим прочерк
 								ADD_WEBDELIM(strReturn) ;    continue;
 							}
@@ -1902,14 +1902,8 @@ x_get_GADC:						i = MC.sADC[p].get_ADC_Gain();
 							if(strncmp(str, "pin", 3)==0)              // Функция get_pinFlow
 							{ strcat(strReturn,"D"); _itoa(MC.sFrequency[p].get_pinF(),strReturn);
 								ADD_WEBDELIM(strReturn); continue; }
-							if(strncmp(str, "eF", 2)==0)           // Функция get_eFlow (errorcode)
-							{ _itoa(MC.sFrequency[p].get_lastErr(),strReturn);
-								ADD_WEBDELIM(strReturn); continue; }
 							if(strncmp(str, "nF", 2)==0)               // Функция get_nFlow (note)
 							{ strcat(strReturn,MC.sFrequency[p].get_note()); ADD_WEBDELIM(strReturn); continue; }
-
-							if(strncmp(str, "check", 5)==0) // get_checkFlow
-							{ _itoa(MC.sFrequency[p].get_checkFlow(), strReturn); ADD_WEBDELIM(strReturn); continue; }
 
 						// ---- SET ----------------- Для частотных  датчиков - запросы на УСТАНОВКУ парметров
 						} else if(strncmp(str, "set_", 4)==0) {              // Функция set_
@@ -1919,22 +1913,23 @@ x_get_GADC:						i = MC.sADC[p].get_ADC_Gain();
 								ADD_WEBDELIM(strReturn);
 								continue;
 							}
-							if(strncmp(str, "min", 3)==0) {           // Функция set_minFlow
-								MC.sFrequency[p].set_minValue(pm);
-								_dtoa(strReturn, MC.sFrequency[p].get_minValue(), 3); ADD_WEBDELIM(strReturn); continue;
+							if(strncmp(str, "test", 4) == 0) {           // Функция set_testFlow
+								if(MC.sFrequency[p].set_testValue(rd(pm, 1000)) == OK) {   // Установить значение
+									_dtoa(strReturn, MC.sFrequency[p].get_testValue(), 3);
+									ADD_WEBDELIM(strReturn); continue;
+								} else {
+									strcat(strReturn, "E35" WEBDELIM); continue;
+								}
 							}
-							if(strncmp(str, "check", 5)==0) {           // Функция set_checkFlow
-								MC.sFrequency[p].set_checkFlow(pm != 0);
-								_itoa(MC.sFrequency[p].get_checkFlow(), strReturn); ADD_WEBDELIM(strReturn); continue;
+							if(strncmp(str, "kfF", 3) == 0) {          // Функция set_kfFlow float
+								MC.sFrequency[p].set_kfValue(rd(pm, 100));    // Установить значение
+								_dtoa(strReturn, MC.sFrequency[p].get_kfValue(), 2);
+								ADD_WEBDELIM(strReturn); continue;
 							}
-							if(strncmp(str, "test", 4)==0)           // Функция set_testFlow
-							{ if (MC.sFrequency[p].set_testValue(rd(pm, 1000))==OK)    // Установить значение
-								{_dtoa(strReturn, MC.sFrequency[p].get_testValue(), 3); ADD_WEBDELIM(strReturn); continue; }
-								else { strcat(strReturn,"E35" WEBDELIM); continue;}         // выход за диапазон ПРЕДУПРЕЖДЕНИЕ значение не установлено
-							}
-							if(strncmp(str, "kfF", 3)==0)           // Функция set_kfFlow float
-							{ MC.sFrequency[p].set_kfValue(rd(pm, 100));    // Установить значение
-								_dtoa(strReturn, MC.sFrequency[p].get_kfValue(), 2); ADD_WEBDELIM(strReturn); continue;
+							if(strncmp(str, "cF", 2) == 0) {          // Функция set_cFlow
+								MC.sFrequency[p].set_FlowCalcPeriodValue(pm);    // Установить значение
+								_itoa(MC.sFrequency[p].get_FlowCalcPeriodValue(), strReturn);
+								ADD_WEBDELIM(strReturn); continue;
 							}
 						}
 						strcat(strReturn,"E08"); // выход за диапазон, значение не установлено
