@@ -431,8 +431,7 @@ int8_t sensorFrequency::Read(int32_t add_pulses100)
 			PassedRest += cnt;
 			Passed += PassedRest / kfValue;
 			PassedRest %= kfValue;
-			cnt += count_Flow;
-			if(++FlowCalcCnt >= FlowCalcPeriod) {
+			if(FlowCalcPeriod == 1) {
 				if(ticks == FREQ_BASE_TIME_READ) {
 					cnt *= 10;
 				} else if(cnt > 0xFFFFFFFF / FREQ_BASE_TIME_READ / 10) { // will overflow u32
@@ -441,12 +440,17 @@ int8_t sensorFrequency::Read(int32_t add_pulses100)
 					cnt = (cnt * 10 * FREQ_BASE_TIME_READ) / ticks; // ТЫСЯЧНЫЕ ГЦ время в миллисекундах частота в тысячных герца
 				}
 				Frequency = cnt / 2;
-				//   Value=60.0*Frequency/kfValue/1000.0;               // Frequency/kfValue  литры в минуту а нужны кубы
-				//       Value=((float)Frequency/1000.0)/((float)kfValue/360000.0);          // ЛИТРЫ В ЧАС (ИЛИ ТЫСЯЧНЫЕ КУБА) частота в тысячных, и коэффициент правим
 				Value = cnt * 360 / kfValue; // ЛИТРЫ В ЧАС (ИЛИ ТЫСЯЧНЫЕ КУБА) частота в тысячных, и коэффициент правим
-				FlowCalcCnt = 0;
-				count_Flow = 0;
-			} else count_Flow = cnt;
+			} else {
+				cnt += count_Flow;
+				if(++FlowCalcCnt >= FlowCalcPeriod) {
+					cnt *= 10; // ТЫСЯЧНЫЕ ГЦ
+					Frequency = cnt / 2;
+					Value = cnt * 360 / kfValue; // ЛИТРЫ В ЧАС (ИЛИ ТЫСЯЧНЫЕ КУБА) частота в тысячных, и коэффициент правим
+					FlowCalcCnt = 0;
+					count_Flow = 0;
+				} else count_Flow = cnt;
+			}
 		}
 		//journal.jprintfopt("Flow(%d): %d = %d (%d, %d) f: %d\n", ticks, cnt / 100, Value, Passed, PassedRest / 100, Frequency);
 	}
