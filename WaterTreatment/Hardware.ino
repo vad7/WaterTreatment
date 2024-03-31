@@ -369,6 +369,7 @@ void InterruptFreq4() { MC.sFrequency[4].InterruptHandler(); }
 void sensorFrequency::initFrequency(int sensor)                     
 {
 	number = sensor;
+	FlowCalcPeriod = 1;
 	reset();
 	testValue=TESTFLOW[sensor];                    // Состояние датчика в режиме теста
 	kfValue=TRANSFLOW[sensor];                     // коэффициент пересчета частоты в значение
