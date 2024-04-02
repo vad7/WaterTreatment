@@ -1323,8 +1323,15 @@ void vReadSensor(void *)
 					if(d && d >= MC.Option.PWATER_Osmos_Step) {
 						int16_t dd = MC.sADC[PWATER].get_maxValue() - MC.sADC[PWATER].get_minValue();
 						if(d > dd) d = dd;
-						add_to_flow = d * MC.Osmos_PWATER_BoosterMax * 100 / dd * (MC.sFrequency[FLOW].get_kfValue()/10) / 1000;
-						if(add_to_flow > (int32_t)MC.sFrequency[FLOW].get_count()) add_to_flow -= MC.sFrequency[FLOW].get_count();
+						int16_t pw2 = pw - MC.sADC[PWATER].get_minValue();
+						if(pw2 > dd / 2) { // log
+							add_to_flow = d * MC.Osmos_PWATER_BoosterMax * 100 / 2 / dd * (MC.sFrequency[FLOW].get_kfValue()/10) / 1000;
+						} else if(pw2 > dd / 2 / 2) {
+							add_to_flow = d * MC.Osmos_PWATER_BoosterMax * 100 / dd * (MC.sFrequency[FLOW].get_kfValue()/10) / 1000;
+						} else {
+							add_to_flow = d * MC.Osmos_PWATER_BoosterMax * 100 * 2 / dd * (MC.sFrequency[FLOW].get_kfValue()/10) / 1000;
+						}
+						//if(add_to_flow > (int32_t)MC.sFrequency[FLOW].get_count()) add_to_flow -= MC.sFrequency[FLOW].get_count();
 						MC.sFrequency[FLOW].WebCorrectCnt = (TIMER_TO_SHOW_STATUS + 1000) / TIME_READ_SENSOR + 1;
 						//TimeFeedPump +=	d * MC.Osmos_PWATER_BoosterMax * 1000 / ((MC.sADC[PWATER].get_maxValue() - MC.sADC[PWATER].get_minValue()) * 100) * TIME_READ_SENSOR / MC.Option.FeedPumpMaxFlow;
 						MC.Osmos_PWATER_LastFeed = pw;
@@ -1366,13 +1373,15 @@ void vReadSensor(void *)
 			//interrupts();
 		}
 
-		WaterBoosterCountL += passed;
 		WaterBoosterCountLrest = MC.sFrequency[FLOW].PassedRest;
+		MC.sFrequency[FLOW].ChartLiters_rest = WaterBoosterCountLrest;
 		if(LCD_setup) {
 			FlowPulseCounter += passed;
-			FlowPulseCounterRest = MC.sFrequency[FLOW].PassedRest;
+			FlowPulseCounterRest = WaterBoosterCountLrest;
 		}
 		if(passed) {
+			WaterBoosterCountL += passed;
+			MC.sFrequency[FLOW].ChartLiters_accum += passed;
 			if(!MC.sInput[REG_BACKWASH_ACTIVE].get_Input()) {
 				TimeFeedPump +=	passed * 1000 * TIME_READ_SENSOR / MC.Option.FeedPumpMaxFlow;
 			} else if(RegBackwashTimer == 0) { // В начале обратной промывки реагент не подаем, в конце - усиленная подача
@@ -1670,7 +1679,7 @@ void vPumps( void * )
 					int32_t l;
 					if(MC.Osmos_PWATER_Cnt > MC.Option.PWATER_Osmos_Step) SETBIT1(MC.Osmos_PWATER_Flags, 0);
 					if(_WaterBoosterCountLrest == -1) goto xWaterBooster_StartFill;
-					l = WaterBoosterCountL * 100 + (WaterBoosterCountLrest - _WaterBoosterCountLrest) * 100 / MC.sFrequency[FLOW].get_kfValue();
+					l = (int32_t)WaterBoosterCountL * 100 + (WaterBoosterCountLrest - _WaterBoosterCountLrest) * 100 / MC.sFrequency[FLOW].get_kfValue();
 					l += MC.sFrequency[FLOW].get_RawPassed();
 					if((LCD_setup & 0xFF00) != LCD_SetupMenu_FlowCheck && l <= MC.Option.MinWaterBoosterCountL) {
 						CriticalErrors |= ERRC_WaterCounter;
@@ -1694,12 +1703,12 @@ void vPumps( void * )
 							}
 						}
 						MC.sFrequency[FLOW].WebCorrectCnt = 0;
-						MC.ChartWaterBoosterCount.addPoint(l);
+						MC.ChartWaterBoosterCount.addPoint(GETBIT(MC.Osmos_PWATER_Flags, 0) ? -l : l);
 xWaterBooster_StartFill:
 						MC.dRelay[RBOOSTER1].set_ON();
 						WaterBoosterTimeout = 0;
 						WaterBoosterStatus = 1;
-						SETBIT0(MC.Osmos_PWATER_Flags, 0);
+						MC.Osmos_PWATER_Flags = (MC.Osmos_PWATER_Flags & ~(1<<0)) | ((!reg_active)<<0);
 					}
 				}
 			}

@@ -194,9 +194,12 @@ public:
   inline int8_t  get_pinF(){return pin;}                 // Получить ногу куда прицеплен датчик
   uint8_t *get_save_addr(void) { return (uint8_t *)&number; } // Адрес структуры сохранения
   uint16_t get_save_size(void) { return (byte*)&_reserved - (byte*)&number + sizeof(_reserved); } // Размер структуры сохранения
-  statChart Chart;                                       // Статистика по датчику
   volatile uint32_t Passed;								 // Счетчик литров
   uint32_t PassedRest;									 // остаток счетчика
+  statChart ChartFlow;                                   // Статистика по датчику
+  statChart ChartLiters;                                 // Статистика по датчику
+  uint16_t ChartLiters_accum;
+  uint16_t ChartLiters_rest;
   uint8_t WebCorrectCnt;								// счетчик корректировки для веба, *TIME_READ_SENSOR, начиная с 1
     
 private:
@@ -298,7 +301,7 @@ class devPWM
       boolean set_param(char *var, int32_t f);
       
        // Графики из счетчика
-      statChart ChartVoltage;                          // Статистика по напряжению
+      //statChart ChartVoltage;                          // Статистика по напряжению
       statChart ChartPower;                            // Статистика по Полная мощность
   private:
       int8_t  err;                                     // ошибка стесчика (работа)

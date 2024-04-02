@@ -93,7 +93,7 @@ class sensorTemp
     uint16_t get_save_size(void) { return (byte*)&setup_flags - (byte*)&number + sizeof(setup_flags); } // Размер структуры сохранения
     void  	 after_load();                         		// Инициализация после загрузки
     int8_t   inc_error(void);				   		    // Увеличить счетчик ошибок
-    statChart Chart;                                    // Статистика по датчику
+    //statChart Chart;                                    // Статистика по датчику
     
   private:
    int16_t minTemp;                                     // минимальная разрешенная температура

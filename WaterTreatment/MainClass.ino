@@ -1137,11 +1137,15 @@ char * MainClass::get_listChart(char* str)
 {
 	uint8_t i;
 	strcat(str,"---:1;");
-	for(i=0;i<TNUMBER;i++) { strcat(str,sTemp[i].get_name()); strcat(str,":0;"); }
+	//for(i=0;i<TNUMBER;i++) { strcat(str,sTemp[i].get_name()); strcat(str,":0;"); }
 	for(i=0;i<ANUMBER;i++) { strcat(str,sADC[i].get_name()); strcat(str,":0;"); }
-	for(i=0;i<FNUMBER;i++) { strcat(str,sFrequency[i].get_name()); strcat(str,":0;"); }
+	for(i=0;i<FNUMBER;i++) {
+		strcat(str,sFrequency[i].get_name()); strcat(str,":0;");
+		strcat(str,sFrequency[i].get_name()); strcat(str,"_L:0;");
+	}
 	strcat(str, chart_BrineWeight); strcat(str,":0;");
 	strcat(str, chart_WaterBoost); strcat(str,":0;");
+	strcat(str, chart_WaterBoostCountAll); strcat(str,":0;");
 	strcat(str, chart_WaterBoostCount); strcat(str,":0;");
 	strcat(str, chart_FeedPump); strcat(str,":0;");
 	strcat(str, chart_FillTank); strcat(str,":0;");
@@ -1154,9 +1158,13 @@ char * MainClass::get_listChart(char* str)
 // Все значения в графиках целочислены (сотые), выводятся в формате 0.01
 void  MainClass::updateChart()
 {
-	for(uint8_t i=0;i<TNUMBER;i++) sTemp[i].Chart.addPoint(sTemp[i].get_Temp());
+	//for(uint8_t i=0;i<TNUMBER;i++) sTemp[i].Chart.addPoint(sTemp[i].get_Temp());
 	for(uint8_t i=0;i<ANUMBER;i++) sADC[i].Chart.addPoint(sADC[i].get_Value());
-	for(uint8_t i=0;i<FNUMBER;i++) sFrequency[i].Chart.addPoint(sFrequency[i].get_Value() / 10); // Частотные датчики
+	for(uint8_t i=0;i<FNUMBER;i++) {
+		sFrequency[i].ChartFlow.addPoint(sFrequency[i].get_Value()); // Частотные датчики
+		sFrequency[i].ChartLiters.addPoint(sFrequency[i].ChartLiters_accum * 100 + sFrequency[i].ChartLiters_rest); // Частотные датчики
+		sFrequency[i].ChartLiters_accum = sFrequency[i].ChartLiters_rest = 0;
+	}
 
 	int32_t tmp1, tmp2, tmp3;
 	taskENTER_CRITICAL();
@@ -1171,7 +1179,7 @@ void  MainClass::updateChart()
 	ChartFeedPump.addPoint(tmp2 / 10);
 	ChartFillTank.addPoint(tmp3 / 10);
 	ChartBrineWeight.addPoint(Weight_Percent);
-	dPWM.ChartVoltage.addPoint(dPWM.get_Voltage() / 10);
+	//dPWM.ChartVoltage.addPoint(dPWM.get_Voltage() / 10);
 	dPWM.ChartPower.addPoint(dPWM.get_Power() / 10);
 }
 
@@ -1179,15 +1187,19 @@ void  MainClass::updateChart()
 void MainClass::clearChart()
 {
  uint8_t i; 
- for(i=0;i<TNUMBER;i++) sTemp[i].Chart.clear();
+ //for(i=0;i<TNUMBER;i++) sTemp[i].Chart.clear();
  for(i=0;i<ANUMBER;i++) sADC[i].Chart.clear();
- for(i=0;i<FNUMBER;i++) sFrequency[i].Chart.clear();
+ for(i=0;i<FNUMBER;i++) {
+	 sFrequency[i].ChartFlow.clear();
+	 sFrequency[i].ChartLiters.clear();
+	 sFrequency[i].ChartLiters_accum = sFrequency[i].ChartLiters_rest = 0;
+ }
  ChartWaterBoost.clear();
  //ChartWaterBoosterCount.clear();
  ChartFeedPump.clear();
  ChartFillTank.clear();
  ChartBrineWeight.clear();
- dPWM.ChartVoltage.clear();                              // Статистика по напряжению
+// dPWM.ChartVoltage.clear();                              // Статистика по напряжению
  dPWM.ChartPower.clear();                                // Статистика по Полная мощность
 }
 
@@ -1200,12 +1212,12 @@ void MainClass::get_Chart(char *var, char* str)
 		return;
 	}
 	// В начале имена совпадающие с именами объектов
-	for(i = 0; i < TNUMBER; i++) {
-		if((strcmp(var, sTemp[i].get_name()) == 0)) {
-			sTemp[i].Chart.get_PointsStrDiv100(str);
-			return;
-		}
-	}
+//	for(i = 0; i < TNUMBER; i++) {
+//		if((strcmp(var, sTemp[i].get_name()) == 0)) {
+//			sTemp[i].Chart.get_PointsStrDiv100(str);
+//			return;
+//		}
+//	}
 	for(i = 0; i < ANUMBER; i++) {
 		if((strcmp(var, sADC[i].get_name()) == 0)) {
 			sADC[i].Chart.get_PointsStrDiv100(str);
@@ -1213,15 +1225,18 @@ void MainClass::get_Chart(char *var, char* str)
 		}
 	}
 	for(i = 0; i < FNUMBER; i++) {
-		if((strcmp(var, sFrequency[i].get_name()) == 0)) {
-			sFrequency[i].Chart.get_PointsStrDiv100(str);
+		if((strncmp(var, sFrequency[i].get_name(), strlen(sFrequency[i].get_name())) == 0)) {
+			if(var[strlen(sFrequency[i].get_name()) - 1] == 'L') sFrequency[i].ChartLiters.get_PointsStrUintDiv1000(str);
+			else sFrequency[i].ChartFlow.get_PointsStrUintDiv1000(str);
 			return;
 		}
 	}
-	if(strcmp(var, chart_VOLTAGE) == 0) {
-		dPWM.ChartVoltage.get_PointsStr(str);
-	} else if(strcmp(var, chart_fullPOWER) == 0) {
+	if(strcmp(var, chart_fullPOWER) == 0) {
 		dPWM.ChartPower.get_PointsStrDiv100(str);
+//	} else if(strcmp(var, chart_VOLTAGE) == 0) {
+//		dPWM.ChartVoltage.get_PointsStr(str);
+	} else if(strcmp(var, chart_WaterBoostCountAll) == 0) {
+		ChartWaterBoosterCount.get_PointsStrDiv100(str);
 	} else if(strcmp(var, chart_WaterBoostCount) == 0) {
 		ChartWaterBoosterCount.get_PointsStrDiv100(str);
 	} else if(strcmp(var, chart_WaterBoost) == 0) {

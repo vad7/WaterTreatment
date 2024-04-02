@@ -472,6 +472,36 @@ void statChart::get_PointsStrDiv100(char *&b)
 	}
 }
 
+void statChart::get_PointsStrAbsDiv100(char *&b)
+{
+	if((num == 0)) {
+		//strcat(b, ";");
+		return;
+	}
+	b += m_strlen(b);
+	for(uint16_t i = 0; i < num; i++) {
+		b = dptoa(b, abs(get_Point(i)), 2);
+		*b++ = ';';
+		*b = '\0';
+	}
+}
+
+void statChart::get_PointsStrPositiveDiv100(char *&b)
+{
+	if((num == 0)) {
+		//strcat(b, ";");
+		return;
+	}
+	b += m_strlen(b);
+	for(uint16_t i = 0; i < num; i++) {
+		int16_t n = get_Point(i);
+		if(n < 0) continue;
+		b = dptoa(b, n, 2);
+		*b++ = ';';
+		*b = '\0';
+	}
+}
+
 // получить строку в которой перечислены все точки в строковом виде через; при этом значения делятся на 100
 // строка не обнуляется перед записью
 void statChart::get_PointsStrUintDiv100(char *&b)
@@ -483,6 +513,22 @@ void statChart::get_PointsStrUintDiv100(char *&b)
 	b += m_strlen(b);
 	for(uint16_t i = 0; i < num; i++) {
 		b = dptoa(b, (uint16_t)get_Point(i), 2);
+		*b++ = ';';
+		*b = '\0';
+	}
+}
+
+// получить строку в которой перечислены все точки в строковом виде через; при этом значения делятся на 1000
+// строка не обнуляется перед записью
+void statChart::get_PointsStrUintDiv1000(char *&b)
+{
+	if((num == 0)) {
+		//strcat(b, ";");
+		return;
+	}
+	b += m_strlen(b);
+	for(uint16_t i = 0; i < num; i++) {
+		b = dptoa(b, (uint16_t)get_Point(i), 3);
 		*b++ = ';';
 		*b = '\0';
 	}

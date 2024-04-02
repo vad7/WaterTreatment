@@ -20,7 +20,7 @@
 #include "Util.h"
 
 // ОПЦИИ КОМПИЛЯЦИИ ПРОЕКТА -------------------------------------------------------
-#define VERSION			  "1.55"			// Версия прошивки
+#define VERSION			  "1.56"			// Версия прошивки
 #define VER_SAVE		  14				// Версия формата сохраняемых данных в I2C память
 //#define LOG                               // В последовательный порт шлет лог веб сервера (логируются запросы)
 #define FAST_LIB                            // использование допиленной библиотеки езернета
@@ -354,6 +354,7 @@ const char *chart_NONE       = {"NONE"};                    // 0 ничего н
 const char *chart_VOLTAGE    = {"Voltage"};                 // Статистика по напряжению
 const char *chart_CURRENT    = {"Current"};                 // Статистика по току
 const char *chart_fullPOWER  = {"Power"};               // Статистика по Полная мощность
+const char *chart_WaterBoostCountAll = {"BoosterTank All, L"};
 const char *chart_WaterBoostCount = {"BoosterTank, L"};
 const char *chart_WaterBoost = {"WaterBooster, s"};
 const char *chart_FeedPump   = {"FeedPump, s"};
