@@ -1320,7 +1320,7 @@ void vReadSensor(void *)
 			if(GETBIT(MC.Option.flags, fFlowIncByPressure) && !(MC.RTC_store.Work & RTC_Work_Regen_MASK) && TimerDrainingWater == 0) { // не идет - регенерация/слив
 				if(WaterBoosterTimeout > PWATER_OSMOS_WATERBOOSTER_TIMEOUT && MC.Osmos_PWATER_BoosterMax > 100) {
 					int32_t d = MC.Osmos_PWATER_LastFeed - pw;
-					if(d && d >= MC.Option.PWATER_Osmos_Step) {
+					if(d && MC.Osmos_PWATER_Cnt >= MC.Option.PWATER_Osmos_Step) {
 						int16_t dd = MC.sADC[PWATER].get_maxValue() - MC.sADC[PWATER].get_minValue();
 						if(d > dd) d = dd;
 						int16_t pw2 = pw - MC.sADC[PWATER].get_minValue();
@@ -1691,13 +1691,13 @@ void vPumps( void * )
 						if(!reg_active) {
 							if(!MC.Osmos_PWATER_Added) {
 								if(MC.Osmos_PWATER_BoosterMax == 0 && l > MC.Osmos_PWATER_BoosterMax) {
-									MC.Osmos_PWATER_BoosterMax = l * PWATER_OSMOS_WATERBOOSTER_MAX_MUL / 10;
+									MC.Osmos_PWATER_BoosterMax = l * MC.Option.PWATER_Osmos_TankMul / 100;
 									MC.Osmos_PWATER_BoosterMax_cnt = 0;
 									MC.Osmos_PWATER_BoosterMax_Calc = 0;
 								}
 								if(l > MC.Osmos_PWATER_BoosterMax_Calc) MC.Osmos_PWATER_BoosterMax_Calc = l;
 								if(++MC.Osmos_PWATER_BoosterMax_cnt == BOOSTERMAX_HIST_MAX) {
-									MC.Osmos_PWATER_BoosterMax = MC.Osmos_PWATER_BoosterMax_Calc * PWATER_OSMOS_WATERBOOSTER_MAX_MUL / 10;
+									MC.Osmos_PWATER_BoosterMax = MC.Osmos_PWATER_BoosterMax_Calc * MC.Option.PWATER_Osmos_TankMul / 100;
 									MC.Osmos_PWATER_BoosterMax_cnt = 0;
 									MC.Osmos_PWATER_BoosterMax_Calc = 0;
 								}

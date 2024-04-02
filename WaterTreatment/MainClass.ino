@@ -937,6 +937,7 @@ boolean MainClass::set_option(char *var, float xx)
    if(strcmp(var,option_PWATER_RegMin)==0)   { Option.PWATER_RegMin = rd(xx, 100); return true; } else
    if(strcmp(var,option_PWATER_Osmos_Min)==0){ Option.PWATER_Osmos_Min = rd(xx, 100); return true; } else
    if(strcmp(var,option_PWATER_Osmos_Step)==0){ Option.PWATER_Osmos_Step = x; return true; } else
+   if(strcmp(var,option_PWATER_Osmos_TankMul)==0){ Option.PWATER_Osmos_TankMul = rd(xx, 100); return true; } else
    if(strcmp(var,option_LTANK_Low)==0)     { Option.LTANK_Low = rd(xx, 100); return true; } else
    if(strcmp(var,option_LTank_LowConsumeMin)==0){ Option.LTank_LowConsumeMin = rd(xx, 100); return true; } else
    if(strcmp(var,option_LTank_AfterFilledTimer)==0){ Option.LTank_AfterFilledTimer = x; return true; } else
@@ -1049,6 +1050,7 @@ char* MainClass::get_option(char *var, char *ret)
 	if(strcmp(var,option_PWATER_RegMin)==0){ _dtoa(ret, Option.PWATER_RegMin, 2); return ret; } else
 	if(strcmp(var,option_PWATER_Osmos_Min)==0){ _dtoa(ret, Option.PWATER_Osmos_Min, 2); return ret; } else
 	if(strcmp(var,option_PWATER_Osmos_Step)==0){ return _itoa(Option.PWATER_Osmos_Step, ret); } else
+	if(strcmp(var,option_PWATER_Osmos_TankMul)==0){ _dtoa(ret, Option.PWATER_Osmos_TankMul, 2); return ret; } else
 	if(strcmp(var,option_LTANK_Low)==0){ _dtoa(ret, Option.LTANK_Low, 2); return ret; } else
 	if(strcmp(var,option_LTank_LowConsumeMin)==0){ _dtoa(ret, Option.LTank_LowConsumeMin, 2); return ret; } else
 	if(strcmp(var,option_LTank_Hour_Low)==0){ _dtoa(ret, Option.LTank_Hour_Low, 2); return ret; } else

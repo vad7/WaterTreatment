@@ -997,7 +997,6 @@ xSaveStats:		if((i = MC.save_WorkStats()) == OK)
 			strcat(strReturn,"T_NUMSAMLES|Число значений для усреднения показаний температуры|");_itoa(T_NUMSAMLES,strReturn);strcat(strReturn,";");
 			strcat(strReturn,"GAP_TEMP_VAL|Допустимая разница показаний между двумя считываниями (°C)|");_dtoa(strReturn,GAP_TEMP_VAL,2);strcat(strReturn,";");
 			strcat(strReturn,"MAX_TEMP_ERR|Максимальная систематическая ошибка датчика температуры (°C)|");_dtoa(strReturn,MAX_TEMP_ERR,2);strcat(strReturn,";");
-			strcat(strReturn,"PWATER_OSMOS_W.._MAX_MUL|Множитель максимального объема бака насосной станции|");_dtoa(strReturn,PWATER_OSMOS_WATERBOOSTER_MAX_MUL,1);strcat(strReturn,";");
 			strcat(strReturn,"VER_SAVE|Версия формата сохраненных данных в I2C памяти|");
 			_itoa(VER_SAVE,strReturn);
 			//if(VER_SAVE != MC.Option.ver) { strcat(strReturn," ("); _itoa(MC.Option.ver, strReturn); strcat(strReturn,")"); }
@@ -1859,8 +1858,8 @@ x_get_GADC:						i = MC.sADC[p].get_ADC_Gain();
 							if(strncmp(str, "Flow", 4)==0)           // Функция get_Flow
 							{
 								if (MC.sFrequency[p].get_present()) {         // Если датчик есть в конфигурации то выводим значение
-									if(MC.sFrequency[p].WebCorrectCnt > 1) strcat(strReturn, "+");	// Информация о корректировки
 									_dtoa(strReturn, MC.sFrequency[p].get_Value(), 3);
+									if(MC.sFrequency[p].WebCorrectCnt > 1) strcat(strReturn, "+");	// Информация о корректировки
 								} else strcat(strReturn,"-");               // Датчика нет ставим прочерк
 								ADD_WEBDELIM(strReturn) ;    continue;
 							}
