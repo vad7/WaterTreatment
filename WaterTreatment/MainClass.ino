@@ -1137,7 +1137,7 @@ char * MainClass::get_listChart(char* str)
 {
 	uint8_t i;
 	strcat(str,"---:1;");
-	//for(i=0;i<TNUMBER;i++) { strcat(str,sTemp[i].get_name()); strcat(str,":0;"); }
+//	for(i=0;i<TNUMBER;i++) { strcat(str,sTemp[i].get_name()); strcat(str,":0;"); }
 	for(i=0;i<ANUMBER;i++) { strcat(str,sADC[i].get_name()); strcat(str,":0;"); }
 	for(i=0;i<FNUMBER;i++) {
 		strcat(str,sFrequency[i].get_name()); strcat(str,":0;");
@@ -1149,7 +1149,7 @@ char * MainClass::get_listChart(char* str)
 	strcat(str, chart_WaterBoostCount); strcat(str,":0;");
 	strcat(str, chart_FeedPump); strcat(str,":0;");
 	strcat(str, chart_FillTank); strcat(str,":0;");
-	strcat(str,chart_VOLTAGE); strcat(str,":0;");
+//	strcat(str,chart_VOLTAGE); strcat(str,":0;");
 	strcat(str,chart_fullPOWER); strcat(str,":0;");
 	return str;
 }
