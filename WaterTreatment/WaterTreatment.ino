@@ -1335,7 +1335,7 @@ void vReadSensor(void *)
 						MC.sFrequency[FLOW].WebCorrectCnt = (TIMER_TO_SHOW_STATUS + 1000) / TIME_READ_SENSOR + 1;
 						//TimeFeedPump +=	d * MC.Osmos_PWATER_BoosterMax * 1000 / ((MC.sADC[PWATER].get_maxValue() - MC.sADC[PWATER].get_minValue()) * 100) * TIME_READ_SENSOR / MC.Option.FeedPumpMaxFlow;
 						MC.Osmos_PWATER_LastFeed = pw;
-						SETBIT1(MC.Osmos_PWATER_Flags, 0);
+						MC.Osmos_PWATER_Added = 1;
 					}
 				} else MC.Osmos_PWATER_LastFeed = pw;
 			}
@@ -1673,11 +1673,10 @@ void vPumps( void * )
 		if(WaterBoosterStatus == 0) {
 			if(!CriticalErrors && press != ERROR_PRESS
 					&& WaterBoosterTimeout >= MC.Option.MinWaterBoostOffTime
-					&& (press <= (reg_active ? MC.Option.PWATER_RegMin : MC.sADC[PWATER].get_minValue()) || MC.Osmos_PWATER_Cnt > MC.Option.PWATER_Osmos_Step)) {
+					&& (press <= (reg_active ? MC.Option.PWATER_RegMin : MC.sADC[PWATER].get_minValue()) || (MC.Osmos_PWATER_Added = MC.Osmos_PWATER_Cnt > MC.Option.PWATER_Osmos_Step))) {
 				// Starting
 				if(!LowConsumeMode || (!MC.dRelay[RFEEDPUMP].get_Relay() && AfterFilledTimer == 0)) {
 					int32_t l;
-					if(MC.Osmos_PWATER_Cnt > MC.Option.PWATER_Osmos_Step) SETBIT1(MC.Osmos_PWATER_Flags, 0);
 					if(_WaterBoosterCountLrest == -1) goto xWaterBooster_StartFill;
 					l = (int32_t)WaterBoosterCountL * 100 + (WaterBoosterCountLrest - _WaterBoosterCountLrest) * 100 / MC.sFrequency[FLOW].get_kfValue();
 					l += MC.sFrequency[FLOW].get_RawPassed();
@@ -1689,26 +1688,28 @@ void vPumps( void * )
 						MC.dRelay[RDRAIN2].set_Relay(fR_StatusAllOff);
 					} else {
 						if(History_BoosterCountL == -1) History_BoosterCountL = l; else History_BoosterCountL += l;
-						if(!GETBIT(MC.Osmos_PWATER_Flags, 0) && MC.sFrequency[FLOW].WebCorrectCnt == 0 && !reg_active) {
-							if(MC.Osmos_PWATER_BoosterMax == 0 && l > MC.Osmos_PWATER_BoosterMax) {
-								MC.Osmos_PWATER_BoosterMax = l * PWATER_OSMOS_WATERBOOSTER_MAX_MUL / 10;
-								MC.Osmos_PWATER_BoosterMax_cnt = 0;
-								MC.Osmos_PWATER_BoosterMax_Calc = 0;
-							}
-							if(l > MC.Osmos_PWATER_BoosterMax_Calc) MC.Osmos_PWATER_BoosterMax_Calc = l;
-							if(++MC.Osmos_PWATER_BoosterMax_cnt == BOOSTERMAX_HIST_MAX) {
-								MC.Osmos_PWATER_BoosterMax = MC.Osmos_PWATER_BoosterMax_Calc * PWATER_OSMOS_WATERBOOSTER_MAX_MUL / 10;
-								MC.Osmos_PWATER_BoosterMax_cnt = 0;
-								MC.Osmos_PWATER_BoosterMax_Calc = 0;
-							}
+						if(!reg_active) {
+							if(!MC.Osmos_PWATER_Added) {
+								if(MC.Osmos_PWATER_BoosterMax == 0 && l > MC.Osmos_PWATER_BoosterMax) {
+									MC.Osmos_PWATER_BoosterMax = l * PWATER_OSMOS_WATERBOOSTER_MAX_MUL / 10;
+									MC.Osmos_PWATER_BoosterMax_cnt = 0;
+									MC.Osmos_PWATER_BoosterMax_Calc = 0;
+								}
+								if(l > MC.Osmos_PWATER_BoosterMax_Calc) MC.Osmos_PWATER_BoosterMax_Calc = l;
+								if(++MC.Osmos_PWATER_BoosterMax_cnt == BOOSTERMAX_HIST_MAX) {
+									MC.Osmos_PWATER_BoosterMax = MC.Osmos_PWATER_BoosterMax_Calc * PWATER_OSMOS_WATERBOOSTER_MAX_MUL / 10;
+									MC.Osmos_PWATER_BoosterMax_cnt = 0;
+									MC.Osmos_PWATER_BoosterMax_Calc = 0;
+								}
+								MC.ChartWaterBoosterCount.addPoint(l);
+							} else MC.ChartWaterBoosterCount.addPoint(-l);
 						}
 						MC.sFrequency[FLOW].WebCorrectCnt = 0;
-						MC.ChartWaterBoosterCount.addPoint(GETBIT(MC.Osmos_PWATER_Flags, 0) ? -l : l);
 xWaterBooster_StartFill:
 						MC.dRelay[RBOOSTER1].set_ON();
 						WaterBoosterTimeout = 0;
 						WaterBoosterStatus = 1;
-						MC.Osmos_PWATER_Flags = (MC.Osmos_PWATER_Flags & ~(1<<0)) | ((!reg_active)<<0);
+						MC.Osmos_PWATER_Added = reg_active == 0;
 					}
 				}
 			}
@@ -2086,7 +2087,6 @@ void vService(void *)
 							}
 							//Passed100Count = 0; <- выключено, будет +1..100л
 							MC.WorkStats.UsedDrainSiltL100 = MC.Option.DrainSiltAfterL100 - DRAIN_SILT_AFTER_REGEN;
-							SETBIT1(MC.Osmos_PWATER_Flags, 0);
 							RegenStarted = 0;
 						} else if(NewRegenStatus) {
 							if(MC.WorkStats.Flags & WS_F_StartRegen) {
@@ -2130,7 +2130,6 @@ void vService(void *)
 							}
 							//Passed100Count = 0; <- выключено, будет +1..100л
 							MC.WorkStats.UsedDrainSiltL100 = MC.Option.DrainSiltAfterL100 - DRAIN_SILT_AFTER_REGEN;
-							SETBIT1(MC.Osmos_PWATER_Flags, 0);
 							RegenStarted = 0;
 						} else if(NewRegenStatus) {
 							if(MC.WorkStats.Flags & WS_F_StartRegenSoft) {

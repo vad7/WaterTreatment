@@ -525,7 +525,7 @@ public:
 	int16_t  Osmos_PWATER_BoosterMax_Calc;			// для расчета Osmos_PWATER_BoosterMax
 	uint8_t  Osmos_PWATER_BoosterMax_cnt;
 	int16_t  Osmos_PWATER_LastFeed;
-	uint8_t  Osmos_PWATER_Flags;					// b0 - Во время текущего расходования бака насосной станции была добавка для Осмоса.
+	uint8_t  Osmos_PWATER_Added;					// Во время текущего расходования бака насосной станции была добавка для Осмоса.
 	uint32_t RFILL_last_time_ON;					// время последнего включения реле RFILL, если 0, то RFILL -> OFF
 	uint8_t  NextRegenAfterDays;
 	uint8_t  NextRegenSoftAfterDays;

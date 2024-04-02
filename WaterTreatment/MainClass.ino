@@ -614,7 +614,7 @@ void MainClass::resetSetting()
 	Osmos_PWATER_Cnt = 0;
 	Osmos_PWATER_Last = 0;
 	Osmos_PWATER_BoosterMax = 0;
-	Osmos_PWATER_Flags = 0;
+	Osmos_PWATER_Added = 0;
 	NextRegenAfterDays = 255;
 	NextRegenSoftAfterDays = 255;
 
@@ -1236,9 +1236,9 @@ void MainClass::get_Chart(char *var, char* str)
 //	} else if(strcmp(var, chart_VOLTAGE) == 0) {
 //		dPWM.ChartVoltage.get_PointsStr(str);
 	} else if(strcmp(var, chart_WaterBoostCountAll) == 0) {
-		ChartWaterBoosterCount.get_PointsStrDiv100(str);
+		ChartWaterBoosterCount.get_PointsStrAbsDiv100(str);
 	} else if(strcmp(var, chart_WaterBoostCount) == 0) {
-		ChartWaterBoosterCount.get_PointsStrDiv100(str);
+		ChartWaterBoosterCount.get_PointsStrPositiveDiv100(str);
 	} else if(strcmp(var, chart_WaterBoost) == 0) {
 		ChartWaterBoost.get_PointsStrDiv100(str);
 	} else if(strcmp(var, chart_FeedPump) == 0) {
