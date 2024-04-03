@@ -690,6 +690,7 @@ void MainClass::resetSetting()
 	Option.SepticAlarmDebounce = 30;
 	Option.TankCheckPercent = FILLING_TANK_STEP / 100;
 	Option.TankFillingTimeMax = 120;
+	Option.PWATER_Osmos_TankMul = 100;
 	RFILL_last_time_ON = rtcSAM3X8.unixtime();
 }
 

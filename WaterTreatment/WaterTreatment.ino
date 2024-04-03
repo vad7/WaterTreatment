@@ -425,6 +425,7 @@ x_I2C_init_std_message:
 	} else {
 		MC.load((uint8_t *)Socket[0].outBuf, 0);      // Загрузить настройки
 	}
+	WaterBoosterTimeout = MC.Option.MinWaterBoostOffTime;
 
 	// обновить хеш для пользователей
 	WebSec_user.hash = WebSec_admin.hash = NULL;
@@ -1315,12 +1316,12 @@ void vReadSensor(void *)
 		if(GETBIT(MC.Option.flags, fFlowIncByPressure) && WaterBoosterTimeout > PWATER_OSMOS_WATERBOOSTER_TIMEOUT && MC.Osmos_PWATER_BoosterMax > 100
 				&& MC.sFrequency[FLOW].get_count() <= MC.Option.FlowIncByPress_MinFlow
 				&& !(MC.RTC_store.Work & RTC_Work_Regen_MASK) && TimerDrainingWater == 0) { // низкий проток и не идет - регенерация/слив и т.п.
-			if(pw < MC.Option.PWATER_Osmos_Min) { // нет протока и давление низкое
+			if(pw < MC.Option.PWATER_Osmos_Min) { // нет протока и давление низкое, счетчик раннего включения насосной станции
 				if(pw > MC.Osmos_PWATER_Last) MC.Osmos_PWATER_Cnt -= MC.Osmos_PWATER_Cnt > 0 ? 1 : 0;
 				else if(pw < MC.Osmos_PWATER_Last) MC.Osmos_PWATER_Cnt++;
 			} else MC.Osmos_PWATER_Cnt = 0;
-			int32_t d = MC.Osmos_PWATER_LastFeed - pw;
-			if(d) {
+			int32_t d = MC.Osmos_PWATER_LastPress - pw;
+			if(d >= PWATER_OSMOS_MIN_DELTA) {
 				int16_t dd = MC.sADC[PWATER].get_maxValue() - MC.sADC[PWATER].get_minValue();
 				if(d > dd) d = dd;
 				int16_t pw2 = pw - MC.sADC[PWATER].get_minValue();
@@ -1334,12 +1335,17 @@ void vReadSensor(void *)
 				//if(add_to_flow > (int32_t)MC.sFrequency[FLOW].get_count()) add_to_flow -= MC.sFrequency[FLOW].get_count();
 				MC.sFrequency[FLOW].WebCorrectCnt = (TIMER_TO_SHOW_STATUS + 1000) / TIME_READ_SENSOR + 1;
 				//TimeFeedPump +=	d * MC.Osmos_PWATER_BoosterMax * 1000 / ((MC.sADC[PWATER].get_maxValue() - MC.sADC[PWATER].get_minValue()) * 100) * TIME_READ_SENSOR / MC.Option.FeedPumpMaxFlow;
-				MC.Osmos_PWATER_LastFeed = pw;
 				MC.Osmos_PWATER_Added = 1;
+				MC.Osmos_PWATER_LastPress = pw;
+				MC.Osmos_PWATER_LastPress_Timer = 0;
+			} else if(++MC.Osmos_PWATER_LastPress_Timer > PWATER_OSMOS_LASTPRESS_RENEW || d <= -PWATER_OSMOS_MIN_DELTA) {
+				MC.Osmos_PWATER_LastPress = pw;
+				MC.Osmos_PWATER_LastPress_Timer = 0;
 			}
 		} else {
 			MC.Osmos_PWATER_Cnt = 0;
-			MC.Osmos_PWATER_LastFeed = pw;
+			MC.Osmos_PWATER_LastPress = pw;
+			MC.Osmos_PWATER_LastPress_Timer = 0;
 		}
 		MC.Osmos_PWATER_Last = pw;
 		if(MC.sFrequency[FLOW].Read(add_to_flow)) {	// Обновить значения датчика потока, был проток:

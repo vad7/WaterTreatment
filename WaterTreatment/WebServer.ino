@@ -997,6 +997,9 @@ xSaveStats:		if((i = MC.save_WorkStats()) == OK)
 			strcat(strReturn,"T_NUMSAMLES|Число значений для усреднения показаний температуры|");_itoa(T_NUMSAMLES,strReturn);strcat(strReturn,";");
 			strcat(strReturn,"GAP_TEMP_VAL|Допустимая разница показаний между двумя считываниями (°C)|");_dtoa(strReturn,GAP_TEMP_VAL,2);strcat(strReturn,";");
 			strcat(strReturn,"MAX_TEMP_ERR|Максимальная систематическая ошибка датчика температуры (°C)|");_dtoa(strReturn,MAX_TEMP_ERR,2);strcat(strReturn,";");
+			strcat(strReturn,"PWATER_OSMOS_MIN_DELTA|Минимальная разница между показаниями давления для добавки|");_dtoa(strReturn,PWATER_OSMOS_MIN_DELTA,2);strcat(strReturn,";");
+			strcat(strReturn,"PWATER_OSMOS_LASTPRESS_RENEW|Через сколько времени обновлять LastPress, с|");_dtoa(strReturn,PWATER_OSMOS_MIN_DELTA,2);strcat(strReturn,";");
+
 			strcat(strReturn,"VER_SAVE|Версия формата сохраненных данных в I2C памяти|");
 			_itoa(VER_SAVE,strReturn);
 			//if(VER_SAVE != MC.Option.ver) { strcat(strReturn," ("); _itoa(MC.Option.ver, strReturn); strcat(strReturn,")"); }
