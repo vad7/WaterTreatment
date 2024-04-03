@@ -1328,7 +1328,7 @@ void vReadSensor(void *)
 				if(pw2 > dd / 2) {
 					add_to_flow = d * MC.Osmos_PWATER_BoosterMax * 100 / dd * (MC.sFrequency[FLOW].get_kfValue()/10) / 1000;
 				} else if(pw2 > dd / 2 / 2) {
-					add_to_flow = d * MC.Osmos_PWATER_BoosterMax * 150 * (MC.sFrequency[FLOW].get_kfValue()/10) / 1000;
+					add_to_flow = d * MC.Osmos_PWATER_BoosterMax * 150 / dd * (MC.sFrequency[FLOW].get_kfValue()/10) / 1000;
 				} else {
 					add_to_flow = d * MC.Osmos_PWATER_BoosterMax * 100 * 2 / dd * (MC.sFrequency[FLOW].get_kfValue()/10) / 1000;
 				}
