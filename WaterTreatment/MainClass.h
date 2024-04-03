@@ -527,7 +527,7 @@ public:
 	uint8_t  Osmos_PWATER_BoosterMax_cnt;
 	int16_t  Osmos_PWATER_LastPress;				// последнее давление, от которого идет отсчет
 	uint16_t Osmos_PWATER_LastPress_Timer;
-	uint8_t  Osmos_PWATER_Added;					// Во время текущего расходования бака насосной станции была добавка для Осмоса.
+	uint8_t  Osmos_PWATER_Added;					// Во время текущего расходования бака насосной станции была добавка для Осмоса, 2 = только что
 	uint32_t RFILL_last_time_ON;					// время последнего включения реле RFILL, если 0, то RFILL -> OFF
 	uint8_t  NextRegenAfterDays;
 	uint8_t  NextRegenSoftAfterDays;
