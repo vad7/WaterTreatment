@@ -176,8 +176,8 @@ public:
   void reset(void);									// Сброс счетчика
   __attribute__((always_inline)) inline void InterruptHandler(){count++;} // обработчик прерываний
   int8_t  Read(int32_t add_pulses100 = 0);               // Чтение датчика (точнее расчет значения) возвращает ошибку или ОК
-  __attribute__((always_inline)) inline uint32_t get_Frequency(){return Frequency;}   // Получить ЧАСТОТУ датчика при последнем чтении
-  __attribute__((always_inline)) inline uint16_t get_Value(){return Value;} // Получить Значение датчика при последнем чтении, литры в час
+  __attribute__((always_inline)) inline uint32_t get_Frequency(){return Frequency;} // Получить ЧАСТОТУ датчика, тысячных герца
+  __attribute__((always_inline)) inline uint16_t get_Value(){return Value;} // Получить значение, литры в час
   __attribute__((always_inline)) inline boolean get_present(){return kfValue > 0;} // Наличие датчика в текущей конфигурации
   uint32_t get_RawPassed(void) { return count * 10000 / kfValue; }  // Получить сырые не обработанные данные, сотые литра
   __attribute__((always_inline)) inline uint32_t get_count(void) { return count; }
