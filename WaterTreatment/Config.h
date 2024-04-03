@@ -528,6 +528,7 @@ struct History_setup {
 	#define ONLY_ONE_REGEN_AT_TIME				// Только один фильтр может регенерироваться в одно и тоже время
 	#define NOT_CITICAL_ALARM_HOUR		10		// Час не критичных тревог
 	#define	PWATER_OSMOS_WATERBOOSTER_TIMEOUT 10000 // Через сколько времени после выкл. насосной станции начинать контролировать давление при нулевом расходе, мс
+	#define PWATER_OSMOS_BoosterMax_START 750	// Стартовый максимальный объем бака для расчета добавки при низком расходе, сотые литра
 	#define PWATER_OSMOS_MIN_DELTA		4		// минимальная разница между показаниями давления для добавки, сотые бара
 	#define PWATER_OSMOS_LASTPRESS_RENEW 180	// через сколько времени обновлять LastPress, если меньше дельты, секунды
 	#define BOOSTERMAX_HIST_MAX			10		// Размер выборки для рассчета емкости бака насосной станции для корректировки при нулевом расходе

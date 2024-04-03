@@ -1696,11 +1696,6 @@ void vPumps( void * )
 						if(History_BoosterCountL == -1) History_BoosterCountL = l; else History_BoosterCountL += l;
 						if(!reg_active) {
 							if(!MC.Osmos_PWATER_Added && MC.Osmos_PWATER_Cnt <= MC.Option.PWATER_Osmos_Step) {
-								if(MC.Osmos_PWATER_BoosterMax == 0 && l > MC.Osmos_PWATER_BoosterMax) {
-									MC.Osmos_PWATER_BoosterMax = l * MC.Option.PWATER_Osmos_TankMul / 100;
-									MC.Osmos_PWATER_BoosterMax_cnt = 0;
-									MC.Osmos_PWATER_BoosterMax_Calc = 0;
-								}
 								if(l > MC.Osmos_PWATER_BoosterMax_Calc) MC.Osmos_PWATER_BoosterMax_Calc = l;
 								if(++MC.Osmos_PWATER_BoosterMax_cnt == BOOSTERMAX_HIST_MAX) {
 									MC.Osmos_PWATER_BoosterMax = MC.Osmos_PWATER_BoosterMax_Calc * MC.Option.PWATER_Osmos_TankMul / 100;
