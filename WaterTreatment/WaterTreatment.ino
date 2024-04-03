@@ -1308,7 +1308,7 @@ void vReadSensor(void *)
 		// read in vPumps():
 		//for(i = 0; i < INUMBER; i++) MC.sInput[i].Read();                // Прочитать данные сухой контакт
 		// FLOW = 0
-		for(i = 1; i < FNUMBER; i++) MC.sFrequency[i].Read();			// Получить значения датчиков потока
+		for(i = FLOW + 1; i < FNUMBER; i++) MC.sFrequency[i].Read();		// Получить значения датчиков потока, кроме FLOW
 		// Add to FLOW
 		int32_t add_to_flow = 0;
 		int16_t pw = MC.sADC[PWATER].get_Value();
@@ -1327,10 +1327,10 @@ void vReadSensor(void *)
 				int16_t pw2 = pw - MC.sADC[PWATER].get_minValue();
 				if(pw2 > dd / 2) {
 					add_to_flow = d * MC.Osmos_PWATER_BoosterMax * 100 / dd * (MC.sFrequency[FLOW].get_kfValue()/10) / 1000;
-				} else if(pw2 > dd / 2 / 2) {
-					add_to_flow = d * MC.Osmos_PWATER_BoosterMax * 150 / dd * (MC.sFrequency[FLOW].get_kfValue()/10) / 1000;
-				} else {
-					add_to_flow = d * MC.Osmos_PWATER_BoosterMax * 100 * 2 / dd * (MC.sFrequency[FLOW].get_kfValue()/10) / 1000;
+				} else { //if(pw2 > dd / 2 / 2) {
+					add_to_flow = d * MC.Osmos_PWATER_BoosterMax * 150 / dd * (MC.sFrequency[FLOW].get_kfValue()/10) / 1000; // *1.5
+//				} else {
+//					add_to_flow = d * MC.Osmos_PWATER_BoosterMax * 100 * 2 / dd * (MC.sFrequency[FLOW].get_kfValue()/10) / 1000;
 				}
 				//if(add_to_flow > (int32_t)MC.sFrequency[FLOW].get_count()) add_to_flow -= MC.sFrequency[FLOW].get_count();
 				MC.sFrequency[FLOW].WebCorrectCnt = (TIMER_TO_SHOW_STATUS + 1000) / TIME_READ_SENSOR + 1;
@@ -1710,7 +1710,7 @@ xWaterBooster_StartFill:
 						MC.dRelay[RBOOSTER1].set_ON();
 						WaterBoosterTimeout = 0;
 						WaterBoosterStatus = 1;
-						MC.Osmos_PWATER_Added = reg_active == 0;
+						MC.Osmos_PWATER_Added = reg_active != 0;
 					}
 				}
 			}

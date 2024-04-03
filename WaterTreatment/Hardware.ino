@@ -404,7 +404,7 @@ void sensorFrequency::initFrequency(int sensor)
 #endif
 }
 
-// Получить (точнее обновить) значение датчика, возвращает 1, если был проток
+// Получить (точнее обновить) значение датчика, возвращает 1, если был проток, добавка импульсы*100
 int8_t sensorFrequency::Read(int32_t add_pulses100)
 {
 	uint32_t tickCount;
@@ -455,6 +455,11 @@ int8_t sensorFrequency::Read(int32_t add_pulses100)
 			}
 		}
 		//journal.jprintfopt("Flow(%d): %d = %d (%d, %d) f: %d\n", ticks, cnt / 100, Value, Passed, PassedRest / 100, Frequency);
+	} else if(add_pulses100 > 0) {
+		add_pulses100 /= 100;
+		noInterrupts();
+		count += add_pulses100;
+		interrupts();
 	}
 	return flow;
 }
