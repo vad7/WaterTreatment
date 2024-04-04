@@ -507,7 +507,7 @@ void Statistics::History()
 				if(tmp >= 0) {
 					History_BoosterCountL = -1;
 					int_to_dec_str(tmp, 100, &buf, 2);  // L
-				} else *buf++ = '-';
+				} //else *buf++ = '-';
 				break;
 			}
 		case STATS_OBJ_WaterBooster: {

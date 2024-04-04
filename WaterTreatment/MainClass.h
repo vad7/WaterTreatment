@@ -90,6 +90,7 @@ volatile bool ADC_has_been_read = false;
 int		 WaterBoosterStatus = 0; // 0 - все выключены, 1 - вкл твердотельное, 2 - вкл оба, -1 - выкл обычное
 uint32_t WaterBoosterTimeout = 0;  // ms
 uint32_t WaterBoosterCountP100 = 0;	// real pulses*100
+uint8_t  WaterBoosterFlag = 0;		// 1 - второе и более включение
 uint32_t FeedPumpWork = 0;						// ms
 
 //bool 	 WaterBoosterError = false;

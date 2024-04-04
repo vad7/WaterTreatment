@@ -1679,9 +1679,9 @@ void vPumps( void * )
 				// Starting
 				if(!LowConsumeMode || (!MC.dRelay[RFEEDPUMP].get_Relay() && AfterFilledTimer == 0)) {
 					int32_t l;
-					if(History_BoosterCountL == -1) { // first time
-						History_BoosterCountL = 0;
-						goto xWaterBooster_StartFill;
+					if(WaterBoosterFlag == 0) {
+						WaterBoosterFlag = 1;
+						goto xWaterBooster_StartFill; // first time
 					}
 					l = WaterBoosterCountP100 * 100 / MC.sFrequency[FLOW].get_kfValue();
 					l += MC.sFrequency[FLOW].get_RawPassed();
