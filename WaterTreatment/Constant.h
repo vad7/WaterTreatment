@@ -403,6 +403,7 @@ const char *option_PWATER_RegMin		= {"WRM"};
 const char *option_PWATER_Osmos_Min		= {"WOM"};
 const char *option_PWATER_Osmos_Step	= {"WOS"};
 const char *option_PWATER_Osmos_TankMul	= {"OTM"};
+const char *option_PWATER_Osmos_FullDelay= {"OFD"};
 const char *option_LTANK_Low			= {"TE"};
 const char *option_Weight_Low			= {"WE"};
 const char *option_fDebugToJournal		= {"DBG"};

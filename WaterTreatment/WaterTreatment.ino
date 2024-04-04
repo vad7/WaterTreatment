@@ -1314,7 +1314,7 @@ void vReadSensor(void *)
 				if(pw > MC.Osmos_PWATER_Last) MC.Osmos_PWATER_Cnt -= MC.Osmos_PWATER_Cnt > 0 ? 1 : 0;
 				else if(pw < MC.Osmos_PWATER_Last) MC.Osmos_PWATER_Cnt++;
 			} else MC.Osmos_PWATER_Cnt = 0;
-			if(GETBIT(MC.Option.flags, fFlowIncByPressure) && WaterBoosterTimeout > PWATER_OSMOS_WATERBOOSTER_TIMEOUT && MC.Osmos_PWATER_BoosterMax > 100
+			if(GETBIT(MC.Option.flags, fFlowIncByPressure) && WaterBoosterTimeout > MC.Option.PWATER_Osmos_FullDelay * 1000UL && MC.Osmos_PWATER_BoosterMax > 100
 					&& !(MC.RTC_store.Work & RTC_Work_Regen_MASK) && TimerDrainingWater == 0) { // низкий проток и не идет - регенерация/слив и т.п.
 				int32_t d = MC.Osmos_PWATER_LastPress - pw;
 				if(d > 0 && (d >= PWATER_OSMOS_MIN_DELTA || MC.Osmos_PWATER_Added == 2)) {
