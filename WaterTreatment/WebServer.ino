@@ -783,7 +783,10 @@ xSaveStats:		if((i = MC.save_WorkStats()) == OK)
 			} else if(*str == webWS_UsedAverageDay) _itoa(MC.WorkStats.UsedAverageDay / MC.WorkStats.UsedAverageDayNum, strReturn); // get_WSA
 			else if(*str == webWS_WaterBoosterCountL) {
 				strcat(strReturn, "-");
-				if(WaterBoosterFlag && WaterBoosterCountP100) _dtoa(strReturn, WaterBoosterCountP100 * 100 / MC.sFrequency[FLOW].get_kfValue(), 2); // get_WSB
+				if(WaterBoosterFlag && WaterBoosterCountP100) {
+					_dtoa(strReturn, WaterBoosterCountP100 * 100 / MC.sFrequency[FLOW].get_kfValue(), 2); // get_WSB
+					if(MC.Osmos_PWATER_Added) strcat(strReturn, "*");
+				}
 			} else if(*str == webWS_Velocity) { // get_WSV, get_WSV2
 				l_i32 =  MC.CalcFilteringSpeed(*(str+1) == '2' ? MC.FilterTankSoftenerSquare : MC.FilterTankSquare);
 				if(l_i32) {
