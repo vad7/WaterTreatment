@@ -380,6 +380,10 @@ void sensorFrequency::initFrequency(int sensor)
 	ChartFlow.init();                              // инициализация графика
 	ChartLiters.init();                            // инициализация графика4
 	ChartLiters_accum = ChartLiters_rest = 0;
+	add_pulses100 = 0;
+	count_real_last100 = 0;
+	count_Flow = 0;
+	count_FlowReal = 0;
 	// Привязывание обработчика преваний к методу конкретного класса
 	//   LOW вызывает прерывание, когда на порту LOW
 	//   CHANGE прерывание вызывается при смене значения на порту, с LOW на HIGH и наоборот
@@ -404,11 +408,11 @@ void sensorFrequency::initFrequency(int sensor)
 #endif
 }
 
-// Получить (точнее обновить) значение датчика, возвращает 1, если был проток, добавка импульсы*100
-int8_t sensorFrequency::Read(int32_t add_pulses100)
+// Получить (точнее обновить) значение датчика, возвращает 1, если был проток
+bool sensorFrequency::Read(void)
 {
 	uint32_t tickCount;
-	int8_t flow = 0;
+	bool flow = false;
 	if((tickCount = GetTickCount()) - sTime >= (uint32_t) FREQ_BASE_TIME_READ) {  // если только пришло время измерения
 		uint32_t cnt;
 		noInterrupts();
@@ -428,38 +432,48 @@ int8_t sensorFrequency::Read(int32_t add_pulses100)
 			PassedRest %= kfValue;
 		} else {
 			cnt *= 100;
-			if(add_pulses100 > 0) cnt += add_pulses100;
-			if(cnt) flow = 1;
+			count_real_last100 = cnt;
+			if(add_pulses100 != 0) {
+				cnt += add_pulses100;
+				add_pulses100 = 0;
+			}
+			if(cnt) flow = true;
 			PassedRest += cnt;
 			Passed += PassedRest / kfValue;
 			PassedRest %= kfValue;
 			if(FlowCalcPeriod == 1) {
+				uint32_t cnt_real = count_real_last100;
 				if(ticks == FREQ_BASE_TIME_READ) {
 					cnt *= 10;
+					cnt_real *= 10;
 				} else if(cnt > 0xFFFFFFFF / FREQ_BASE_TIME_READ / 10) { // will overflow u32
 					cnt = (cnt * (10 * FREQ_BASE_TIME_READ / 100)) / ticks * 100;
+					cnt_real = (cnt_real * (10 * FREQ_BASE_TIME_READ / 100)) / ticks * 100;
 				} else {
 					cnt = (cnt * 10 * FREQ_BASE_TIME_READ) / ticks; // ТЫСЯЧНЫЕ ГЦ время в миллисекундах частота в тысячных герца
+					cnt_real = (cnt_real * 10 * FREQ_BASE_TIME_READ) / ticks;
 				}
 				Frequency = cnt / 2;
-				Value = cnt * 360 / kfValue; // ЛИТРЫ В ЧАС (ИЛИ ТЫСЯЧНЫЕ КУБА) частота в тысячных, и коэффициент правим
-			} else {
+				Value = cnt * 360 / kfValue; // ЛИТРЫ В ЧАС (ИЛИ ТЫСЯЧНЫЕ КУБА) частота в тысячных
+				ValueReal = cnt_real * 360 / kfValue;
+			} else { // период должен быть 1000 мс и вызов так же
+#if FREQ_BASE_TIME_READ != 1000
+#error "FREQ_BASE_TIME_READ and call period must equal 1000 ms"
+#endif
+				count_FlowReal += count_real_last100;
 				cnt += count_Flow;
 				if(++FlowCalcCnt >= FlowCalcPeriod) {
 					cnt = cnt * 10 / FlowCalcCnt; // ТЫСЯЧНЫЕ ГЦ
 					Frequency = cnt / 2;
-					Value = cnt * 360 / kfValue; // ЛИТРЫ В ЧАС (ИЛИ ТЫСЯЧНЫЕ КУБА) частота в тысячных, и коэффициент правим
+					Value = cnt * 360 / kfValue; // ЛИТРЫ В ЧАС (ИЛИ ТЫСЯЧНЫЕ КУБА) частота в тысячных
+					ValueReal = count_FlowReal * 10 / FlowCalcCnt * 360 / kfValue;
+					count_FlowReal = 0;
 					FlowCalcCnt = 0;
 					count_Flow = 0;
 				} else count_Flow = cnt;
 			}
 		}
 		//journal.jprintfopt("Flow(%d): %d = %d (%d, %d) f: %d\n", ticks, cnt / 100, Value, Passed, PassedRest / 100, Frequency);
-	} else if(add_pulses100 > 0) {
-		add_pulses100 /= 100;
-		noInterrupts();
-		count += add_pulses100;
-		interrupts();
 	}
 	return flow;
 }

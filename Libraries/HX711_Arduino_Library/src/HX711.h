@@ -16,7 +16,7 @@
 #include "WProgram.h"
 #endif
 
-#define HX711_WAIT_TIMEOUT	200 // ms
+#define HX711_WAIT_TIMEOUT	110 // ms
 
 class HX711
 {

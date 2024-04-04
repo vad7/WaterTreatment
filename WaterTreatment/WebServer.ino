@@ -783,8 +783,7 @@ xSaveStats:		if((i = MC.save_WorkStats()) == OK)
 			} else if(*str == webWS_UsedAverageDay) _itoa(MC.WorkStats.UsedAverageDay / MC.WorkStats.UsedAverageDayNum, strReturn); // get_WSA
 			else if(*str == webWS_WaterBoosterCountL) {
 				strcat(strReturn, "-");
-				l_i32 = WaterBoosterCountLrest - _WaterBoosterCountLrest;
-				if(_WaterBoosterCountLrest != -1 && (l_i32 || WaterBoosterCountL)) _dtoa(strReturn, WaterBoosterCountL * 100 + l_i32 * 100 / MC.sFrequency[FLOW].get_kfValue(), 2); // get_WSB
+				if(History_BoosterCountL != -1 && WaterBoosterCountP100) _dtoa(strReturn, WaterBoosterCountP100 * 100 / MC.sFrequency[FLOW].get_kfValue(), 2); // get_WSB
 			} else if(*str == webWS_Velocity) { // get_WSV, get_WSV2
 				l_i32 =  MC.CalcFilteringSpeed(*(str+1) == '2' ? MC.FilterTankSoftenerSquare : MC.FilterTankSquare);
 				if(l_i32) {
@@ -1863,6 +1862,13 @@ x_get_GADC:						i = MC.sADC[p].get_ADC_Gain();
 								if (MC.sFrequency[p].get_present()) {         // Если датчик есть в конфигурации то выводим значение
 									_dtoa(strReturn, MC.sFrequency[p].get_Value(), 3);
 									if(MC.sFrequency[p].WebCorrectCnt > 1) strcat(strReturn, "+");	// Информация о корректировки
+								} else strcat(strReturn,"-");               // Датчика нет ставим прочерк
+								ADD_WEBDELIM(strReturn) ;    continue;
+							}
+							if(strncmp(str, "rFlow", 4)==0)           // Функция get_rFlow
+							{
+								if (MC.sFrequency[p].get_present()) {         // Если датчик есть в конфигурации то выводим значение
+									_dtoa(strReturn, MC.sFrequency[p].get_ValueReal(), 3);
 								} else strcat(strReturn,"-");               // Датчика нет ставим прочерк
 								ADD_WEBDELIM(strReturn) ;    continue;
 							}

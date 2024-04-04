@@ -873,7 +873,6 @@ void vKeysLCD( void * )
 	static uint32_t DisplayTick = xTaskGetTickCount();
 	static char buffer[ALIGN(LCD_COLS * 2)];
 	static uint32_t setup_timeout = 0;
-	static uint32_t _FlowPulseCounterRest;
 	//static uint32_t displayed_area = 0; // b1 - Yd,Days Fe,Soft
 	for(;;)
 	{
@@ -910,7 +909,6 @@ xSetupExit:
 					LCD_setup = (LCD_setup << 8) | LCD_SetupFlag;
 					if((LCD_setup & 0xFF00) == LCD_SetupMenu_FlowCheck) { // Flow check
 						FlowPulseCounter = 0;
-						FlowPulseCounterRest = _FlowPulseCounterRest = MC.sFrequency[FLOW].PassedRest;
 						lcd.command(LCD_DISPLAYCONTROL | LCD_DISPLAYON);
 					} else if((LCD_setup & 0xFF00) == LCD_SetupMenu_Sensors) {
 						lcd.command(LCD_DISPLAYCONTROL | LCD_DISPLAYON);
@@ -948,12 +946,12 @@ xSetupExit:
 					goto xSetupExit;
 				} else if((LCD_setup & 0xFF00) == LCD_SetupMenu_FlowCheck) { // inside menu item selected - Flow check
 					lcd.clear();
-					uint32_t tmp = FlowPulseCounter * MC.sFrequency[FLOW].get_kfValue() + FlowPulseCounterRest - _FlowPulseCounterRest;
+					uint32_t tmp = FlowPulseCounter * 100 / MC.sFrequency[FLOW].get_kfValue();
 					lcd.print("K = Edges / Cup(L)");
 					lcd.setCursor(0, 1);
-					lcd.print("0.5L = ");	dptoa(buffer, tmp * 2, 2); lcd.print(buffer);
+					lcd.print("0.5L = "); dptoa(buffer, tmp * 2, 2); lcd.print(buffer);
 					lcd.setCursor(0, 2);
-					lcd.print("1L   = ");	dptoa(buffer, tmp, 2); lcd.print(buffer);
+					lcd.print("1L   = "); dptoa(buffer, tmp, 2); lcd.print(buffer);
 					lcd.setCursor(0, 3);
 					lcd.print("2L   = "); dptoa(buffer, tmp / 2, 2); lcd.print(buffer);
 					while(!digitalReadDirect(PIN_KEY_OK)) vTaskDelay(KEY_DEBOUNCE_TIME);
@@ -994,7 +992,6 @@ xErrorsProcessing:
 			if(LCD_setup) {
 				if((LCD_setup & 0xFF00) == LCD_SetupMenu_FlowCheck) { // Flow check - reset calc
 					FlowPulseCounter = 0;
-					FlowPulseCounterRest = _FlowPulseCounterRest = MC.sFrequency[FLOW].PassedRest;
 				} else if((LCD_setup & 0xFF00) == 0) {
 					if(LCD_setup & 0xFF) {
 						LCD_setup--;
@@ -1053,7 +1050,7 @@ xErrorsProcessing:
 
 					lcd.setCursor(0, 1);
 					strcpy(buf = buffer, "Edges: "); buf += 7;
-					tmp = (FlowPulseCounter * MC.sFrequency[FLOW].get_kfValue() + FlowPulseCounterRest - _FlowPulseCounterRest) / 100;
+					tmp = FlowPulseCounter / 100;
 					buf += i10toa(tmp, buf, 0);
 					buffer_space_padding(buf, LCD_COLS - (buf - buffer));
 					lcd.print(buffer);
@@ -1307,13 +1304,12 @@ void vReadSensor(void *)
 
 		// read in vPumps():
 		//for(i = 0; i < INUMBER; i++) MC.sInput[i].Read();                // Прочитать данные сухой контакт
-		// FLOW = 0
 		for(i = FLOW + 1; i < FNUMBER; i++) MC.sFrequency[i].Read();		// Получить значения датчиков потока, кроме FLOW
 		// Add to FLOW
 		int32_t add_to_flow = 0;
 		int16_t pw = MC.sADC[PWATER].get_Value();
 		if(MC.sFrequency[FLOW].WebCorrectCnt > 1) MC.sFrequency[FLOW].WebCorrectCnt--;	// 1 sec
-		if(MC.sFrequency[FLOW].get_Value() <= MC.Option.FlowIncByPress_MinFlow) {
+		if(MC.sFrequency[FLOW].get_ValueReal() <= MC.Option.FlowIncByPress_MinFlow) {
 			if(pw < MC.Option.PWATER_Osmos_Min) { // нет протока и давление низкое, счетчик раннего включения насосной станции
 				if(pw > MC.Osmos_PWATER_Last) MC.Osmos_PWATER_Cnt -= MC.Osmos_PWATER_Cnt > 0 ? 1 : 0;
 				else if(pw < MC.Osmos_PWATER_Last) MC.Osmos_PWATER_Cnt++;
@@ -1355,7 +1351,8 @@ void vReadSensor(void *)
 			MC.Osmos_PWATER_LastPress_Timer = 0;
 		}
 		MC.Osmos_PWATER_Last = pw;
-		if(MC.sFrequency[FLOW].Read(add_to_flow)) {	// Обновить значения датчика потока, был проток:
+		MC.sFrequency[FLOW].add_pulses100 += add_to_flow;
+		if(MC.sFrequency[FLOW].Read()) {	// Обновить значения датчика потока, был проток
 			UsedWaterContinuousCntNot = 0;
 			if(++UsedWaterContinuousCntUsed == USED_WATER_CONTINUOUS_MINTIME) {
 				UsedWaterContinuousTimer++;
@@ -1367,65 +1364,58 @@ void vReadSensor(void *)
 				}
 				UsedWaterContinuousCntUsed = 0;
 			}
+			// Flow water
+			uint32_t passed;
+			{
+				passed = MC.sFrequency[FLOW].Passed;
+				MC.sFrequency[FLOW].Passed = 0;
+			}
+			WaterBoosterCountP100 += MC.sFrequency[FLOW].count_real_last100;
+			FlowPulseCounter += MC.sFrequency[FLOW].count_real_last100;
+			MC.sFrequency[FLOW].ChartLiters_rest = MC.sFrequency[FLOW].PassedRest;
+			if(passed) {
+				MC.sFrequency[FLOW].ChartLiters_accum += passed;
+				if(!MC.sInput[REG_BACKWASH_ACTIVE].get_Input()) {
+					TimeFeedPump +=	passed * 1000 * TIME_READ_SENSOR / MC.Option.FeedPumpMaxFlow;
+				} else if(RegBackwashTimer == 0) { // В начале обратной промывки реагент не подаем, в конце - усиленная подача
+					TimeFeedPump +=	passed * 1000 * TIME_READ_SENSOR / MC.Option.BackWashFeedPumpMaxFlow;
+				}
+				uint32_t utm = rtcSAM3X8.unixtime();
+				if(MC.sInput[REG_ACTIVE].get_Input() || MC.sInput[REG_BACKWASH_ACTIVE].get_Input() || MC.sInput[REG2_ACTIVE].get_Input()) {
+					// Regen
+					if(RegMaxFlow < MC.sFrequency[FLOW].get_Value()) RegMaxFlow = MC.sFrequency[FLOW].get_Value();
+					if(RegMinPress > pw) RegMinPress = pw;
+					MC.RTC_store.UsedRegen += passed;
+					Stats_WaterRegen_work += passed;
+					History_WaterRegen_work += passed;
+					MC.WorkStats.UsedLastTime = utm;
+					UsedWaterContinuousTimer = 0;
+					NeedSaveRTC |= (1<<bRTC_UsedRegen);
+				} else {
+					if(MC.dRelay[RDRAIN].get_Relay() || MC.WorkStats.LastDrain + MC.Option.DrainTime + (TIME_READ_SENSOR/1000) >= utm) {
+						MC.WorkStats.UsedDrain += passed * 10;
+					} else {
+						Stats_WaterUsed_work += passed;
+						MC.RTC_store.UsedToday += passed;
+						MC.WorkStats.UsedLastTime = utm;
+					}
+					History_WaterUsed_work += passed;
+					Passed100Count += passed;
+					if(Passed100Count >= 100 || passed >= 100) {
+						Passed100Count = 0;
+						if(MC.WorkStats.UsedDrainSiltL100 < 255) MC.WorkStats.UsedDrainSiltL100++;
+						if(MC.Option.FilterCounter1_Max) MC.WorkStats.FilterCounter1++;
+						if(MC.Option.FilterCounter2_Max) MC.WorkStats.FilterCounter2++;
+					}
+					NeedSaveRTC |= (1<<bRTC_UsedToday);
+				}
+			}
 		} else {
 			if(++UsedWaterContinuousCntNot == USED_WATER_CONTINUOUS_MINTIME) {
 				if(UsedWaterContinuousTimerMax < UsedWaterContinuousTimer) UsedWaterContinuousTimerMax = UsedWaterContinuousTimer;
 				UsedWaterContinuousTimer = 0;
 				UsedWaterContinuousCntNot = 0;
 				UsedWaterContinuousCntUsed = 0;
-			}
-		}
-		// Flow water
-		uint32_t passed;
-		{
-			//noInterrupts();
-			passed = MC.sFrequency[FLOW].Passed;
-			MC.sFrequency[FLOW].Passed = 0;
-			//interrupts();
-		}
-
-		WaterBoosterCountLrest = MC.sFrequency[FLOW].PassedRest;
-		MC.sFrequency[FLOW].ChartLiters_rest = WaterBoosterCountLrest;
-		if(LCD_setup) {
-			FlowPulseCounter += passed;
-			FlowPulseCounterRest = WaterBoosterCountLrest;
-		}
-		if(passed) {
-			WaterBoosterCountL += passed;
-			MC.sFrequency[FLOW].ChartLiters_accum += passed;
-			if(!MC.sInput[REG_BACKWASH_ACTIVE].get_Input()) {
-				TimeFeedPump +=	passed * 1000 * TIME_READ_SENSOR / MC.Option.FeedPumpMaxFlow;
-			} else if(RegBackwashTimer == 0) { // В начале обратной промывки реагент не подаем, в конце - усиленная подача
-				TimeFeedPump +=	passed * 1000 * TIME_READ_SENSOR / MC.Option.BackWashFeedPumpMaxFlow;
-			}
-			uint32_t utm = rtcSAM3X8.unixtime();
-			if(MC.sInput[REG_ACTIVE].get_Input() || MC.sInput[REG_BACKWASH_ACTIVE].get_Input() || MC.sInput[REG2_ACTIVE].get_Input()) {
-				// Regen
-				if(RegMaxFlow < MC.sFrequency[FLOW].get_Value()) RegMaxFlow = MC.sFrequency[FLOW].get_Value();
-				if(RegMinPress > pw) RegMinPress = pw;
-				MC.RTC_store.UsedRegen += passed;
-				Stats_WaterRegen_work += passed;
-				History_WaterRegen_work += passed;
-				MC.WorkStats.UsedLastTime = utm;
-				UsedWaterContinuousTimer = 0;
-				NeedSaveRTC |= (1<<bRTC_UsedRegen);
-			} else {
-				if(MC.dRelay[RDRAIN].get_Relay() || MC.WorkStats.LastDrain + MC.Option.DrainTime + (TIME_READ_SENSOR/1000) >= utm) {
-					MC.WorkStats.UsedDrain += passed * 10;
-				} else {
-					Stats_WaterUsed_work += passed;
-					MC.RTC_store.UsedToday += passed;
-					MC.WorkStats.UsedLastTime = utm;
-				}
-				History_WaterUsed_work += passed;
-				Passed100Count += passed;
-				if(Passed100Count >= 100 || passed >= 100) {
-					Passed100Count = 0;
-					if(MC.WorkStats.UsedDrainSiltL100 < 255) MC.WorkStats.UsedDrainSiltL100++;
-					if(MC.Option.FilterCounter1_Max) MC.WorkStats.FilterCounter1++;
-					if(MC.Option.FilterCounter2_Max) MC.WorkStats.FilterCounter2++;
-				}
-				NeedSaveRTC |= (1<<bRTC_UsedToday);
 			}
 		}
 		//
@@ -1688,8 +1678,11 @@ void vPumps( void * )
 				// Starting
 				if(!LowConsumeMode || (!MC.dRelay[RFEEDPUMP].get_Relay() && AfterFilledTimer == 0)) {
 					int32_t l;
-					if(_WaterBoosterCountLrest == -1) goto xWaterBooster_StartFill;
-					l = (int32_t)WaterBoosterCountL * 100 + (WaterBoosterCountLrest - _WaterBoosterCountLrest) * 100 / MC.sFrequency[FLOW].get_kfValue();
+					if(History_BoosterCountL == -1) { // first time
+						History_BoosterCountL = 0;
+						goto xWaterBooster_StartFill;
+					}
+					l = WaterBoosterCountP100 * 100 / MC.sFrequency[FLOW].get_kfValue();
 					l += MC.sFrequency[FLOW].get_RawPassed();
 					if((LCD_setup & 0xFF00) != LCD_SetupMenu_FlowCheck && l <= MC.Option.MinWaterBoosterCountL) {
 						CriticalErrors |= ERRC_WaterCounter;
@@ -1737,8 +1730,7 @@ xWaterBooster_OFF:
 			MC.dRelay[RBOOSTER1].set_OFF();
 			WaterBoosterTimeout = 0;
 			WaterBoosterStatus = 0;
-			WaterBoosterCountL = 0;
-			_WaterBoosterCountLrest = WaterBoosterCountLrest;
+			WaterBoosterCountP100 = 0;
 		}
 
 		// Feed Pump

@@ -175,9 +175,10 @@ public:
   void initFrequency(int sensor);                   // Инициализация частотного датчика
   void reset(void);									// Сброс счетчика
   __attribute__((always_inline)) inline void InterruptHandler(){count++;} // обработчик прерываний
-  int8_t  Read(int32_t add_pulses100 = 0);               // Чтение датчика (точнее расчет значения) возвращает ошибку или ОК
+  bool  Read(void);				               // Чтение датчика (точнее расчет значения), возвращает был проток или нет, включая добавку
   __attribute__((always_inline)) inline uint32_t get_Frequency(){return Frequency;} // Получить ЧАСТОТУ датчика, тысячных герца
   __attribute__((always_inline)) inline uint16_t get_Value(){return Value;} // Получить значение, литры в час
+  __attribute__((always_inline)) inline uint16_t get_ValueReal(){return ValueReal;} // Получить реальное значение, литры в час
   __attribute__((always_inline)) inline boolean get_present(){return kfValue > 0;} // Наличие датчика в текущей конфигурации
   uint32_t get_RawPassed(void) { return count * 10000 / kfValue; }  // Получить сырые не обработанные данные, сотые литра
   __attribute__((always_inline)) inline uint32_t get_count(void) { return count; }
@@ -196,18 +197,22 @@ public:
   uint16_t get_save_size(void) { return (byte*)&_reserved - (byte*)&number + sizeof(_reserved); } // Размер структуры сохранения
   volatile uint32_t Passed;								 // Счетчик литров
   uint32_t PassedRest;									 // остаток счетчика
+  int32_t  add_pulses100;								 // добавка при следующем чтении, *100
+  uint32_t count_real_last100;							// счетчик без добавок, последний, *100
   statChart ChartFlow;                                   // Статистика по датчику
   statChart ChartLiters;                                 // Статистика по датчику
   uint16_t ChartLiters_accum;
   uint16_t ChartLiters_rest;
-  uint8_t WebCorrectCnt;								// счетчик корректировки для веба, *TIME_READ_SENSOR, начиная с 1
+  uint8_t  WebCorrectCnt;								// счетчик корректировки для веба, *TIME_READ_SENSOR, начиная с 1
     
 private:
   volatile uint32_t count;                              // число импульсов за базовый период (то что меняется в прерывании)
   uint32_t sTime;                                       // время начала базового периода в тиках
   uint32_t count_Flow;									// буфер для расчета протока и частоты
+  uint32_t count_FlowReal;								// буфер для расчета протока и частоты
   uint32_t Frequency;                                   // значение частоты в тысячных герца
-  uint32_t Value;                                       // значение датчика ЛИТРЫ В ЧАС (ИЛИ ТЫСЯЧНЫЕ КУБА)
+  uint16_t Value;                                       // расчетное значение датчика c учетом корректировок, ЛИТРЫ В ЧАС (ИЛИ ТЫСЯЧНЫЕ КУБА)
+  uint16_t ValueReal;                                   // реальное значение датчика, ЛИТРЫ В ЧАС (ИЛИ ТЫСЯЧНЫЕ КУБА)
   char *note;                                           // наименование датчика
   char *name;                                           // Имя датчика
   struct { // SAVE GROUP, number the first
