@@ -930,6 +930,7 @@ boolean MainClass::set_option(char *var, float xx)
    if(strcmp(var,option_MinRegenWeightDecreaseSoftening)==0){ Option.MinRegenWeightDecreaseSoftening = x; return true; } else
    if(strcmp(var,option_MinDrain)==0)        { Option.MinDrainLiters = rd(xx, 10); return true; } else
    if(strcmp(var,option_MinWaterBoosterCountL)==0){ Option.MinWaterBoosterCountL = rd(xx, 100); return true; } else
+   if(strcmp(var,option_WaterBoosterMinTank)==0){ Option.WaterBoosterMinTank = rd(xx, 100); return true; } else
    if(strcmp(var,option_DrainAfterNoConsume)==0){ Option.DrainAfterNoConsume = x * 60 * 60; return true; } else
    if(strcmp(var,option_DrainTime)==0)       { Option.DrainTime = x; return true; } else
    if(strcmp(var,option_PWM_LOG_ERR)==0)     { Option.flags = (Option.flags & ~(1<<fPWMLogErrors)) | ((x!=0)<<fPWMLogErrors); return true; } else
@@ -941,6 +942,7 @@ boolean MainClass::set_option(char *var, float xx)
    if(strcmp(var,option_PWATER_Osmos_Step)==0){ Option.PWATER_Osmos_Step = x; return true; } else
    if(strcmp(var,option_PWATER_Osmos_TankMul)==0){ Option.PWATER_Osmos_TankMul = rd(xx, 100); return true; } else
    if(strcmp(var,option_PWATER_Osmos_FullDelay)==0){ Option.PWATER_Osmos_FullDelay = x; return true; } else
+   if(strcmp(var,option_PWATER_Osmos_FullMinus)==0){ Option.PWATER_Osmos_FullMinus = rd(xx, 100); return true; } else
    if(strcmp(var,option_LTANK_Low)==0)     { Option.LTANK_Low = rd(xx, 100); return true; } else
    if(strcmp(var,option_LTank_LowConsumeMin)==0){ Option.LTank_LowConsumeMin = rd(xx, 100); return true; } else
    if(strcmp(var,option_LTank_AfterFilledTimer)==0){ Option.LTank_AfterFilledTimer = x; return true; } else
@@ -1044,6 +1046,7 @@ char* MainClass::get_option(char *var, char *ret)
 	if(strcmp(var,option_MinRegenWeightDecreaseSoftening)==0){ return _itoa(Option.MinRegenWeightDecreaseSoftening, ret); } else
 	if(strcmp(var,option_MinDrain)==0){ _dtoa(ret, Option.MinDrainLiters, 1); return ret; } else
 	if(strcmp(var,option_MinWaterBoosterCountL)==0){ _dtoa(ret, Option.MinWaterBoosterCountL, 2); return ret; } else
+	if(strcmp(var,option_WaterBoosterMinTank)==0){ _dtoa(ret, Option.WaterBoosterMinTank, 2); return ret; } else
 	if(strcmp(var,option_DrainAfterNoConsume)==0){ return _itoa(Option.DrainAfterNoConsume / (60 * 60), ret); } else
 	if(strcmp(var,option_DrainTime)==0){ return _itoa(Option.DrainTime, ret); } else
 	if(strcmp(var,option_PWM_LOG_ERR)==0){ return strcat(ret, (char*)(GETBIT(Option.flags, fPWMLogErrors) ? cOne : cZero)); } else
@@ -1055,6 +1058,7 @@ char* MainClass::get_option(char *var, char *ret)
 	if(strcmp(var,option_PWATER_Osmos_Step)==0){ return _itoa(Option.PWATER_Osmos_Step, ret); } else
 	if(strcmp(var,option_PWATER_Osmos_TankMul)==0){ _dtoa(ret, Option.PWATER_Osmos_TankMul, 2); return ret; } else
 	if(strcmp(var,option_PWATER_Osmos_FullDelay)==0){ return _itoa(Option.PWATER_Osmos_FullDelay, ret); } else
+	if(strcmp(var,option_PWATER_Osmos_FullMinus)==0){ _dtoa(ret, Option.PWATER_Osmos_FullMinus, 2); return ret; } else
 	if(strcmp(var,option_LTANK_Low)==0){ _dtoa(ret, Option.LTANK_Low, 2); return ret; } else
 	if(strcmp(var,option_LTank_LowConsumeMin)==0){ _dtoa(ret, Option.LTank_LowConsumeMin, 2); return ret; } else
 	if(strcmp(var,option_LTank_Hour_Low)==0){ _dtoa(ret, Option.LTank_Hour_Low, 2); return ret; } else

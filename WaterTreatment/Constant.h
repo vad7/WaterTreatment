@@ -392,6 +392,7 @@ const char *option_MinRegenWeightDecrease={"MRW"};
 const char *option_MinRegenWeightDecreaseSoftening={"MRWS"};
 const char *option_MinDrain				= {"MD"};
 const char *option_MinWaterBoosterCountL= {"MWC"};
+const char *option_WaterBoosterMinTank	= {"WMT"};
 const char *option_DrainTime			= {"DT"};
 const char *option_DrainAfterNoConsume	= {"DA"};
 const char *option_PWM_DryRun			= {"DR"};
@@ -404,6 +405,7 @@ const char *option_PWATER_Osmos_Min		= {"WOM"};
 const char *option_PWATER_Osmos_Step	= {"WOS"};
 const char *option_PWATER_Osmos_TankMul	= {"OTM"};
 const char *option_PWATER_Osmos_FullDelay= {"OFD"};
+const char *option_PWATER_Osmos_FullMinus={"OFМ"};
 const char *option_LTANK_Low			= {"TE"};
 const char *option_Weight_Low			= {"WE"};
 const char *option_fDebugToJournal		= {"DBG"};
@@ -557,8 +559,9 @@ const char *webWS_NextRegenSoftAfterDays		= { "NS" };
 #define ERR_DRAIN_PUMP_TOOLONG -80		// Слишком долго работает насос
 #define ERR_DRAIN_PUMP_NOT_WORK -81		// Не работает дренажный насос
 #define ERR_SEPTIC_RELAY_LINK -82		// Ошибка связи с реле нагрева септика
+#define ERR_LOW_BOOSTER_TANK -83			// Низкий средний рабочий объем бака насосной станции
 
-#define ERR_ERRMAX			-82			// Последняя ошибка
+#define ERR_ERRMAX			-83			// Последняя ошибка
 
 // Предупреждения
 #define WARNING_VALUE        1         // Попытка установить значение за границами диапазона запрос типа SET
@@ -648,6 +651,7 @@ const char *noteError[] = {
 		"Слишком долго работает насос дренажа",												//-80
 		"Не работает дренажный насос",														//-81
 		"Ошибка связи с реле нагрева септика",												//-82
+		"Низкий средний рабочий объем бака насосной станции",								//-83
 
 		"NULL"
 		};
