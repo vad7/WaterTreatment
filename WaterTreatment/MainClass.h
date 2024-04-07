@@ -128,7 +128,7 @@ uint8_t  NeedSaveWorkStats = 0;
 uint32_t TimerDrainingWater = 0;
 uint32_t TimerDrainingWaterAfterRegen = 0;
 int32_t  UsedDrainRest = 0;
-volatile bool NewRegenStatus = false;
+volatile uint8_t NewRegenStatus = 0; // b1 - new?; b2 - backwash = yes(1) / no(0)
 volatile uint32_t RegBackwashTimer = 0;	// sec
 int16_t  RegStart_Weight;
 uint16_t RegMaxFlow = 0;			// l*h

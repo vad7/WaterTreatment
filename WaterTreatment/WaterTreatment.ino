@@ -1383,8 +1383,7 @@ void vReadSensor(void *)
 					TimeFeedPump +=	passed * 1000 * TIME_READ_SENSOR / MC.Option.BackWashFeedPumpMaxFlow;
 				}
 				uint32_t utm = rtcSAM3X8.unixtime();
-				if(MC.sInput[REG_ACTIVE].get_Input() || MC.sInput[REG_BACKWASH_ACTIVE].get_Input() || MC.sInput[REG2_ACTIVE].get_Input()) {
-					// Regen
+				if(MC.RTC_store.Work & RTC_Work_Regen_MASK) {	// Regen
 					if(RegMaxFlow < MC.sFrequency[FLOW].get_Value()) RegMaxFlow = MC.sFrequency[FLOW].get_Value();
 					if(RegMinPress > pw) RegMinPress = pw;
 					MC.RTC_store.UsedRegen += passed;
@@ -1824,7 +1823,7 @@ xWaterBooster_OFF:
 				RegStart_Weight = Weight_value / 10;
 				RegMaxFlow = 0;
 				RegMinPress = 0xFFFF;
-				NewRegenStatus = true;
+				NewRegenStatus = (MC.sInput[REG_BACKWASH_ACTIVE].get_Input() << 1) | 1;
 				MC.RTC_store.UsedRegen = 0;
 				NeedSaveRTC = RTC_SaveAll;
 			}
@@ -1837,7 +1836,9 @@ xWaterBooster_OFF:
 				MC.RTC_store.Work |= RTC_Work_Regen_F2;
 				MC.dRelay[RWATERON].set_Relay(fR_StatusAllOff);
 				RegStart_Weight = Weight_value / 10;
-				NewRegenStatus = true;
+				RegMaxFlow = 0;
+				RegMinPress = 0xFFFF;
+				NewRegenStatus = 1;
 				MC.RTC_store.UsedRegen = 0;
 				NeedSaveRTC = RTC_SaveAll;
 			}
@@ -2072,8 +2073,8 @@ void vService(void *)
 							taskEXIT_CRITICAL();
 							NeedSaveWorkStats = 1;
 							RegStart_Weight -= Weight_value / 10;
-							journal.jprintf_date("Regen F1 finished, Used: %d, reagent: %d g, time: %d s. ", MC.WorkStats.UsedLastRegen, RegStart_Weight, rtcSAM3X8.unixtime() - RegenStarted);
 							journal.jprintf("Max flow: %.3d (%.3d mh), Min press: %.2d\n", RegMaxFlow, 10000UL * RegMaxFlow / MC.FilterTankSquare, RegMinPress);
+							journal.jprintf_date("Regen F1 finished, Used: %d, reagent: %d g, time: %d s.\n", MC.WorkStats.UsedLastRegen, RegStart_Weight, rtcSAM3X8.unixtime() - RegenStarted);
 							if(MC.Option.DrainingWaterAfterRegen) {
 								TimerDrainingWaterAfterRegen = MC.Option.DrainingWaterAfterRegen;
 								MC.dRelay[RDRAIN].set_ON();
@@ -2092,13 +2093,24 @@ void vService(void *)
 							//Passed100Count = 0; <- выключено, будет +1..100л
 							MC.WorkStats.UsedDrainSiltL100 = MC.Option.DrainSiltAfterL100 - DRAIN_SILT_AFTER_REGEN;
 							RegenStarted = 0;
-						} else if(NewRegenStatus) {
-							if(MC.WorkStats.Flags & WS_F_StartRegen) {
-								MC.WorkStats.Flags &= ~WS_F_StartRegen;
-								NeedSaveWorkStats = 1;
+						} else {
+							if(NewRegenStatus & 1) {
+								if(MC.WorkStats.Flags & WS_F_StartRegen) {
+									MC.WorkStats.Flags &= ~WS_F_StartRegen;
+									NeedSaveWorkStats = 1;
+								}
+								journal.jprintf_date("Regen F1 begin\n");
+								NewRegenStatus &= ~1;
 							}
-							journal.jprintf_date("Regen F1 begin\n");
-							NewRegenStatus = false;
+							if((NewRegenStatus & 2) != (MC.sInput[REG_BACKWASH_ACTIVE].get_Input()<<1)) {
+								if(NewRegenStatus & 2) { // backwash finished
+									journal.jprintf("Backwash ");
+									journal.jprintf("Max flow: %.3d (%.3d mh), Min press: %.2d\n", RegMaxFlow, 10000UL * RegMaxFlow / MC.FilterTankSquare, RegMinPress);
+									RegMaxFlow = 0;
+									RegMinPress = 0xFFFF;
+								}
+								NewRegenStatus = (MC.sInput[REG_BACKWASH_ACTIVE].get_Input() << 1);
+							}
 						}
 					} else if(MC.RTC_store.Work & RTC_Work_Regen_F2) { // Regen Softening filter
 						if(!MC.sInput[REG2_ACTIVE].get_Input()) { // Finish?
@@ -2115,8 +2127,8 @@ void vService(void *)
 							taskEXIT_CRITICAL();
 							NeedSaveWorkStats = 1;
 							RegStart_Weight -= Weight_value / 10;
-							journal.jprintf_date("Regen F2 finished, Used: %d, reagent: %d g, time: %d s.\n", MC.WorkStats.UsedLastRegenSoftening, RegStart_Weight, rtcSAM3X8.unixtime() - RegenStarted);
 							journal.jprintf("Max flow: %.3d (%.3d mh), Min press: %.2d\n", RegMaxFlow, 10000UL * RegMaxFlow / MC.FilterTankSoftenerSquare, RegMinPress);
+							journal.jprintf_date("Regen F2 finished, Used: %d, reagent: %d g, time: %d s.\n", MC.WorkStats.UsedLastRegenSoftening, RegStart_Weight, rtcSAM3X8.unixtime() - RegenStarted);
 							if(MC.Option.DrainingWaterAfterRegenSoftening) {
 								TimerDrainingWaterAfterRegen = MC.Option.DrainingWaterAfterRegenSoftening;
 								MC.dRelay[RDRAIN2].set_ON();
@@ -2135,13 +2147,13 @@ void vService(void *)
 							//Passed100Count = 0; <- выключено, будет +1..100л
 							MC.WorkStats.UsedDrainSiltL100 = MC.Option.DrainSiltAfterL100 - DRAIN_SILT_AFTER_REGEN;
 							RegenStarted = 0;
-						} else if(NewRegenStatus) {
+						} else if(NewRegenStatus & 1) {
 							if(MC.WorkStats.Flags & WS_F_StartRegenSoft) {
 								MC.WorkStats.Flags &= ~WS_F_StartRegenSoft;
 								NeedSaveWorkStats = 1;
 							}
 							journal.jprintf_date("Regen F2 begin\n");
-							NewRegenStatus = false;
+							NewRegenStatus &= ~1;
 						}
 					}
 					uint32_t tt = rtcSAM3X8.get_hours() * 100 + m;
