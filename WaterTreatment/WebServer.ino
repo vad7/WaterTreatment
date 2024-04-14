@@ -1077,7 +1077,7 @@ xSaveStats:		if((i = MC.save_WorkStats()) == OK)
 
 				strReturn += m_snprintf(strReturn += strlen(strReturn), 256, "Потреблено с последнего слива осадка, л|%d;", MC.WorkStats.UsedDrainSiltL100 * 100);
 				if(RegMaxFlow) strReturn += m_snprintf(strReturn += strlen(strReturn), 256, "Макс проток за регенерацию, м3ч|%.3d;", RegMaxFlow);
-				if(RegMinPress != 0xFFFF) strReturn += m_snprintf(strReturn += strlen(strReturn), 256, "Мин давление при регенерации, атм|%.2;", RegMinPress);
+				if(RegMinPress != 0xFFFF) strReturn += m_snprintf(strReturn += strlen(strReturn), 256, "Мин давление при регенерации, атм|%.2d;", RegMinPress);
 #ifdef MODBUS_DRAIN_PUMP_RELAY_ADDR
 				strcat(strReturn, "Состояние реле дренажного насоса|");
 				if(GETBIT(MC.Option.flags2, fDrainPumpRelay)) {
