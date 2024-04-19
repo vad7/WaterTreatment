@@ -97,7 +97,10 @@ void USART2_Handler(void)   // Interrupt handler for UART2
 
 // Мютексы блокираторы железа
 SemaphoreHandle_t xWebThreadSemaphore;              // Семафор потоки вебсервера,  деление сетевой карты
-SemaphoreHandle_t xI2CSemaphore;                    // Семафор шины I2C, часы, память, мастер OneWire
+SemaphoreHandle_t xI2CSemaphore;                    // Семафор шины I2C (Wire), часы, память, мастер OneWire
+#ifdef SECOND_I2C_USED
+SemaphoreHandle_t xI2CSemaphore2;                   // Семафор второй шины I2C (Wire1) (частотные датчики)
+#endif
 SemaphoreHandle_t xSPISemaphore;                    // Семафор шины SPI  сетевая карта, память. SD карта // пока не используется
 SemaphoreHandle_t xLoadingWebSemaphore;             // Семафор загрузки веб морды в spi память
 uint16_t lastErrorFreeRtosCode;                     // код последней ошибки операционки нужен для отладки
@@ -201,6 +204,11 @@ void setup() {
 	//
 	// Борьба с зависшими устройствами на шине  I2C (в первую очередь часы) неудачный сброс
 	Recover_I2C_bus();
+#ifdef SECOND_I2C_USED
+	Wire1.begin();	// with default speed: 100000
+	delay(1);
+	Wire1.Stop();
+#endif
 	delay(1);
 
 	// Настройка сервисных выводов
@@ -426,6 +434,7 @@ x_I2C_init_std_message:
 		MC.load((uint8_t *)Socket[0].outBuf, 0);      // Загрузить настройки
 	}
 	WaterBoosterTimeout = MC.Option.MinWaterBoostOffTime;
+	for(uint8_t i = 0; i < FNUMBER; i++) MC.sFrequency[i].reset();  // Сброс частотных датчиков (активация прерываний и проверка I2C)
 
 	// обновить хеш для пользователей
 	WebSec_user.hash = WebSec_admin.hash = NULL;
@@ -563,6 +572,10 @@ x_I2C_init_std_message:
 	if (xWebThreadSemaphore==NULL) set_Error(ERR_MEM_FREERTOS,(char*)nameFREERTOS);
 	vSemaphoreCreateBinary(xI2CSemaphore);                     // Создание мютекса
 	if (xI2CSemaphore==NULL) set_Error(ERR_MEM_FREERTOS,(char*)nameFREERTOS);
+#ifdef SECOND_I2C_USED
+	vSemaphoreCreateBinary(xI2CSemaphore2);                     // Создание мютекса
+	if (xI2CSemaphore2 == NULL) set_Error(ERR_MEM_FREERTOS, (char*)nameFREERTOS);
+#endif
 	//vSemaphoreCreateBinary(xSPISemaphore);                     // Создание мютекса
 	//if (xSPISemaphore==NULL) set_Error(ERR_MEM_FREERTOS,(char*)nameFREERTOS);
 	// Дополнительные семафоры (почему то именно здесь) Создается когда есть модбас

@@ -20,7 +20,7 @@
 #include "Util.h"
 
 // ОПЦИИ КОМПИЛЯЦИИ ПРОЕКТА -------------------------------------------------------
-#define VERSION			  "1.57"			// Версия прошивки
+#define VERSION			  "1.58"			// Версия прошивки
 #define VER_SAVE		  14				// Версия формата сохраняемых данных в I2C память
 //#define LOG                               // В последовательный порт шлет лог веб сервера (логируются запросы)
 #define FAST_LIB                            // использование допиленной библиотеки езернета
@@ -128,9 +128,9 @@ const uint16_t  defaultPort=80;
 #define LCD_COLS			20			// Колонок на LCD экране
 #define LCD_ROWS			4			// Строк на LCD экране
 // ------------------- SENSOR TEMP----------------------------------
-#define MAX_TEMP_ERR      700           // Максимальная систематическая ошибка датчика температуры (сотые градуса)
-#define NUM_READ_TEMP_ERR 10            // Число ошибок подряд чтения датчика температуры после которого считается что датчик не исправен
-#define RES_ONEWIRE_ERR   3             // Число попыток сброса датчиков температуры перед генерацией ошибки шины
+#define MAX_TEMP_ERR		700         // Максимальная систематическая ошибка датчика температуры (сотые градуса)
+#define NUM_READ_TEMP_ERR	10          // Число ошибок подряд чтения датчика температуры после которого считается что датчик не исправен
+#define RES_ONEWIRE_ERR		3           // Число попыток сброса датчиков температуры перед генерацией ошибки шины
 
 #define FREQ_BASE_TIME_READ 	1000UL	// Частотные датчики - время (мсек) на котором измеряется число импульсов, в конце идет пересчет в частоту
 
@@ -247,6 +247,7 @@ const char SendSMSTitle[] 		= "Water";
 const char *nameFREERTOS =     {"FreeRTOS"};           // Имя источника ошибки (нужно для передачи в функцию) - операционная система
 const char *nameMainClass =    {"WaterTreatment"};     // Имя (для лога ошибок)
 const char *MutexI2CBuzy =     {"I2C"}; 
+const char *MutexI2CBuzy2 =     {"I2C2"};
 const char *MutexModbusBuzy=   {"Modbus"}; 
 const char *MutexWebThreadBuzy={"WebThread"}; 
 const char *MutexSPIBuzy=      {"SPI"}; 
@@ -559,9 +560,10 @@ const char *webWS_NextRegenSoftAfterDays		= { "NS" };
 #define ERR_DRAIN_PUMP_TOOLONG -80		// Слишком долго работает насос
 #define ERR_DRAIN_PUMP_NOT_WORK -81		// Не работает дренажный насос
 #define ERR_SEPTIC_RELAY_LINK -82		// Ошибка связи с реле нагрева септика
-#define ERR_LOW_BOOSTER_TANK -83			// Низкий средний рабочий объем бака насосной станции
+#define ERR_LOW_BOOSTER_TANK -83		// Низкий средний рабочий объем бака насосной станции
+#define ERR_SFREQ_I2C_ERROR	-84			// Ошибка частотного датчика на шине I2C
 
-#define ERR_ERRMAX			-83			// Последняя ошибка
+#define ERR_ERRMAX			-84			// Последняя ошибка
 
 // Предупреждения
 #define WARNING_VALUE        1         // Попытка установить значение за границами диапазона запрос типа SET
@@ -652,6 +654,7 @@ const char *noteError[] = {
 		"Не работает дренажный насос",														//-81
 		"Ошибка связи с реле нагрева септика",												//-82
 		"Низкий средний рабочий объем бака насосной станции",								//-83
+		"Ошибка частотного датчика на шине I2C_2",											//-84
 
 		"NULL"
 		};
@@ -660,7 +663,7 @@ const char *noteError[] = {
 // Устройства I2C Размер и тип памяти, определен в config.h т.к. он часто меняется
 #define I2C_SPEED            twiClock400kHz // Частота работы шины I2C
 #define I2C_NUM_INIT         3           // Число попыток инициализации шины
-#define I2C_TIME_WAIT        2000        // Время ожидания захвата мютекса шины I2C мсек
+#define I2C_TIME_WAIT        500        // Время ожидания захвата мютекса шины I2C мсек
 #define I2C_ADR_RTC          0x68        // Адрес чипа rtc на шине I2C
 #define I2C_ADR_DS2482       0x18        // Адрес чипа OneWire на шине I2C 3-х проводная
 #define I2C_ADR_DS2482_2     0x19        // Адрес чипа OneWire на 2-ой шине I2C

@@ -370,42 +370,77 @@ void sensorFrequency::initFrequency(int sensor)
 {
 	number = sensor;
 	FlowCalcPeriod = 1;
-	reset();
 	testValue=TESTFLOW[sensor];                    // Состояние датчика в режиме теста
 	kfValue=TRANSFLOW[sensor];                     // коэффициент пересчета частоты в значение
-//	err=OK;                                        // ошибка датчика (работа)
 	pin=pinsFrequency[sensor];                     // Ножка куда прицеплен датчик
 	note=(char*)noteFrequency[sensor];             // наименование датчика
 	name=(char*)nameFrequency[sensor];             // Имя датчика
 	ChartFlow.init();                              // инициализация графика
-	ChartLiters.init();                            // инициализация графика4
+	ChartLiters.init();                            // инициализация графика2
 	ChartLiters_accum = ChartLiters_rest = 0;
 	add_pulses100 = 0;
 	count_real_last100 = 0;
 	count_Flow = 0;
 	count_FlowReal = 0;
-	// Привязывание обработчика преваний к методу конкретного класса
-	//   LOW вызывает прерывание, когда на порту LOW
-	//   CHANGE прерывание вызывается при смене значения на порту, с LOW на HIGH и наоборот
-	//   RISING прерывание вызывается только при смене значения на порту с LOW на HIGH
-	//   FALLING прерывание вызывается только при смене значения на порту с HIGH на LOW
-	PIO_SetInput(g_APinDescription[pin].pPort, g_APinDescription[pin].ulPin, PIO_DEGLITCH);
-	//PIO_SetDebounceFilter(g_APinDescription[pin].pPort, g_APinDescription[pin].ulPin, 1); // PIO_DEBOUNCE - Cutoff freq in Hz
-#if FNUMBER > 0
-	if(sensor == 0) attachInterrupt(pin, InterruptFreq0, CHANGE);
-#if FNUMBER > 1
-	else if(sensor == 1) attachInterrupt(pin, InterruptFreq1, CHANGE);
-#if FNUMBER > 2
-	else if(sensor == 2) attachInterrupt(pin, InterruptFreq2, CHANGE);
-#if FNUMBER > 3
-	else if(sensor == 3) attachInterrupt(pin, InterruptFreq3, CHANGE);
-#if FNUMBER > 4
-	else if(sensor == 4) attachInterrupt(pin, InterruptFreq4, CHANGE);
+	err = OK;
+	// Привязывание обработчика прерываний к методу конкретного класса -> находится в sensorFrequency::reset()
+}
+
+void sensorFrequency::reset(void)
+{
+#ifdef SENSORS_FREQ_I2C
+	if(I2C_addr) { // Используется I2C
+		// Проверка связи:
+		union {
+			uint8_t buf8[2];
+			uint16_t buf16;
+		};
+		err = Second_I2C_Read(I2C_addr, 2, buf8);
+		if(err) {
+			_delay(100);
+			err = Second_I2C_Read(I2C_addr, 2, buf8);
+			if(err) {
+				set_Error(ERR_SFREQ_I2C_ERROR, (char *)"SensorFreq I2C read");
+			}
+		}
+		if(err == 0) {
+			count_Flow = count = buf16;
+		}
+	} else
 #endif
-#endif
-#endif
-#endif
-#endif
+	{
+		// Привязывание обработчика прерываний к методу конкретного класса
+		//   LOW вызывает прерывание, когда на порту LOW
+		//   CHANGE прерывание вызывается при смене значения на порту, с LOW на HIGH и наоборот
+		//   RISING прерывание вызывается только при смене значения на порту с LOW на HIGH
+		//   FALLING прерывание вызывается только при смене значения на порту с HIGH на LOW
+		PIO_SetInput(g_APinDescription[pin].pPort, g_APinDescription[pin].ulPin, PIO_DEGLITCH);
+		//PIO_SetDebounceFilter(g_APinDescription[pin].pPort, g_APinDescription[pin].ulPin, 1); // PIO_DEBOUNCE - Cutoff freq in Hz
+	#if FNUMBER > 0
+		if(number == 0) attachInterrupt(pin, InterruptFreq0, CHANGE);
+	#if FNUMBER > 1
+		else if(number == 1) attachInterrupt(pin, InterruptFreq1, CHANGE);
+	#if FNUMBER > 2
+		else if(number == 2) attachInterrupt(pin, InterruptFreq2, CHANGE);
+	#if FNUMBER > 3
+		else if(number == 3) attachInterrupt(pin, InterruptFreq3, CHANGE);
+	#if FNUMBER > 4
+		else if(number == 4) attachInterrupt(pin, InterruptFreq4, CHANGE);
+	#endif
+	#endif
+	#endif
+	#endif
+	#endif
+		count = 0;
+		count_Flow = 0;
+	}
+	sTime = GetTickCount();
+	Passed = 0;
+	PassedRest = 0;
+	FlowCalcCnt = 0;
+	WebCorrectCnt = 0;
+	Frequency=0;                                   // значение частоты
+	Value=0;                                       // значение датчика в ТЫСЯЧНЫХ (умножать на 1000)
 }
 
 // Получить (точнее обновить) значение датчика, возвращает 1, если был проток
@@ -476,19 +511,6 @@ bool sensorFrequency::Read(void)
 		//journal.jprintfopt("Flow(%d): %d = %d (%d, %d) f: %d\n", ticks, cnt / 100, Value, Passed, PassedRest / 100, Frequency);
 	}
 	return flow;
-}
-
-void sensorFrequency::reset(void)
-{
-	sTime = GetTickCount();
-	count = 0;
-	count_Flow = 0;
-	Passed = 0;
-	PassedRest = 0;
-	FlowCalcCnt = 0;
-	WebCorrectCnt = 0;
-	Frequency=0;                                   // значение частоты
-	Value=0;                                       // значение датчика в ТЫСЯЧНЫХ (умножать на 1000)
 }
 
 // Установить Состояние датчика в режиме теста

@@ -42,5 +42,8 @@ void 	buffer_space_padding(char * buf, int add);
 char* 	NowTimeToStr(char *buf = NULL);
 char* 	NowDateToStr(char *buf = NULL);
 uint8_t	GetSerialNum(USARTClass &serial);
+#ifdef SECOND_I2C_USED
+int8_t  Second_I2C_Read(uint8_t addr, uint8_t len, uint8_t *data);
+#endif
 
 #endif

@@ -1066,3 +1066,28 @@ uint8_t GetSerialNum(USARTClass &serial)
 //		vTaskDelay(1);
 //	}
 //}
+
+#ifdef SECOND_I2C_USED
+// len - data size (except CRC 1 byte), Return err: 0 - OK, 1 - length mismath, 2 - CRC error, 3 - busy
+int8_t Second_I2C_Read(uint8_t addr, uint8_t len, uint8_t *data)
+{
+	int8_t err = 0;
+	if(SemaphoreTake(xI2CSemaphore2, I2C_TIME_WAIT / portTICK_PERIOD_MS) == pdFALSE) {  // Если шедулер запущен, то захватываем семафор
+		journal.jprintfopt((char*) cErrorMutex, __FUNCTION__, MutexI2CBuzy2);
+		err = 3;
+	} else {
+		if(Wire1.requestFrom(addr, NULL, len, 1) != len) err = 1;
+		else {
+			uint8_t crc = 0;
+			while(Wire1.available() && len--) {
+				uint8_t b = Wire1.read();
+				*data++ = b;
+				crc = pgm_read_byte(dscrc_table + (crc ^ b));
+			}
+			if(Wire1.available() && crc != Wire1.read()) err = 2;
+		}
+		SemaphoreGive(xI2CSemaphore2);
+	}
+	return err;
+}
+#endif

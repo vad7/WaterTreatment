@@ -168,6 +168,8 @@ private:
 // Частота кодируется в тысячных герца
 // Число импульсов рассчитывается за базовый период (BASE_TIME_READ), т.к частоты малы период надо савить не менее 5 сек
 // Выходная величина кодируется в тысячных от целого
+// Флаги настроек:
+#define fSFreq_USE_I2C			1	// Использовать шину I2C для получения значений датчика, формат: UINT16,CRC8(1-Wire)
 
 class sensorFrequency
 {
@@ -194,7 +196,7 @@ public:
   int8_t set_Capacity(uint16_t c);                       // Установить теплоемкость больше 5000 не устанавливается
   inline int8_t  get_pinF(){return pin;}                 // Получить ногу куда прицеплен датчик
   uint8_t *get_save_addr(void) { return (uint8_t *)&number; } // Адрес структуры сохранения
-  uint16_t get_save_size(void) { return (byte*)&_reserved - (byte*)&number + sizeof(_reserved); } // Размер структуры сохранения
+  uint16_t get_save_size(void) { return (byte*)&I2C_addr - (byte*)&number + sizeof(I2C_addr); } // Размер структуры сохранения
   volatile uint32_t Passed;								 // Счетчик литров
   uint32_t PassedRest;									 // остаток счетчика
   int32_t  add_pulses100;								 // добавка при следующем чтении, *100
@@ -220,10 +222,11 @@ private:
       uint16_t testValue;                               // !save! Состояние датчика в режиме теста
       uint16_t kfValue; 							 	 // коэффициент пересчета частоты в значение, изменений уровня на литр, сотые
       uint8_t  FlowCalcPeriod;                          // через сколько FREQ_BASE_TIME_READ расчитывать проток
-      uint8_t  _reserved;						     	 //
+      uint8_t  I2C_addr;						     	// адрес на I2C шине, если используется для получения данных датчика, формат данных (3 байта): импульсы(0..65535),CRC8(1-Wire)
   } __attribute__((packed));// END SAVE GROUP, the last
   uint8_t FlowCalcCnt;                                  // счетчик расчета протока
   uint8_t pin;                                         // Ножка куда прицеплен датчик
+  uint8_t err;
 };
 
 
