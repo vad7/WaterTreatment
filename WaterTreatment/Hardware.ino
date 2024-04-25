@@ -382,6 +382,7 @@ void sensorFrequency::initFrequency(int sensor)
 	count_real_last100 = 0;
 	count_Flow = 0;
 	count_FlowReal = 0;
+	errNum = 0;
 	err = OK;
 	// Привязывание обработчика прерываний к методу конкретного класса -> находится в sensorFrequency::reset()
 }
@@ -389,24 +390,7 @@ void sensorFrequency::initFrequency(int sensor)
 void sensorFrequency::reset(void)
 {
 #ifdef SENSORS_FREQ_I2C
-	if(I2C_addr) { // Используется I2C
-		// Проверка связи:
-		union {
-			uint8_t buf8[2];
-			uint16_t buf16;
-		};
-		err = Second_I2C_Read(I2C_addr, 2, buf8);
-		if(err) {
-			_delay(100);
-			err = Second_I2C_Read(I2C_addr, 2, buf8);
-			if(err) {
-				set_Error(ERR_SFREQ_I2C_ERROR, (char *)"SensorFreq I2C read");
-			}
-		}
-		if(err == 0) {
-			count_Flow = count = buf16;
-		}
-	} else
+	if(I2C_addr == 0) // Используется I2C
 #endif
 	{
 		// Привязывание обработчика прерываний к методу конкретного класса
@@ -431,10 +415,10 @@ void sensorFrequency::reset(void)
 	#endif
 	#endif
 	#endif
-		count = 0;
-		count_Flow = 0;
 	}
 	sTime = GetTickCount();
+	count = 0;
+	count_Flow = 0;
 	Passed = 0;
 	PassedRest = 0;
 	FlowCalcCnt = 0;
@@ -450,10 +434,29 @@ bool sensorFrequency::Read(void)
 	bool flow = false;
 	if((tickCount = GetTickCount()) - sTime >= (uint32_t) FREQ_BASE_TIME_READ) {  // если только пришло время измерения
 		uint32_t cnt;
-		noInterrupts();
-		cnt = count;
-		count = 0;
-		interrupts();
+#ifdef SENSORS_FREQ_I2C
+		if(I2C_addr) { // Используется I2C
+			count = 0;
+			err = Second_I2C_Read(I2C_addr, 2, (uint8_t *)&count);
+			if(err) {
+				errNum++;
+				_delay(100);
+				err = Second_I2C_Read(I2C_addr, 2, (uint8_t *)&count);
+				if(err) {
+					errNum++;
+					journal.jprintfopt("I2C_2 error %d", err);
+					set_Error(ERR_SFREQ_I2C_ERROR, (char *)"SensorFreq I2C read");
+				}
+			}
+			cnt = count;
+		} else
+#endif
+		{
+			noInterrupts();
+			cnt = count;
+			count = 0;
+			interrupts();
+		}
 		//__asm__ volatile ("" ::: "memory");0
 		uint32_t ticks = tickCount - sTime;
 		sTime = tickCount;

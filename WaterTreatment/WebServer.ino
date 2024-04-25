@@ -1213,7 +1213,16 @@ xSaveStats:		if((i = MC.save_WorkStats()) == OK)
 				x++;
 				radio_sensor_send(x);
 			}
-			ADD_WEBDELIM(strReturn);	continue;
+			ADD_WEBDELIM(strReturn); continue;
+		}
+#endif
+#ifdef SENSORS_FREQ_I2C
+		if(strcmp(str, "I2C_2_cmd") == 0) {
+			if((x = strchr(str, '='))) {
+				x++;
+				// to do...
+			}
+			ADD_WEBDELIM(strReturn); continue;
 		}
 #endif
 		if(strncmp(str, "LowConsume", 10) == 0) {
@@ -1866,55 +1875,76 @@ x_get_GADC:						i = MC.sADC[p].get_ADC_Gain();
 									_dtoa(strReturn, MC.sFrequency[p].get_Value(), 3);
 									if(MC.sFrequency[p].WebCorrectCnt > 1) strcat(strReturn, "+");	// Информация о корректировки
 								} else strcat(strReturn,"-");               // Датчика нет ставим прочерк
-								ADD_WEBDELIM(strReturn) ;    continue;
+								ADD_WEBDELIM(strReturn); continue;
 							}
 							if(strncmp(str, "rFlow", 4)==0)           // Функция get_rFlow
 							{
 								if (MC.sFrequency[p].get_present()) {         // Если датчик есть в конфигурации то выводим значение
 									_dtoa(strReturn, MC.sFrequency[p].get_ValueReal(), 3);
 								} else strcat(strReturn,"-");               // Датчика нет ставим прочерк
-								ADD_WEBDELIM(strReturn) ;    continue;
+								ADD_WEBDELIM(strReturn); continue;
 							}
 							if(strncmp(str, "PFlow", 4)==0)           // Функция get_PFlow
 							{
 								if (MC.sFrequency[p].get_present())          // Если датчик есть в конфигурации то выводим значение
 									_dtoa(strReturn, MC.sFrequency[p].Passed, 3);
 								else strcat(strReturn,"-");               // Датчика нет ставим прочерк
-								ADD_WEBDELIM(strReturn) ;    continue;
+								ADD_WEBDELIM(strReturn); continue;
 							}
 							if(strncmp(str, "frF", 3)==0)           // Функция get_frFlow
 							{
 								if (MC.sFrequency[p].get_present())          // Если датчик есть в конфигурации то выводим значение
 									_dtoa(strReturn, MC.sFrequency[p].get_Frequency(), 3);
 								else strcat(strReturn,"-");               // Датчика нет ставим прочерк
-								ADD_WEBDELIM(strReturn) ;    continue;
+								ADD_WEBDELIM(strReturn); continue;
 							}
 							if(strncmp(str, "kfF", 3)==0)           // Функция get_kfFlow
 							{
 								if (MC.sFrequency[p].get_present())          // Если датчик есть в конфигурации то выводим значение
 									_dtoa(strReturn, MC.sFrequency[p].get_kfValue(), 2);
 								else strcat(strReturn,"-");               // Датчика нет ставим прочерк
-								ADD_WEBDELIM(strReturn) ;    continue;
+								ADD_WEBDELIM(strReturn); continue;
 							}
 							if(strncmp(str, "cF", 2)==0)           // Функция get_cFlow
 							{
 								if (MC.sFrequency[p].get_present())          // Если датчик есть в конфигурации то выводим значение
 									_itoa(MC.sFrequency[p].get_FlowCalcPeriodValue() * FREQ_BASE_TIME_READ / 1000, strReturn);
 								else strcat(strReturn,"-");               // Датчика нет ставим прочерк
-								ADD_WEBDELIM(strReturn) ;    continue;
+								ADD_WEBDELIM(strReturn); continue;
+							}
+							if(strncmp(str, "eF", 2)==0)           // Функция get_eFlow
+							{
+#ifdef SENSORS_FREQ_I2C
+								_itoa(MC.sFrequency[p].errNum, strReturn);
+								l_i32 = MC.sFrequency[p].err;
+								if(l_i32) m_snprintf(strReturn, 256, "(%d)", l_i32);
+#else
+								strcat(strReturn, "-");
+#endif
+								ADD_WEBDELIM(strReturn); continue;
 							}
 							if(strncmp(str, "test", 4)==0)           // Функция get_testFlow
 							{
 								if (MC.sFrequency[p].get_present())          // Если датчик есть в конфигурации то выводим значение
 									_dtoa(strReturn, MC.sFrequency[p].get_testValue(), 3);
 								else strcat(strReturn,"-");               // Датчика нет ставим прочерк
-								ADD_WEBDELIM(strReturn) ;    continue;
+								ADD_WEBDELIM(strReturn); continue;
 							}
-							if(strncmp(str, "pin", 3)==0)              // Функция get_pinFlow
-							{ strcat(strReturn,"D"); _itoa(MC.sFrequency[p].get_pinF(),strReturn);
-								ADD_WEBDELIM(strReturn); continue; }
-							if(strncmp(str, "nF", 2)==0)               // Функция get_nFlow (note)
-							{ strcat(strReturn,MC.sFrequency[p].get_note()); ADD_WEBDELIM(strReturn); continue; }
+							if(strncmp(str, "pin", 3) == 0)              // Функция get_pinFlow
+							{
+								if(MC.sFrequency[p].get_I2C_addr()) {
+									strcat(strReturn, "I2C_2");
+								} else {
+									strcat(strReturn, "D");
+									_itoa(MC.sFrequency[p].get_pinF(), strReturn);
+								}
+								ADD_WEBDELIM(strReturn); continue;
+							}
+							if(strncmp(str, "nF", 2) == 0)               // Функция get_nFlow (note)
+							{
+								strcat(strReturn, MC.sFrequency[p].get_note());
+								ADD_WEBDELIM(strReturn); continue;
+							}
 
 						// ---- SET ----------------- Для частотных  датчиков - запросы на УСТАНОВКУ парметров
 						} else if(strncmp(str, "set_", 4)==0) {              // Функция set_

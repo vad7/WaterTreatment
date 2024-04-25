@@ -168,9 +168,6 @@ private:
 // Частота кодируется в тысячных герца
 // Число импульсов рассчитывается за базовый период (BASE_TIME_READ), т.к частоты малы период надо савить не менее 5 сек
 // Выходная величина кодируется в тысячных от целого
-// Флаги настроек:
-#define fSFreq_USE_I2C			1	// Использовать шину I2C для получения значений датчика, формат: UINT16,CRC8(1-Wire)
-
 class sensorFrequency
 {
 public:
@@ -182,8 +179,8 @@ public:
   __attribute__((always_inline)) inline uint16_t get_Value(){return Value;} // Получить значение, литры в час
   __attribute__((always_inline)) inline uint16_t get_ValueReal(){return ValueReal;} // Получить реальное значение, литры в час
   __attribute__((always_inline)) inline boolean get_present(){return kfValue > 0;} // Наличие датчика в текущей конфигурации
-  uint32_t get_RawPassed(void) { return count * 10000 / kfValue; }  // Получить сырые не обработанные данные, сотые литра
-  __attribute__((always_inline)) inline uint32_t get_count(void) { return count; }
+  uint32_t get_RawPassed(void) { return I2C_addr ? 0 : count * 10000 / kfValue; }  // Получить сырые не обработанные данные, сотые литра
+  //__attribute__((always_inline)) inline uint32_t get_count(void) { return I2C_addr ? 0 : count; }
 //  int8_t  get_lastErr(){return err;}                     // Получить последнюю ошибку
   char*   get_note(){return note;}                       // Получить описание датчика
   char*   get_name(){return name;}                       // Получить имя датчика
@@ -197,6 +194,7 @@ public:
   inline int8_t  get_pinF(){return pin;}                 // Получить ногу куда прицеплен датчик
   uint8_t *get_save_addr(void) { return (uint8_t *)&number; } // Адрес структуры сохранения
   uint16_t get_save_size(void) { return (byte*)&I2C_addr - (byte*)&number + sizeof(I2C_addr); } // Размер структуры сохранения
+  uint8_t get_I2C_addr(void) { return I2C_addr; };
   volatile uint32_t Passed;								 // Счетчик литров
   uint32_t PassedRest;									 // остаток счетчика
   int32_t  add_pulses100;								 // добавка при следующем чтении, *100
@@ -206,6 +204,10 @@ public:
   uint16_t ChartLiters_accum;
   uint16_t ChartLiters_rest;
   uint8_t  WebCorrectCnt;								// счетчик корректировки для веба, *TIME_READ_SENSOR, начиная с 1
+#ifdef SENSORS_FREQ_I2C
+  uint8_t err;
+  uint16_t errNum;
+#endif
     
 private:
   volatile uint32_t count;                              // число импульсов за базовый период (то что меняется в прерывании)
@@ -226,11 +228,7 @@ private:
   } __attribute__((packed));// END SAVE GROUP, the last
   uint8_t FlowCalcCnt;                                  // счетчик расчета протока
   uint8_t pin;                                         // Ножка куда прицеплен датчик
-  uint8_t err;
 };
-
-
-
 
 // ------------------------------------------------------------------------------------------
 // И С П О Л Н И Т Е Л Ь Н Ы Е   У С Т Р О Й С Т В А   --------------------------------------

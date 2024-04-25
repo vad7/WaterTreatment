@@ -1076,7 +1076,7 @@ int8_t Second_I2C_Read(uint8_t addr, uint8_t len, uint8_t *data)
 		journal.jprintfopt((char*) cErrorMutex, __FUNCTION__, MutexI2CBuzy2);
 		err = 3;
 	} else {
-		if(Wire1.requestFrom(addr, NULL, len, 1) != len) err = 1;
+		if(Wire1.requestFrom(addr, NULL, len, 1) != len) err = 1;	// использовать RTOS_delay(1) во время ожидания ответа
 		else {
 			uint8_t crc = 0;
 			while(Wire1.available() && len--) {

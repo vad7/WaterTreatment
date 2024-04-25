@@ -22,6 +22,10 @@ function show_all() {
 	var elements = document.getElementsByTagName('input');
 	for(i=0; i<elements.length; i++) elements[i].disabled = false;
 }
+function I2C_cmd() {
+	var Rcmd=document.getElementById("i2c_cmd").value; 
+	if(Rcmd) loadParam("set_I2C_cmd="+encodeURIComponent(Rcmd));
+}
 </script>
 </head>
 <body class="test">
@@ -52,6 +56,12 @@ function show_all() {
 	<div>
 	<br><br>
 		Радиомодуль ZONT МЛ-489, команда: <input id="radio_cmd"> <input type="submit" value=">" onclick='var Rcmd=document.getElementById("radio_cmd").value; if(Rcmd) loadParam("set_radio_cmd="+encodeURIComponent(Rcmd));'>
+	<br><br>
+		Вторая I2C шина, команда(): Адрес: <input id="i2c_cmd"> <input id="i2c_cmd"> <input type="submit" value=">" onclick="I2C_cmd();"><br>
+		<b>Водо-счетчик с I2C:</b><br>
+		Установка адреса(одно устройство на шине): W00 03 00 00<br>
+		Калибровка счетчика(nn - адрес): Wnn 02 00 00<br> 
+		Прочитать EEPROM: Wnn 03 "addr" "len" Rnn "len"<br>
 	</div>	
 </div>
 </body>

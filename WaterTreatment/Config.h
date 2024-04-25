@@ -323,7 +323,7 @@ struct History_setup {
     //
     #define FNUMBER             1       // Число частотных датчиков цифровые входы
     // SIKA VVX25: +12V - коричневый (Xn.2), GND - голубой (Xn.3), выход - черный (Xn.1)
-	#define SENSORS_FREQ_I2C			// Использовать вторую I2C шину (SDA1, SCL1) для частотных датчиков,
+	#define SENSORS_FREQ_I2C			// Использовать вторую I2C шину (SDA1, SCL1) для частотных датчиков, использование включается при настройке I2C_addr > 0
       	  	  	  	  	  	  	  	  	// формат данных(3 байта): импульсы(0..65535),CRC8(1-Wire)
 	#if defined(SENSORS_FREQ_I2C) && !defined(SECOND_I2C_USED)
 		#define SECOND_I2C_USED

@@ -1,5 +1,5 @@
 // Copyright by Vadim Kulakov vad7@yahoo.com, vad711
-var VER_WEB = "1.57";
+var VER_WEB = "1.58";
 var urlcontrol = ''; //  автоопределение (если адрес сервера совпадает с адресом контроллера)
 // адрес и порт контроллера, если адрес сервера отличен от адреса контроллера (не рекомендуется)
 //var urlcontrol = 'http://192.168.0.198';
@@ -346,7 +346,7 @@ function loadParam(paramid, noretry, resultdiv) {
 											for(var j = 0; j < count.length - 1; j++) {
 												input = count[j].toLowerCase();
 												loadsens = loadsens + "get_nFlow(" + count[j] + "),get_kfFlow(" + count[j] + "),get_cFlow(" + count[j] + "),get_frFlow(" + count[j] + "),get_testFlow(" + count[j] + "),get_pinFlow(" + count[j] + "),get_eFlow(" + count[j] + "),";
-												upsens = upsens + "get_Flow(" + count[j] + "),get_rFlow(" + count[j] + "),get_frFlow(" + count[j] + ")";
+												upsens = upsens + "get_Flow(" + count[j] + "),get_rFlow(" + count[j] + "),get_frFlow(" + count[j] + "),get_eFlow(" + count[j] + ")";
 												content = content + '<tr>';
 												content = content + '<td>' + count[j] + '</td>';
 												content = content + '<td id="get_nflow-' + input + '">-</td>';
@@ -356,6 +356,7 @@ function loadParam(paramid, noretry, resultdiv) {
 												content = content + '<td nowrap><input id="get_cflow-' + input + '" type="number"><input type="submit" value=">" onclick="setParam(\'get_cFlow(' + count[j] + ')\');"></td>';
 												content = content + '<td id="get_frflow-' + input + '">-</td>';
 												content = content + '<td nowrap><input id="get_testflow-' + input + '" type="number" step="0.001" value=""><input type="submit" value=">"  onclick="setParam(\'get_testFlow(' + count[j] + ')\');"></td>';
+												content = content + '<td id="get_eflow-' + input + '">-</td>';
 												content = content + '<td id="get_pinflow-' + input + '">-</td>';
 												content = content + '</tr>';
 											}
