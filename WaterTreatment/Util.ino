@@ -1076,6 +1076,9 @@ int8_t Second_I2C_Read(uint8_t addr, uint8_t len, uint8_t *data)
 		journal.jprintfopt((char*) cErrorMutex, __FUNCTION__, MutexI2CBuzy2);
 		err = 3;
 	} else {
+#ifdef TEST_BOARD
+		journal.jprintf("I2C(%d)R: %X\n", len, addr);
+#endif
 		if(Wire1.requestFrom(addr, NULL, len, 1) != len) err = 1;	// использовать RTOS_delay(1) во время ожидания ответа
 		else {
 			uint8_t crc = 0;
@@ -1090,4 +1093,123 @@ int8_t Second_I2C_Read(uint8_t addr, uint8_t len, uint8_t *data)
 	}
 	return err;
 }
+
+int8_t Second_I2C_Write(uint8_t addr, uint8_t len, uint8_t *data)
+{
+	if(SemaphoreTake(xI2CSemaphore2, I2C_TIME_WAIT / portTICK_PERIOD_MS) == pdFALSE) {  // Если шедулер запущен, то захватываем семафор
+		journal.jprintfopt((char*) cErrorMutex, __FUNCTION__, MutexI2CBuzy2);
+		return 3;
+	} else {
+		Wire1.beginTransmission(addr);
+		Wire1.write(data, len);
+		Wire1.write(OneWire_crc8(data, len));
+		Wire1.endTransmission(1);
+#ifdef TEST_BOARD
+		journal.jprintf("I2C(%d)W: %X - %X %X %X %X CRC: %X\n", len, addr, data[0], data[1], data[2], data[3], OneWire_crc8(data, len));
+#endif
+		SemaphoreGive(xI2CSemaphore2);
+	}
+	return 0;
+}
+
+uint8_t HexToByte(char **s)
+{
+	uint8_t b = 0;
+	uint8_t c = **s & ~0x20;
+	if(c >= '0' && c <= '9') {
+		b = c - '0';
+		(*s)++;
+	} else if(c >= 'A' && c <= 'F') {
+		b = c - 'A' + 10;
+		(*s)++;
+	} else return b;
+	c = **s & ~0x20;
+	if(c >= '0' && c <= '9') {
+		b = (b << 4) + c - '0';
+		(*s)++;
+	} else if(c >= 'A' && c <= 'F') {
+		b = (b << 4) + c - 'A' + 10;
+		(*s)++;
+	} else return b;
+	return b;
+}
+
+// Wnn b1 b2 b3... - Write to address nn: b1 b2 b3... <CRC8>
+// Rnn len - Read from address nn len bytes + CRC8
+// Max 8 bytes
+void Second_I2C_Custom_cmd(char *x, char *strReturn)
+{
+	uint8_t cmd = 0;	// 0 - Write, 1 - Read
+	uint8_t st = 0;		// 0 - search header, 1 - address, 2 - data/len, 3 - send
+	uint8_t buf[8];
+	uint8_t buf_i = 0;
+	uint8_t addr;
+	while(1) {
+		uint8_t b = *x;
+		if(b != ' ') {
+			b &= ~0x20;
+			if(b == 'W' || b == 'R') {
+				if(st == 0) {
+					cmd = b == 'R' ? 1 : 0;
+					st = 1;
+				} else if(st == 2) {
+					st = 3;
+					x--;
+				} else {
+					strcat(strReturn, "Incorrect cmd!");
+					return;
+				}
+			} else if(st) {
+				if(!b) { // end
+					if(st != 2) {
+						strcat(strReturn, "Incorrect cmd!");
+						return;
+					}
+					st = 3;
+				} else { // value
+					b = HexToByte(&x);
+					if(st == 1) {
+						addr = b;
+						st++;
+					} else { // st == 2
+						buf[buf_i++] = b;
+						if(buf_i >= sizeof(buf) - 1) st = 3;
+					}
+				}
+			} else {
+				strcat(strReturn, "Unknown cmd!");
+				return;
+			}
+			if(st == 3) { // send
+				if(cmd == 0) {
+					Second_I2C_Write(addr, buf_i, buf);
+					st = 255; // timeout ms
+					while(1) {
+						b = Wire1.TransmissionStatus();
+						if(b == 1) break; // ok
+						if(b != 0 || st-- == 0) { // fail
+							strcat(strReturn, "Write fail: ");
+							if(b != 0) _itoa(b, strReturn); else strcat(strReturn, "timeout");
+							break;
+						}
+						_delay(1);
+					}
+					if(b != 1) break; // stop on fail
+				} else {
+					b = Second_I2C_Read(addr, buf_i, buf);
+					if(b != 0) {
+						strcat(strReturn, "Read fail: ");
+						_itoa(b, strReturn);
+						break;
+					}
+				}
+				buf_i = 0;
+				st = 0;
+				cmd = 0;
+			}
+		}
+		x++;
+	}
+}
+
 #endif

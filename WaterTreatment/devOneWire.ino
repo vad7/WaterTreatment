@@ -165,7 +165,7 @@ int8_t  deviceOneWire::Scan(char *result_str)
 			// 1. Номер по порядку
 			OW_scanTable[OW_scanTableIdx].num = OW_scanTableIdx + 1;
 			_itoa(OW_scanTableIdx + 1, result_str); strcat(result_str,":");
-			if(OneWireDrv.crc8(addr, 7) != addr[7]) {
+			if(OneWire_crc8(addr, 7) != addr[7]) {
 				strcat(result_str,"Error CRC:::;");
 				continue;
 			}
@@ -187,7 +187,7 @@ int8_t  deviceOneWire::Scan(char *result_str)
 				for(i=0; i<9; i++) data[i] = OneWireDrv.read(); // Читаем данные, нам необходимо 9 байт
 				// конвертируем данные в фактическую температуру
 				int16_t t = CalcTemp(addr[0], data, 0);
-				if(OneWireDrv.crc8(data,8) != data[8] || t == ERROR_TEMPERATURE)  // Дополнительная проверка для DS18B20
+				if(OneWire_crc8(data,8) != data[8] || t == ERROR_TEMPERATURE)  // Дополнительная проверка для DS18B20
 					strcat(result_str, "CRC");
 				else _dtoa(result_str, t, 2);
 				strcat(result_str, "(");
@@ -252,7 +252,7 @@ int8_t  deviceOneWire::Read(byte *addr, int16_t &val)
 
 	// Данные получены
 	i = OK;
-	if(OneWireDrv.crc8(data,8) != data[8]) {
+	if(OneWire_crc8(data,8) != data[8]) {
 xReadedOnly2b:
 		i = ERR_ONEWIRE_CRC;  // Проверка контрольной суммы
 	}

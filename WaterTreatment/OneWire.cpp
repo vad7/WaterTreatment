@@ -500,7 +500,7 @@ uint8_t OneWire::search(uint8_t *newAddr, bool search_mode /* = true */)
 // compared to all those delayMicrosecond() calls.  But I got
 // confused, so I use this table from the examples.)
 //
-uint8_t OneWire::crc8(const uint8_t *addr, uint8_t len)
+uint8_t OneWire_crc8(const uint8_t *addr, uint8_t len)
 {
 	uint8_t crc = 0;
 	while(len--) {
@@ -513,7 +513,7 @@ uint8_t OneWire::crc8(const uint8_t *addr, uint8_t len)
 // Compute a Dallas Semiconductor 8 bit CRC directly.
 // this is much slower, but much smaller, than the lookup table.
 //
-uint8_t OneWire::crc8(const uint8_t *addr, uint8_t len)
+uint8_t OneWire_crc8(const uint8_t *addr, uint8_t len)
 {
 	uint8_t crc = 0;
 
@@ -535,13 +535,13 @@ uint8_t OneWire::crc8(const uint8_t *addr, uint8_t len)
 #endif
 
 #if ONEWIRE_CRC16
-bool OneWire::check_crc16(const uint8_t *input, uint16_t len, const uint8_t *inverted_crc, uint16_t crc)
+bool OneWire_check_crc16(const uint8_t *input, uint16_t len, const uint8_t *inverted_crc, uint16_t crc)
 {
 	crc = ~crc16(input, len, crc);
 	return (crc & 0xFF) == inverted_crc[0] && (crc >> 8) == inverted_crc[1];
 }
 
-uint16_t OneWire::crc16(const uint8_t *input, uint16_t len, uint16_t crc)
+uint16_t OneWire_crc16(const uint8_t *input, uint16_t len, uint16_t crc)
 {
 #if defined(__AVR__)
 	for (uint16_t i = 0 ; i < len ; i++) {

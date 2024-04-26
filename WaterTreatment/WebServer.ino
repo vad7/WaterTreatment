@@ -1220,7 +1220,7 @@ xSaveStats:		if((i = MC.save_WorkStats()) == OK)
 		if(strcmp(str, "I2C_2_cmd") == 0) {
 			if((x = strchr(str, '='))) {
 				x++;
-				// to do...
+				Second_I2C_Custom_cmd(x, strReturn);
 			}
 			ADD_WEBDELIM(strReturn); continue;
 		}
