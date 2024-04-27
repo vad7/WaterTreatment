@@ -394,7 +394,7 @@ x_I2C_init_std_message:
 				}
 				_delay(100);
 			}
-			//    else journal.jprintfopt("I2C device bad endTransmission at address %s code %d",byteToHex(address), error);
+			//  else journal.printf("#%X: %d, ", address, error);
 		} // for
 	} //  (eepStatus==0)
 

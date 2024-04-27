@@ -2,7 +2,7 @@
 var VER_WEB = "1.58";
 var urlcontrol = ''; //  автоопределение (если адрес сервера совпадает с адресом контроллера)
 // адрес и порт контроллера, если адрес сервера отличен от адреса контроллера (не рекомендуется)
-//var urlcontrol = 'http://192.168.0.198';
+//var urlcontrol = 'http://192.168.0.203';
 //var urlcontrol = 'http://192.168.0.8';
 var urltimeout = 1800; // таймаут ожидание ответа от контроллера. Чем хуже интернет, тем выше значения. Но не более времени обновления параметров
 var urlupdate = 4000; // время обновления параметров в миллисекундах
@@ -111,6 +111,7 @@ function loadParam(paramid, noretry, resultdiv) {
 								} else if(values[0].indexOf("(DSD")!=-1) {
 									loadParam("get_tblPDS");
 								} else {
+									if(values[0].indexOf("CMD_")==0) valueid = values[0].substring(0, values[0].indexOf("(")).toLowerCase();
 									if((element = document.getElementById(valueid + "-ONOFF"))) { // Надпись
 										element.innerHTML = values[1] == 1 ? "Вкл" : "Выкл";
 									}

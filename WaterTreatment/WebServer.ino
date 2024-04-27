@@ -1208,19 +1208,9 @@ xSaveStats:		if((i = MC.save_WorkStats()) == OK)
 			continue;
 		}
 #ifdef RADIO_SENSORS
-		if(strcmp(str, "set_radio_cmd") == 0) {
+		if(strncmp(str, "set_radio_cmd", 13) == 0) {
 			if((x = strchr(str, '='))) {
-				x++;
-				radio_sensor_send(x);
-			}
-			ADD_WEBDELIM(strReturn); continue;
-		}
-#endif
-#ifdef SENSORS_FREQ_I2C
-		if(strcmp(str, "I2C_2_cmd") == 0) {
-			if((x = strchr(str, '='))) {
-				x++;
-				Second_I2C_Custom_cmd(x, strReturn);
+				radio_sensor_send(x + 1);
 			}
 			ADD_WEBDELIM(strReturn); continue;
 		}
@@ -1407,6 +1397,12 @@ x_get_RH:			_itoa(MC.Option.RegenHour & 0x1F, strReturn);
 			}
 			STORE_DEBUG_INFO(37);
 
+#ifdef SENSORS_FREQ_I2C
+			if(strcmp(str, "CMD_I2C_2") == 0) {
+				Second_I2C_Custom_cmd(x, strReturn);
+				ADD_WEBDELIM(strReturn); continue;
+			}
+#endif
 
 			// str - полное имя запроса до (), x - содержит строку что между (), z - после =
 			// код обработки установки значений модбас
