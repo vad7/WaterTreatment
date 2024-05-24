@@ -195,6 +195,7 @@ public:
   uint8_t *get_save_addr(void) { return (uint8_t *)&number; } // Адрес структуры сохранения
   uint16_t get_save_size(void) { return (byte*)&I2C_addr - (byte*)&number + sizeof(I2C_addr); } // Размер структуры сохранения
   uint8_t get_I2C_addr(void) { return I2C_addr; };
+  void set_I2C_addr(uint8_t addr);
   volatile uint32_t Passed;								 // Счетчик литров
   uint32_t PassedRest;									 // остаток счетчика
   int32_t  add_pulses100;								 // добавка при следующем чтении, *100

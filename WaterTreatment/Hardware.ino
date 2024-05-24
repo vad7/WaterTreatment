@@ -390,7 +390,7 @@ void sensorFrequency::initFrequency(int sensor)
 void sensorFrequency::reset(void)
 {
 #ifdef SENSORS_FREQ_I2C
-	if(I2C_addr == 0) // Используется I2C
+	if(I2C_addr == 0) // не используется I2C
 #endif
 	{
 		// Привязывание обработчика прерываний к методу конкретного класса
@@ -427,6 +427,13 @@ void sensorFrequency::reset(void)
 	Value=0;                                       // значение датчика в ТЫСЯЧНЫХ (умножать на 1000)
 }
 
+void sensorFrequency::set_I2C_addr(uint8_t addr)
+{
+	//if(addr != I2C_addr) {
+		I2C_addr = addr;
+	//}
+}
+
 // Получить (точнее обновить) значение датчика, возвращает 1, если был проток
 bool sensorFrequency::Read(void)
 {
@@ -444,7 +451,7 @@ bool sensorFrequency::Read(void)
 				err = Second_I2C_Read(I2C_addr, 2, (uint8_t *)&count);
 				if(err) {
 					errNum++;
-					journal.jprintfopt("I2C_2 error %d", err);
+					journal.jprintfopt("I2C_2 error %d\n", err);
 					set_Error(ERR_SFREQ_I2C_ERROR, (char *)"SensorFreq I2C read");
 				}
 			}

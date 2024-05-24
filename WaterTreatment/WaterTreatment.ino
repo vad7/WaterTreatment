@@ -205,6 +205,7 @@ void setup() {
 	// Борьба с зависшими устройствами на шине  I2C (в первую очередь часы) неудачный сброс
 	Recover_I2C_bus();
 #ifdef SECOND_I2C_USED
+	//Wire1.setClock(5000);
 	Wire1.begin();	// with default speed: 100000
 	delay(1);
 	Wire1.Stop();
@@ -339,7 +340,6 @@ x_I2C_init_std_message:
 	}
 
 	// Сканирование шины i2c
-	//    if (eepStatus==0)   // есть инициализация
 	{
 		byte error, address;
 		const byte start_address = 8;       // lower addresses are reserved to prevent conflicts with other protocols
@@ -392,11 +392,30 @@ x_I2C_init_std_message:
 				case I2C_ADR_RTC   :		journal.jprintfopt(" - RTC DS3231\n"); break; // 0x68
 				default            :		journal.jprintfopt(" - Unknow\n"); break; // не определенный тип
 				}
+				WDT_Restart(WDT);
 				_delay(100);
 			}
 			//  else journal.printf("#%X: %d, ", address, error);
 		} // for
-	} //  (eepStatus==0)
+#ifdef SECOND_I2C_SCAN
+		journal.jprintfopt("I2C second bus:\n");
+
+		Wire1.beginTransmission(0x22);
+		error = Wire1.endTransmission();
+		if(error == 0) journal.jprintfopt("FOUND!\n"); else journal.jprintfopt("error %d\n", error);
+
+
+		for(address = start_address; address < end_address; address++ ) {
+			journal.jprintfopt("I2C # %s - ", byteToHex(address));
+			Wire1.beginTransmission(address);
+			error = Wire1.endTransmission();
+			if(error == 0) journal.jprintfopt("FOUND!\n"); else journal.jprintfopt("error %d\n", error);
+			WDT_Restart(WDT);
+			_delay(300);
+		}
+	}
+#endif
+
 
 #ifndef ONEWIRE_DS2482         // если нет моста
 	if(OneWireBus.Init()) journal.jprintf("Error init 1-Wire: %d\n", OneWireBus.GetLastErr());

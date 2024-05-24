@@ -2,7 +2,7 @@
 var VER_WEB = "1.58";
 var urlcontrol = ''; //  автоопределение (если адрес сервера совпадает с адресом контроллера)
 // адрес и порт контроллера, если адрес сервера отличен от адреса контроллера (не рекомендуется)
-//var urlcontrol = 'http://192.168.0.203';
+var urlcontrol = 'http://192.168.0.181';
 //var urlcontrol = 'http://192.168.0.8';
 var urltimeout = 1800; // таймаут ожидание ответа от контроллера. Чем хуже интернет, тем выше значения. Но не более времени обновления параметров
 var urlupdate = 4000; // время обновления параметров в миллисекундах
@@ -346,8 +346,8 @@ function loadParam(paramid, noretry, resultdiv) {
 											var count = values[1].split(';');
 											for(var j = 0; j < count.length - 1; j++) {
 												input = count[j].toLowerCase();
-												loadsens = loadsens + "get_nFlow(" + count[j] + "),get_kfFlow(" + count[j] + "),get_cFlow(" + count[j] + "),get_frFlow(" + count[j] + "),get_testFlow(" + count[j] + "),get_pinFlow(" + count[j] + "),get_eFlow(" + count[j] + "),";
-												upsens = upsens + "get_Flow(" + count[j] + "),get_rFlow(" + count[j] + "),get_frFlow(" + count[j] + "),get_eFlow(" + count[j] + ")";
+												loadsens = loadsens + "get_nFlow(" + count[j] + "),get_kfFlow(" + count[j] + "),get_cFlow(" + count[j] + "),get_frFlow(" + count[j] + "),get_testFlow(" + count[j] + "),get_pinFlow(" + count[j] + "),get_eFlow(" + count[j] + "),get_I2CFlow(" + count[j] + "),";
+												upsens = upsens + "get_Flow(" + count[j] + "),get_rFlow(" + count[j] + "),get_frFlow(" + count[j] + "),get_eFlow(" + count[j] + "),";
 												content = content + '<tr>';
 												content = content + '<td>' + count[j] + '</td>';
 												content = content + '<td id="get_nflow-' + input + '">-</td>';
@@ -359,6 +359,7 @@ function loadParam(paramid, noretry, resultdiv) {
 												content = content + '<td nowrap><input id="get_testflow-' + input + '" type="number" step="0.001" value=""><input type="submit" value=">"  onclick="setParam(\'get_testFlow(' + count[j] + ')\');"></td>';
 												content = content + '<td id="get_eflow-' + input + '">-</td>';
 												content = content + '<td id="get_pinflow-' + input + '">-</td>';
+												content = content + '<td nowrap><input id="get_i2cflow-' + input + '" type="number"><input type="submit" value=">" onclick="setParam(\'get_I2CFlow(' + count[j] + ')\');"></td>';
 												content = content + '</tr>';
 											}
 											document.getElementById(valueid).innerHTML = content;
