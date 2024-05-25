@@ -299,7 +299,7 @@ struct History_setup {
 										"FLOOD",
 										"LEAK",
 										"SEPTIC",
-										"SLowT"
+										"STLow"
 #ifndef TANK_ANALOG_LEVEL
 										,"LOW",
 										"FULL"

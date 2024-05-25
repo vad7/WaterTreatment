@@ -1,0 +1,2 @@
+// ATTINY13A
+// Fuses(0=set): BODLEVEL = 2.7V (BODLEVEL[1:0]=01), RSTDISBL=0, CKSEL[1:0] = 01(4.8Mhz) / = 10(9.6Mhz), CKDIV8=0
