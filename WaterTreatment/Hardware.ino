@@ -382,8 +382,10 @@ void sensorFrequency::initFrequency(int sensor)
 	count_real_last100 = 0;
 	count_Flow = 0;
 	count_FlowReal = 0;
+#ifdef SENSORS_FREQ_I2C
 	errNum = 0;
 	err = OK;
+#endif
 	// Привязывание обработчика прерываний к методу конкретного класса -> находится в sensorFrequency::reset()
 }
 

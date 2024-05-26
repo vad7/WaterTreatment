@@ -399,12 +399,6 @@ x_I2C_init_std_message:
 		} // for
 #ifdef SECOND_I2C_SCAN
 		journal.jprintfopt("I2C second bus:\n");
-
-		Wire1.beginTransmission(0x22);
-		error = Wire1.endTransmission();
-		if(error == 0) journal.jprintfopt("FOUND!\n"); else journal.jprintfopt("error %d\n", error);
-
-
 		for(address = start_address; address < end_address; address++ ) {
 			journal.jprintfopt("I2C # %s - ", byteToHex(address));
 			Wire1.beginTransmission(address);
@@ -413,8 +407,8 @@ x_I2C_init_std_message:
 			WDT_Restart(WDT);
 			_delay(300);
 		}
-	}
 #endif
+	}
 
 
 #ifndef ONEWIRE_DS2482         // если нет моста
@@ -621,7 +615,7 @@ x_I2C_init_std_message:
 	journal.jprintf("FreeRTOS FAILURE!\n");
 }
 
-void loop(){ }
+void loop(void){ }
 
 //  З А Д А Ч И -------------------------------------------------
 // Это и есть поток с минимальным приоритетом измеряем простой процессора
@@ -2282,7 +2276,7 @@ void vService(void *)
 										set_Error(ERR_DRAIN_PUMP_TOOLONG, (char*)"vService");
 										DrainPumpRelayStatus = MODBUS_RELAY_CMD_OFF;
 									}
-									if(MC.Option.DrainPumpPowerMax && ut - DrainPumpTimeLast >= MC.Option.DrainPumpPowerMaxStartTime && tmp > MC.Option.DrainPumpPowerMax) {
+									if(MC.Option.DrainPumpMaxPower && ut - DrainPumpTimeLast >= MC.Option.DrainPumpStartTime && tmp > MC.Option.DrainPumpMaxPower) {
 										set_Error(ERR_DRAIN_PUMP_OVERLOAD, (char*)"vService");
 										DrainPumpRelayStatus = MODBUS_RELAY_CMD_OFF;
 									}
