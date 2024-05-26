@@ -1093,7 +1093,7 @@ char* MainClass::get_option(char *var, char *ret)
 	if(strcmp(var,option_FilterCounter2_Max)==0){ _itoa(Option.FilterCounter2_Max * 100, ret); } else
 	if(strcmp(var,option_DrainPumpMaxTime)==0){ _itoa(Option.DrainPumpMaxTime * 30, ret); } else
 	if(strcmp(var,option_DrainPumpMinPower)==0){ _itoa(Option.DrainPumpMinPower * 10, ret); } else
-	if(strcmp(var,option_DrainPumpMaxTime)==0){ _itoa(Option.DrainPumpMaxPower, ret); } else
+	if(strcmp(var,option_DrainPumpMaxPower)==0){ _itoa(Option.DrainPumpMaxPower, ret); } else
 	if(strcmp(var,option_DrainPumpStartTime)==0){ _itoa(Option.DrainPumpStartTime, ret); } else
 	if(strcmp(var,option_fLED_SRV_INFO_PlanReg)==0){ return strcat(ret, (char*)(GETBIT(Option.flags2, fLED_SRV_INFO_PlanReg) ? cOne : cZero)); } else
 	if(strcmp(var,option_fCheckDrainPump)==0){ return strcat(ret, (char*)(GETBIT(Option.flags2, fCheckDrainPump) ? cOne : cZero)); } else
