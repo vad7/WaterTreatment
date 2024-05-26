@@ -621,13 +621,10 @@ x_I2C_init_std_message:
 	journal.jprintf("FreeRTOS FAILURE!\n");
 }
 
-
-void loop() {}
+void loop(){ }
 
 //  З А Д А Ч И -------------------------------------------------
 // Это и есть поток с минимальным приоритетом измеряем простой процессора
-//extern "C" 
-//{
 static bool Error_Beep_confirmed = false;
 
 extern "C" void vApplicationIdleHook(void)  // FreeRTOS expects C linkage
@@ -1970,7 +1967,7 @@ void vService(void *)
 				// Water did not consumed a long time ago.
 				if(MC.Option.DrainAfterNoConsume && MC.Option.DrainTime) {
 					if(ut - (MC.WorkStats.UsedLastTime > MC.WorkStats.LastDrain ? MC.WorkStats.UsedLastTime : MC.WorkStats.LastDrain ? MC.WorkStats.LastDrain : ut) >= MC.Option.DrainAfterNoConsume && !CriticalErrors) {
-						MC.WorkStats.LastDrain = rtcSAM3X8.unixtime();
+						MC.WorkStats.LastDrain = ut;
 						TimerDrainingWater = MC.Option.DrainTime;
 						MC.WorkStats.UsedDrain = 0;
 						UsedDrainRest = MC.sFrequency[FLOW].PassedRest;
@@ -1979,8 +1976,7 @@ void vService(void *)
 				}
 				if(GETBIT(MC.Option.flags2, fDrainSiltTank) && DrainingSiltFlag == 0 && MC.WorkStats.UsedDrainSiltL100 >= MC.Option.DrainSiltAfterL100
 						&& MC.sADC[LTANK].get_Value() > MC.Option.LTank_LowConsumeMin) {
-					ut -= MC.WorkStats.UsedLastTime;
-					if(ut > MC.Option.DrainSiltAfterNotUsed * 3600 || MC.WorkStats.UsedDrainSiltL100 >= MC.Option.DrainSiltAfterL100 + MC.Option.DrainSiltAfterL100 / 2 + 1) {
+					if(ut - MC.WorkStats.UsedLastTime > MC.Option.DrainSiltAfterNotUsed * 3600 || MC.WorkStats.UsedDrainSiltL100 >= MC.Option.DrainSiltAfterL100 + MC.Option.DrainSiltAfterL100 / 2 + 1) {
 						DrainingSiltFlag = 1;
 #ifdef RSILT
 						MC.dRelay[RSILT].set_ON();
@@ -1990,12 +1986,12 @@ void vService(void *)
 				}
 
 				if(MC.dRelay[RSTARTREG].get_Relay() && !(MC.RTC_store.Work & RTC_Work_Regen_F1)) { // 1 minute passed but regeneration did not start
-					if(rtcSAM3X8.unixtime() - RegenStarted > START_REGEN_WAIT_TIME) set_Error(ERR_START_REG, (char*)__FUNCTION__);
+					if(ut - RegenStarted > START_REGEN_WAIT_TIME) set_Error(ERR_START_REG, (char*)__FUNCTION__);
 					MC.dRelay[RSTARTREG].set_OFF();
 					goto xOtherTask_1min;
 				}
 				if(MC.dRelay[RSTARTREG2].get_Relay() && !(MC.RTC_store.Work & RTC_Work_Regen_F2)) { // 1 minute passed but regeneration did not start
-					if(rtcSAM3X8.unixtime() - RegenStarted > START_REGEN_WAIT_TIME) set_Error(ERR_START_REG2, (char*)__FUNCTION__);
+					if(ut - RegenStarted > START_REGEN_WAIT_TIME) set_Error(ERR_START_REG2, (char*)__FUNCTION__);
 					MC.dRelay[RSTARTREG2].set_OFF();
 					goto xOtherTask_1min;
 				}
@@ -2277,12 +2273,17 @@ void vService(void *)
 							skip_this_iteration = true;
 							int8_t err = Modbus.readInputRegisters32(MODBUS_DRAIN_PUMP_ADDR, PWM_POWER, &tmp);
 							if(err == OK) {
-								tmp /= 10;
+								uint32_t ut = rtcSAM3X8.unixtime();
+								tmp /= 10;	// -> W
 								if(tmp > MC.Option.DrainPumpMinPower * 10) { // работает
-									if(DrainPumpPower <= MC.Option.DrainPumpMinPower * 10) DrainPumpTimeLast = rtcSAM3X8.unixtime(); // время включения
+									if(DrainPumpPower <= MC.Option.DrainPumpMinPower * 10) DrainPumpTimeLast = ut; // время включения
 									else if(MC.Option.DrainPumpMaxTime && MC.get_errcode() != ERR_DRAIN_PUMP_TOOLONG
 											&& rtcSAM3X8.unixtime() - DrainPumpTimeLast > MC.Option.DrainPumpMaxTime * 30) {
 										set_Error(ERR_DRAIN_PUMP_TOOLONG, (char*)"vService");
+										DrainPumpRelayStatus = MODBUS_RELAY_CMD_OFF;
+									}
+									if(MC.Option.DrainPumpPowerMax && ut - DrainPumpTimeLast >= MC.Option.DrainPumpPowerMaxStartTime && tmp > MC.Option.DrainPumpPowerMax) {
+										set_Error(ERR_DRAIN_PUMP_OVERLOAD, (char*)"vService");
 										DrainPumpRelayStatus = MODBUS_RELAY_CMD_OFF;
 									}
 								}
