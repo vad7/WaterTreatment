@@ -31,7 +31,7 @@
 #define OUTPUT_LOW		PORTB &= ~OUTPUT
 #define OUTPUT_HI		PORTB |= OUTPUT
 #define OUTPUT_CHANGE	PORTB ^= OUTPUT
-#define OUTPUT_STATUS	(PINB & OUTPUT)
+#define OUTPUT_STATUS	(PORTB & OUTPUT)
 #define SETUP_OUTPUT	DDRB |= OUTPUT
 
 #define KEY				(1<<PORTB4)
@@ -42,7 +42,7 @@
 #define LED1			(1<<PORTB2)
 #define LED1_ON			LED1_PORT &= ~LED1	// drain (-)
 #define LED1_OFF		LED1_PORT |= LED1
-#define LED1_IS_ON		(DDRB & LED1)
+#define LED1_IS_ON		!(PORTB & LED1)
 #define SETUP_LED		LED1_OFF; DDRB |= LED1
 
 #define SETUP_UNUSED_PINS PORTB |= (1<<PORTB5) | (1<<PORTB0)
@@ -117,7 +117,6 @@ ISR(ADC_vect)
 		if(ADC_Last <= Thr_Low) {
 			if(++status_div == Divider) {
 				OUTPUT_CHANGE;
-				LED1_ON;
 				status_div = 0;
 			}
 			status = 0;
@@ -125,7 +124,6 @@ ISR(ADC_vect)
 	} else if(ADC_Last >= Thr_Hi) {
 		if(++status_div == Divider) {
 			OUTPUT_CHANGE;
-			LED1_ON;
 			status_div = 0;
 		}
 		status = 1;
@@ -230,13 +228,17 @@ int main(void)
 			}
 		}
 		if(last_output != OUTPUT_STATUS) {
+			LED1_ON;
 			Cnt++;
 			last_output = OUTPUT_STATUS;
 		}
 		if(KEY_PRESSED) {
-			FlashNumber(Cnt / 256);
-			FlashNumber(Cnt & 0xFF);
-			Cnt = 0;
+			Delay100ms(3);
+			if(KEY_PRESSED) {
+				FlashNumber(Cnt / 256);
+				FlashNumber(Cnt & 0xFF);
+				Cnt = 0;
+			}
 		}
 	}
 }
