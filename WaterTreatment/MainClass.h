@@ -282,6 +282,7 @@ struct type_option {
 	uint8_t  WaterBoosterMinTank;	// Контроль среднего минимального объема бака насосной станции, 0 - нет, литры
 	uint16_t DrainPumpMaxPower;		// Максимальная мощность дренажного насоса после времени старта, Вт
 	uint8_t  DrainPumpStartTime;	// Время старта дренажного насоса, с
+	uint8_t  PWATER_Osmos_Delay;	// Задержка после прекращения потребления (ниже минимума) до начала работы алгоритма добавки, сек
 };
 
 //  Работа с отдельными флагами type_DateTime
@@ -531,6 +532,7 @@ public:
 	int16_t  Osmos_PWATER_LastPress;				// последнее давление, от которого идет отсчет
 	uint8_t  Osmos_PWATER_LastPress_Timer;
 	uint8_t  Osmos_PWATER_Added;					// Во время текущего расходования бака насосной станции была добавка для Осмоса, 2 = только что
+	uint8_t  Osmos_PWATER_DelayCnt;					// Счетчик задержки после прекращения потребления (ниже минимума) до начала работы алгоритма добавки
 	uint32_t RFILL_last_time_ON;					// время последнего включения реле RFILL, если 0, то RFILL -> OFF
 	uint8_t  NextRegenAfterDays;
 	uint8_t  NextRegenSoftAfterDays;

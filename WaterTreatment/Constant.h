@@ -20,8 +20,8 @@
 #include "Util.h"
 
 // ОПЦИИ КОМПИЛЯЦИИ ПРОЕКТА -------------------------------------------------------
-#define VERSION			  "1.59"			// Версия прошивки
-#define VER_SAVE		  14				// Версия формата сохраняемых данных в I2C память
+#define VERSION			  "1.60"			// Версия прошивки
+#define VER_SAVE		  15				// Версия формата сохраняемых данных в I2C память
 //#define LOG                               // В последовательный порт шлет лог веб сервера (логируются запросы)
 #define FAST_LIB                            // использование допиленной библиотеки езернета
 #define TIME_ZONE         3                 // поправка на часовой пояс по ДЕФОЛТУ
@@ -407,6 +407,7 @@ const char *option_PWATER_Osmos_Step	= {"WOS"};
 const char *option_PWATER_Osmos_TankMul	= {"OTM"};
 const char *option_PWATER_Osmos_FullDelay= {"OFD"};
 const char *option_PWATER_Osmos_FullMinus={"OFM"};
+const char *option_PWATER_Osmos_Delay	= {"OD"};
 const char *option_LTANK_Low			= {"TE"};
 const char *option_Weight_Low			= {"WE"};
 const char *option_fDebugToJournal		= {"DBG"};
