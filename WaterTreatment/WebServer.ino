@@ -33,8 +33,6 @@ extern void  get_txtJournal(uint8_t thread);
 extern void  get_datTest(uint8_t thread);
 extern void  get_indexNoSD(uint8_t thread);
 
-const char* file_types[] = {"text/html", "image/x-icon", "text/css", "application/javascript", "image/jpeg", "image/png", "image/gif", "text/plain", "text/ajax"};
-
 const char header_Authorization_1[] = "Authorization: Basic ";
 const char header_Authorization_2[] = "&&!Z";
 const char* pageUnauthorized      = {"HTTP/1.0 401 Unauthorized\r\nWWW-Authenticate: Basic real_m=Admin Zone\r\nContent-Type: text/html\r\nAccess-Control-Allow-Origin: *\r\n\r\n"};
@@ -318,31 +316,36 @@ void readFileSD(char *filename, uint8_t thread)
 		} else if(strncmp(filename, "SD:", 3) == 0) {  // TEST.SD:<filename> - Тестирует скорость чтения файла с SD карты
 			filename += 3;
 			journal.jprintfopt("SD card test: %s - ", filename);
-			sendConstRTOS(thread, HEADER_FILE_WEB);
-			SPI_switchSD();
-			if(webFile.open(filename, O_READ)) {
-				uint32_t startTick = GetTickCount();
-				uint32_t size = 0;
-				for(;;) {
-					int n = webFile.read(Socket[thread].outBuf, sizeof(Socket[thread].outBuf));
-					if(n < 0) journal.jprintfopt("Read SD error (%d,%d)!\n", card.cardErrorCode(), card.cardErrorData());
-					if(n <= 0) break;
-					size += n;
-					if(GetTickCount() - startTick > (3*W5200_TIME_WAIT/portTICK_PERIOD_MS) - 1000) break; // на секунду меньше, чем блок семафора
-					WDT_Restart(WDT);
-				}
-				startTick = GetTickCount() - startTick;
-				webFile.close();
-				journal.jprintf("read %u bytes, %u b/sec\n", size, (uint64_t)size * 1000 / startTick);
-				/*/ check write!
-				if(!webFile.open(filename, O_RDWR)) journal.jprintfopt("Error open for writing!\n");
-				else {
-					n = webFile.write("Test write!");
-					journal.jprintfopt("Wrote %d byte\n", n);
-					if(!webFile.sync()) journal.jprintfopt("Sync failed (%d,%d)\n", card.cardErrorCode(), card.cardErrorData());
+			strcpy(Socket[thread].outBuf, HEADER_FILE_WEB_1);
+			strcat(Socket[thread].outBuf, WEB_HEADER_MIME_HTML);
+			strcat(Socket[thread].outBuf, HEADER_FILE_WEB_2);
+			n = strlen(Socket[thread].outBuf);
+			if(sendBufferRTOS(thread, (byte*) (Socket[thread].outBuf), n) == n) {
+				SPI_switchSD();
+				if(webFile.open(filename, O_READ)) {
+					uint32_t startTick = GetTickCount();
+					uint32_t size = 0;
+					for(;;) {
+						int n = webFile.read(Socket[thread].outBuf, sizeof(Socket[thread].outBuf));
+						if(n < 0) journal.jprintfopt("Read SD error (%d,%d)!\n", card.cardErrorCode(), card.cardErrorData());
+						if(n <= 0) break;
+						size += n;
+						if(GetTickCount() - startTick > (3*W5200_TIME_WAIT/portTICK_PERIOD_MS) - 1000) break; // на секунду меньше, чем блок семафора
+						WDT_Restart(WDT);
+					}
+					startTick = GetTickCount() - startTick;
 					webFile.close();
+					journal.jprintf("read %u bytes, %u b/sec\n", size, (uint64_t)size * 1000 / startTick);
+					/*/ check write!
+					if(!webFile.open(filename, O_RDWR)) journal.jprintfopt("Error open for writing!\n");
+					else {
+						n = webFile.write("Test write!");
+						journal.jprintfopt("Wrote %d byte\n", n);
+						if(!webFile.sync()) journal.jprintfopt("Sync failed (%d,%d)\n", card.cardErrorCode(), card.cardErrorData());
+						webFile.close();
+					}
+					//*/
 				}
-				//*/
 			} else {
 				journal.jprintfopt("not found (%d,%d)!\n", card.cardErrorCode(), card.cardErrorData());
 			}
@@ -382,16 +385,24 @@ xFileFound:
 	#ifdef LOG
 			journal.jprintfopt("$Thread: %d socket: %d read file: %s\n",thread,Socket[thread].sock,filename);
 	#endif
-			if(strstr(filename, ".css") != NULL) sendConstRTOS(thread, HEADER_FILE_CSS); // разные заголовки
-			else sendConstRTOS(thread, HEADER_FILE_WEB);
-			SPI_switchSD();
-			while((n = webFile.read(Socket[thread].outBuf, sizeof(Socket[thread].outBuf))) > 0) {
-				if(sendBufferRTOS(thread, (byte*) (Socket[thread].outBuf), n) == 0) break;
+			strcpy(Socket[thread].outBuf, HEADER_FILE_WEB_1);
+			if(strstr(filename, ".css") != NULL) {
+				strcat(Socket[thread].outBuf, WEB_HEADER_MIME_CSS);
+			} else if(strstr(filename, ".pdf") != NULL) {
+				strcat(Socket[thread].outBuf, WEB_HEADER_MIME_PDF);
+			} else strcat(Socket[thread].outBuf, WEB_HEADER_MIME_HTML);
+			strcat(Socket[thread].outBuf, HEADER_FILE_WEB_2);
+			n = strlen(Socket[thread].outBuf);
+			if(sendBufferRTOS(thread, (byte*) (Socket[thread].outBuf), n) == n) {
 				SPI_switchSD();
-			} // while
-			if(n < 0) journal.jprintfopt("Read SD error (%d,%d)!\n", card.cardErrorCode(), card.cardErrorData());
-			SPI_switchSD();
-			webFile.close();
+				while((n = webFile.read(Socket[thread].outBuf, sizeof(Socket[thread].outBuf))) > 0) {
+					if(sendBufferRTOS(thread, (byte*) (Socket[thread].outBuf), n) == 0) break;
+					SPI_switchSD();
+				} // while
+				if(n < 0) journal.jprintfopt("Read SD error (%d,%d)!\n", card.cardErrorCode(), card.cardErrorData());
+				SPI_switchSD();
+				webFile.close();
+			}
 		}
 		break;
 	case pFLASH_WEB:
@@ -402,17 +413,20 @@ xFileFound:
 	#ifdef LOG
 				journal.jprintfopt("$Thread: %d socket: %d read file: %s\n",thread,Socket[thread].sock,filename);
 	#endif
-				if(strstr(filename, ".css") != NULL) sendConstRTOS(thread, HEADER_FILE_CSS); // разные заголовки
-				else sendConstRTOS(thread, HEADER_FILE_WEB);
-				//	SPI_switchSD();
-				while((n = ff.read(Socket[thread].outBuf, sizeof(Socket[thread].outBuf))) > 0) {
-					//SPI_switchW5200();
-					if(sendBufferRTOS(thread, (byte*) (Socket[thread].outBuf), n) == 0) break;
-					//	SPI_switchSD();
-				} // while
-				//if(n < 0) journal.jprintfopt("Read SD error (%d,%d)!\n", card.cardErrorCode(), card.cardErrorData());
-				//SPI_switchSD();
-				//webFile.close();
+				strcpy(Socket[thread].outBuf, HEADER_FILE_WEB_1);
+				if(strstr(filename, ".css") != NULL) {
+					strcat(Socket[thread].outBuf, WEB_HEADER_MIME_CSS);
+				} else if(strstr(filename, ".pdf") != NULL) {
+					strcat(Socket[thread].outBuf, WEB_HEADER_MIME_PDF);
+				} else strcat(Socket[thread].outBuf, WEB_HEADER_MIME_HTML);
+				strcat(Socket[thread].outBuf, HEADER_FILE_WEB_2);
+				n = strlen(Socket[thread].outBuf);
+				if(sendBufferRTOS(thread, (byte*) (Socket[thread].outBuf), n) == n) {
+					while((n = ff.read(Socket[thread].outBuf, sizeof(Socket[thread].outBuf))) > 0) {
+						if(sendBufferRTOS(thread, (byte*) (Socket[thread].outBuf), n) == 0) break;
+					} // while
+					//if(n < 0) journal.jprintfopt("Read SD error (%d,%d)!\n", card.cardErrorCode(), card.cardErrorData());
+				}
 			} else {
 				sendConstRTOS(thread, HEADER_FILE_NOT_FOUND);
 				uint8_t ip[4];
