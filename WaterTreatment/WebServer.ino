@@ -898,7 +898,7 @@ xSaveStats:		if((i = MC.save_WorkStats()) == OK)
 				ResetDUE_countdown = 3;
 				strcat(strReturn, "OK");
 			} else if(strncmp(str, "CNT_", 4) == 0) { // Команда RESET_CNT_*
-				str += 3;
+				str += 4;
 				if(strncmp(str, "VAR_", 4) == 0) {	// RESET_CNT_VAR_xx=n
 					str += 5;
 					*(str + 2) = '\0';
