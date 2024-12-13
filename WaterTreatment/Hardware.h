@@ -179,23 +179,28 @@ public:
   __attribute__((always_inline)) inline uint16_t get_Value(){return Value;} // Получить значение, литры в час
   __attribute__((always_inline)) inline uint16_t get_ValueReal(){return ValueReal;} // Получить реальное значение, литры в час
   __attribute__((always_inline)) inline boolean get_present(){return kfValue > 0;} // Наличие датчика в текущей конфигурации
+#ifdef SENSORS_FREQ_I2C
   uint32_t get_RawPassed(void) { return I2C_addr ? 0 : count * 10000 / kfValue; }  // Получить сырые не обработанные данные, сотые литра
+  uint8_t get_I2C_addr(void) { return I2C_addr; };
+#else
+  uint32_t get_RawPassed(void) { return count * 10000 / kfValue; }  // Получить сырые не обработанные данные, сотые литра
+  uint8_t get_I2C_addr(void) { return 0; };
+#endif
+  void set_I2C_addr(uint8_t addr);
   //__attribute__((always_inline)) inline uint32_t get_count(void) { return I2C_addr ? 0 : count; }
 //  int8_t  get_lastErr(){return err;}                     // Получить последнюю ошибку
   char*   get_note(){return note;}                       // Получить описание датчика
   char*   get_name(){return name;}                       // Получить имя датчика
   uint16_t get_testValue(){return testValue;}            // Получить Состояние датчика в режиме теста
   int8_t  set_testValue(int16_t i);                      // Установить Состояние датчика в режиме теста
-  inline uint16_t get_kfValue(){return kfValue;}         // Получить коэффициент пересчета, сотые
-  void    set_kfValue(uint16_t f) { kfValue=f; }         // Установить коэффициент пересчета
+  inline uint32_t get_kfValue(){return kfValue;}         // Получить коэффициент пересчета, сотые
+  void    set_kfValue(uint32_t f) { kfValue=f; }         // Установить коэффициент пересчета
   uint8_t get_FlowCalcPeriodValue(){return FlowCalcPeriod;}
   void    set_FlowCalcPeriodValue(uint8_t n) { FlowCalcPeriod = n; }
   int8_t set_Capacity(uint16_t c);                       // Установить теплоемкость больше 5000 не устанавливается
   inline int8_t  get_pinF(){return pin;}                 // Получить ногу куда прицеплен датчик
   uint8_t *get_save_addr(void) { return (uint8_t *)&number; } // Адрес структуры сохранения
   uint16_t get_save_size(void) { return (byte*)&I2C_addr - (byte*)&number + sizeof(I2C_addr); } // Размер структуры сохранения
-  uint8_t get_I2C_addr(void) { return I2C_addr; };
-  void set_I2C_addr(uint8_t addr);
   volatile uint32_t Passed;								 // Счетчик литров
   uint32_t PassedRest;									 // остаток счетчика
   int32_t  add_pulses100;								 // добавка при следующем чтении, *100
@@ -223,7 +228,7 @@ private:
   struct { // SAVE GROUP, number the first
       uint8_t  number;									 // номер
       uint16_t testValue;                               // !save! Состояние датчика в режиме теста
-      uint16_t kfValue; 							 	 // коэффициент пересчета частоты в значение, изменений уровня на литр, сотые
+      uint32_t kfValue; 							 	 // коэффициент пересчета частоты в значение, изменений уровня на литр, сотые
       uint8_t  FlowCalcPeriod;                          // через сколько FREQ_BASE_TIME_READ расчитывать проток
       uint8_t  I2C_addr;						     	// адрес на I2C шине, если используется для получения данных датчика, формат данных (3 байта): импульсы(0..65535),CRC8(1-Wire)
   } __attribute__((packed));// END SAVE GROUP, the last

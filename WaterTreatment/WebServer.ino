@@ -1215,6 +1215,18 @@ xSaveStats:		if((i = MC.save_WorkStats()) == OK)
 					DecodeTimeDate(ErrorsTime[i], strReturn, 3);
 					strReturn += m_snprintf(strReturn += m_strlen(strReturn), 128, "|%d|%s\n", Errors[i], noteError[abs(Errors[i])]);
 				}
+#ifdef REVERSE_OSMOS_FC
+				if(MC.WorkStats.RO_FilterCounter1 > MC.Option.RO_FilterCounter1_Max) {
+					strReturn += m_snprintf(strReturn += m_strlen(strReturn), 128, "-|%dл|%s ", REVERSE_OSMOS_STR, MC.WorkStats.RO_FilterCounter1 * 100);
+					strcat(strReturn, REVERSE_OSMOS_F1_END_STR);
+					strcat(strReturn, REVERSE_OSMOS_STR_END);
+				}
+				if(MC.WorkStats.RO_FilterCounter2 > MC.Option.RO_FilterCounter2_Max) {
+					strReturn += m_snprintf(strReturn += m_strlen(strReturn), 128, "-|%dл|%s ", REVERSE_OSMOS_STR, MC.WorkStats.RO_FilterCounter2 * 100);
+					strcat(strReturn, REVERSE_OSMOS_F2_END_STR);
+					strcat(strReturn, REVERSE_OSMOS_STR_END);
+				}
+#endif
 				if(MC.WorkStats.FilterCounter1 > MC.Option.FilterCounter1_Max) strReturn += m_snprintf(strReturn += m_strlen(strReturn), 128, "-|%dл|Выработан ресурс фильтра %c\n", MC.WorkStats.FilterCounter1 * 100, '1');
 				if(MC.WorkStats.FilterCounter2 > MC.Option.FilterCounter2_Max) strReturn += m_snprintf(strReturn += m_strlen(strReturn), 128, "-|%dл|Выработан ресурс фильтра %c\n", MC.WorkStats.FilterCounter1 * 100, '2');
 			} else goto x_FunctionNotFound;

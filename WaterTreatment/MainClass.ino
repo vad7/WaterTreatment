@@ -19,6 +19,7 @@
 /* structsize
   char checker(int);
   char checkSizeOfInt1[sizeof(MC.Option)]={checker(&checkSizeOfInt1)};
+  char checkSizeOfInt1[sizeof(MC.WorkStats)]={checker(&checkSizeOfInt1)};
 //*/
 
 // Установка критической ошибки для класса  вызывает останов 
@@ -524,7 +525,7 @@ xNotEqual:
 	return OK;
 }
 
-// чтение счетчиков в ЕЕПРОМ
+// чтение счетчиков из ЕЕПРОМ
 int8_t MainClass::load_WorkStats()
 {
 	if(readEEPROM_I2C(I2C_COUNT_EEPROM, &WorkStats.Header, sizeof(WorkStats.Header))) { // прочитать заголовок

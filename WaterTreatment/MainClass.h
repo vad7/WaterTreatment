@@ -50,6 +50,8 @@ struct type_WorkStats {
 	uint8_t  UsedDrainSiltL100;		// How many L * 100 remain before draining silt.
 	uint16_t FilterCounter1;		// * 100L
 	uint16_t FilterCounter2;		// * 100L
+	uint16_t RO_FilterCounter1;		// * 100L
+	uint16_t RO_FilterCounter2;		// * 100L
 } __attribute__((packed));
 
 #define WS_F_StartRegen				0x01	// Запланирована регенерация обезжелезивателя вручную
@@ -283,6 +285,8 @@ struct type_option {
 	uint16_t DrainPumpMaxPower;		// Максимальная мощность дренажного насоса после времени старта, Вт
 	uint8_t  DrainPumpStartTime;	// Время старта дренажного насоса, с
 	uint8_t  PWATER_Osmos_Delay;	// Задержка после прекращения потребления (ниже минимума) до начала работы алгоритма добавки, сек
+	uint16_t RO_FilterCounter1_Max;	// Предел для фильтров обратного осмоса #1, *100л
+	uint16_t RO_FilterCounter2_Max;	// Предел для фильтров обратного осмоса #2, *100л
 };
 
 //  Работа с отдельными флагами type_DateTime

@@ -431,9 +431,13 @@ void sensorFrequency::reset(void)
 
 void sensorFrequency::set_I2C_addr(uint8_t addr)
 {
+#ifdef SENSORS_FREQ_I2C
 	//if(addr != I2C_addr) {
 		I2C_addr = addr;
 	//}
+#else
+		I2C_addr = addr * 0;
+#endif
 }
 
 // Получить (точнее обновить) значение датчика, возвращает 1, если был проток
@@ -446,6 +450,7 @@ bool sensorFrequency::Read(void)
 #ifdef SENSORS_FREQ_I2C
 		if(I2C_addr) { // Используется I2C
 			count = 0;
+
 			err = Second_I2C_Read(I2C_addr, 2, (uint8_t *)&count);
 			if(err) {
 				errNum++;

@@ -530,26 +530,6 @@ struct History_setup {
 	#define P_NUMSAMLES					1		// Число значений для усреднения показаний давления
 	#define ADC_FREQ					10		// период опроса аналоговых датчиков в секунду
 
-	#define LEAKAGE_TANK_RESTART_TIME	65534	// Проверка бака на утечку, для ошибки - уменьшения уровня бака на TankLeakagePercent должен произойти раньше, чем это время (65535 - выкл), сек
-	#define FILLING_TANK_STEP			200		// По умолчанию или если TankCheckPercent=0, сотые %, На сколько должен заполняться бак за время Option.FillingTankTimeout (2% - 40s, 3% - 60s)
-	#define FILLING_TANK_LOW_CONSUME_TIME 300   // время заполнения бака в режиме работы от резерва, сек
-	#define FILL_TANK_REGEN_DELTA		300		// сотые %, дельта минимального уровня бака от максимума для заполнения его во время обратной промывки
-	#define DRAIN_SILT_AFTER_REGEN		1		// *100L, слив осадка после регенерации через литров (сброс счетчика на)
-
-	#define DELAY_AFTER_SWITCH_RELAY	250		// Задержка после переключения реле, для сглаживания потребления и уменьшения помех(мс)
-	#define START_REGEN_WAIT_TIME		300		// Сколько ждать начало регенерации, если больше - ошибка, сек
-	#define ONLY_ONE_REGEN_AT_TIME				// Только один фильтр может регенерироваться в одно и тоже время
-	#define NOT_CITICAL_ALARM_HOUR		10		// Час не критичных тревог
-	#define PWATER_OSMOS_BoosterMax_START 800	// Стартовый максимальный объем бака для расчета добавки при низком расходе, сотые литра
-	#define PWATER_OSMOS_MIN_DELTA		4		// минимальная разница между показаниями давления для добавки, сотые бара
-	#define PWATER_OSMOS_LASTPRESS_RENEW 30		// через сколько времени обновлять LastPress, если меньше дельты, секунды (0..255)
-	#define BOOSTERMAX_HIST_MAX			10		// Размер выборки для рассчета емкости бака насосной станции для корректировки при нулевом расходе
-	#define FEEDPUMP_MAX_WORK_TIME_ERR  (15*60*1000)	// Максимальное время непрерывного работы дозатора для ошибки, мс
-	#define USED_WATER_CONTINUOUS_MINTIME 10	// Минимальный квант времени для контроля непрерывного потребления (делитель (60000/TIME_READ_SENSOR) без остатка), сек
-	#define PIN_LED_SRV_INFO_NEXT_REGEN_PULSE 70UL // Длительность вспышки светодиода при запланированной регенерации
-	#define PIN_LED_SRV_INFO_NEXT_REGEN_PAUSE 3500UL // Длительность паузы светодиода при запланированной регенерации
-	#define PIN_LED_SRV_INFO_NEXT_REGEN_BEGIN_HOUR 21 // Начальный час мигания
-
 	#define CHART_POINT					500		// Максимальное число точек графика, одна точка это 2 байта * число графиков
 	// Статистика по дням
 	#define STATS_ID_Temp	TAIR
@@ -586,6 +566,32 @@ struct History_setup {
 			{ STATS_OBJ_WaterBoosterLiters, 0, "Гидроаккумулятор, л" },
 			{ STATS_OBJ_Power, 1, "Дренажный насос, кВт" },
 	};
+
+	#define LEAKAGE_TANK_RESTART_TIME	65534	// Проверка бака на утечку, для ошибки - уменьшения уровня бака на TankLeakagePercent должен произойти раньше, чем это время (65535 - выкл), сек
+	#define FILLING_TANK_STEP			200		// По умолчанию или если TankCheckPercent=0, сотые %, На сколько должен заполняться бак за время Option.FillingTankTimeout (2% - 40s, 3% - 60s)
+	#define FILLING_TANK_LOW_CONSUME_TIME 300   // время заполнения бака в режиме работы от резерва, сек
+	#define FILL_TANK_REGEN_DELTA		300		// сотые %, дельта минимального уровня бака от максимума для заполнения его во время обратной промывки
+	#define DRAIN_SILT_AFTER_REGEN		1		// *100L, слив осадка после регенерации через литров (сброс счетчика на)
+
+	#define DELAY_AFTER_SWITCH_RELAY	250		// Задержка после переключения реле, для сглаживания потребления и уменьшения помех(мс)
+	#define START_REGEN_WAIT_TIME		300		// Сколько ждать начало регенерации, если больше - ошибка, сек
+	#define ONLY_ONE_REGEN_AT_TIME				// Только один фильтр может регенерироваться в одно и тоже время
+	#define NOT_CITICAL_ALARM_HOUR		10		// Час не критичных тревог
+	#define PWATER_OSMOS_BoosterMax_START 800	// Стартовый максимальный объем бака для расчета добавки при низком расходе, сотые литра
+	#define PWATER_OSMOS_MIN_DELTA		4		// минимальная разница между показаниями давления для добавки, сотые бара
+	#define PWATER_OSMOS_LASTPRESS_RENEW 30		// через сколько времени обновлять LastPress, если меньше дельты, секунды (0..255)
+	#define BOOSTERMAX_HIST_MAX			10		// Размер выборки для рассчета емкости бака насосной станции для корректировки при нулевом расходе
+	#define FEEDPUMP_MAX_WORK_TIME_ERR  (15*60*1000)	// Максимальное время непрерывного работы дозатора для ошибки, мс
+	#define USED_WATER_CONTINUOUS_MINTIME 10	// Минимальный квант времени для контроля непрерывного потребления (делитель (60000/TIME_READ_SENSOR) без остатка), сек
+	#define PIN_LED_SRV_INFO_NEXT_REGEN_PULSE 70UL // Длительность вспышки светодиода при запланированной регенерации
+	#define PIN_LED_SRV_INFO_NEXT_REGEN_PAUSE 3500UL // Длительность паузы светодиода при запланированной регенерации
+	#define PIN_LED_SRV_INFO_NEXT_REGEN_BEGIN_HOUR 21 // Начальный час мигания
+
+	#define REVERSE_OSMOS_FC			F_RO	// Используется доп. счетчик для питевого фильтра обратного осмоса
+	#define	REVERSE_OSMOS_STR			"Питьевой фильтр - пора заменить"
+	#define	REVERSE_OSMOS_F1_END_STR	"предварительные (K3,K2)"	// Название фильтров #1 для сообщения, когда их ресурс закончится
+	#define	REVERSE_OSMOS_F2_END_STR	"пост (K7)"					// Название фильтров #2 для сообщения, когда их ресурс закончится
+	#define	REVERSE_OSMOS_STR_END		" фильтр(а)"
 
 
 
