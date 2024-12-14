@@ -913,12 +913,6 @@ xSaveStats:		if((i = MC.save_WorkStats()) == OK)
 							MC.WorkStats.UsedAverageDayNum = l_i32;
 						}
 					}
-				} else if(strcmp(str, "FC1") == 0) {	// RESET_CNT_FC1
-					MC.WorkStats.FilterCounter1 = 0;
-					NeedSaveWorkStats = 1;
-				} else if(strcmp(str, "FC2") == 0) {	// RESET_CNT_FC2
-					MC.WorkStats.FilterCounter2 = 0;
-					NeedSaveWorkStats = 1;
 				} else if(strcmp(str, "ALL") == 0) {	// RESET_CNT_ALL
 					journal.jprintf("Clear All Counters!\n");
 					//strcat(strReturn,"Сброс счетчиков ");
@@ -928,6 +922,30 @@ xSaveStats:		if((i = MC.save_WorkStats()) == OK)
 					update_RTC_store_memory();
 					MC.resetCount();  // Полный сброс
 					strcat(strReturn, "OK");
+				} else if(strncmp(str, "FC", 2) == 0) {
+					str += 2;
+					if(strcmp(str, "RO1")) {	// RESET_CNT_FCO1
+						l_i32 = MC.WorkStats.RO_FilterCounter1 * 10;
+						MC.WorkStats.RO_FilterCounter1 = 0;
+						MC.Option.RO_FilterCountersResetTime[0] = rtcSAM3X8.unixtime();
+					} else if(strcmp(str, "RO2")) {	// RESET_CNT_FCO2
+						l_i32 = MC.WorkStats.RO_FilterCounter2 * 10;
+						MC.WorkStats.RO_FilterCounter2 = 0;
+						MC.Option.RO_FilterCountersResetTime[1] = rtcSAM3X8.unixtime();
+					} else if(strcmp(str, "1")) {	// RESET_CNT_FC1
+						l_i32 = MC.WorkStats.FilterCounter1;
+						MC.WorkStats.FilterCounter1 = 0;
+						MC.Option.FilterCountersResetTime[0] = rtcSAM3X8.unixtime();
+					} else if(strcmp(str, "2") == 0) {	// RESET_CNT_FC2
+						l_i32 = MC.WorkStats.FilterCounter2;
+						MC.WorkStats.FilterCounter2 = 0;
+						MC.Option.FilterCountersResetTime[1] = rtcSAM3X8.unixtime();
+					} else {
+						ADD_WEBDELIM(strReturn); continue;
+					}
+
+					NeedSaveWorkStats = 1;
+					journal.jprintf_date("RESET FILTER CNT: %s at %dL\n", str);
 				}
 			} else if (strcmp(str,"SETTINGS")==0) // RESET_SETTINGS, Команда сброса настроек
 			{
@@ -1125,12 +1143,20 @@ xSaveStats:		if((i = MC.save_WorkStats()) == OK)
 
 				strcat(strReturn,"<b> Глобальные счетчики</b>|;");
 				strcat(strReturn,"Время сброса|"); DecodeTimeDate(MC.WorkStats.ResetTime, strReturn, 3); strcat(strReturn,";");
-				strcat(strReturn,"Счетчик фильтра 1, л|"); _itoa(MC.WorkStats.FilterCounter1 * 100, strReturn);
+				strcat(strReturn,"Счетчик фильтра 1 с "); DecodeTimeDate(MC.Option.FilterCountersResetTime[0], strReturn, 3); strcat(strReturn, ", л|"); _itoa(MC.WorkStats.FilterCounter1 * 100, strReturn);
 				if(MC.WorkStats.FilterCounter1 > MC.Option.FilterCounter1_Max) strcat(strReturn," - превышен!");
 				strcat(strReturn,";");
-				strcat(strReturn,"Счетчик фильтра 2, л|"); _itoa(MC.WorkStats.FilterCounter2 * 100, strReturn);
+				strcat(strReturn,"Счетчик фильтра 2 с "); DecodeTimeDate(MC.Option.FilterCountersResetTime[1], strReturn, 3); strcat(strReturn, ", л|"); _itoa(MC.WorkStats.FilterCounter2 * 100, strReturn);
 				if(MC.WorkStats.FilterCounter2 > MC.Option.FilterCounter2_Max) strcat(strReturn," - превышен!");
 				strcat(strReturn,";");
+#ifdef REVERSE_OSMOS_FC
+				strcat(strReturn,"Счетчик фильтра(ов) "); strcat(strReturn,REVERSE_OSMOS_F1_END_STR); strcat(strReturn," с "); DecodeTimeDate(MC.Option.RO_FilterCountersResetTime[0], strReturn, 3); strcat(strReturn, ", л|"); _itoa(MC.WorkStats.RO_FilterCounter1 * 10, strReturn);
+				if(MC.WorkStats.RO_FilterCounter1 > MC.Option.RO_FilterCounter1_Max) strcat(strReturn," - превышен!");
+				strcat(strReturn,";");
+				strcat(strReturn,"Счетчик фильтра(ов) "); strcat(strReturn,REVERSE_OSMOS_F2_END_STR); strcat(strReturn," с "); DecodeTimeDate(MC.Option.RO_FilterCountersResetTime[1], strReturn, 3); strcat(strReturn, ", л|"); _itoa(MC.WorkStats.RO_FilterCounter2 * 10, strReturn);
+				if(MC.WorkStats.RO_FilterCounter2 > MC.Option.RO_FilterCounter2_Max) strcat(strReturn," - превышен!");
+				strcat(strReturn,";");
+#endif
 				STORE_DEBUG_INFO(48);
 				strcat(strReturn,"<b> Статистика за день</b>|;");
 				strReturn += strlen(strReturn);
@@ -1217,12 +1243,12 @@ xSaveStats:		if((i = MC.save_WorkStats()) == OK)
 				}
 #ifdef REVERSE_OSMOS_FC
 				if(MC.WorkStats.RO_FilterCounter1 > MC.Option.RO_FilterCounter1_Max) {
-					strReturn += m_snprintf(strReturn += m_strlen(strReturn), 128, "-|%dл|%s ", REVERSE_OSMOS_STR, MC.WorkStats.RO_FilterCounter1 * 100);
+					strReturn += m_snprintf(strReturn += m_strlen(strReturn), 128, "-|%dл|%s ", REVERSE_OSMOS_STR, MC.WorkStats.RO_FilterCounter1 * 10);
 					strcat(strReturn, REVERSE_OSMOS_F1_END_STR);
 					strcat(strReturn, REVERSE_OSMOS_STR_END);
 				}
 				if(MC.WorkStats.RO_FilterCounter2 > MC.Option.RO_FilterCounter2_Max) {
-					strReturn += m_snprintf(strReturn += m_strlen(strReturn), 128, "-|%dл|%s ", REVERSE_OSMOS_STR, MC.WorkStats.RO_FilterCounter2 * 100);
+					strReturn += m_snprintf(strReturn += m_strlen(strReturn), 128, "-|%dл|%s ", REVERSE_OSMOS_STR, MC.WorkStats.RO_FilterCounter2 * 10);
 					strcat(strReturn, REVERSE_OSMOS_F2_END_STR);
 					strcat(strReturn, REVERSE_OSMOS_STR_END);
 				}

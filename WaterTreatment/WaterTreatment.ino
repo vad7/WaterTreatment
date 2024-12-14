@@ -1328,12 +1328,42 @@ void vReadSensor(void *)
 
 		// read in vPumps():
 		//for(i = 0; i < INUMBER; i++) MC.sInput[i].Read();                // Прочитать данные сухой контакт
+#ifdef REVERSE_OSMOS_FC
+	#if FNUMBER > 2
+		for(i = FLOW + 2; i < FNUMBER; i++) MC.sFrequency[i].Read();		// Получить значения датчиков потока, кроме FLOW
+	#endif
+		uint32_t RO_passed = 0;
+		if(MC.sFrequency[REVERSE_OSMOS_FC].Read()) {
+			{
+				RO_passed = MC.sFrequency[REVERSE_OSMOS_FC].Passed;
+				MC.sFrequency[REVERSE_OSMOS_FC].Passed = 0;
+			}
+			if(RO_passed) {
+				ROPassed10Count += RO_passed;
+				if(ROPassed10Count >= 10) {
+					ROPassed10Count = 0;
+					if(MC.Option.RO_FilterCounter1_Max) MC.WorkStats.RO_FilterCounter1++;
+					if(MC.Option.RO_FilterCounter2_Max) MC.WorkStats.RO_FilterCounter2++;
+				}
+				NeedSaveRTC |= (1<<bRTC_UsedToday);
+			}
+		}
+#else
+	#if FNUMBER > 1
 		for(i = FLOW + 1; i < FNUMBER; i++) MC.sFrequency[i].Read();		// Получить значения датчиков потока, кроме FLOW
+	#endif
+#endif
 		// Add to FLOW
 		int32_t add_to_flow = 0;
 		int16_t pw = MC.sADC[PWATER].get_Value();
 		if(MC.sFrequency[FLOW].WebCorrectCnt > 1) MC.sFrequency[FLOW].WebCorrectCnt--;	// 1 sec
 		if(MC.sFrequency[FLOW].get_ValueReal() <= MC.Option.FlowIncByPress_MinFlow) {
+#ifdef REVERSE_OSMOS_FC
+			if(MC.sFrequency[REVERSE_OSMOS_FC].get_Value()) {
+				add_to_flow = RO_passed * MC.sFrequency[FLOW].get_kfValue() * 100;
+				MC.Osmos_PWATER_DelayCnt = 0;
+			}
+#endif
 			if(MC.Osmos_PWATER_DelayCnt < MC.Option.PWATER_Osmos_Delay) {
 				MC.Osmos_PWATER_DelayCnt++;
 			} else {
