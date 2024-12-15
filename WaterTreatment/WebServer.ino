@@ -763,6 +763,8 @@ xSaveStats:		if((i = MC.save_WorkStats()) == OK)
 			}
 			str += 6;
 			if(strcmp(str, webWS_UsedToday) == 0) _itoa(MC.RTC_store.UsedToday, strReturn); // get_WSUD
+			else if(strcmp(str, webWS_RO_UsedToday) == 0) _itoa(RO_UsedToday, strReturn); // get_WSOD
+			else if(strcmp(str, webWS_RO_UsedTotal) == 0) _itoa(MC.WorkStats.RO_UsedTotal, strReturn); // get_WSOT
 			else if(strcmp(str, webWS_UsedYesterday) == 0) _itoa(MC.WorkStats.UsedYesterday, strReturn); // get_WSUY
 			else if(strcmp(str, webWS_LastDrain) == 0) {
 				if(MC.WorkStats.LastDrain) TimeIntervalToStr(rtcSAM3X8.unixtime() - MC.WorkStats.LastDrain, strReturn, 0); else strcat(strReturn, "-"); // get_WSDD
@@ -1920,8 +1922,13 @@ x_get_GADC:						i = MC.sADC[p].get_ADC_Gain();
 							if(strncmp(str, "Flow", 4)==0)           // Функция get_Flow
 							{
 								if (MC.sFrequency[p].get_present()) {         // Если датчик есть в конфигурации то выводим значение
-									_dtoa(strReturn, MC.sFrequency[p].get_Value(), 3);
-									if(MC.sFrequency[p].WebCorrectCnt > 1) strcat(strReturn, "+");	// Информация о корректировки
+#ifdef REVERSE_OSMOS_FC
+									if(p == REVERSE_OSMOS_FC) _itoa(MC.sFrequency[REVERSE_OSMOS_FC].get_Value() * 1000, strReturn);	// лч
+#endif
+									{
+										_dtoa(strReturn, MC.sFrequency[p].get_Value(), 3);
+										if(MC.sFrequency[p].WebCorrectCnt > 1) strcat(strReturn, "+");	// Информация о корректировки
+									}
 								} else strcat(strReturn,"-");               // Датчика нет ставим прочерк
 								ADD_WEBDELIM(strReturn); continue;
 							}

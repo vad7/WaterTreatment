@@ -464,6 +464,8 @@ const char prof_DailySwitchOff 	= 'E';			// DSE
 
 // WorkStats, get_WS..., set_WS...(x)
 const char *webWS_UsedToday 					= { "UD" };
+const char *webWS_RO_UsedToday 					= { "OD" };
+const char *webWS_RO_UsedTotal 					= { "OT" };
 const char *webWS_UsedYesterday 				= { "UY" };
 const char *webWS_LastDrain		 		 		= { "DD" };
 const char *webWS_RegCnt  						= { "RC" };

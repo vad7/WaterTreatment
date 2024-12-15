@@ -50,6 +50,7 @@ struct type_WorkStats {
 	uint8_t  UsedDrainSiltL100;		// How many L * 100 remain before draining silt.
 	uint16_t FilterCounter1;		// * 100L
 	uint16_t FilterCounter2;		// * 100L
+	uint32_t RO_UsedTotal;			// L
 	uint16_t RO_FilterCounter1;		// * 10L
 	uint16_t RO_FilterCounter2;		// * 10L
 } __attribute__((packed));
@@ -143,7 +144,8 @@ int32_t  AfterFilledTimer = 0; // Время после отключения р�
 uint32_t Request_LowConsume;
 uint32_t RegenStarted = 0;
 uint8_t  Passed100Count = 0;	// L
-uint8_t  ROPassed10Count = 0;	// L
+uint8_t  RO_Passed10Count = 0;	// L
+uint32_t RO_UsedToday = 0; 		// L
 uint8_t  DrainingSiltFlag = 0;	// 0 - нет/ожидание, 1 - идет слив, 2..255 - закрываемся и ожидаем (сек)
 uint16_t DrainingSiltNowTimer = 0;
 uint8_t  UsedWaterContinuousCntUsed = 0;

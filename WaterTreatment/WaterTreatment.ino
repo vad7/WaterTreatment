@@ -1339,13 +1339,14 @@ void vReadSensor(void *)
 				MC.sFrequency[REVERSE_OSMOS_FC].Passed = 0;
 			}
 			if(RO_passed) {
-				ROPassed10Count += RO_passed;
-				if(ROPassed10Count >= 10) {
-					ROPassed10Count = 0;
+				RO_Passed10Count += RO_passed;
+				if(RO_Passed10Count >= 10) {
+					RO_Passed10Count = 0;
 					if(MC.Option.RO_FilterCounter1_Max) MC.WorkStats.RO_FilterCounter1++;
 					if(MC.Option.RO_FilterCounter2_Max) MC.WorkStats.RO_FilterCounter2++;
 				}
-				NeedSaveRTC |= (1<<bRTC_UsedToday);
+				MC.WorkStats.RO_UsedTotal += RO_passed;
+				RO_UsedToday += RO_passed;
 			}
 		}
 #else
@@ -1526,6 +1527,7 @@ void vReadSensor(void *)
 			MC.RTC_store.Work = (MC.RTC_store.Work & ~RTC_Work_WeekDay_MASK) | rtcSAM3X8.get_day_of_week();
 			uint32_t ut = MC.RTC_store.UsedToday;
 			MC.RTC_store.UsedToday = 0;
+			RO_UsedToday = 0;
 			MC.WorkStats.DaysFromLastRegen++;
 			MC.WorkStats.DaysFromLastRegenSoftening++;
 			MC.WorkStats.UsedYesterday = ut;
