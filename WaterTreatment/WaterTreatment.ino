@@ -1354,7 +1354,7 @@ void vReadSensor(void *)
 		for(i = FLOW + 1; i < FNUMBER; i++) MC.sFrequency[i].Read();		// Получить значения датчиков потока, кроме FLOW
 	#endif
 #endif
-		// Add to FLOW
+		// Add to FLOW, = pulses * 100
 		int32_t add_to_flow = 0;
 		int16_t pw = MC.sADC[PWATER].get_Value();
 		if(MC.sFrequency[FLOW].WebCorrectCnt > 1) MC.sFrequency[FLOW].WebCorrectCnt--;	// 1 sec
@@ -1363,7 +1363,7 @@ void vReadSensor(void *)
 			if(MC.sFrequency[REVERSE_OSMOS_FC].get_Value()) {
 				add_to_flow = RO_passed * MC.sFrequency[FLOW].get_kfValue() * 100;
 				MC.Osmos_PWATER_DelayCnt = 0;
-			}
+			} else
 #endif
 			if(MC.Osmos_PWATER_DelayCnt < MC.Option.PWATER_Osmos_Delay) {
 				MC.Osmos_PWATER_DelayCnt++;
