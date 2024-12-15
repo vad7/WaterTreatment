@@ -764,8 +764,10 @@ xSaveStats:		if((i = MC.save_WorkStats()) == OK)
 			str += 6;
 			if(strcmp(str, webWS_UsedToday) == 0) _itoa(MC.RTC_store.UsedToday, strReturn); // get_WSUD
 			else if(strcmp(str, webWS_RO_UsedToday) == 0) _itoa(RO_UsedToday, strReturn); // get_WSOD
-			else if(strcmp(str, webWS_RO_UsedTotal) == 0) _itoa(MC.WorkStats.RO_UsedTotal, strReturn); // get_WSOT
-			else if(strcmp(str, webWS_UsedYesterday) == 0) _itoa(MC.WorkStats.UsedYesterday, strReturn); // get_WSUY
+			else if(strcmp(str, webWS_RO_UsedTotal) == 0) { // get_WSOT
+				if(i) MC.WorkStats.RO_UsedTotal = l_i32;
+				_itoa(MC.WorkStats.RO_UsedTotal, strReturn);
+			} else if(strcmp(str, webWS_UsedYesterday) == 0) _itoa(MC.WorkStats.UsedYesterday, strReturn); // get_WSUY
 			else if(strcmp(str, webWS_LastDrain) == 0) {
 				if(MC.WorkStats.LastDrain) TimeIntervalToStr(rtcSAM3X8.unixtime() - MC.WorkStats.LastDrain, strReturn, 0); else strcat(strReturn, "-"); // get_WSDD
 			} else if(strcmp(str, webWS_RegCnt) == 0) {  // get_WSRC
@@ -926,11 +928,11 @@ xSaveStats:		if((i = MC.save_WorkStats()) == OK)
 					strcat(strReturn, "OK");
 				} else if(strncmp(str, "FC", 2) == 0) {
 					str += 2;
-					if(strcmp(str, "RO1")) {	// RESET_CNT_FCO1
+					if(strcmp(str, "RO1")) {	// RESET_CNT_FCRO1
 						l_i32 = MC.WorkStats.RO_FilterCounter1 * 10;
 						MC.WorkStats.RO_FilterCounter1 = 0;
 						MC.Option.RO_FilterCountersResetTime[0] = rtcSAM3X8.unixtime();
-					} else if(strcmp(str, "RO2")) {	// RESET_CNT_FCO2
+					} else if(strcmp(str, "RO2")) {	// RESET_CNT_FCRO2
 						l_i32 = MC.WorkStats.RO_FilterCounter2 * 10;
 						MC.WorkStats.RO_FilterCounter2 = 0;
 						MC.Option.RO_FilterCountersResetTime[1] = rtcSAM3X8.unixtime();
@@ -1245,14 +1247,16 @@ xSaveStats:		if((i = MC.save_WorkStats()) == OK)
 				}
 #ifdef REVERSE_OSMOS_FC
 				if(MC.WorkStats.RO_FilterCounter1 > MC.Option.RO_FilterCounter1_Max) {
-					strReturn += m_snprintf(strReturn += m_strlen(strReturn), 128, "-|%dл|%s ", REVERSE_OSMOS_STR, MC.WorkStats.RO_FilterCounter1 * 10);
+					strReturn += m_snprintf(strReturn += m_strlen(strReturn), 128, "-|%dл|%s ", MC.WorkStats.RO_FilterCounter1 * 10, REVERSE_OSMOS_STR);
 					strcat(strReturn, REVERSE_OSMOS_F1_END_STR);
 					strcat(strReturn, REVERSE_OSMOS_STR_END);
+					strcat(strReturn, "\n");
 				}
 				if(MC.WorkStats.RO_FilterCounter2 > MC.Option.RO_FilterCounter2_Max) {
-					strReturn += m_snprintf(strReturn += m_strlen(strReturn), 128, "-|%dл|%s ", REVERSE_OSMOS_STR, MC.WorkStats.RO_FilterCounter2 * 10);
+					strReturn += m_snprintf(strReturn += m_strlen(strReturn), 128, "-|%dл|%s ", MC.WorkStats.RO_FilterCounter2 * 10, REVERSE_OSMOS_STR);
 					strcat(strReturn, REVERSE_OSMOS_F2_END_STR);
 					strcat(strReturn, REVERSE_OSMOS_STR_END);
+					strcat(strReturn, "\n");
 				}
 #endif
 				if(MC.WorkStats.FilterCounter1 > MC.Option.FilterCounter1_Max) strReturn += m_snprintf(strReturn += m_strlen(strReturn), 128, "-|%dл|Выработан ресурс фильтра %c\n", MC.WorkStats.FilterCounter1 * 100, '1');
@@ -1924,6 +1928,7 @@ x_get_GADC:						i = MC.sADC[p].get_ADC_Gain();
 								if (MC.sFrequency[p].get_present()) {         // Если датчик есть в конфигурации то выводим значение
 #ifdef REVERSE_OSMOS_FC
 									if(p == REVERSE_OSMOS_FC) _itoa(MC.sFrequency[REVERSE_OSMOS_FC].get_Value() * 1000, strReturn);	// лч
+									else
 #endif
 									{
 										_dtoa(strReturn, MC.sFrequency[p].get_Value(), 3);

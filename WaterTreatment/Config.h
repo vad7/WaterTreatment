@@ -590,7 +590,7 @@ struct History_setup {
 	#define PIN_LED_SRV_INFO_NEXT_REGEN_BEGIN_HOUR 21 // Начальный час мигания
 
 	#define REVERSE_OSMOS_FC			F_RO	// Используется доп. счетчик для питевого фильтра обратного осмоса
-	#define	REVERSE_OSMOS_STR			"Питьевой фильтр - пора заменить"
+	#define	REVERSE_OSMOS_STR			"Питьевой фильтр - пора заменить "
 	#define	REVERSE_OSMOS_F1_END_STR	"предварительные (K3,K2)"	// Название фильтров #1 для сообщения, когда их ресурс закончится
 	#define	REVERSE_OSMOS_F2_END_STR	"пост (K7)"					// Название фильтров #2 для сообщения, когда их ресурс закончится
 	#define	REVERSE_OSMOS_STR_END		" фильтр(а)"
