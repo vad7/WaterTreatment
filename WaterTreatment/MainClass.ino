@@ -975,6 +975,10 @@ boolean MainClass::set_option(char *var, float xx)
    if(strcmp(var,option_UsedWaterContinuous)==0){ Option.UsedWaterContinuous = x; UsedWaterContinuousTimerMax = 0; return true; } else
    if(strcmp(var,option_FilterCounter1_Max)==0){ Option.FilterCounter1_Max = x / 100; return true; } else
    if(strcmp(var,option_FilterCounter2_Max)==0){ Option.FilterCounter2_Max = x / 100; return true; } else
+#ifdef REVERSE_OSMOS_FC
+   if(strcmp(var,option_RO_FilterCounter1_Max)==0){ Option.RO_FilterCounter1_Max = x / 10; return true; } else
+   if(strcmp(var,option_RO_FilterCounter2_Max)==0){ Option.RO_FilterCounter2_Max = x / 10; return true; } else
+#endif
    if(strcmp(var,option_DrainPumpMaxTime)==0){ Option.DrainPumpMaxTime = x / 30; return true; } else
    if(strcmp(var,option_DrainPumpMinPower)==0){ Option.DrainPumpMinPower = x / 10; return true; } else
    if(strcmp(var,option_DrainPumpMaxPower)==0){ Option.DrainPumpMaxPower = x; return true; } else
@@ -1087,17 +1091,26 @@ char* MainClass::get_option(char *var, char *ret)
 	if(strcmp(var,option_RFILL_HoursRepeatPulse)==0){ return _itoa(Option.RFILL_HoursRepeatPulse, ret); } else
 	if(strcmp(var,option_GetCurrentSaltLevel)==0){ return _itoa(MC.WorkStats.RegenSofteningCntAlarm * 100L / Option.RegenSofteningCntAlarm, ret); } else
 	if(strcmp(var,option_DrainSiltTime)==0){ return _itoa(Option.DrainSiltTime * 10, ret); } else
-	if(strcmp(var,option_DrainSiltAfterL100)==0){ _itoa(Option.DrainSiltAfterL100 * 100, ret); } else
-	if(strcmp(var,option_DrainSiltAfterNotUsed)==0){ _itoa(Option.DrainSiltAfterNotUsed, ret); } else
+	if(strcmp(var,option_DrainSiltAfterL100)==0){ return _itoa(Option.DrainSiltAfterL100 * 100, ret); } else
+	if(strcmp(var,option_DrainSiltAfterNotUsed)==0){ return _itoa(Option.DrainSiltAfterNotUsed, ret); } else
 	if(strcmp(var,option_fDrainSiltTank)==0){ return strcat(ret, (char*)(GETBIT(Option.flags2, fDrainSiltTank) ? cOne : cZero)); } else
 	if(strcmp(var,option_fDrainSiltTankBeforeRegen)==0){ return strcat(ret, (char*)(GETBIT(Option.flags2, fDrainSiltTankBeforeRegen) ? cOne : cZero)); } else
-	if(strcmp(var,option_UsedWaterContinuous)==0){ _itoa(Option.UsedWaterContinuous, ret); } else
-	if(strcmp(var,option_FilterCounter1_Max)==0){ _itoa(Option.FilterCounter1_Max * 100, ret); } else
-	if(strcmp(var,option_FilterCounter2_Max)==0){ _itoa(Option.FilterCounter2_Max * 100, ret); } else
-	if(strcmp(var,option_DrainPumpMaxTime)==0){ _itoa(Option.DrainPumpMaxTime * 30, ret); } else
-	if(strcmp(var,option_DrainPumpMinPower)==0){ _itoa(Option.DrainPumpMinPower * 10, ret); } else
-	if(strcmp(var,option_DrainPumpMaxPower)==0){ _itoa(Option.DrainPumpMaxPower, ret); } else
-	if(strcmp(var,option_DrainPumpStartTime)==0){ _itoa(Option.DrainPumpStartTime, ret); } else
+	if(strcmp(var,option_UsedWaterContinuous)==0){ return _itoa(Option.UsedWaterContinuous, ret); } else
+	if(strcmp(var,option_FilterCounter1_Max)==0){ return _itoa(Option.FilterCounter1_Max * 100, ret); } else
+	if(strcmp(var,option_FilterCounter2_Max)==0){ return _itoa(Option.FilterCounter2_Max * 100, ret); } else
+#ifdef REVERSE_OSMOS_FC
+	if(strcmp(var,option_RO_FilterCounter1_Max)==0){ return _itoa(Option.RO_FilterCounter1_Max * 10, ret); } else
+	if(strcmp(var,option_RO_FilterCounter2_Max)==0){ return _itoa(Option.RO_FilterCounter2_Max * 10, ret); } else
+	if(strcmp(var,option_REVERSE_OSMOS_F1_END_STR)==0){ return strcat(ret, REVERSE_OSMOS_F1_END_STR); } else
+	if(strcmp(var,option_REVERSE_OSMOS_F2_END_STR)==0){ return strcat(ret, REVERSE_OSMOS_F2_END_STR); } else
+#else
+	if(strcmp(var,option_RO_FilterCounter1_Max)==0){ return strcat(ret, "-"); } else
+	if(strcmp(var,option_RO_FilterCounter2_Max)==0){ return strcat(ret, "-"); } else
+#endif
+	if(strcmp(var,option_DrainPumpMaxTime)==0){ return _itoa(Option.DrainPumpMaxTime * 30, ret); } else
+	if(strcmp(var,option_DrainPumpMinPower)==0){ return _itoa(Option.DrainPumpMinPower * 10, ret); } else
+	if(strcmp(var,option_DrainPumpMaxPower)==0){ return _itoa(Option.DrainPumpMaxPower, ret); } else
+	if(strcmp(var,option_DrainPumpStartTime)==0){ return _itoa(Option.DrainPumpStartTime, ret); } else
 	if(strcmp(var,option_fLED_SRV_INFO_PlanReg)==0){ return strcat(ret, (char*)(GETBIT(Option.flags2, fLED_SRV_INFO_PlanReg) ? cOne : cZero)); } else
 	if(strcmp(var,option_fCheckDrainPump)==0){ return strcat(ret, (char*)(GETBIT(Option.flags2, fCheckDrainPump) ? cOne : cZero)); } else
 	if(strcmp(var,option_fDrainPumpRelay)==0){ return strcat(ret, (char*)(GETBIT(Option.flags2, fDrainPumpRelay) ? cOne : cZero)); } else

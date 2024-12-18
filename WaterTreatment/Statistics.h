@@ -45,6 +45,7 @@ const char format_datetime[] = "%04d%02d%02d%02d%02d";	// yyyymmddHHMM
 
 volatile int32_t Stats_Power_work = 0;  // рабочий для счетчиков - энергия потребленная, мВт
 volatile int32_t Stats_WaterUsed_work = 0; 		// L
+volatile int32_t Stats_RO_WaterUsed_work = 0; 	// L
 volatile int32_t Stats_WaterRegen_work = 0; 	// L
 volatile int32_t Stats_FeedPump_work = 0;		// ms
 volatile int32_t Stats_WaterBooster_work = 0;	// ms

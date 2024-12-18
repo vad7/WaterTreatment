@@ -443,6 +443,10 @@ const char *option_fDrainSiltTankBeforeRegen= {"DSR"};
 const char *option_UsedWaterContinuous	= {"UWC"};
 const char *option_FilterCounter1_Max	= {"FC1"};
 const char *option_FilterCounter2_Max	= {"FC2"};
+const char *option_RO_FilterCounter1_Max= {"FCO1"};
+const char *option_RO_FilterCounter2_Max= {"FCO2"};
+const char *option_REVERSE_OSMOS_F1_END_STR= {"SO1"};
+const char *option_REVERSE_OSMOS_F2_END_STR= {"SO2"};
 const char *option_DrainPumpMaxTime		= {"DPT"};
 const char *option_DrainPumpMinPower	= {"DPM"};
 const char *option_DrainPumpMaxPower	= {"DPH"};
@@ -460,6 +464,8 @@ const char prof_DailySwitchOff 	= 'E';			// DSE
 
 // WorkStats, get_WS..., set_WS...(x)
 const char *webWS_UsedToday 					= { "UD" };
+const char *webWS_RO_UsedToday 					= { "OD" };
+const char *webWS_RO_UsedTotal 					= { "OT" };
 const char *webWS_UsedYesterday 				= { "UY" };
 const char *webWS_LastDrain		 		 		= { "DD" };
 const char *webWS_RegCnt  						= { "RC" };
@@ -682,8 +688,8 @@ const char *noteError[] = {
 #ifdef  I2C_EEPROM_64KB
 // Стартовые адреса -----------------------------------------------------
 // КАРТА ПАМЯТИ в чипе i2c объемом 64 кбайта
-// I2C_COUNT_EEPROM хранение счетчиков, максимальный размер 0x79 (127) байт. Сейчас используется 58 байта
-// I2C_SETTING_EEPROM хранение настроек максимальный размер 0х980 (2432) байт. Сейчас используется 780 байт
+// I2C_COUNT_EEPROM хранение счетчиков, максимальный размер 0x79 (127) байт. Сейчас используется 62 байта
+// I2C_SETTING_EEPROM хранение настроек максимальный размер 0х980 (2432) байт. Сейчас используется 823 байт
 // I2C_JOURNAL_EEPROM хранение журнала размер журнала область должна быть кратна W5200_MAX_LEN
 	#define I2C_COUNT_EEPROM		0x0000      // Адрес внутри чипа eeprom от куда пишется счетчики с начала чипа 0
 	#define I2C_SETTING_EEPROM		0x0080      // Адрес внутри чипа eeprom от куда пишутся настройки, а перед ним пишется счетчики

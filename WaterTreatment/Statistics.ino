@@ -234,6 +234,9 @@ void Statistics::Init(uint8_t newyear)
 									case STATS_OBJ_WaterUsed:
 									//case STATS_OBJ_WaterRegen:
 										break;
+									case STATS_OBJ_RO_WaterUsed:
+										Stats_data[i].value = RO_UsedToday = val;
+										break;
 									case STATS_OBJ_Temp:
 									case STATS_OBJ_Press:
 										Stats_data[i].value = val * 100.0f + 0.005f;
@@ -382,6 +385,10 @@ void Statistics::Update()
 		case STATS_OBJ_WaterUsed:
 			newval = Stats_WaterUsed_work;
 			Stats_WaterUsed_work = 0;
+			break;
+		case STATS_OBJ_RO_WaterUsed:
+			newval = Stats_RO_WaterUsed_work;
+			Stats_RO_WaterUsed_work = 0;
 			break;
 		case STATS_OBJ_WaterRegen:
 			if(!MC.sInput[REG_ACTIVE].get_Input() && !MC.sInput[REG_BACKWASH_ACTIVE].get_Input()) continue;
@@ -575,6 +582,7 @@ void Statistics::HistoryFileHeader(char *ret, uint8_t flag)
 				strcat(ret, "F");	// ось м3ч
 				break;
 			case STATS_OBJ_WaterUsed:
+			case STATS_OBJ_RO_WaterUsed:
 			case STATS_OBJ_WaterRegen:
 			case STATS_OBJ_WaterBoosterLiters:
 				strcat(ret, "L");	// ось л
@@ -634,6 +642,10 @@ void Statistics::StatsFieldHeader(char *ret, uint8_t i, uint8_t flag)
 	case STATS_OBJ_WaterUsed:
 		if(flag) strcat(ret, "L");	// ось литры
 		strcat(ret, "Потреблено, л");
+		return;
+	case STATS_OBJ_RO_WaterUsed:
+		if(flag) strcat(ret, "L");	// ось литры
+		strcat(ret, "Питьевой фильтр, л");
 		return;
 	case STATS_OBJ_WaterRegen:
 		if(flag) strcat(ret, "L");	// ось литры
@@ -700,6 +712,7 @@ xSkipEmpty:
 		int_to_dec_str(val, 10, ret, 0);
 		break;
 	case STATS_OBJ_WaterUsed:				// L
+	case STATS_OBJ_RO_WaterUsed:			// L
 		int_to_dec_str(val, 1, ret, 0);
 		break;
 	case STATS_OBJ_WaterRegen:				// L

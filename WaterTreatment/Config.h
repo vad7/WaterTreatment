@@ -56,7 +56,8 @@ enum {
 	STATS_OBJ_FeedPump,		// сек
 	STATS_OBJ_Level,		// %
 	STATS_OBJ_WaterBoosterLiters, // л
-	STATS_OBJ_WaterRegenSoftening // Регенерация умягчителя, л
+	STATS_OBJ_WaterRegenSoftening, // Регенерация умягчителя, л
+	STATS_OBJ_RO_WaterUsed	// л (STATS_TYPE_SUM)
 };
 struct History_setup {
 	uint8_t		object;			// STATS_OBJ_*
@@ -346,7 +347,7 @@ struct History_setup {
                                          };
 
     const uint32_t TRANSFLOW[FNUMBER]= { 40000, 100000 };	// Коэффициент преобразования импульсов за литр, сотые
-    const uint16_t TESTFLOW[FNUMBER] = { 0 };				// Значения датчиков при тестировании  опция TEST
+    const uint16_t TESTFLOW[FNUMBER] = { 0, 0 };			// Значения датчиков при тестировании  опция TEST
 
    // Исполнительные устройства (реле и сухие контакты) ------------------------------------------------------------------
     #define RNUMBER                11   // Число исполнительных устройств (всех)
@@ -548,7 +549,8 @@ struct History_setup {
 		{ 0, STATS_OBJ_Voltage, STATS_TYPE_MIN },
 		{ 0, STATS_OBJ_Voltage, STATS_TYPE_MAX },
 		{ 0, STATS_OBJ_WaterRegenSoftening, STATS_TYPE_SUM },
-		{ 0, STATS_OBJ_BrineWeight, STATS_TYPE_DELTA }
+		{ 0, STATS_OBJ_BrineWeight, STATS_TYPE_DELTA },
+		{ 0, STATS_OBJ_RO_WaterUsed, STATS_TYPE_SUM }
 	};
 
 	// История (графики)
@@ -588,7 +590,7 @@ struct History_setup {
 	#define PIN_LED_SRV_INFO_NEXT_REGEN_BEGIN_HOUR 21 // Начальный час мигания
 
 	#define REVERSE_OSMOS_FC			F_RO	// Используется доп. счетчик для питевого фильтра обратного осмоса
-	#define	REVERSE_OSMOS_STR			"Питьевой фильтр - пора заменить"
+	#define	REVERSE_OSMOS_STR			"Питьевой фильтр - пора заменить "
 	#define	REVERSE_OSMOS_F1_END_STR	"предварительные (K3,K2)"	// Название фильтров #1 для сообщения, когда их ресурс закончится
 	#define	REVERSE_OSMOS_F2_END_STR	"пост (K7)"					// Название фильтров #2 для сообщения, когда их ресурс закончится
 	#define	REVERSE_OSMOS_STR_END		" фильтр(а)"
