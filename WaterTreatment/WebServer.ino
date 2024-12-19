@@ -2003,17 +2003,29 @@ x_get_GADC:						i = MC.sADC[p].get_ADC_Gain();
 							}
 							if(strncmp(str, "pin", 3) == 0)              // Функция get_pinFlow
 							{
+#ifdef SENSORS_FREQ_I2C
 								if(MC.sFrequency[p].get_I2C_addr()) {
 									strcat(strReturn, "I2C_2");
-								} else {
+								} else
+#endif
+								{
 									strcat(strReturn, "D");
 									_itoa(MC.sFrequency[p].get_pinF(), strReturn);
 								}
 								ADD_WEBDELIM(strReturn); continue;
 							}
+							if(strncmp(str, "kNL", 3) == 0)              // Функция get_kNLFlow
+							{
+								_dtoa(strReturn, MC.sFrequency[p].get_kNLValue(), 2);
+								ADD_WEBDELIM(strReturn); continue;
+							}
 							if(strncmp(str, "I2C", 3) == 0)              // Функция get_I2CFlow
 							{
+#ifdef SENSORS_FREQ_I2C
 								_itoa(MC.sFrequency[p].get_I2C_addr(), strReturn);
+#else
+								strcat(strReturn, "-");
+#endif
 								ADD_WEBDELIM(strReturn); continue;
 							}
 							if(strncmp(str, "nF", 2) == 0)               // Функция get_nFlow (note)
@@ -2043,11 +2055,18 @@ x_get_GADC:						i = MC.sADC[p].get_ADC_Gain();
 								_dtoa(strReturn, MC.sFrequency[p].get_kfValue(), 2);
 								ADD_WEBDELIM(strReturn); continue;
 							}
+							if(strncmp(str, "kNL", 3) == 0) {          // Функция set_kNLFlow float
+								MC.sFrequency[p].set_kNLValue(rd(pm, 100));    // Установить значение
+								_dtoa(strReturn, MC.sFrequency[p].get_kNLValue(), 2);
+								ADD_WEBDELIM(strReturn); continue;
+							}
+#ifdef SENSORS_FREQ_I2C
 							if(strncmp(str, "I2C", 2) == 0) {          // Функция set_I2CFlow
 								MC.sFrequency[p].set_I2C_addr(pm);
 								_itoa(MC.sFrequency[p].get_I2C_addr(), strReturn);
 								ADD_WEBDELIM(strReturn); continue;
 							}
+#endif
 							if(strncmp(str, "cF", 2) == 0) {          // Функция set_cFlow
 								l_i32 = int(pm) * 1000 / FREQ_BASE_TIME_READ;
 								if(l_i32 < 1) l_i32 = 1;

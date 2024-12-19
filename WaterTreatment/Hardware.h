@@ -182,25 +182,30 @@ public:
 #ifdef SENSORS_FREQ_I2C
   uint32_t get_RawPassed(void) { return I2C_addr ? 0 : count * 10000 / kfValue; }  // Получить сырые не обработанные данные, сотые литра
   uint8_t get_I2C_addr(void) { return I2C_addr; };
-#else
-  uint32_t get_RawPassed(void) { return count * 10000 / kfValue; }  // Получить сырые не обработанные данные, сотые литра
-  uint8_t get_I2C_addr(void) { return 0; };
-#endif
   void set_I2C_addr(uint8_t addr);
   //__attribute__((always_inline)) inline uint32_t get_count(void) { return I2C_addr ? 0 : count; }
+#else
+  uint32_t get_RawPassed(void) { return count * 10000 / kfValue; }  // Получить сырые не обработанные данные, сотые литра
+#endif
 //  int8_t  get_lastErr(){return err;}                     // Получить последнюю ошибку
   char*   get_note(){return note;}                       // Получить описание датчика
   char*   get_name(){return name;}                       // Получить имя датчика
   uint16_t get_testValue(){return testValue;}            // Получить Состояние датчика в режиме теста
   int8_t  set_testValue(int16_t i);                      // Установить Состояние датчика в режиме теста
-  inline uint32_t get_kfValue(){return kfValue;}         // Получить коэффициент пересчета, сотые
-  void    set_kfValue(uint32_t f) { kfValue=f; }         // Установить коэффициент пересчета
+  inline  uint32_t get_kfValue(){return kfValue;}        // Получить коэффициент пересчета, сотые
+  void    set_kfValue(uint32_t f) { kfValue=f; }         // Установить коэффициент пересчета, сотые
+  inline  int16_t get_kNLValue(){return kNonLinearity;}  // Получить коэффициент пересчета, сотые
+  void    set_kNLValue(int16_t f) { kNonLinearity = f; } // Установить коэффициент пересчета, сотые
   uint8_t get_FlowCalcPeriodValue(){return FlowCalcPeriod;}
   void    set_FlowCalcPeriodValue(uint8_t n) { FlowCalcPeriod = n; }
-  int8_t set_Capacity(uint16_t c);                       // Установить теплоемкость больше 5000 не устанавливается
-  inline int8_t  get_pinF(){return pin;}                 // Получить ногу куда прицеплен датчик
+  int8_t  set_Capacity(uint16_t c);                      // Установить теплоемкость больше 5000 не устанавливается
+  inline  int8_t  get_pinF(){return pin;}                // Получить ногу куда прицеплен датчик
   uint8_t *get_save_addr(void) { return (uint8_t *)&number; } // Адрес структуры сохранения
+#ifdef SENSORS_FREQ_I2C
   uint16_t get_save_size(void) { return (byte*)&I2C_addr - (byte*)&number + sizeof(I2C_addr); } // Размер структуры сохранения
+#else
+  uint16_t get_save_size(void) { return (byte*)&kNonlinearity - (byte*)&number + sizeof(kNonlinearity); } // Размер структуры сохранения
+#endif
   volatile uint32_t Passed;								 // Счетчик литров
   uint32_t PassedRest;									 // остаток счетчика
   int32_t  add_pulses100;								 // добавка при следующем чтении, *100
@@ -230,7 +235,10 @@ private:
       uint16_t testValue;                               // !save! Состояние датчика в режиме теста
       uint32_t kfValue; 							 	 // коэффициент пересчета частоты в значение, изменений уровня на литр, сотые
       uint8_t  FlowCalcPeriod;                          // через сколько FREQ_BASE_TIME_READ расчитывать проток
+      int16_t  kNonLinearity;							// Коэффициент нелинейности (0 - нет), сотые
+#ifdef SENSORS_FREQ_I2C
       uint8_t  I2C_addr;						     	// адрес на I2C шине, если используется для получения данных датчика, формат данных (3 байта): импульсы(0..65535),CRC8(1-Wire)
+#endif
   } __attribute__((packed));// END SAVE GROUP, the last
   uint8_t FlowCalcCnt;                                  // счетчик расчета протока
   uint8_t pin;                                         // Ножка куда прицеплен датчик

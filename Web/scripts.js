@@ -346,7 +346,8 @@ function loadParam(paramid, noretry, resultdiv) {
 											var count = values[1].split(';');
 											for(var j = 0; j < count.length - 1; j++) {
 												input = count[j].toLowerCase();
-												loadsens = loadsens + "get_nFlow(" + count[j] + "),get_kfFlow(" + count[j] + "),get_cFlow(" + count[j] + "),get_frFlow(" + count[j] + "),get_testFlow(" + count[j] + "),get_pinFlow(" + count[j] + "),get_eFlow(" + count[j] + "),get_I2CFlow(" + count[j] + "),";
+												loadsens = loadsens + "get_nFlow(" + count[j] + "),get_kfFlow(" + count[j] + "),get_kNLFlow(" + count[j] + "),get_cFlow(" + count[j] + "),get_frFlow(" + count[j] + "),get_testFlow(" + count[j] + "),get_pinFlow(" + count[j] + "),get_eFlow(" + count[j] + "),";
+												//,get_I2CFlow(" + count[j] + "),";
 												upsens = upsens + "get_Flow(" + count[j] + "),get_rFlow(" + count[j] + "),get_frFlow(" + count[j] + "),get_eFlow(" + count[j] + "),";
 												content = content + '<tr>';
 												content = content + '<td>' + count[j] + '</td>';
@@ -354,12 +355,13 @@ function loadParam(paramid, noretry, resultdiv) {
 												content = content + '<td nowrap><span id="get_flow-' + input + '">-</span> <input id="ClcFlow' + input + '" type="submit" value="*" onclick="CalcAvgValue(\''+ input + '\')"></td>';
 												content = content + '<td><span id="get_rflow-' + input + '">-</span></td>';
 												content = content + '<td nowrap><input id="get_kfflow-' + input + '" type="number" step="0.01" style="max-width:70px;" value=""><input type="submit" value=">" onclick="setParam(\'get_kfFlow(' + count[j] + ')\');"></td>';
+												content = content + '<td nowrap><input id="get_knlflow-' + input + '" type="number" step="0.01" style="max-width:70px;" value=""><input type="submit" value=">" onclick="setParam(\'get_kNLFlow(' + count[j] + ')\');"></td>';
 												content = content + '<td nowrap><input id="get_cflow-' + input + '" type="number"><input type="submit" value=">" onclick="setParam(\'get_cFlow(' + count[j] + ')\');"></td>';
 												content = content + '<td id="get_frflow-' + input + '">-</td>';
 												content = content + '<td nowrap><input id="get_testflow-' + input + '" type="number" step="0.001" value=""><input type="submit" value=">"  onclick="setParam(\'get_testFlow(' + count[j] + ')\');"></td>';
 												content = content + '<td id="get_eflow-' + input + '">-</td>';
 												content = content + '<td id="get_pinflow-' + input + '">-</td>';
-												content = content + '<td nowrap><input id="get_i2cflow-' + input + '" type="number"><input type="submit" value=">" onclick="setParam(\'get_I2CFlow(' + count[j] + ')\');"></td>';
+												//content = content + '<td nowrap><input id="get_i2cflow-' + input + '" type="number"><input type="submit" value=">" onclick="setParam(\'get_I2CFlow(' + count[j] + ')\');"></td>';
 												content = content + '</tr>';
 											}
 											document.getElementById(valueid).innerHTML = content;

@@ -1369,8 +1369,11 @@ void vReadSensor(void *)
 				MC.Osmos_PWATER_DelayCnt++;
 			} else {
 				if(pw < MC.Option.PWATER_Osmos_Min) { // нет протока и давление низкое, счетчик раннего включения насосной станции
-					if(pw > MC.Osmos_PWATER_Last) MC.Osmos_PWATER_Cnt -= MC.Osmos_PWATER_Cnt > 0 ? 1 : 0;
-					else if(pw < MC.Osmos_PWATER_Last) MC.Osmos_PWATER_Cnt++;
+					if(MC.Osmos_PWATER_DelayCnt < MC.Option.PWATER_Osmos_Delay) MC.Osmos_PWATER_DelayCnt++;
+					else {
+						if(pw > MC.Osmos_PWATER_Last) MC.Osmos_PWATER_Cnt -= MC.Osmos_PWATER_Cnt > 0 ? 1 : 0;
+						else if(pw < MC.Osmos_PWATER_Last) MC.Osmos_PWATER_Cnt++;
+					}
 				} else MC.Osmos_PWATER_Cnt = 0;
 				if(GETBIT(MC.Option.flags, fFlowIncByPressure) && WaterBoosterTimeout > MC.Option.PWATER_Osmos_FullDelay * 1000UL
 						&& pw <= MC.sADC[PWATER].get_maxValue() - MC.Option.PWATER_Osmos_FullMinus
