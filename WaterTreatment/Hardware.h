@@ -204,7 +204,7 @@ public:
 #ifdef SENSORS_FREQ_I2C
   uint16_t get_save_size(void) { return (byte*)&I2C_addr - (byte*)&number + sizeof(I2C_addr); } // Размер структуры сохранения
 #else
-  uint16_t get_save_size(void) { return (byte*)&kNonlinearity - (byte*)&number + sizeof(kNonlinearity); } // Размер структуры сохранения
+  uint16_t get_save_size(void) { return (byte*)&kNonLinearity - (byte*)&number + sizeof(kNonLinearity); } // Размер структуры сохранения
 #endif
   volatile uint32_t Passed;								 // Счетчик литров
   uint32_t PassedRest;									 // остаток счетчика

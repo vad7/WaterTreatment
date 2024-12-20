@@ -1365,9 +1365,7 @@ void vReadSensor(void *)
 				MC.Osmos_PWATER_DelayCnt = 0;
 			} else
 #endif
-			if(MC.Osmos_PWATER_DelayCnt < MC.Option.PWATER_Osmos_Delay) {
-				MC.Osmos_PWATER_DelayCnt++;
-			} else {
+			{
 				if(pw < MC.Option.PWATER_Osmos_Min) { // нет протока и давление низкое, счетчик раннего включения насосной станции
 					if(MC.Osmos_PWATER_DelayCnt < MC.Option.PWATER_Osmos_Delay) MC.Osmos_PWATER_DelayCnt++;
 					else {
@@ -1378,27 +1376,32 @@ void vReadSensor(void *)
 				if(GETBIT(MC.Option.flags, fFlowIncByPressure) && WaterBoosterTimeout > MC.Option.PWATER_Osmos_FullDelay * 1000UL
 						&& pw <= MC.sADC[PWATER].get_maxValue() - MC.Option.PWATER_Osmos_FullMinus
 						&& !(MC.RTC_store.Work & RTC_Work_Regen_MASK) && TimerDrainingWater == 0) { // низкий проток и не идет - регенерация/слив и т.п.
-					int32_t d = MC.Osmos_PWATER_LastPress - pw;
-					if(d > 0 && (d >= PWATER_OSMOS_MIN_DELTA || MC.Osmos_PWATER_Added == 2)) {
-						int16_t dd = MC.sADC[PWATER].get_maxValue() - MC.sADC[PWATER].get_minValue();
-						if(d > dd) d = dd;
-						int16_t pw2 = pw - MC.sADC[PWATER].get_minValue();
-						if(pw2 > dd / 2) {
-							add_to_flow = d * MC.Osmos_PWATER_BoosterMax * 100 / dd * (MC.sFrequency[FLOW].get_kfValue()/10) / 1000;
-						} else { //if(pw2 > dd / 2 / 2) {
-							add_to_flow = d * MC.Osmos_PWATER_BoosterMax * 150 / dd * (MC.sFrequency[FLOW].get_kfValue()/10) / 1000; // *1.5
-//						} else {
-//							add_to_flow = d * MC.Osmos_PWATER_BoosterMax * 100 * 2 / dd * (MC.sFrequency[FLOW].get_kfValue()/10) / 1000;
-						}
-						MC.sFrequency[FLOW].WebCorrectCnt = (TIMER_TO_SHOW_STATUS + 1000) / TIME_READ_SENSOR + 1;
-						//TimeFeedPump +=	d * MC.Osmos_PWATER_BoosterMax * 1000 / ((MC.sADC[PWATER].get_maxValue() - MC.sADC[PWATER].get_minValue()) * 100) * TIME_READ_SENSOR / MC.Option.FeedPumpMaxFlow;
-						MC.Osmos_PWATER_Added = 2;
-						MC.Osmos_PWATER_LastPress = pw;
-						MC.Osmos_PWATER_LastPress_Timer = 0;
-					} else if(MC.Osmos_PWATER_Added == 2) {
-						if(++MC.Osmos_PWATER_LastPress_Timer > PWATER_OSMOS_LASTPRESS_RENEW || d <= -1) {
-							MC.Osmos_PWATER_Added = 1;
+					if(MC.Osmos_PWATER_DelayCnt < MC.Option.PWATER_Osmos_Delay) {
+						MC.Osmos_PWATER_DelayCnt++;
+						if(MC.Osmos_PWATER_Added == 2) MC.Osmos_PWATER_Added = 1;
+					} else {
+						int32_t d = MC.Osmos_PWATER_LastPress - pw;
+						if(d > 0 && (d >= PWATER_OSMOS_MIN_DELTA || MC.Osmos_PWATER_Added == 2)) {
+							int16_t dd = MC.sADC[PWATER].get_maxValue() - MC.sADC[PWATER].get_minValue();
+							if(d > dd) d = dd;
+							int16_t pw2 = pw - MC.sADC[PWATER].get_minValue();
+							if(pw2 > dd / 2) {
+								add_to_flow = d * MC.Osmos_PWATER_BoosterMax * 100 / dd * (MC.sFrequency[FLOW].get_kfValue()/10) / 1000;
+							} else { //if(pw2 > dd / 2 / 2) {
+								add_to_flow = d * MC.Osmos_PWATER_BoosterMax * 150 / dd * (MC.sFrequency[FLOW].get_kfValue()/10) / 1000; // *1.5
+	//						} else {
+	//							add_to_flow = d * MC.Osmos_PWATER_BoosterMax * 100 * 2 / dd * (MC.sFrequency[FLOW].get_kfValue()/10) / 1000;
+							}
+							MC.sFrequency[FLOW].WebCorrectCnt = (TIMER_TO_SHOW_STATUS + 1000) / TIME_READ_SENSOR + 1;
+							//TimeFeedPump +=	d * MC.Osmos_PWATER_BoosterMax * 1000 / ((MC.sADC[PWATER].get_maxValue() - MC.sADC[PWATER].get_minValue()) * 100) * TIME_READ_SENSOR / MC.Option.FeedPumpMaxFlow;
+							MC.Osmos_PWATER_Added = 2;
+							MC.Osmos_PWATER_LastPress = pw;
 							MC.Osmos_PWATER_LastPress_Timer = 0;
+						} else if(MC.Osmos_PWATER_Added == 2) {
+							if(++MC.Osmos_PWATER_LastPress_Timer > PWATER_OSMOS_LASTPRESS_RENEW || d <= -1) {
+								MC.Osmos_PWATER_Added = 1;
+								MC.Osmos_PWATER_LastPress_Timer = 0;
+							}
 						}
 					}
 				} else {
