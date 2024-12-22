@@ -372,11 +372,13 @@ function loadParam(paramid, noretry, resultdiv) {
 											var count = values[1].split(';');
 											for(var j = 0; j < count.length - 1; j++) {
 												input = count[j].toLowerCase();
-												upsens = upsens + "get_CEFlow(" + count[j] + "),get_CLFlow(" + count[j] + "),";
+												upsens = upsens + "get_CEFlow(" + count[j] + "),get_CLFlow(" + count[j] + "),get_CKFlow0(" + count[j] + "),get_CKFlow1(" + count[j] + "),";
 												content = content + '<tr>';
 												content = content + '<td>' + count[j] + '</td>';
 												content = content + '<td><span id="get_ceflow-' + input + '">-</span></td>';
 												content = content + '<td><span id="get_clflow-' + input + '">-</span></td>';
+												content = content + '<td><span id="get_ckflow0-' + input + '">-</span></td>';
+												content = content + '<td><span id="get_ckflow1-' + input + '">-</span></td>';
 												content = content + '<td><input type="submit" value="Сброс" onclick="loadParam(\'get_zFlow(' + count[j] + ')\')"></td>';
 												content = content + '<td></td>';
 												content = content + '</tr>';

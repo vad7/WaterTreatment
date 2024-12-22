@@ -2032,9 +2032,17 @@ x_get_GADC:						i = MC.sADC[p].get_ADC_Gain();
 							}
 							if(strncmp(str, "CLF", 3) == 0)               // Функция get_CLFlow - Liters
 							{
-								_itoa(l_i32 = MC.sFrequency[p].FlowPulseCounter / MC.sFrequency[p].get_kfValue(), strReturn);
+								l_i32 = MC.sFrequency[p].FlowPulseCounter;
+								_itoa(l_i32 / MC.sFrequency[p].get_kfValue(), strReturn);
 								strcat(strReturn, ".");
 								_itoa((uint32_t)(l_i32 % MC.sFrequency[p].get_kfValue()) * 10000 / MC.sFrequency[p].get_kfValue(), strReturn);
+								ADD_WEBDELIM(strReturn); continue;
+							}
+							if(strncmp(str, "CKF", 3) == 0)               // Функция get_CKFlow0, get_CKFlow1 - расчет K (0.5L, 1L)
+							{
+								l_i32 = MC.sFrequency[p].FlowPulseCounter * 100 / MC.sFrequency[p].get_kfValue();
+								if(str[6] == '0') l_i32 *= 2; // 0.5L
+								_dtoa(strReturn, l_i32, 2);
 								ADD_WEBDELIM(strReturn); continue;
 							}
 							if(strncmp(str, "zF", 2) == 0) {          // Функция get_zFlow сброс счетчиков калибровки
