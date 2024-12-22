@@ -762,7 +762,7 @@ xSaveStats:		if((i = MC.save_WorkStats()) == OK)
 				}
 			}
 			str += 6;
-			if(strcmp(str, webWS_UsedToday) == 0) {
+			if(strcmp(str, webWS_UsedToday) == 0) {  // get_WSUD
 				if(i) {
 					MC.RTC_store.UsedToday = l_i32;
 					for(uint8_t i = 0; i < sizeof(Stats_data) / sizeof(Stats_data[0]); i++) {
@@ -774,7 +774,7 @@ xSaveStats:		if((i = MC.save_WorkStats()) == OK)
 					NeedSaveRTC |= (1<<bRTC_UsedToday);
 					journal.jprintf_date("SET UsedToday=%d\n", l_i32);
 				}
-				_itoa(MC.RTC_store.UsedToday, strReturn); // get_WSUD
+				_itoa(MC.RTC_store.UsedToday, strReturn);
 			} else if(strcmp(str, webWS_RO_UsedToday) == 0) _itoa(RO_UsedToday, strReturn); // get_WSOD
 			else if(strcmp(str, webWS_RO_UsedTotal) == 0) { // get_WSOT
 				if(i) MC.WorkStats.RO_UsedTotal = l_i32;

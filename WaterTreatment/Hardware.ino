@@ -506,7 +506,7 @@ bool sensorFrequency::Read(void)
 				}
 				Frequency = cnt / 2;
 				Value = cnt * 360 / (kNonLinearity * cnt + kfValue); // ЛИТРЫ В ЧАС (ИЛИ ТЫСЯЧНЫЕ КУБА) частота в тысячных
-				ValueReal = cnt == cnt_real ? Value : cnt_real * 360 / (kNonLinearity * cnt + kfValue);
+				ValueReal = cnt == cnt_real ? Value : cnt_real * 360 / (kNonLinearity * cnt_real + kfValue);
 			} else { // период должен быть 1000 мс и вызов так же
 #if FREQ_BASE_TIME_READ != 1000
 #error "FREQ_BASE_TIME_READ and call period must equal 1000 ms"
