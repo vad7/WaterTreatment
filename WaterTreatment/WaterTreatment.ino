@@ -1332,7 +1332,8 @@ void vReadSensor(void *)
 		for(i = FLOW + 2; i < FNUMBER; i++) MC.sFrequency[i].Read();		// Получить значения датчиков потока, кроме FLOW
 	#endif
 		uint32_t RO_passed = 0;
-		if(MC.sFrequency[REVERSE_OSMOS_FC].Read()) {
+		uint8_t RO_was_flow = MC.sFrequency[REVERSE_OSMOS_FC].Read();
+		if(RO_was_flow) {
 			{
 				RO_passed = MC.sFrequency[REVERSE_OSMOS_FC].Passed;
 				MC.sFrequency[REVERSE_OSMOS_FC].Passed = 0;
@@ -1340,7 +1341,7 @@ void vReadSensor(void *)
 			if(RO_passed) {
 				RO_Passed10Count += RO_passed;
 				if(RO_Passed10Count >= 10) {
-					RO_Passed10Count = 0;
+					RO_Passed10Count -= 10;
 					if(MC.Option.RO_FilterCounter1_Max) MC.WorkStats.RO_FilterCounter1++;
 					if(MC.Option.RO_FilterCounter2_Max) MC.WorkStats.RO_FilterCounter2++;
 				}
@@ -1359,8 +1360,8 @@ void vReadSensor(void *)
 		if(MC.sFrequency[FLOW].WebCorrectCnt > 1) MC.sFrequency[FLOW].WebCorrectCnt--;	// 1 sec
 		if(MC.sFrequency[FLOW].get_ValueReal() <= MC.Option.FlowIncByPress_MinFlow) {
 #ifdef REVERSE_OSMOS_FC
-			if(MC.sFrequency[REVERSE_OSMOS_FC].get_Value()) {
-				add_to_flow = RO_passed * MC.sFrequency[FLOW].get_kfValue() * 100;
+			if(RO_was_flow) {
+				add_to_flow = RO_passed * MC.sFrequency[FLOW].get_kfValue();
 				MC.Osmos_PWATER_DelayCnt = 0;
 			} else
 #endif
@@ -1465,8 +1466,8 @@ void vReadSensor(void *)
 					}
 					History_WaterUsed_work += passed;
 					Passed100Count += passed;
-					if(Passed100Count >= 100 || passed >= 100) {
-						Passed100Count = 0;
+					if(Passed100Count >= 100) {
+						Passed100Count -= 100;
 						if(MC.WorkStats.UsedDrainSiltL100 < 255) MC.WorkStats.UsedDrainSiltL100++;
 						if(MC.Option.FilterCounter1_Max) MC.WorkStats.FilterCounter1++;
 						if(MC.Option.FilterCounter2_Max) MC.WorkStats.FilterCounter2++;

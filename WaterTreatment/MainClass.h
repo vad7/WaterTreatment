@@ -142,8 +142,8 @@ bool     LowConsumeMode = false; //
 int32_t  AfterFilledTimer = 0; // Время после отключения реле заполнения бака до останова глубинного насоса, сек
 uint32_t Request_LowConsume;
 uint32_t RegenStarted = 0;
-uint8_t  Passed100Count = 0;	// L
-uint8_t  RO_Passed10Count = 0;	// L
+uint16_t Passed100Count = 0;	// L
+uint16_t RO_Passed10Count = 0;	// L
 uint32_t RO_UsedToday = 0; 		// L
 uint8_t  DrainingSiltFlag = 0;	// 0 - нет/ожидание, 1 - идет слив, 2..255 - закрываемся и ожидаем (сек)
 uint16_t DrainingSiltNowTimer = 0;
