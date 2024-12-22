@@ -138,7 +138,6 @@ uint16_t RegMaxFlow = 0;			// l*h
 uint16_t RegMinPress = 0xFFFF;		// bar*100
 uint32_t ResetDUE_countdown = 0;
 bool	 DebugToJournalOn = false;
-uint32_t FlowPulseCounter;	// real pulses * 100
 bool     LowConsumeMode = false; //
 int32_t  AfterFilledTimer = 0; // Время после отключения реле заполнения бака до останова глубинного насоса, сек
 uint32_t Request_LowConsume;

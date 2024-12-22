@@ -483,6 +483,7 @@ bool sensorFrequency::Read(void)
 		} else {
 			cnt *= 100;
 			count_real_last100 = cnt;
+			FlowPulseCounter += cnt;
 			if(add_pulses100 != 0) {
 				cnt += add_pulses100;
 				add_pulses100 = 0;

@@ -1,5 +1,5 @@
 // Copyright by Vadim Kulakov vad7@yahoo.com, vad711
-var VER_WEB = "1.62";
+var VER_WEB = "1.63";
 var urlcontrol = ''; //  автоопределение (если адрес сервера совпадает с адресом контроллера)
 // адрес и порт контроллера, если адрес сервера отличен от адреса контроллера (не рекомендуется)
 //var urlcontrol = 'http://192.168.0.199/';
@@ -354,11 +354,11 @@ function loadParam(paramid, noretry, resultdiv) {
 												content = content + '<td id="get_nflow-' + input + '">-</td>';
 												content = content + '<td nowrap><span id="get_flow-' + input + '">-</span> <input id="ClcFlow' + input + '" type="submit" value="*" onclick="CalcAvgValue(\''+ input + '\')"></td>';
 												content = content + '<td><span id="get_rflow-' + input + '">-</span></td>';
+												content = content + '<td id="get_frflow-' + input + '">-</td>';
 												content = content + '<td nowrap><input id="get_kfflow-' + input + '" type="number" step="0.01" style="max-width:70px;" value=""><input type="submit" value=">" onclick="setParam(\'get_kfFlow(' + count[j] + ')\');"></td>';
 												content = content + '<td nowrap><input id="get_knlflow-' + input + '" type="number" step="0.01" style="max-width:70px;" value=""><input type="submit" value=">" onclick="setParam(\'get_kNLFlow(' + count[j] + ')\');"></td>';
 												content = content + '<td nowrap><input id="get_cflow-' + input + '" type="number"><input type="submit" value=">" onclick="setParam(\'get_cFlow(' + count[j] + ')\');"></td>';
-												content = content + '<td id="get_frflow-' + input + '">-</td>';
-												content = content + '<td nowrap><input id="get_testflow-' + input + '" type="number" step="0.001" value=""><input type="submit" value=">"  onclick="setParam(\'get_testFlow(' + count[j] + ')\');"></td>';
+												content = content + '<td nowrap><input id="get_testflow-' + input + '" type="number" step="0.001" value=""><input type="submit" value=">" onclick="setParam(\'get_testFlow(' + count[j] + ')\');"></td>';
 												content = content + '<td id="get_eflow-' + input + '">-</td>';
 												content = content + '<td id="get_pinflow-' + input + '">-</td>';
 												//content = content + '<td nowrap><input id="get_i2cflow-' + input + '" type="number"><input type="submit" value=">" onclick="setParam(\'get_I2CFlow(' + count[j] + ')\');"></td>';
@@ -367,6 +367,21 @@ function loadParam(paramid, noretry, resultdiv) {
 											document.getElementById(valueid).innerHTML = content;
 											updateParam(upsens);
 											loadParam(loadsens);
+										} else if(values[0] == 'get_tblFlowС') {
+											var content = "", upsens = "", loadsens = "";
+											var count = values[1].split(';');
+											for(var j = 0; j < count.length - 1; j++) {
+												input = count[j].toLowerCase();
+												upsens = upsens + "get_CEFlow(" + count[j] + "),get_CLFlow(" + count[j] + "),";
+												content = content + '<tr>';
+												content = content + '<td>' + count[j] + '</td>';
+												content = content + '<td><span id="get_ceflow-' + input + '">-</span></td>';
+												content = content + '<td><span id="get_clflow-' + input + '">-</span></td>';
+												content = content + '<input type="submit" value="Сброс" onclick="loadParam(\'get_zFlow(' + count[j] + ')\')">';
+												content = content + '</tr>';
+											}
+											document.getElementById(valueid).innerHTML = content;
+											updateParam(upsens);
 										} else if(values[0] == 'get_tblRelay') {
 											var content = "", upsens = "", loadsens = "";
 											var count = values[1].split(';');

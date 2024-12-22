@@ -932,7 +932,7 @@ xSetupExit:
 				} else if((LCD_setup & 0xFF00) == 0) {	// select menu item
 					LCD_setup = (LCD_setup << 8) | LCD_SetupFlag;
 					if((LCD_setup & 0xFF00) == LCD_SetupMenu_FlowCheck) { // Flow check
-						FlowPulseCounter = 0;
+						MC.sFrequency[FLOW].FlowPulseCounter = 0;
 						lcd.command(LCD_DISPLAYCONTROL | LCD_DISPLAYON);
 					} else if((LCD_setup & 0xFF00) == LCD_SetupMenu_Sensors) {
 						lcd.command(LCD_DISPLAYCONTROL | LCD_DISPLAYON);
@@ -970,7 +970,7 @@ xSetupExit:
 					goto xSetupExit;
 				} else if((LCD_setup & 0xFF00) == LCD_SetupMenu_FlowCheck) { // inside menu item selected - Flow check
 					lcd.clear();
-					uint32_t tmp = FlowPulseCounter * 100 / MC.sFrequency[FLOW].get_kfValue();
+					uint32_t tmp = MC.sFrequency[FLOW].FlowPulseCounter * 100 / MC.sFrequency[FLOW].get_kfValue();
 					lcd.print("K = Edges / Cup(L)");
 					lcd.setCursor(0, 1);
 					lcd.print("0.5L = "); dptoa(buffer, tmp * 2, 2); lcd.print(buffer);
@@ -1015,7 +1015,7 @@ xErrorsProcessing:
 			while(!digitalReadDirect(PIN_KEY_DOWN)) vTaskDelay(KEY_DEBOUNCE_TIME);
 			if(LCD_setup) {
 				if((LCD_setup & 0xFF00) == LCD_SetupMenu_FlowCheck) { // Flow check - reset calc
-					FlowPulseCounter = 0;
+					MC.sFrequency[FLOW].FlowPulseCounter = 0;
 				} else if((LCD_setup & 0xFF00) == 0) {
 					if(LCD_setup & 0xFF) {
 						LCD_setup--;
@@ -1074,14 +1074,13 @@ xErrorsProcessing:
 
 					lcd.setCursor(0, 1);
 					strcpy(buf = buffer, "Edges: "); buf += 7;
-					tmp = FlowPulseCounter / 100;
-					buf += i10toa(tmp, buf, 0);
+					tmp = MC.sFrequency[FLOW].FlowPulseCounter;
+					buf += i10toa(tmp / 100, buf, 0);
 					buffer_space_padding(buf, LCD_COLS - (buf - buffer));
 					lcd.print(buffer);
 
 					lcd.setCursor(0, 2);
 					strcpy(buf = buffer, "Liters: "); buf += 8;
-					tmp*= 100;
 					buf += i10toa(tmp / MC.sFrequency[FLOW].get_kfValue(), buf, 0);
 					*buf++ = '.';
 					buf += i10toa((uint32_t)(tmp % MC.sFrequency[FLOW].get_kfValue()) * 10000 / MC.sFrequency[FLOW].get_kfValue(), buf, 4);
@@ -1438,7 +1437,6 @@ void vReadSensor(void *)
 				MC.sFrequency[FLOW].Passed = 0;
 			}
 			WaterBoosterCountP100 += MC.sFrequency[FLOW].count_real_last100;
-			FlowPulseCounter += MC.sFrequency[FLOW].count_real_last100;
 			MC.sFrequency[FLOW].ChartLiters_rest = MC.sFrequency[FLOW].PassedRest;
 			if(passed) {
 				MC.sFrequency[FLOW].ChartLiters_accum += passed;

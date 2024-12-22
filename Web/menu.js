@@ -18,9 +18,9 @@
 	<label for="group-3"><i></i>Конфигурация</label>\
 	<ul>\
 		<li class="sensorsp"><a href="sensorsp.html">Датчики</a></li>\
-		<li class="relay"><a href="relay.html">Датчики, Реле</a></li>\
+		<li class="sensorsfc"><a href="sensorsfc.html">Датчики протока</a></li>\
+		<li class="relay"><a href="relay.html">Датчики СК, Реле</a></li>\
 		<li class="sensorst"><a href="sensorst.html">Датчики температуры</a></li>\
-		<li class="setsensors"><a href="setsensors.html">Привязка датчиков</a></li>\
 	</ul>\
 </li>\
 <li name="USR" class="system config lan files time notice mqtt const has-children">\
