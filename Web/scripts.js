@@ -377,7 +377,8 @@ function loadParam(paramid, noretry, resultdiv) {
 												content = content + '<td>' + count[j] + '</td>';
 												content = content + '<td><span id="get_ceflow-' + input + '">-</span></td>';
 												content = content + '<td><span id="get_clflow-' + input + '">-</span></td>';
-												content = content + '<input type="submit" value="Сброс" onclick="loadParam(\'get_zFlow(' + count[j] + ')\')">';
+												content = content + '<td><input type="submit" value="Сброс" onclick="loadParam(\'get_zFlow(' + count[j] + ')\')"></td>';
+												content = content + '<td></td>';
 												content = content + '</tr>';
 											}
 											document.getElementById(valueid).innerHTML = content;

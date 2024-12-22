@@ -2028,7 +2028,6 @@ x_get_GADC:						i = MC.sADC[p].get_ADC_Gain();
 							if(strncmp(str, "CEF", 3) == 0)               // Функция get_CEFlow - Edges
 							{
 								_itoa(MC.sFrequency[p].FlowPulseCounter / 100, strReturn);
-								strcat(strReturn, MC.sFrequency[p].get_note());
 								ADD_WEBDELIM(strReturn); continue;
 							}
 							if(strncmp(str, "CLF", 3) == 0)               // Функция get_CLFlow - Liters

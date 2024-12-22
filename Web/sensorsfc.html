@@ -6,6 +6,14 @@
 <link rel="stylesheet" type="text/css" href="style.css">
 <script type='text/javascript' src='scripts.js'></script>
 <script type="text/javascript">
+var BASE_TIME_READ = 10;// sec
+var ClcAvgHowLong = 60;// 10 min
+var ClcAvgCnt = 0;
+var ClcAvgTime;
+var ClcAvgSens;
+var ClcAvgSum;
+var ClcAvgSumCnt;
+var ClcAvgLast;
 urlupdate = 1000;
 window.onload = function() {
 	loadParam("get_tblFlow");
