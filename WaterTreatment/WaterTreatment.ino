@@ -1411,12 +1411,18 @@ void vReadSensor(void *)
 				}
 			}
 		} else {
-			MC.Osmos_PWATER_Cnt = 0;
+#ifdef REVERSE_OSMOS_FC
+			if(!RO_was_flow)
+#endif
+				MC.Osmos_PWATER_Cnt = 0;
 			MC.Osmos_PWATER_DelayCnt = 0;
 			if(MC.Osmos_PWATER_Added == 2) MC.Osmos_PWATER_Added = 1;
 			MC.Osmos_PWATER_LastPress = pw;
 			MC.Osmos_PWATER_LastPress_Timer = 0;
 		}
+#ifdef REVERSE_OSMOS_FC
+		if(RO_was_flow && pw < MC.Option.PWATER_Osmos_Min) MC.Osmos_PWATER_Cnt++;
+#endif
 		MC.Osmos_PWATER_Last = pw;
 		MC.sFrequency[FLOW].add_pulses100 += add_to_flow;
 		if(MC.sFrequency[FLOW].Read()) {	// Обновить значения датчика потока, был проток

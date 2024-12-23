@@ -493,20 +493,38 @@ bool sensorFrequency::Read(void)
 			Passed += PassedRest / kfValue;
 			PassedRest %= kfValue;
 			if(FlowCalcPeriod == 1) {
-				uint32_t cnt_real = count_real_last100;
-				if(ticks == FREQ_BASE_TIME_READ) {
-					cnt *= 10;
-					cnt_real *= 10;
-				} else if(cnt > 0xFFFFFFFF / FREQ_BASE_TIME_READ / 10) { // will overflow u32
-					cnt = (cnt * (10 * FREQ_BASE_TIME_READ / 100)) / ticks * 100;
-					cnt_real = (cnt_real * (10 * FREQ_BASE_TIME_READ / 100)) / ticks * 100;
+				if(cnt == count_real_last100) {
+					if(ticks == FREQ_BASE_TIME_READ) {
+						cnt *= 10;
+					} else if(cnt > 0xFFFFFFFF / FREQ_BASE_TIME_READ / 10) { // will overflow u32
+						cnt = (cnt * (10 * FREQ_BASE_TIME_READ / 100)) / ticks * 100;
+					} else {
+						cnt = (cnt * 10 * FREQ_BASE_TIME_READ) / ticks; // ТЫСЯЧНЫЕ ГЦ время в миллисекундах частота в тысячных герца
+					}
+					Frequency = cnt / 2;
+					if(kNonLinearity) ValueReal = Value = cnt * 360 / (kNonLinearity * cnt / 10 + kfValue); // ЛИТРЫ В ЧАС (ИЛИ ТЫСЯЧНЫЕ КУБА) частота в тысячных
+					else ValueReal = Value = cnt * 360 / kfValue;
 				} else {
-					cnt = (cnt * 10 * FREQ_BASE_TIME_READ) / ticks; // ТЫСЯЧНЫЕ ГЦ время в миллисекундах частота в тысячных герца
-					cnt_real = (cnt_real * 10 * FREQ_BASE_TIME_READ) / ticks;
+					uint32_t cnt_real = count_real_last100;
+					if(ticks == FREQ_BASE_TIME_READ) {
+						cnt *= 10;
+						cnt_real *= 10;
+					} else if(cnt > 0xFFFFFFFF / FREQ_BASE_TIME_READ / 10) { // will overflow u32
+						cnt = (cnt * (10 * FREQ_BASE_TIME_READ / 100)) / ticks * 100;
+						cnt_real = (cnt_real * (10 * FREQ_BASE_TIME_READ / 100)) / ticks * 100;
+					} else {
+						cnt = (cnt * 10 * FREQ_BASE_TIME_READ) / ticks; // ТЫСЯЧНЫЕ ГЦ время в миллисекундах частота в тысячных герца
+						cnt_real = (cnt_real * 10 * FREQ_BASE_TIME_READ) / ticks;
+					}
+					Frequency = cnt / 2;
+					if(kNonLinearity) {
+						Value = cnt * 360 / (kNonLinearity * cnt / 10 + kfValue); // ЛИТРЫ В ЧАС (ИЛИ ТЫСЯЧНЫЕ КУБА) частота в тысячных
+						ValueReal = cnt == cnt_real ? Value : cnt_real * 360 / (kNonLinearity * cnt_real / 10 + kfValue);
+					} else {
+						Value = cnt * 360 / kfValue;						 // ЛИТРЫ В ЧАС (ИЛИ ТЫСЯЧНЫЕ КУБА) частота в тысячных
+						ValueReal = cnt == cnt_real ? Value : cnt_real * 360 / kfValue;
+					}
 				}
-				Frequency = cnt / 2;
-				Value = cnt * 360 / (kNonLinearity * cnt + kfValue); // ЛИТРЫ В ЧАС (ИЛИ ТЫСЯЧНЫЕ КУБА) частота в тысячных
-				ValueReal = cnt == cnt_real ? Value : cnt_real * 360 / (kNonLinearity * cnt_real + kfValue);
 			} else { // период должен быть 1000 мс и вызов так же
 #if FREQ_BASE_TIME_READ != 1000
 #error "FREQ_BASE_TIME_READ and call period must equal 1000 ms"
@@ -514,10 +532,16 @@ bool sensorFrequency::Read(void)
 				count_FlowReal += count_real_last100;
 				cnt += count_Flow;
 				if(++FlowCalcCnt >= FlowCalcPeriod) {
+					boolean equal = cnt == count_FlowReal;
 					cnt = cnt * 10 / FlowCalcCnt; // ТЫСЯЧНЫЕ ГЦ
 					Frequency = cnt / 2;
-					Value = cnt * 360 / (kNonLinearity * cnt + kfValue); // ЛИТРЫ В ЧАС (ИЛИ ТЫСЯЧНЫЕ КУБА) частота в тысячных
-					ValueReal = count_FlowReal * 10 / FlowCalcCnt * 360 / (kNonLinearity * cnt + kfValue);
+					if(kNonLinearity) {
+						Value = cnt * 360 / (kNonLinearity * cnt / 10 + kfValue); // ЛИТРЫ В ЧАС (ИЛИ ТЫСЯЧНЫЕ КУБА) частота в тысячных
+						ValueReal = equal ? Value : count_FlowReal * 10 / FlowCalcCnt * 360 / (kNonLinearity * count_FlowReal / FlowCalcCnt + kfValue);
+					} else {
+						Value = cnt * 360 / kfValue; // ЛИТРЫ В ЧАС (ИЛИ ТЫСЯЧНЫЕ КУБА) частота в тысячных
+						ValueReal = equal ? Value : count_FlowReal * 10 / FlowCalcCnt * 360 / kfValue;
+					}
 					count_FlowReal = 0;
 					FlowCalcCnt = 0;
 					count_Flow = 0;
