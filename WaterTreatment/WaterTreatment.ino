@@ -1338,6 +1338,7 @@ void vReadSensor(void *)
 				RO_passed = MC.sFrequency[REVERSE_OSMOS_FC].Passed;
 				MC.sFrequency[REVERSE_OSMOS_FC].Passed = 0;
 			}
+			RO_Pulses += MC.sFrequency[REVERSE_OSMOS_FC].count_real_last100;
 			if(RO_passed) {
 				RO_Passed10Count += RO_passed;
 				if(RO_Passed10Count >= 10) {
@@ -1355,13 +1356,17 @@ void vReadSensor(void *)
 	#endif
 #endif
 		// Add to FLOW, = pulses * 100
-		int32_t add_to_flow = 0;
 		int16_t pw = MC.sADC[PWATER].get_Value();
 		if(MC.sFrequency[FLOW].WebCorrectCnt > 1) MC.sFrequency[FLOW].WebCorrectCnt--;	// 1 sec
 		if(MC.sFrequency[FLOW].get_ValueReal() <= MC.Option.FlowIncByPress_MinFlow) {
 #ifdef REVERSE_OSMOS_FC
 			if(RO_was_flow) {
-				add_to_flow = RO_passed * MC.sFrequency[FLOW].get_kfValue();
+				if(MC.sFrequency[FLOW].get_ValueReal() < MC.sFrequency[F_RO].get_ValueReal()) {
+					if(RO_Pulses > MC.sFrequency[F_RO].get_kfValue() / MC.sFrequency[FLOW].get_kfValue()) {
+						MC.sFrequency[FLOW].add_pulses100 += RO_Pulses * MC.sFrequency[FLOW].get_kfValue() / MC.sFrequency[F_RO].get_kfValue();
+						RO_Pulses = 0;
+					}
+				} else RO_Pulses = 0;
 				MC.Osmos_PWATER_DelayCnt = 0;
 			} else
 #endif
@@ -1386,11 +1391,11 @@ void vReadSensor(void *)
 							if(d > dd) d = dd;
 							int16_t pw2 = pw - MC.sADC[PWATER].get_minValue();
 							if(pw2 > dd / 2) {
-								add_to_flow = d * MC.Osmos_PWATER_BoosterMax * 100 / dd * (MC.sFrequency[FLOW].get_kfValue()/10) / 1000;
+								MC.sFrequency[FLOW].add_pulses100 += d * MC.Osmos_PWATER_BoosterMax * 100 / dd * (MC.sFrequency[FLOW].get_kfValue()/10) / 1000;
 							} else { //if(pw2 > dd / 2 / 2) {
-								add_to_flow = d * MC.Osmos_PWATER_BoosterMax * 150 / dd * (MC.sFrequency[FLOW].get_kfValue()/10) / 1000; // *1.5
+								MC.sFrequency[FLOW].add_pulses100 += d * MC.Osmos_PWATER_BoosterMax * 150 / dd * (MC.sFrequency[FLOW].get_kfValue()/10) / 1000; // *1.5
 	//						} else {
-	//							add_to_flow = d * MC.Osmos_PWATER_BoosterMax * 100 * 2 / dd * (MC.sFrequency[FLOW].get_kfValue()/10) / 1000;
+	//							MC.sFrequency[FLOW].add_pulses100 += d * MC.Osmos_PWATER_BoosterMax * 100 * 2 / dd * (MC.sFrequency[FLOW].get_kfValue()/10) / 1000;
 							}
 							MC.sFrequency[FLOW].WebCorrectCnt = (TIMER_TO_SHOW_STATUS + 1000) / TIME_READ_SENSOR + 1;
 							//TimeFeedPump +=	d * MC.Osmos_PWATER_BoosterMax * 1000 / ((MC.sADC[PWATER].get_maxValue() - MC.sADC[PWATER].get_minValue()) * 100) * TIME_READ_SENSOR / MC.Option.FeedPumpMaxFlow;
@@ -1424,7 +1429,6 @@ void vReadSensor(void *)
 		if(RO_was_flow && pw < MC.Option.PWATER_Osmos_Min) MC.Osmos_PWATER_Cnt++;
 #endif
 		MC.Osmos_PWATER_Last = pw;
-		MC.sFrequency[FLOW].add_pulses100 += add_to_flow;
 		if(MC.sFrequency[FLOW].Read()) {	// Обновить значения датчика потока, был проток
 			UsedWaterContinuousCntNot = 0;
 			if(++UsedWaterContinuousCntUsed == USED_WATER_CONTINUOUS_MINTIME) {

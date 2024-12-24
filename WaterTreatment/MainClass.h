@@ -145,6 +145,7 @@ uint32_t RegenStarted = 0;
 uint16_t Passed100Count = 0;	// L
 uint16_t RO_Passed10Count = 0;	// L
 uint32_t RO_UsedToday = 0; 		// L
+uint32_t RO_Pulses = 0;			// накопительный импульсов для добавки к основному счетчику, *100
 uint8_t  DrainingSiltFlag = 0;	// 0 - нет/ожидание, 1 - идет слив, 2..255 - закрываемся и ожидаем (сек)
 uint16_t DrainingSiltNowTimer = 0;
 uint8_t  UsedWaterContinuousCntUsed = 0;
