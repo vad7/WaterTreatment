@@ -1331,23 +1331,24 @@ void vReadSensor(void *)
 	#if FNUMBER > 2
 		for(i = FLOW + 2; i < FNUMBER; i++) MC.sFrequency[i].Read();		// Получить значения датчиков потока, кроме FLOW
 	#endif
-		uint32_t RO_passed = 0;
+		uint32_t passed;
 		uint8_t RO_was_flow = MC.sFrequency[REVERSE_OSMOS_FC].Read();
 		if(RO_was_flow) {
 			{
-				RO_passed = MC.sFrequency[REVERSE_OSMOS_FC].Passed;
+				passed = MC.sFrequency[REVERSE_OSMOS_FC].Passed;
 				MC.sFrequency[REVERSE_OSMOS_FC].Passed = 0;
 			}
 			RO_Pulses += MC.sFrequency[REVERSE_OSMOS_FC].count_real_last100;
-			if(RO_passed) {
-				RO_Passed10Count += RO_passed;
+			if(passed) {
+				RO_Passed10Count += passed;
 				if(RO_Passed10Count >= 10) {
 					RO_Passed10Count -= 10;
 					if(MC.Option.RO_FilterCounter1_Max) MC.WorkStats.RO_FilterCounter1++;
 					if(MC.Option.RO_FilterCounter2_Max) MC.WorkStats.RO_FilterCounter2++;
 				}
-				MC.WorkStats.RO_UsedTotal += RO_passed;
-				RO_UsedToday += RO_passed;
+				Stats_RO_WaterUsed_work += passed;
+				MC.WorkStats.RO_UsedTotal += passed;
+				RO_UsedToday += passed;
 			}
 		}
 #else
@@ -1442,7 +1443,6 @@ void vReadSensor(void *)
 				UsedWaterContinuousCntUsed = 0;
 			}
 			// Flow water
-			uint32_t passed;
 			{
 				passed = MC.sFrequency[FLOW].Passed;
 				MC.sFrequency[FLOW].Passed = 0;
