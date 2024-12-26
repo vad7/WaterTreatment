@@ -1338,7 +1338,6 @@ void vReadSensor(void *)
 				passed = MC.sFrequency[REVERSE_OSMOS_FC].Passed;
 				MC.sFrequency[REVERSE_OSMOS_FC].Passed = 0;
 			}
-			RO_Pulses += MC.sFrequency[REVERSE_OSMOS_FC].count_real_last100;
 			if(passed) {
 				RO_Passed10Count += passed;
 				if(RO_Passed10Count >= 10) {
@@ -1362,12 +1361,10 @@ void vReadSensor(void *)
 		if(MC.sFrequency[FLOW].get_ValueReal() <= MC.Option.FlowIncByPress_MinFlow) {
 #ifdef REVERSE_OSMOS_FC
 			if(RO_was_flow) {
-				if(MC.sFrequency[FLOW].get_ValueReal() < MC.sFrequency[F_RO].get_ValueReal()) {
-					if(RO_Pulses > MC.sFrequency[F_RO].get_kfValue() / MC.sFrequency[FLOW].get_kfValue()) {
-						MC.sFrequency[FLOW].add_pulses100 += RO_Pulses * MC.sFrequency[FLOW].get_kfValue() / MC.sFrequency[F_RO].get_kfValue();
-						RO_Pulses = 0;
-					}
-				} else RO_Pulses = 0;
+				int32_t v = MC.sFrequency[F_RO].get_ValueReal() - MC.sFrequency[FLOW].get_ValueReal();
+				if(v > 0) {
+					MC.sFrequency[FLOW].add_pulses100 += v * MC.sFrequency[FLOW].get_kfValue() / 3600; // Добавка, чтобы сравнять расход
+				}
 				MC.Osmos_PWATER_DelayCnt = 0;
 			} else
 #endif
