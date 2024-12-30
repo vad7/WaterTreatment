@@ -102,9 +102,9 @@ uint32_t FeedPumpWork = 0;						// ms
 uint32_t FloodingTime = 0;
 uint32_t SepticAlarmTime;
 #ifdef CHECK_DRAIN_PUMP
-#define  MODBUS_RELAY_CMD_OFF	-1	// need switch on
+#define  MODBUS_RELAY_CMD_OFF	-1	// need switch off
 #define  MODBUS_RELAY_OFF		0
-#define  MODBUS_RELAY_CMD_ON	1	// need switch off
+#define  MODBUS_RELAY_CMD_ON	1	// need switch on
 #define  MODBUS_RELAY_ON		2
 #ifdef MODBUS_DRAIN_PUMP_ON_PULSE
 int8_t   DrainPumpRelayStatus = MODBUS_RELAY_OFF; // MODBUS_RELAY_*

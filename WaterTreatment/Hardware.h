@@ -211,11 +211,13 @@ public:
   int32_t  add_pulses100;								 // добавка при следующем чтении, *100
   uint32_t count_real_last100;							// счетчик без добавок, последний, *100
   uint32_t FlowPulseCounter;							// real pulses * 100
+  uint8_t  WebCorrectCnt;								// счетчик корректировки для веба, *TIME_READ_SENSOR, начиная с 1
   statChart ChartFlow;                                   // Статистика по датчику
+#ifdef F_CHART_ChartLiters
   statChart ChartLiters;                                 // Статистика по датчику
   uint16_t ChartLiters_accum;
   uint16_t ChartLiters_rest;
-  uint8_t  WebCorrectCnt;								// счетчик корректировки для веба, *TIME_READ_SENSOR, начиная с 1
+#endif
 
 #ifdef SENSORS_FREQ_I2C
   uint8_t err;

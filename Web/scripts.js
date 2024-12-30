@@ -1,5 +1,5 @@
 // Copyright by Vadim Kulakov vad7@yahoo.com, vad711
-var VER_WEB = "1.63";
+var VER_WEB = "1.64";
 var urlcontrol = ''; //  автоопределение (если адрес сервера совпадает с адресом контроллера)
 // адрес и порт контроллера, если адрес сервера отличен от адреса контроллера (не рекомендуется)
 //var urlcontrol = 'http://192.168.0.199/';
@@ -368,7 +368,7 @@ function loadParam(paramid, noretry, resultdiv) {
 											updateParam(upsens);
 											loadParam(loadsens);
 										} else if(values[0] == 'get_tblFlowС') {
-											var content = "", upsens = "", loadsens = "";
+											var content = "", upsens = "get_ADC(PWATER),", loadsens = "";
 											var count = values[1].split(';');
 											for(var j = 0; j < count.length - 1; j++) {
 												input = count[j].toLowerCase();
@@ -398,6 +398,19 @@ function loadParam(paramid, noretry, resultdiv) {
 											document.getElementById(valueid).innerHTML = content;
 											updateParam(upsens);
 											loadParam(loadsens);
+										} else if(values[0] == 'get_tblRelayMdb') {
+											var content = "", upsens = "";
+											var count = values[1].split(';');
+											for(var j = 0; j < count.length - 1; j++) {
+												var flds = count[j].split('|');
+												if(flds.length == 0) continue;
+												if((relay = flds[0]) == "") continue;
+												upsens = upsens + "get_modbusR(" + relay + "),get_modbusE(" + relay + "),";
+												content = content + '<tr><td>' + flds[1] + '</td><td id="get_modbusr-' + relay + '-ONOFF"></td><td>' + flds[2] + '</td><td>' + flds[3] + '</td><td id="get_modbuse-' + relay + '"></td>';
+												content = content + '</tr>';
+											}
+											document.getElementById(valueid).innerHTML = content;
+											updateParam(upsens);
 										} else if(values[0] == 'get_tblPwrC') {
 											var content = "";
 											var count = values[1].split(';');

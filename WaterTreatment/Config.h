@@ -193,6 +193,7 @@ struct History_setup {
 	#define MODBUS_OTHER_MAX_ERRORS		5			// Подряд ошибок, чтобы выдать ошибку
     //#define PIN_MODBUS_RSE          	22          // Не используется из-за платы UART-RS485! Управление направлением передачи 485 для связи с инвертором по Modbus (1-передача 0-прием)
 	#define MODBUS_SEPTIC_HEAT_RELAY_ADDR	MODBUS_DRAIN_PUMP_RELAY_ADDR	// Адрес реле нагрева септика, если сработал sInput(SEPTIC_LOW_TEMP)
+	#define MODBUS_SEPTIC_HEAT_RELAY_NAME	"Нагрев септика"
 	#define MODBUS_SEPTIC_HEAT_RELAY_ID		1		// Номер реле (нумерация с 0)
 	#define MODBUS_SEPTIC_HEAT_RELAY_ON		1
 	#define MODBUS_SEPTIC_HEAT_RELAY_OFF	0
@@ -200,6 +201,7 @@ struct History_setup {
 
 	#define CHECK_DRAIN_PUMP			// Контроль и отключение дренажного насоса (в дренаж идет регенерация)
 	#ifdef CHECK_DRAIN_PUMP
+		#define MODBUS_DRAIN_PUMP_RELAY_NAME	"Отключение дренажного насоса"
 		#define MODBUS_DRAIN_PUMP_ADDR			2	// Адрес дренажного насоса
 		#define MODBUS_DRAIN_PUMP_RELAY_ADDR	3	// Адрес реле дренажного насоса
 		#define MODBUS_DRAIN_PUMP_RELAY_ID		0	// Номер реле (нумерация с 0)
@@ -348,6 +350,8 @@ struct History_setup {
 
     const uint32_t TRANSFLOW[FNUMBER]= { 40000, 100000 };	// Коэффициент преобразования импульсов за литр, сотые
     const uint16_t TESTFLOW[FNUMBER] = { 0, 0 };			// Значения датчиков при тестировании  опция TEST
+
+	//#define F_CHART_ChartLiters			// График в памяти - литры
 
    // Исполнительные устройства (реле и сухие контакты) ------------------------------------------------------------------
     #define RNUMBER                11   // Число исполнительных устройств (всех)

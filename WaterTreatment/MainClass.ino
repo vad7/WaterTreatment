@@ -1192,8 +1192,10 @@ void  MainClass::updateChart()
 	for(uint8_t i=0;i<ANUMBER;i++) sADC[i].Chart.addPoint(sADC[i].get_Value());
 	for(uint8_t i=0;i<FNUMBER;i++) {
 		sFrequency[i].ChartFlow.addPoint(sFrequency[i].get_Value()); // Частотные датчики
+#ifdef F_CHART_ChartLiters
 		sFrequency[i].ChartLiters.addPoint(sFrequency[i].ChartLiters_accum * 100 + sFrequency[i].ChartLiters_rest); // Частотные датчики
 		sFrequency[i].ChartLiters_accum = sFrequency[i].ChartLiters_rest = 0;
+#endif
 	}
 
 	int32_t tmp1, tmp2, tmp3;
@@ -1221,8 +1223,10 @@ void MainClass::clearChart()
  for(i=0;i<ANUMBER;i++) sADC[i].Chart.clear();
  for(i=0;i<FNUMBER;i++) {
 	 sFrequency[i].ChartFlow.clear();
+#ifdef F_CHART_ChartLiters
 	 sFrequency[i].ChartLiters.clear();
 	 sFrequency[i].ChartLiters_accum = sFrequency[i].ChartLiters_rest = 0;
+#endif
  }
  ChartWaterBoost.clear();
  //ChartWaterBoosterCount.clear();
@@ -1256,8 +1260,10 @@ void MainClass::get_Chart(char *var, char* str)
 	}
 	for(i = 0; i < FNUMBER; i++) {
 		if((strncmp(var, sFrequency[i].get_name(), strlen(sFrequency[i].get_name())) == 0)) {
-			if(var[strlen(sFrequency[i].get_name()) - 1] == 'L') sFrequency[i].ChartLiters.get_PointsStrUintDiv1000(str);
-			else sFrequency[i].ChartFlow.get_PointsStrUintDiv1000(str);
+#ifdef F_CHART_ChartLiters
+			if(var[strlen(sFrequency[i].get_name()) - 1] == 'L') sFrequency[i].ChartLiters.get_PointsStrUintDiv1000(str); else
+#endif
+			sFrequency[i].ChartFlow.get_PointsStrUintDiv1000(str);
 			return;
 		}
 	}

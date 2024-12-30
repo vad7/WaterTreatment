@@ -1445,9 +1445,13 @@ void vReadSensor(void *)
 				MC.sFrequency[FLOW].Passed = 0;
 			}
 			WaterBoosterCountP100 += MC.sFrequency[FLOW].count_real_last100;
+#ifdef F_CHART_ChartLiters
 			MC.sFrequency[FLOW].ChartLiters_rest = MC.sFrequency[FLOW].PassedRest;
+#endif
 			if(passed) {
+#ifdef F_CHART_ChartLiters
 				MC.sFrequency[FLOW].ChartLiters_accum += passed;
+#endif
 				if(!MC.sInput[REG_BACKWASH_ACTIVE].get_Input()) {
 					TimeFeedPump +=	passed * 1000 * TIME_READ_SENSOR / MC.Option.FeedPumpMaxFlow;
 				} else if(RegBackwashTimer == 0) { // В начале обратной промывки реагент не подаем, в конце - усиленная подача
@@ -2292,6 +2296,7 @@ void vService(void *)
 							} else if(GETBIT(MC.Option.flags, fPWMLogErrors)) journal.jprintf_time("%s Read Error %d\n", "PUMP Relay", err);
 						} else {
 							DrainPumpRelayErrCnt = 0;
+							journal.jprintfopt_time("%s Relay: %s\n", "PUMP", DrainPumpRelayStatus == MODBUS_RELAY_CMD_ON ? "ON" : "OFF");
 							if(DrainPumpRelayStatus == MODBUS_RELAY_CMD_OFF) {
 								journal.jprintf_time("DRAIN PUMP -> OFF!\n", err);
 #ifdef MODBUS_DRAIN_PUMP_ON_PULSE
@@ -2301,7 +2306,6 @@ void vService(void *)
 #endif
 							} else {
 								DrainPumpRelayStatus = MODBUS_RELAY_ON;
-								journal.jprintfopt_time("%s Relay: %s\n", "PUMP", DrainPumpRelayStatus == MODBUS_RELAY_CMD_ON ? "ON" : "OFF");
 							}
 #endif
 						}

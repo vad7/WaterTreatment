@@ -376,8 +376,10 @@ void sensorFrequency::initFrequency(int sensor)
 	note=(char*)noteFrequency[sensor];             // наименование датчика
 	name=(char*)nameFrequency[sensor];             // Имя датчика
 	ChartFlow.init();                              // инициализация графика
+#ifdef F_CHART_ChartLiters
 	ChartLiters.init();                            // инициализация графика2
 	ChartLiters_accum = ChartLiters_rest = 0;
+#endif
 	add_pulses100 = 0;
 	count_real_last100 = 0;
 	count_Flow = 0;

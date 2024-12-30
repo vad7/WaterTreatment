@@ -8,7 +8,7 @@
 <script type="text/javascript">
 urlupdate = 2000;
 window.onload = function() {
-	loadParam("get_tblRelay,get_tblPwrC,LowConsume");
+	loadParam("get_tblRelay,get_tblPwrC,LowConsume,get_tblRelayMdb");
 	loadParam("get_tblInput,get_listDSR,get_tblPDS");
 };
 function setDS(v, i) {
@@ -30,13 +30,13 @@ function setDS(v, i) {
 		<tr>
 			<th width="15%">Имя</th>
 			<th width="25%">Описание</th>
-			<th>Состояние</th>
+			<th width="10%">Состояние</th>
 			<th>Pin</th>
 		</tr>
 		</thead>
 		<tbody id="get_tblrelay">
 		</tbody>
-	</table>		
+		</table>		
 	</div>		
 	<div id="get_tblpwrc_head">
 		<h2>Корректировка электрической мощности</h2>
@@ -49,9 +49,26 @@ function setDS(v, i) {
 		</thead>
 		<tbody id="get_tblpwrc">
 		</tbody>
-	</table>		
+		</table>		
 	</div>
  <br>
+ <h2>Реле Modbus RTU</h2>
+	<div class="row1">
+	<table border="1" rules="rows">
+		<thead>
+		<tr>
+			<th width="40%">Описание</th>
+			<th>Состояние</th>
+			<th>Адрес</th>
+			<th>Номер</th>
+			<th>Ошибок</th>
+		</tr>
+		</thead>
+		<tbody id="get_tblrelaymdb">
+		</tbody>
+	</table>		
+	</div>
+ <br>	
  <h2>Датчики сухой контакт</h2>
   <table border="1" rules="rows">
     <thead>

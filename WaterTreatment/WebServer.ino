@@ -1231,6 +1231,26 @@ xSaveStats:		if((i = MC.save_WorkStats()) == OK)
 			} else if(strcmp(str,"Relay")==0)     // Функция get_tblRelay
 			{
 				for(i=0;i<RNUMBER;i++) if(MC.dRelay[i].get_present()){strcat(strReturn,MC.dRelay[i].get_name());strcat(strReturn,";");}
+			} else if(strcmp(str,"RelayMdb")==0)     // Функция get_tblRelayMdb
+			{
+#ifdef MODBUS_SEPTIC_HEAT_RELAY_ADDR
+				strcat(strReturn, "1|");
+				strcat(strReturn, MODBUS_SEPTIC_HEAT_RELAY_NAME);
+				strcat(strReturn, "|");
+				_itoa(MODBUS_SEPTIC_HEAT_RELAY_ADDR, strReturn);
+				strcat(strReturn, "|");
+				_itoa(MODBUS_SEPTIC_HEAT_RELAY_ID, strReturn);
+				strcat(strReturn, ";");
+#endif
+#ifdef MODBUS_DRAIN_PUMP_RELAY_ADDR
+				strcat(strReturn, "2|");
+				strcat(strReturn, MODBUS_DRAIN_PUMP_RELAY_NAME);
+				strcat(strReturn, "|");
+				_itoa(MODBUS_DRAIN_PUMP_RELAY_ADDR, strReturn);
+				strcat(strReturn, "|");
+				_itoa(MODBUS_DRAIN_PUMP_RELAY_ID, strReturn);
+				strcat(strReturn, ";");
+#endif
 			} else if(strncmp(str, "Flow", 4) == 0 || strcmp(str, "FlowC") == 0) // Функция get_tblFlow или get_tblFlowC
 			{
 				for(i=0;i<FNUMBER;i++) { strcat(strReturn,MC.sFrequency[i].get_name()); strcat(strReturn,";"); }
@@ -1479,7 +1499,37 @@ x_get_RH:			_itoa(MC.Option.RegenHour & 0x1F, strReturn);
 			// N - номер устройства, D - тип данных, X - адрес, Y - новое значение
 			if(strncmp(str+1, "et_modbus", 9) == 0) {
 				STORE_DEBUG_INFO(38);
-				if(str[11] == 'p') { // set_modbus_p(n=x) - установить параметры протокола Modbus
+				if(str[10] == 'R') { // get_modbusR(n) - получить состояние реле Modbus
+#ifdef MODBUS_SEPTIC_HEAT_RELAY_ADDR
+					if(*x == '1') {
+						_itoa(SepticRelayStatus, strReturn);
+						ADD_WEBDELIM(strReturn); continue;
+					}
+#endif
+#ifdef MODBUS_DRAIN_PUMP_RELAY_ADDR
+					if(*x == '2') {
+#ifdef MODBUS_DRAIN_PUMP_ON_PULSE
+						_itoa(DrainPumpRelayStatus > 0, strReturn);
+#else
+						_itoa(DrainPumpRelayStatus <= 0, strReturn);
+#endif
+						ADD_WEBDELIM(strReturn); continue;
+					}
+#endif
+				} else if(str[10] == 'E') { // get_modbusE(n) - получить ошибки реле Modbus
+#ifdef MODBUS_SEPTIC_HEAT_RELAY_ADDR
+					if(*x == '1') {
+						_itoa(SepticRelayErrCnt, strReturn);
+						ADD_WEBDELIM(strReturn); continue;
+					}
+#endif
+#ifdef MODBUS_DRAIN_PUMP_RELAY_ADDR
+					if(*x == '2') {
+						_itoa(DrainPumpRelayErrCnt, strReturn);
+						ADD_WEBDELIM(strReturn); continue;
+					}
+#endif
+				} else if(str[11] == 'p') { // set_modbus_p(n=x) - установить параметры протокола Modbus
 					l_i32 = pm;
 					if(strcmp(x, "timeout") == 0) { // Таймаут
 						if(str[0] == 's') Modbus.RS485.ModbusResponseTimeout = l_i32; else l_i32 = Modbus.RS485.ModbusResponseTimeout;
@@ -2032,10 +2082,7 @@ x_get_GADC:						i = MC.sADC[p].get_ADC_Gain();
 							}
 							if(strncmp(str, "CLF", 3) == 0)               // Функция get_CLFlow - Liters
 							{
-								l_i32 = MC.sFrequency[p].FlowPulseCounter;
-								_itoa(l_i32 / MC.sFrequency[p].get_kfValue(), strReturn);
-								strcat(strReturn, ".");
-								_itoa((uint32_t)(l_i32 % MC.sFrequency[p].get_kfValue()) * 10000 / MC.sFrequency[p].get_kfValue(), strReturn);
+								_dtoa(strReturn, MC.sFrequency[p].FlowPulseCounter * 10000 / MC.sFrequency[p].get_kfValue(), 4);
 								ADD_WEBDELIM(strReturn); continue;
 							}
 							if(strncmp(str, "CKF", 3) == 0)               // Функция get_CKFlow0, get_CKFlow1 - расчет K (0.5L, 1L)
