@@ -949,11 +949,11 @@ xSaveStats:		if((i = MC.save_WorkStats()) == OK)
 						MC.WorkStats.RO_FilterCounter2 = 0;
 						MC.Option.RO_FilterCountersResetTime[1] = rtcSAM3X8.unixtime();
 					} else if(strcmp(str, "1")) {	// RESET_CNT_FC1
-						l_i32 = MC.WorkStats.FilterCounter1;
+						l_i32 = MC.WorkStats.FilterCounter1 * 100;
 						MC.WorkStats.FilterCounter1 = 0;
 						MC.Option.FilterCountersResetTime[0] = rtcSAM3X8.unixtime();
 					} else if(strcmp(str, "2") == 0) {	// RESET_CNT_FC2
-						l_i32 = MC.WorkStats.FilterCounter2;
+						l_i32 = MC.WorkStats.FilterCounter2 * 100;
 						MC.WorkStats.FilterCounter2 = 0;
 						MC.Option.FilterCountersResetTime[1] = rtcSAM3X8.unixtime();
 					} else {
