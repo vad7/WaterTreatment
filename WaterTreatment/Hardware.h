@@ -57,7 +57,7 @@ class sensorADC
     int16_t get_zeroValue(){return cfg.zeroValue;}           // Выход датчика (отсчеты ацп)  соответсвующий 0
     int8_t  set_zeroValue(int16_t p);                    // Установка Выход датчика (отсчеты ацп)  соответсвующий 0
     uint16_t get_lastADC(){ return lastADC; }            // Последнее считанное значение датчика в отсчетах с фильтром
-    __attribute__((always_inline)) inline int16_t get_Value() { return Value; };  // Получить значение датчика
+    __attribute__((always_inline)) inline int16_t get_Value() { return Value; };  // Получить значение датчика, сотые
     uint16_t get_transADC(){return cfg.transADC;}        // Получить значение коэффициента преобразования
     int8_t set_transADC(float p);                        // Установить значение коэффициента преобразования
     __attribute__((always_inline)) inline boolean get_present(){return GETBIT(flags,fPresent);} // Наличие датчика в текущей конфигурации

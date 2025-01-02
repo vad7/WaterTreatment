@@ -93,6 +93,14 @@ function show_all() {
 			<td><b>Работа при низком расходе воды или питьевом фильтре (добавка к расходу по уменьшению давления)</b></td><td></td>
 		</tr>
 		<tr>
+			<td>Минимальное давление для включения насосной станции, бар</td>
+			<td nowrap><input id="get_opt-wom" type="number" step="0.01"> <input type="submit" value=">" onclick="setParam('get_Opt(WOM)');"></td>
+		</tr>
+		<tr>
+			<td>Через сколько раз уменьшений давления включать насосную станцию (при работе питьевого фильтра сразу)</td>
+			<td nowrap><input id="get_opt-wos" type="number"> <input type="submit" value=">" onclick="setParam('get_Opt(WOS)');"></td>
+		</tr>
+		<tr>
 			<td>Задержка после снижения потребления (ниже минимума) до начала работы алгоритма добавки, сек</td>
 			<td nowrap><input id="get_opt-od" type="number"> <input type="submit" value=">" onclick="setParam('get_Opt(OD)');"></td>
 		</tr>
@@ -103,14 +111,6 @@ function show_all() {
 		<tr>
 			<td>Добавка к потреблению при низком расходе</td>
 			<td><input type="checkbox" id="get_opt-fbp" onChange="setParam('get_Opt(FBP)');"></td>
-		</tr>
-		<tr>
-			<td>Минимальное давление для включения насосной станции при низком расходе, бар</td>
-			<td nowrap><input id="get_opt-wom" type="number" step="0.01"> <input type="submit" value=">" onclick="setParam('get_Opt(WOM)');"></td>
-		</tr>
-		<tr>
-			<td>Через сколько раз уменьшений давления включать насосную станцию</td>
-			<td nowrap><input id="get_opt-wos" type="number"> <input type="submit" value=">" onclick="setParam('get_Opt(WOS)');"></td>
 		</tr>
 		<tr>
 			<td>Задержка начала контроля после наполнения бака насосной станции, сек</td>

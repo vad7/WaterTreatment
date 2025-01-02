@@ -474,6 +474,7 @@ bool sensorFrequency::Read(void)
 		//__asm__ volatile ("" ::: "memory");0
 		uint32_t ticks = tickCount - sTime;
 		sTime = tickCount;
+		if(GETBIT(MC.Option.flags, fDebugToSerial)) journal.printf("%s (%u): %u\n", name, ticks, cnt);
 		if(MC.testMode != NORMAL) {    // В режиме теста
 			Value = testValue;
 			cnt = Value * kfValue / 360;
@@ -550,7 +551,6 @@ bool sensorFrequency::Read(void)
 				} else count_Flow = cnt;
 			}
 		}
-		//journal.jprintfopt("Flow(%d): %d = %d (%d, %d) f: %d\n", ticks, cnt / 100, Value, Passed, PassedRest / 100, Frequency);
 	}
 	return flow;
 }
