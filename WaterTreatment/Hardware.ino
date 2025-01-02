@@ -443,113 +443,119 @@ void sensorFrequency::set_I2C_addr(uint8_t addr)
 // Получить (точнее обновить) значение датчика, возвращает 1, если был проток
 bool sensorFrequency::Read(void)
 {
-	uint32_t tickCount;
 	bool flow = false;
-	if((tickCount = GetTickCount()) - sTime >= (uint32_t) FREQ_BASE_TIME_READ) {  // если только пришло время измерения
-		uint32_t cnt;
+	uint32_t tickCount = GetTickCount();
+	uint32_t ticks = tickCount - sTime;
+	if(ticks < FREQ_BASE_TIME_READ) {
+		if((ticks = FREQ_BASE_TIME_READ - ticks) > FREQ_BASE_TIME_READ / 20) { // если только пришло время измерения, если близко к этому, то ждем
+			if(GETBIT(MC.Option.flags, fDebugToSerial)) journal.printf("%s (%u)\n", name, ticks);
+			return flow;
+		}
+		_delay(ticks);
+		ticks = (tickCount = GetTickCount()) - sTime;
+	}
+	sTime = tickCount;
+	uint32_t cnt;
 #ifdef SENSORS_FREQ_I2C
-		if(I2C_addr) { // Используется I2C
-			count = 0;
+	if(I2C_addr) { // Используется I2C
+		count = 0;
 
+		err = Second_I2C_Read(I2C_addr, 2, (uint8_t *)&count);
+		if(err) {
+			errNum++;
+			_delay(100);
 			err = Second_I2C_Read(I2C_addr, 2, (uint8_t *)&count);
 			if(err) {
 				errNum++;
-				_delay(100);
-				err = Second_I2C_Read(I2C_addr, 2, (uint8_t *)&count);
-				if(err) {
-					errNum++;
-					journal.jprintfopt("I2C_2 error %d\n", err);
-					set_Error(ERR_SFREQ_I2C_ERROR, (char *)"SensorFreq I2C read");
-				}
+				journal.jprintfopt("I2C_2 error %d\n", err);
+				set_Error(ERR_SFREQ_I2C_ERROR, (char *)"SensorFreq I2C read");
 			}
-			cnt = count;
-		} else
-#endif
-		{
-			noInterrupts();
-			cnt = count;
-			count = 0;
-			interrupts();
 		}
-		//__asm__ volatile ("" ::: "memory");0
-		uint32_t ticks = tickCount - sTime;
-		sTime = tickCount;
-		if(GETBIT(MC.Option.flags, fDebugToSerial)) journal.printf("%s (%u): %u\n", name, ticks, cnt);
-		if(MC.testMode != NORMAL) {    // В режиме теста
-			Value = testValue;
-			cnt = Value * kfValue / 360;
-			if(cnt) flow = 1;
-			Frequency = cnt / 2;
-			PassedRest += cnt / 10 * ticks / FREQ_BASE_TIME_READ;
-			Passed = PassedRest / kfValue;
-			PassedRest %= kfValue;
-		} else {
-			cnt *= 100;
-			count_real_last100 = cnt;
-			FlowPulseCounter += cnt;
-			if(add_pulses100 != 0) {
-				cnt += add_pulses100;
-				add_pulses100 = 0;
-			}
-			if(cnt) flow = true;
-			PassedRest += cnt;
-			Passed += PassedRest / kfValue;
-			PassedRest %= kfValue;
-			if(FlowCalcPeriod == 1) {
-				if(cnt == count_real_last100) {
-					if(ticks == FREQ_BASE_TIME_READ) {
-						cnt *= 10;
-					} else if(cnt > 0xFFFFFFFF / FREQ_BASE_TIME_READ / 10) { // will overflow u32
-						cnt = (cnt * (10 * FREQ_BASE_TIME_READ / 100)) / ticks * 100;
-					} else {
-						cnt = (cnt * 10 * FREQ_BASE_TIME_READ) / ticks; // ТЫСЯЧНЫЕ ГЦ время в миллисекундах частота в тысячных герца
-					}
-					Frequency = cnt / 2;
-					if(kNonLinearity) ValueReal = Value = cnt * 360 / (kNonLinearity * cnt / 10 + kfValue); // ЛИТРЫ В ЧАС (ИЛИ ТЫСЯЧНЫЕ КУБА) частота в тысячных
-					else ValueReal = Value = cnt * 360 / kfValue;
+		cnt = count;
+	} else
+#endif
+	{
+		noInterrupts();
+		cnt = count;
+		count = 0;
+		interrupts();
+	}
+	//__asm__ volatile ("" ::: "memory");0
+	if(GETBIT(MC.Option.flags, fDebugToSerial)) journal.printf("%s (%u): %u\n", name, ticks, cnt);
+	if(MC.testMode != NORMAL) {    // В режиме теста
+		Value = testValue;
+		cnt = Value * kfValue / 360;
+		if(cnt) flow = 1;
+		Frequency = cnt / 2;
+		PassedRest += cnt / 10 * ticks / FREQ_BASE_TIME_READ;
+		Passed = PassedRest / kfValue;
+		PassedRest %= kfValue;
+	} else {
+		cnt *= 100;
+		count_real_last100 = cnt;
+		FlowPulseCounter += cnt;
+		if(add_pulses100 != 0) {
+			cnt += add_pulses100;
+			add_pulses100 = 0;
+		}
+		if(cnt) flow = true;
+		PassedRest += cnt;
+		Passed += PassedRest / kfValue;
+		PassedRest %= kfValue;
+		if(FlowCalcPeriod == 1) {
+			if(cnt == count_real_last100) {
+				if(ticks == FREQ_BASE_TIME_READ) {
+					cnt *= 10;
+				} else if(cnt > 0xFFFFFFFF / FREQ_BASE_TIME_READ / 10) { // will overflow u32
+					cnt = (cnt * (10 * FREQ_BASE_TIME_READ / 100)) / ticks * 100;
 				} else {
-					uint32_t cnt_real = count_real_last100;
-					if(ticks == FREQ_BASE_TIME_READ) {
-						cnt *= 10;
-						cnt_real *= 10;
-					} else if(cnt > 0xFFFFFFFF / FREQ_BASE_TIME_READ / 10) { // will overflow u32
-						cnt = (cnt * (10 * FREQ_BASE_TIME_READ / 100)) / ticks * 100;
-						cnt_real = (cnt_real * (10 * FREQ_BASE_TIME_READ / 100)) / ticks * 100;
-					} else {
-						cnt = (cnt * 10 * FREQ_BASE_TIME_READ) / ticks; // ТЫСЯЧНЫЕ ГЦ время в миллисекундах частота в тысячных герца
-						cnt_real = (cnt_real * 10 * FREQ_BASE_TIME_READ) / ticks;
-					}
-					Frequency = cnt / 2;
-					if(kNonLinearity) {
-						Value = cnt * 360 / (kNonLinearity * cnt / 10 + kfValue); // ЛИТРЫ В ЧАС (ИЛИ ТЫСЯЧНЫЕ КУБА) частота в тысячных
-						ValueReal = cnt == cnt_real ? Value : cnt_real * 360 / (kNonLinearity * cnt_real / 10 + kfValue);
-					} else {
-						Value = cnt * 360 / kfValue;						 // ЛИТРЫ В ЧАС (ИЛИ ТЫСЯЧНЫЕ КУБА) частота в тысячных
-						ValueReal = cnt == cnt_real ? Value : cnt_real * 360 / kfValue;
-					}
+					cnt = (cnt * 10 * FREQ_BASE_TIME_READ) / ticks; // ТЫСЯЧНЫЕ ГЦ время в миллисекундах частота в тысячных герца
 				}
-			} else { // период должен быть 1000 мс и вызов так же
+				Frequency = cnt / 2;
+				if(kNonLinearity) ValueReal = Value = cnt * 360 / (kNonLinearity * cnt / 10 + kfValue); // ЛИТРЫ В ЧАС (ИЛИ ТЫСЯЧНЫЕ КУБА) частота в тысячных
+				else ValueReal = Value = cnt * 360 / kfValue;
+			} else {
+				uint32_t cnt_real = count_real_last100;
+				if(ticks == FREQ_BASE_TIME_READ) {
+					cnt *= 10;
+					cnt_real *= 10;
+				} else if(cnt > 0xFFFFFFFF / FREQ_BASE_TIME_READ / 10) { // will overflow u32
+					cnt = (cnt * (10 * FREQ_BASE_TIME_READ / 100)) / ticks * 100;
+					cnt_real = (cnt_real * (10 * FREQ_BASE_TIME_READ / 100)) / ticks * 100;
+				} else {
+					cnt = (cnt * 10 * FREQ_BASE_TIME_READ) / ticks; // ТЫСЯЧНЫЕ ГЦ время в миллисекундах частота в тысячных герца
+					cnt_real = (cnt_real * 10 * FREQ_BASE_TIME_READ) / ticks;
+				}
+				Frequency = cnt / 2;
+				if(kNonLinearity) {
+					Value = cnt * 360 / (kNonLinearity * cnt / 10 + kfValue); // ЛИТРЫ В ЧАС (ИЛИ ТЫСЯЧНЫЕ КУБА) частота в тысячных
+					ValueReal = cnt == cnt_real ? Value : cnt_real * 360 / (kNonLinearity * cnt_real / 10 + kfValue);
+				} else {
+					Value = cnt * 360 / kfValue;						 // ЛИТРЫ В ЧАС (ИЛИ ТЫСЯЧНЫЕ КУБА) частота в тысячных
+					ValueReal = cnt == cnt_real ? Value : cnt_real * 360 / kfValue;
+				}
+			}
+		} else { // период должен быть 1000 мс и вызов так же
 #if FREQ_BASE_TIME_READ != 1000
 #error "FREQ_BASE_TIME_READ and call period must equal 1000 ms"
 #endif
-				count_FlowReal += count_real_last100;
-				cnt += count_Flow;
-				if(++FlowCalcCnt >= FlowCalcPeriod) {
-					boolean equal = cnt == count_FlowReal;
-					cnt = cnt * 10 / FlowCalcCnt; // ТЫСЯЧНЫЕ ГЦ
-					Frequency = cnt / 2;
-					if(kNonLinearity) {
-						Value = cnt * 360 / (kNonLinearity * cnt / 10 + kfValue); // ЛИТРЫ В ЧАС (ИЛИ ТЫСЯЧНЫЕ КУБА) частота в тысячных
-						ValueReal = equal ? Value : count_FlowReal * 10 / FlowCalcCnt * 360 / (kNonLinearity * count_FlowReal / FlowCalcCnt + kfValue);
-					} else {
-						Value = cnt * 360 / kfValue; // ЛИТРЫ В ЧАС (ИЛИ ТЫСЯЧНЫЕ КУБА) частота в тысячных
-						ValueReal = equal ? Value : count_FlowReal * 10 / FlowCalcCnt * 360 / kfValue;
-					}
-					count_FlowReal = 0;
-					FlowCalcCnt = 0;
-					count_Flow = 0;
-				} else count_Flow = cnt;
-			}
+			count_FlowReal += count_real_last100;
+			cnt += count_Flow;
+			if(++FlowCalcCnt >= FlowCalcPeriod) {
+				boolean equal = cnt == count_FlowReal;
+				cnt = cnt * 10 / FlowCalcCnt; // ТЫСЯЧНЫЕ ГЦ
+				Frequency = cnt / 2;
+				if(kNonLinearity) {
+					Value = cnt * 360 / (kNonLinearity * cnt / 10 + kfValue); // ЛИТРЫ В ЧАС (ИЛИ ТЫСЯЧНЫЕ КУБА) частота в тысячных
+					ValueReal = equal ? Value : count_FlowReal * 10 / FlowCalcCnt * 360 / (kNonLinearity * count_FlowReal / FlowCalcCnt + kfValue);
+				} else {
+					Value = cnt * 360 / kfValue; // ЛИТРЫ В ЧАС (ИЛИ ТЫСЯЧНЫЕ КУБА) частота в тысячных
+					ValueReal = equal ? Value : count_FlowReal * 10 / FlowCalcCnt * 360 / kfValue;
+				}
+				count_FlowReal = 0;
+				FlowCalcCnt = 0;
+				count_Flow = 0;
+			} else count_Flow = cnt;
 		}
 	}
 	return flow;

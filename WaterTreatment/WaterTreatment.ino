@@ -1267,66 +1267,8 @@ void vReadSensor(void *)
 		int8_t i;
 		//WDT_Restart(WDT);
 
-		prtemp = fDS2482_bus_mask;
 		ttime = GetTickCount();
-		if(ttime - OneWire_time >= ONEWIRE_READ_PERIOD) {
-			OneWire_time = ttime;
-			if(OW_scan_flags == 0) {
-				prtemp = MC.Prepare_Temp(0);
-#ifdef ONEWIRE_DS2482_SECOND
-				prtemp |= MC.Prepare_Temp(1);
-#endif
-#ifdef ONEWIRE_DS2482_THIRD
-				prtemp |= MC.Prepare_Temp(2);
-#endif
-#ifdef ONEWIRE_DS2482_FOURTH
-				prtemp |= MC.Prepare_Temp(3);
-#endif
-			}
-		}
 
-#ifdef RADIO_SENSORS
-		radio_timecnt++;
-#endif
-		// read in vPumps():
-		//for(i = 0; i < ANUMBER; i++) MC.sADC[i].Read();                  // Прочитать данные с датчиков давления
-#ifdef USE_UPS
-		if(!MC.NO_Power)
-#endif
-		{
-			// Основная группа регистров, включая мощность
-			if(MC.dPWM.get_readState(0) == OK) {
-				if(WaterBoosterStatus > 0 && WaterBoosterTimeout > MC.Option.PWM_StartingTime) {
-					if(MC.Option.PWM_DryRun && MC.dPWM.get_Power() < MC.Option.PWM_DryRun) { // Сухой ход
-						CriticalErrors |= ERRC_WaterBooster;
-						set_Error(ERR_PWM_DRY_RUN, (char*)__FUNCTION__);
-					} else if(MC.Option.PWM_Max && MC.dPWM.get_Power() > MC.Option.PWM_Max) { // Перегрузка
-						CriticalErrors |= ERRC_WaterBooster;
-						set_Error(ERR_PWM_MAX, (char*)__FUNCTION__);
-					}
-				}
-			}
-			if(MC.dPWM.get_lastErr() == ERR_NO_POWER) {
-				if(!MC.NO_Power) {
-					MC.NO_Power = 1;
-					MC.save_WorkStats();
-					Stats.SaveStats(0);
-					Stats.SaveHistory(0);
-					journal.jprintf_date("Power lost!\n");
-				}
-				MC.NO_Power_delay = NO_POWER_ON_DELAY * 1000 / TIME_READ_SENSOR;
-			} else if(MC.NO_Power) { // Включаемся
-				if(MC.NO_Power_delay) {
-					if(--MC.NO_Power_delay == 0) MC.fNetworkReset = 1;
-				} else {
-					journal.jprintf_date("Power restored!\n");
-					MC.NO_Power = 0;
-				}
-			}
-		}
-
-		// read in vPumps():
-		//for(i = 0; i < INUMBER; i++) MC.sInput[i].Read();                // Прочитать данные сухой контакт
 #ifdef REVERSE_OSMOS_FC
 	#if FNUMBER > 2
 		for(i = FLOW + 2; i < FNUMBER; i++) MC.sFrequency[i].Read();		// Получить значения датчиков потока, кроме FLOW
@@ -1493,13 +1435,66 @@ void vReadSensor(void *)
 		}
 		//
 
+		prtemp = fDS2482_bus_mask;
+		if(ttime - OneWire_time >= ONEWIRE_READ_PERIOD) {
+			OneWire_time = ttime;
+			if(OW_scan_flags == 0) {
+				prtemp = MC.Prepare_Temp(0);
+#ifdef ONEWIRE_DS2482_SECOND
+				prtemp |= MC.Prepare_Temp(1);
+#endif
+#ifdef ONEWIRE_DS2482_THIRD
+				prtemp |= MC.Prepare_Temp(2);
+#endif
+#ifdef ONEWIRE_DS2482_FOURTH
+				prtemp |= MC.Prepare_Temp(3);
+#endif
+			}
+		}
+
+#ifdef RADIO_SENSORS
+		radio_timecnt++;
+#endif
+
+		// read in vPumps():
+		//for(i = 0; i < ANUMBER; i++) MC.sADC[i].Read();                  // Прочитать данные с датчиков давления
+		// read in vPumps():
+		//for(i = 0; i < INUMBER; i++) MC.sInput[i].Read();                // Прочитать данные сухой контакт
+
 #ifdef USE_UPS
 		if(!MC.NO_Power)
 #endif
-			if(GetTickCount() - readPWM > PWM_READ_PERIOD) {
-				readPWM = GetTickCount();
-				MC.dPWM.get_readState(1);     // Последняя группа регистров
+		{
+			// Основная группа регистров, включая мощность
+			if(MC.dPWM.get_readState(0) == OK) {
+				if(WaterBoosterStatus > 0 && WaterBoosterTimeout > MC.Option.PWM_StartingTime) {
+					if(MC.Option.PWM_DryRun && MC.dPWM.get_Power() < MC.Option.PWM_DryRun) { // Сухой ход
+						CriticalErrors |= ERRC_WaterBooster;
+						set_Error(ERR_PWM_DRY_RUN, (char*)__FUNCTION__);
+					} else if(MC.Option.PWM_Max && MC.dPWM.get_Power() > MC.Option.PWM_Max) { // Перегрузка
+						CriticalErrors |= ERRC_WaterBooster;
+						set_Error(ERR_PWM_MAX, (char*)__FUNCTION__);
+					}
+				}
 			}
+			if(MC.dPWM.get_lastErr() == ERR_NO_POWER) {
+				if(!MC.NO_Power) {
+					MC.NO_Power = 1;
+					MC.save_WorkStats();
+					Stats.SaveStats(0);
+					Stats.SaveHistory(0);
+					journal.jprintf_date("Power lost!\n");
+				}
+				MC.NO_Power_delay = NO_POWER_ON_DELAY * 1000 / TIME_READ_SENSOR;
+			} else if(MC.NO_Power) { // Включаемся
+				if(MC.NO_Power_delay) {
+					if(--MC.NO_Power_delay == 0) MC.fNetworkReset = 1;
+				} else {
+					journal.jprintf_date("Power restored!\n");
+					MC.NO_Power = 0;
+				}
+			}
+		}
 
 #ifdef CHECK_DRAIN_PUMP
 		static uint32_t tmp;
@@ -1627,6 +1622,14 @@ void vReadSensor(void *)
 			if(temp2 != STARTTEMP) MC.sTemp[TIN].set_Temp(temp2);
 			*/ // do not need averaging.
 		}
+
+#ifdef USE_UPS
+		if(!MC.NO_Power)
+#endif
+			if(GetTickCount() - readPWM > PWM_READ_PERIOD) {
+				readPWM = GetTickCount();
+				MC.dPWM.get_readState(1);     // Последняя группа регистров
+			}
 
 		MC.calculatePower();	// Расчет мощностей
 		Stats.Update();
