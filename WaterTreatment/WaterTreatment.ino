@@ -1363,7 +1363,10 @@ void vReadSensor(void *)
 			MC.Osmos_PWATER_LastPress_Timer = 0;
 		}
 #ifdef REVERSE_OSMOS_FC
-		if(RO_was_flow && pw < MC.Option.PWATER_Osmos_Min) MC.Osmos_PWATER_Cnt = MC.Option.PWATER_Osmos_Step + 1;
+		if(RO_was_flow && pw < MC.Option.PWATER_Osmos_Min) {
+			MC.Osmos_PWATER_Added = 1;
+			MC.Osmos_PWATER_Cnt = MC.Option.PWATER_Osmos_Step + 1;
+		}
 #endif
 		MC.Osmos_PWATER_Last = pw;
 		if(MC.sFrequency[FLOW].Read()) {	// Обновить значения датчика потока, был проток
