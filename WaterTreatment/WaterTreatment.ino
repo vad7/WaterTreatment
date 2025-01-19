@@ -1552,9 +1552,14 @@ void vReadSensor(void *)
 									set_Error(ERR_DRAIN_PUMP_TOOLONG, (char*)"vService");
 									DrainPumpRelayStatus = MODBUS_RELAY_CMD_OFF;
 								}
-								if(MC.Option.DrainPumpMaxPower && ut - DrainPumpTimeLast >= MC.Option.DrainPumpStartTime && tmp > MC.Option.DrainPumpMaxPower) {
-									set_Error(ERR_DRAIN_PUMP_OVERLOAD, (char*)"vService");
-									DrainPumpRelayStatus = MODBUS_RELAY_CMD_OFF;
+								if(ut - DrainPumpTimeLast >= MC.Option.DrainPumpStartTime) {
+									if(MC.Option.DrainPumpMaxPower && tmp > MC.Option.DrainPumpMaxPower) {
+										set_Error(ERR_DRAIN_PUMP_OVERLOAD, (char*)"vService");
+										DrainPumpRelayStatus = MODBUS_RELAY_CMD_OFF;
+									} else if(MC.Option.DrainPumpDryPower && tmp <= MC.Option.DrainPumpDryPower) {
+										set_Error(ERR_DRAIN_PUMP_DRAIN_RUN, (char*)"vService");
+										DrainPumpRelayStatus = MODBUS_RELAY_CMD_OFF;
+									}
 								}
 							}
 							DrainPumpPower = tmp;

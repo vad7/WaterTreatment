@@ -291,6 +291,7 @@ struct type_option {
 	uint16_t RO_FilterCounter2_Max;	// Предел для фильтров обратного осмоса #2, *10л
 	uint32_t RO_FilterCountersResetTime[2];	// UT сброса счетчиков, RO_FilterCounter1,2
 	uint32_t FilterCountersResetTime[2];	// UT сброса счетчиков, FilterCounter1,2
+	uint16_t DrainPumpDryPower;		// Мощность сухого хода насоса (меньше или равно) после времени старта, Вт
 };
 
 //  Работа с отдельными флагами type_DateTime
