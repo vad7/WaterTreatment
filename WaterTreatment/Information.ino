@@ -404,55 +404,56 @@ void Journal::_write(char *dataPtr)
  // Инициализация
 void statChart::init()
 {
-	pos = 0;                                        // текущая позиция для записи
-	num = 0;                                        // число накопленных точек
-	flagFULL = false;                               // false в буфере менее CHART_POINT точек
-	data = (int16_t*) malloc(sizeof(int16_t) * CHART_POINT);
+	data = (int16_t*) malloc(sizeof(int16_t) * CHART_POINTS);
 	if(data == NULL) {
 		set_Error(ERR_OUT_OF_MEMORY, (char*) __FUNCTION__);
 		return;
 	}
-	memset(data, 0, sizeof(int16_t) * CHART_POINT);
+	clear();
 }
 
 // Очистить статистику
 void statChart::clear()
 {
 	pos = 0;                                        // текущая позиция для записи
-	num = 0;                                        // число накопленных точек
 	flagFULL = false;                               // false в буфере менее CHART_POINT точек
-	memset(data, 0, sizeof(int16_t) * CHART_POINT);
+	memset(data, 0, sizeof(int16_t) * CHART_POINTS);
 }
 
 // добавить точку в массиве
 void statChart::addPoint(int16_t y)
 {
 	data[pos] = y;
-	if(pos < CHART_POINT - 1) pos++;
+	if(pos < CHART_POINTS - 1) pos++;
 	else {
-		pos = 0;
 		flagFULL = true;
+		pos = 0;
 	}
-	if(!flagFULL) num++;   // буфер пока не полный
 }
 
 // получить точку нумерация 0-самая новая CHART_POINT-1 - самая старая, (работает кольцевой буфер)
-inline int16_t statChart::get_Point(uint16_t x)
+inline int16_t statChart::get_Point(int16_t x)
 {
 	if(!flagFULL) return data[x];
 	else {
-		if((pos + x) < CHART_POINT) return data[pos + x]; else return data[pos + x - CHART_POINT];
+		if((pos + x) < CHART_POINTS) return data[pos + x]; else return data[pos + x - CHART_POINTS];
 	}
 }
 
+// предыдущая точка графика, на пустом или не заполненном графике выдает 0
+inline int16_t statChart::get_PrevPoint(void)
+{
+	return pos == 0 ? data[CHART_POINTS - 1] : data[pos - 1];
+}
+
 // БИНАРНЫЕ данные по маске: получить точку нумерация 0-самая старая CHART_POINT - самая новая, (работает кольцевой буфер)
-boolean statChart::get_boolPoint(uint16_t x,uint16_t mask)  
+boolean statChart::get_boolPoint(int16_t x,uint16_t mask)
 { 
  if (!flagFULL) return data[x]&mask?true:false;
  else 
  {
-    if ((pos+x)<CHART_POINT) return data[pos+x]&mask?true:false; 
-    else                     return data[pos+x-CHART_POINT]&mask?true:false;
+    if ((pos+x)<CHART_POINTS) return data[pos+x]&mask?true:false; 
+    else                     return data[pos+x-CHART_POINTS]&mask?true:false;
  }
 }
 
@@ -460,12 +461,9 @@ boolean statChart::get_boolPoint(uint16_t x,uint16_t mask)
 // строка не обнуляется перед записью
 void statChart::get_PointsStrDiv100(char *&b)
 {
-	if((num == 0)) {
-		//strcat(b, ";");
-		return;
-	}
 	b += m_strlen(b);
-	for(uint16_t i = 0; i < num; i++) {
+	int16_t max = flagFULL ? CHART_POINTS : pos;
+	for(int16_t i = 0; i < max; i++) {
 		b = dptoa(b, get_Point(i), 2);
 		*b++ = ';';
 		*b = '\0';
@@ -474,12 +472,9 @@ void statChart::get_PointsStrDiv100(char *&b)
 
 void statChart::get_PointsStrAbsDiv100(char *&b)
 {
-	if((num == 0)) {
-		//strcat(b, ";");
-		return;
-	}
 	b += m_strlen(b);
-	for(uint16_t i = 0; i < num; i++) {
+	int16_t max = flagFULL ? CHART_POINTS : pos;
+	for(uint16_t i = 0; i < max; i++) {
 		b = dptoa(b, abs(get_Point(i)), 2);
 		*b++ = ';';
 		*b = '\0';
@@ -488,12 +483,9 @@ void statChart::get_PointsStrAbsDiv100(char *&b)
 
 void statChart::get_PointsStrPositiveDiv100(char *&b)
 {
-	if((num == 0)) {
-		//strcat(b, ";");
-		return;
-	}
 	b += m_strlen(b);
-	for(uint16_t i = 0; i < num; i++) {
+	int16_t max = flagFULL ? CHART_POINTS : pos;
+	for(uint16_t i = 0; i < max; i++) {
 		int16_t n = get_Point(i);
 		if(n < 0) continue;
 		b = dptoa(b, n, 2);
@@ -506,12 +498,9 @@ void statChart::get_PointsStrPositiveDiv100(char *&b)
 // строка не обнуляется перед записью
 void statChart::get_PointsStrUintDiv100(char *&b)
 {
-	if((num == 0)) {
-		//strcat(b, ";");
-		return;
-	}
 	b += m_strlen(b);
-	for(uint16_t i = 0; i < num; i++) {
+	int16_t max = flagFULL ? CHART_POINTS : pos;
+	for(uint16_t i = 0; i < max; i++) {
 		b = dptoa(b, (uint16_t)get_Point(i), 2);
 		*b++ = ';';
 		*b = '\0';
@@ -522,12 +511,9 @@ void statChart::get_PointsStrUintDiv100(char *&b)
 // строка не обнуляется перед записью
 void statChart::get_PointsStrUintDiv1000(char *&b)
 {
-	if((num == 0)) {
-		//strcat(b, ";");
-		return;
-	}
 	b += m_strlen(b);
-	for(uint16_t i = 0; i < num; i++) {
+	int16_t max = flagFULL ? CHART_POINTS : pos;
+	for(uint16_t i = 0; i < max; i++) {
 		b = dptoa(b, (uint16_t)get_Point(i), 3);
 		*b++ = ';';
 		*b = '\0';
@@ -539,12 +525,9 @@ void statChart::get_PointsStrUintDiv1000(char *&b)
 // строка не обнуляется перед записью
 void statChart::get_PointsStr(char *&b)
 {
-	if((num == 0)) {
-		//strcat(b, ";");
-		return;
-	}
 	b += m_strlen(b);
-	for(uint16_t i = 0; i < num; i++) {
+	int16_t max = flagFULL ? CHART_POINTS : pos;
+	for(uint16_t i = 0; i < max; i++) {
 		b += m_itoa(get_Point(i), b, 10, 0);
 		*b++ = ';';
 		*b = '\0';
@@ -553,12 +536,9 @@ void statChart::get_PointsStr(char *&b)
 
 void statChart::get_PointsStrSubDiv100(char *&b, statChart *sChart)
 {
-	if(num == 0 || sChart->get_num() == 0) {
-		//strcat(b, ";");
-		return;
-	}
 	b += m_strlen(b);
-	for(uint16_t i = 0; i < num; i++) {
+	int16_t max = flagFULL ? CHART_POINTS : pos;
+	for(uint16_t i = 0; i < max; i++) {
 		b = dptoa(b, get_Point(i) - sChart->get_Point(i), 2);
 		*b++ = ';';
 		*b = '\0';
@@ -567,12 +547,9 @@ void statChart::get_PointsStrSubDiv100(char *&b, statChart *sChart)
 // Расчитать мощность на лету используется для графика потока, передаются указатели на графики температуры + теплоемкость
 void statChart::get_PointsStrPower(char *&b, statChart *inChart, statChart *outChart, uint16_t Capacity)
 {
-	if(num == 0 || inChart->get_num() == 0 || outChart->get_num() == 0) {
-		//strcat(b, ";");
-		return;
-	}
 	b += m_strlen(b);
-	for(uint16_t i = 0; i < num; i++) {
+	int16_t max = flagFULL ? CHART_POINTS : pos;
+	for(uint16_t i = 0; i < max; i++) {
 		b = dptoa(b, (int32_t)(outChart->get_Point(i)-inChart->get_Point(i)) * get_Point(i) * Capacity / 360, 3);
 		*(b-1) = ';';
 		//*b = '\0';

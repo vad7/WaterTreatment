@@ -20,7 +20,7 @@
 #include "Util.h"
 
 // ОПЦИИ КОМПИЛЯЦИИ ПРОЕКТА -------------------------------------------------------
-#define VERSION			  "1.66"			// Версия прошивки
+#define VERSION			  "1.67"			// Версия прошивки
 #define VER_SAVE		  16				// Версия формата сохраняемых данных в I2C память
 //#define LOG                               // В последовательный порт шлет лог веб сервера (логируются запросы)
 #define FAST_LIB                            // использование допиленной библиотеки езернета
@@ -39,8 +39,8 @@
 #define INDEX_MOB_FILE    INDEX_FILE         // стартовый файл по умолчанию для мобильной морды
 #define HEADER_BIN        "WT-SAVE-DATA"    // Заголовок (начало) файла при сохранении настроек. Необходим для поиска данных в буфере данных при восстановлении из файла
 #define MAX_LEN_PM        250               // максимальная длина строкового параметра в запросе (расписание бойлера 175 байт) кодирование описания профиля 40 букв одна буква 6 байт (двойное кодирование)
-#ifndef CHART_POINT                         // Можно определить себе спецальный размер графика в своем конфиге 
-#define CHART_POINT       300               // Максимальное число точек графика, одна точка это 2 байта * число графиков
+#ifndef CHART_POINTS                         // Можно определить себе спецальный размер графика в своем конфиге
+#define CHART_POINTS       300               // Максимальное число точек графика, одна точка это 2 байта * число графиков
 #endif
 #ifndef ADC_PRESCAL
 #define ADC_PRESCAL       2					// ADCClock = MCK / ( (PRESCAL+1) * 2 )
@@ -364,6 +364,7 @@ const char *chart_WaterBoost = {"WaterBooster, s"};
 const char *chart_FeedPump   = {"FeedPump, s"};
 const char *chart_FillTank   = {"FillTank, s"};
 const char *chart_BrineWeight= {"Weight"};
+const char *chart_DrainPump  = {"DrainPump"};
 
 // Описание имен параметров опций   для функций get_option ("get_Opt") set_option ("set_Opt")
 const char *option_ATTEMPT            	= {"ATTEMPT"};            // число попыток пуска
@@ -452,10 +453,12 @@ const char *option_DrainPumpMinPower	= {"DPM"};
 const char *option_DrainPumpMaxPower	= {"DPH"};
 const char *option_DrainPumpDryPower	= {"DPD"};
 const char *option_DrainPumpStartTime	= {"DPS"};
-const char *option_fLED_SRV_INFO_PlanReg= {"LPR"};
+const char *option_DrainPumpReadPeriod	= {"DPP"};
+const char *option_fChartOnlyNonZeroW	= {"CNZ"};
 const char *option_fCheckDrainPump		= {"CDP"};
 const char *option_fDrainPumpRelay		= {"DPR"};
 const char *option_fSepticHeatRelay		= {"SHR"};
+const char *option_fLED_SRV_INFO_PlanReg= {"LPR"};
 const char option_GetCurrentSaltLevel[] = "LvL";	// get_Opt(LvL)
 const char prof_DailySwitch[] 	= "DS";
 const char prof_DailySwitchDevice = 'D';		// DSD

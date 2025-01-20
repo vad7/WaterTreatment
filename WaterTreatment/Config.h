@@ -210,12 +210,8 @@ struct History_setup {
 		#define MODBUS_DRAIN_PUMP_ON_PULSE			// Если активно, то импульс 1 сек для выключения (N замыкается на GND для срабатывания УЗО)
 		//#define MODBUS_SEPTIC_PUMP_ADDR		3	// Адрес насоса септика
 		//#define MODBUS_SEPTIC_PUMP_RELAY_ADDR	4	// Адрес отключения дренажного насоса
-		#define MODBUS_PUMP_PERIOD				10	// Период опроса, сек (не меньше 2)
 		#define MODBUS_PUMP_FUNC(ADDR,ID,ST) 	writeSingleCoil(ADDR,ID,ST)
 
-#if MODBUS_PUMP_PERIOD < 2
-		#error "MODBUS_PUMP_PERIOD must be greater than 1"
-#endif
 	#endif
 #ifdef  TEST_BOARD
 	#undef PWM_READ_PERIOD
@@ -336,7 +332,7 @@ struct History_setup {
 	#endif
     // Имена индексов
     #define FLOW                0		// Датчик протока (INP1)
-	#define F_RO				1		// Датчик протока обратного осмоса, питьевой (ULN5[D41])
+	#define FLOW_RO				1		// Датчик протока обратного осмоса, питьевой (ULN5[D41])
     // Массив ног соглано индексов
     const uint8_t pinsFrequency[FNUMBER] = { 57, 41 };
     // Описание датчиков
@@ -345,7 +341,7 @@ struct History_setup {
                                        	 };
     // Имена датчиков
     const char *nameFrequency[FNUMBER] = {  "FLOW",
-    										"F_RO"
+    										"FLOW_RO"
                                          };
 
     const uint32_t TRANSFLOW[FNUMBER]= { 40000, 100000 };	// Коэффициент преобразования импульсов за литр, сотые
@@ -430,7 +426,7 @@ struct History_setup {
     //#define ONEWIRE_DS2482		// + Использование мастера i2c Onewire DS2482 (адрес AD1,0 = 0,0)
     //#define ONEWIRE_DS2482_SECOND	// второй мастер i2 Onewire DS2482 (адрес AD1,0 = 0,1)
 	//#define ONEWIRE_DS2482_THIRD	// третий мастер i2 Onewire DS2482 (адрес AD1,0 = 1,0)
-	//#define ONEWIRE_DS2482_FOURTH	// четвертый мастер i2 Onewire DS2482 (адрес AD1,0 = 1,1)
+	////#define ONEWIRE_DS2482_FOURTH	// четвертый мастер i2 Onewire DS2482 (адрес AD1,0 = 1,1)
     //#define ONEWIRE_DS2482_2WAY  	// Используются 2-х проводные шины OneWire (паразитное питание)
 	#ifdef ONEWIRE_DS2482_2WAY
       const uint8_t ONEWIRE_2WAY = 0b1010; // На каких шинах (4|3|2|1) двух-проводные датчики, битовая маска
@@ -535,7 +531,7 @@ struct History_setup {
 	#define P_NUMSAMLES					1		// Число значений для усреднения показаний давления
 	#define ADC_FREQ					10		// период опроса аналоговых датчиков в секунду
 
-	#define CHART_POINT					500		// Максимальное число точек графика, одна точка это 2 байта * число графиков
+	#define CHART_POINTS				500		// Максимальное число точек графика, одна точка это 2 байта * число графиков
 	// Статистика по дням
 	#define STATS_ID_Temp	TAIR
 	#define STATS_ID_Press	PWATER
@@ -592,8 +588,9 @@ struct History_setup {
 	#define PIN_LED_SRV_INFO_NEXT_REGEN_PULSE 70UL // Длительность вспышки светодиода при запланированной регенерации
 	#define PIN_LED_SRV_INFO_NEXT_REGEN_PAUSE 3500UL // Длительность паузы светодиода при запланированной регенерации
 	#define PIN_LED_SRV_INFO_NEXT_REGEN_BEGIN_HOUR 21 // Начальный час мигания
+	#define MIN_POWER_FOR_CHARTS		2		// Минимальная мощность для значений мощности в графиках в памяти, Вт
 
-	#define REVERSE_OSMOS_FC			F_RO	// Используется доп. счетчик для питевого фильтра обратного осмоса
+	#define REVERSE_OSMOS_FC			FLOW_RO	// Используется доп. счетчик для питевого фильтра обратного осмоса
 	#define	REVERSE_OSMOS_STR			"Питьевой фильтр - пора заменить "
 	#define	REVERSE_OSMOS_F1_END_STR	"предварительные (K3,K2)"	// Название фильтров #1 для сообщения, когда их ресурс закончится
 	#define	REVERSE_OSMOS_F2_END_STR	"пост (K7)"					// Название фильтров #2 для сообщения, когда их ресурс закончится

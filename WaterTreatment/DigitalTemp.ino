@@ -195,10 +195,10 @@ void sensorTemp::set_onewire_bus_type()
 	if(get_bus() == 2) busOneWire = &OneWireBus3; 	// 3 шина
 	else
 #endif
-#ifdef ONEWIRE_DS2482_FOURTH
-	if(get_bus() == 3) busOneWire = &OneWireBus4; 	// 4 шина
-	else
-#endif
+//#ifdef ONEWIRE_DS2482_FOURTH
+//	if(get_bus() == 3) busOneWire = &OneWireBus4; 	// 4 шина
+//	else
+//#endif
 	if(get_bus() == 0) busOneWire = &OneWireBus;	// 1 шина
 }
 

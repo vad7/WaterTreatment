@@ -195,7 +195,7 @@ type_WebSecurity WebSec_admin;				// хеш паролей
 #define f1Wire1TSngl		3				// На основной (1-ой) шине 1-Wire только один датчик
 #define f1Wire2TSngl		4				// На 2-ой шине 1-Wire(DS2482) только один датчик
 #define f1Wire3TSngl		5				// На 3-ей шине 1-Wire(DS2482) только один датчик
-#define f1Wire4TSngl		6				// На 4-ей шине 1-Wire(DS2482) только один датчик
+#define fChartOnlyNonZeroW	6				// График в памяти - только не нулевая мощность
 #define fLogWirelessSensors 7				// Логировать обмен между беспроводными датчиками
 #define fPWMLogErrors  		8               // флаг писать в лог ошибки электросчетчика
 #define fDontRegenOnWeekend	9				// Не делать регенерацию в выходные
@@ -292,6 +292,7 @@ struct type_option {
 	uint32_t RO_FilterCountersResetTime[2];	// UT сброса счетчиков, RO_FilterCounter1,2
 	uint32_t FilterCountersResetTime[2];	// UT сброса счетчиков, FilterCounter1,2
 	uint16_t DrainPumpDryPower;		// Мощность сухого хода насоса (меньше или равно) после времени старта, Вт
+	uint8_t  DrainPumpReadPeriod;	// Периодичность чтения потребляемой мощности дренажного насоса, сек
 };
 
 //  Работа с отдельными флагами type_DateTime
@@ -508,6 +509,9 @@ public:
 	statChart ChartFillTank;
 	statChart ChartBrineWeight;
 	statChart ChartWaterBoosterCount;
+#ifdef CHECK_DRAIN_PUMP
+	statChart ChartDrainPump;
+#endif
 
 	TaskHandle_t xHandlePumps;
 	TaskHandle_t xHandleBooster;

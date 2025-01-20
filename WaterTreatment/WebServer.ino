@@ -844,9 +844,9 @@ xSaveStats:		if((i = MC.save_WorkStats()) == OK)
 #ifdef ONEWIRE_DS2482_THIRD
 			strcat(strReturn, ",3");
 #endif
-#ifdef ONEWIRE_DS2482_FOURTH
-			strcat(strReturn, ",4");
-#endif
+//#ifdef ONEWIRE_DS2482_FOURTH
+//			strcat(strReturn, ",4");
+//#endif
 			strcat(strReturn, ")" WEBDELIM);
 #else
 			strcat(strReturn,"D"); _itoa((int)(PIN_ONE_WIRE_BUS),strReturn); ADD_WEBDELIM(strReturn);
@@ -1033,9 +1033,6 @@ xSaveStats:		if((i = MC.save_WorkStats()) == OK)
 
 		if (strcmp(str,"CONST1")==0)   // Команда CONST1 Информация очень большая по этому разбито на 2 запроса CONST CONST1
 		{
-#ifdef MODBUS_PUMP_PERIOD
-			strcat(strReturn,"MODBUS_PUMP_PERIOD|Период опроса насосов (сек)|"); _itoa(MODBUS_PUMP_PERIOD,strReturn); strcat(strReturn,";");
-#endif
 			strcat(strReturn,"TIME_WEB_SERVER|Период опроса web сервера "); strcat(strReturn,nameWiznet);strcat(strReturn," (мсек)|");_itoa(TIME_WEB_SERVER,strReturn);strcat(strReturn,";");
 			strcat(strReturn,"TIME_I2C_UPDATE |Период синхронизации внутренних часов с I2C часами (мсек)|");_itoa(TIME_I2C_UPDATE,strReturn);strcat(strReturn,";");
 			// i2c
@@ -1071,7 +1068,7 @@ xSaveStats:		if((i = MC.save_WorkStats()) == OK)
 #else
 			strcat(strReturn,"OFF;");
 #endif
-			strcat(strReturn,"CHART_POINT|Максимальное число точек графиков|");_itoa(CHART_POINT,strReturn);strcat(strReturn,";");
+			strcat(strReturn,"CHART_POINT|Максимальное число точек графиков|");_itoa(CHART_POINTS,strReturn);strcat(strReturn,";");
 			strcat(strReturn,"I2C_JOURNAL_IN_RAM|Место хранения системного журнала|");
 #ifndef I2C_JOURNAL_IN_RAM
 			strcat(strReturn,"I2C flash memory;");

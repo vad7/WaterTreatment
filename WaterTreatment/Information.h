@@ -79,11 +79,12 @@ private:
 class statChart                                         // организован кольцевой буфер
 {
 public:
-	void init();                                          // инициализация класса
-	void clear();                                         // очистить статистику
-	void addPoint(int16_t y);                             // добавить точку в массиве (для бинарных данных добавляем все точки сразу)
-	inline int16_t get_Point(uint16_t x);                 // получить точку нумерация 0-самая старая CHART_POINT - самая новая, (работает кольцевой буфер)
-	boolean get_boolPoint(uint16_t x,uint16_t mask);      // БИНАРНЫЕ данные: получить точку нумерация 0-самая старая CHART_POINT - самая новая, (работает кольцевой буфер)
+	void init();                                         // инициализация класса
+	void clear();                                        // очистить статистику
+	void addPoint(int16_t y);                            // добавить точку в массиве (для бинарных данных добавляем все точки сразу)
+	inline int16_t get_Point(int16_t x);                 // получить точку нумерация 0-самая старая CHART_POINT - самая новая, (работает кольцевой буфер)
+	inline int16_t get_PrevPoint(void);             // получить предыдущую точку
+	boolean get_boolPoint(int16_t x,uint16_t mask);      // БИНАРНЫЕ данные: получить точку нумерация 0-самая старая CHART_POINT - самая новая, (работает кольцевой буфер)
 
 	void get_PointsStrDiv100(char *&b);             		// получить строку в которой перечислены все точки в строковом виде через ";" при этом значения делятся на 100
 	void get_PointsStrAbsDiv100(char *&b);					// получить строку в которой перечислены все точки в строковом виде через ";" при этом значения делятся на 100 и берется абсолютное
@@ -94,12 +95,10 @@ public:
 	void get_PointsStrSubDiv100(char *&b, statChart *sChart); // получить строку, вычесть точки sChart
 	void get_PointsStrPower(char *&b, statChart *inChart, statChart *outChart, uint16_t Capacity); // Расчитать мощность на лету используется для графика потока, передаются указатели на температуры
 
-	inline uint16_t get_num()  {return num;}              // Получить число накопленных точек
 private:
 	int16_t *data;                                        // указатель на массив для накопления данных
 	int16_t pos;                                          // текущая позиция для записи
-	int16_t num;                                          // число накопленных точек
-	boolean flagFULL;                                     // false в буфере менее CHART_POINT точек
+	boolean flagFULL;                                     // false в буфере менее CHART_POINTS точек
 };
 
 #endif

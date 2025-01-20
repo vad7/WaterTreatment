@@ -93,7 +93,7 @@ function createChart(values, resultdiv) {
 				yAxis: 0,
 				name: title,
 				tooltip: {
-					valueDecimals: (title == "FLOW" ? 3 : 2)},
+					valueDecimals: (title.substr(0,4) == "FLOW" || title == "Power" || || title == "DrainPump" ? 3 : 2)},
 				states: {
 					hover: {
 						enabled: false}},

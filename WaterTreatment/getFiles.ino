@@ -172,7 +172,7 @@ void get_txtSettings(uint8_t thread)
      if((MC.get_flags() & (1<<f1Wire1TSngl))) strcat(Socket[thread].outBuf, "1 ");
      if((MC.get_flags() & (1<<f1Wire2TSngl))) strcat(Socket[thread].outBuf, "2 ");
      if((MC.get_flags() & (1<<f1Wire3TSngl))) strcat(Socket[thread].outBuf, "3 ");
-     if((MC.get_flags() & (1<<f1Wire4TSngl))) strcat(Socket[thread].outBuf, "4");
+//     if((MC.get_flags() & (1<<f1Wire4TSngl))) strcat(Socket[thread].outBuf, "4");
      sendBufferRTOS(thread,(byte*)Socket[thread].outBuf,strlen(Socket[thread].outBuf));  
     
      strcpy(Socket[thread].outBuf,"\n\n  1.2 Сетевые настройки\r\n");

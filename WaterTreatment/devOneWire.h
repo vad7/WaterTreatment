@@ -68,7 +68,7 @@ class deviceOneWire 								    // Класс шина   OneWire
 	void	release_I2C_bus();
   private:
 	int8_t err;                                         // ошибка шины (работа)
-	uint8_t	bus;										// 0 - первый DS2482, 1 - второй, 2 - третий, 3 - четвертый
+	uint8_t	bus;										// 0 - первый DS2482, 1 - второй, 2 - третий
 #ifdef ONEWIRE_DS2482
 	DS2482	OneWireDrv;                                 // мастер OneWire аппаратная
 };
@@ -79,9 +79,9 @@ deviceOneWire OneWireBus2(I2C_ADR_DS2482_2, 1);        // Создание ши�
 #ifdef ONEWIRE_DS2482_THIRD
 deviceOneWire OneWireBus3(I2C_ADR_DS2482_3, 2);        // Создание шины нужного типа
 #endif
-#ifdef ONEWIRE_DS2482_FOURTH
-deviceOneWire OneWireBus4(I2C_ADR_DS2482_4, 3);        // Создание шины нужного типа
-#endif
+//#ifdef ONEWIRE_DS2482_FOURTH
+//deviceOneWire OneWireBus4(I2C_ADR_DS2482_4, 3);        // Создание шины нужного типа
+//#endif
 #else // ONEWIRE_DS2482
 	OneWire	OneWireDrv;                                 // OneWire шина програмная
 };

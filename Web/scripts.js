@@ -1,5 +1,5 @@
 // Copyright by Vadim Kulakov vad7@yahoo.com, vad711
-var VER_WEB = "1.66";
+var VER_WEB = "1.67";
 var urlcontrol = ''; //  автоопределение (если адрес сервера совпадает с адресом контроллера)
 // адрес и порт контроллера, если адрес сервера отличен от адреса контроллера (не рекомендуется)
 //var urlcontrol = 'http://192.168.0.199/';
@@ -378,7 +378,6 @@ function loadParam(paramid, noretry, resultdiv) {
 												content = content + '<td><span id="get_ceflow-' + input + '">-</span></td>';
 												content = content + '<td><span id="get_clflow-' + input + '">-</span></td>';
 												content = content + '<td><span id="get_ckflow0-' + input + '">-</span></td>';
-												content = content + '<td><span id="get_ckflow1-' + input + '">-</span></td>';
 												content = content + '<td><input type="submit" value="Сброс" onclick="loadParam(\'get_zFlow(' + count[j] + ')\')"></td>';
 												content = content + '<td></td>';
 												content = content + '</tr>';

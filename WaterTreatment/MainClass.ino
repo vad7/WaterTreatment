@@ -160,6 +160,9 @@ void MainClass::init()
 	ChartFillTank.init();
 	ChartBrineWeight.init();
 	ChartWaterBoosterCount.init();
+#ifdef CHECK_DRAIN_PUMP
+	ChartDrainPump.init();
+#endif
 
 	resetSetting();                                           // все переменные
 }
@@ -221,9 +224,9 @@ void MainClass::scan_OneWire(char *result_str)
 #ifdef ONEWIRE_DS2482_THIRD
 		OneWireBus3.Scan(result_str);
 #endif
-#ifdef ONEWIRE_DS2482_FOURTH
-		OneWireBus4.Scan(result_str);
-#endif
+//#ifdef ONEWIRE_DS2482_FOURTH
+//		OneWireBus4.Scan(result_str);
+//#endif
 		journal.jprintf("Found: %d\n", OW_scanTableIdx);
 //		while(strlen(_result_str)) {
 //			journal.jprintf(_result_str);
@@ -912,6 +915,7 @@ boolean MainClass::set_option(char *var, float xx)
    if(strcmp(var,option_fDebugToSerial)==0) { Option.flags = (Option.flags & ~(1<<fDebugToSerial)) | ((x!=0)<<fDebugToSerial); return true; } else
    if(strcmp(var,option_fRegenAllowed)==0) { Option.flags = (Option.flags & ~(1<<fRegenAllowed)) | ((x!=0)<<fRegenAllowed); return true; } else
    if(strcmp(var,option_fRegenAllowedSoftener)==0) { Option.flags = (Option.flags & ~(1<<fRegenAllowedSoftener)) | ((x!=0)<<fRegenAllowedSoftener); return true; } else
+   if(strcmp(var,option_fChartOnlyNonZeroW)==0) { Option.flags = (Option.flags & ~(1<<fChartOnlyNonZeroW)) | ((x!=0)<<fChartOnlyNonZeroW); return true; } else
    if(strcmp(var,option_FeedPumpRate)==0) { Option.FeedPumpRate = rd(xx * 1000, 1000) / 3600; return true; } else
    if(strcmp(var,option_FeedPumpMaxFlow)==0) { Option.FeedPumpMaxFlow = Option.FeedPumpRate * 1000 / rd(xx, 1000); return true; } else
    if(strcmp(var,option_fFlowIncByPressure)==0) { Option.flags = (Option.flags & ~(1<<fFlowIncByPressure)) | ((x!=0)<<fFlowIncByPressure); return true; } else
@@ -984,6 +988,7 @@ boolean MainClass::set_option(char *var, float xx)
    if(strcmp(var,option_DrainPumpMaxPower)==0){ Option.DrainPumpMaxPower = x; return true; } else
    if(strcmp(var,option_DrainPumpDryPower)==0){ Option.DrainPumpDryPower = x; return true; } else
    if(strcmp(var,option_DrainPumpStartTime)==0){ Option.DrainPumpStartTime = x; return true; } else
+   if(strcmp(var,option_DrainPumpReadPeriod)==0){ Option.DrainPumpReadPeriod = x; return true; } else
    if(strcmp(var,option_fLED_SRV_INFO_PlanReg)==0){ Option.flags2 = (Option.flags2 & ~(1<<fLED_SRV_INFO_PlanReg)) | ((x!=0)<<fLED_SRV_INFO_PlanReg); return true; } else
    if(strcmp(var,option_fCheckDrainPump)==0){ Option.flags2 = (Option.flags2 & ~(1<<fCheckDrainPump)) | ((x!=0)<<fCheckDrainPump); return true; } else
    if(strcmp(var,option_fDrainPumpRelay)==0){ Option.flags2 = (Option.flags2 & ~(1<<fDrainPumpRelay)) | ((x!=0)<<fDrainPumpRelay); return true; } else
@@ -1015,7 +1020,7 @@ boolean MainClass::set_option(char *var, float xx)
    } else
    if(strncmp(var,option_SGL1W, sizeof(option_SGL1W)-1)==0) {
 	   uint8_t bit = var[sizeof(option_SGL1W)-1] - '0' - 1;
-	   if(bit <= 3) {
+	   if(bit <= 2) {
 		   Option.flags = (Option.flags & ~(1<<(f1Wire1TSngl + bit))) | (x == 0 ? 0 : (1<<(f1Wire1TSngl + bit)));
 		   return true;
 	   }
@@ -1036,6 +1041,7 @@ char* MainClass::get_option(char *var, char *ret)
 	if(strcmp(var,option_fDebugToSerial)==0){ return strcat(ret, (char*)(GETBIT(Option.flags, fDebugToSerial) ? cOne : cZero)); } else
 	if(strcmp(var,option_fRegenAllowed)==0){ return strcat(ret, (char*)(GETBIT(Option.flags, fRegenAllowed) ? cOne : cZero)); } else
 	if(strcmp(var,option_fRegenAllowedSoftener)==0){ return strcat(ret, (char*)(GETBIT(Option.flags, fRegenAllowedSoftener) ? cOne : cZero)); } else
+	if(strcmp(var,option_fChartOnlyNonZeroW)==0){ return strcat(ret, (char*)(GETBIT(Option.flags, fChartOnlyNonZeroW) ? cOne : cZero)); } else
 	if(strcmp(var,option_FeedPumpRate)==0){ _dtoa(ret, Option.FeedPumpRate * 3600 / 1000, 3); return ret; } else // лч
 	if(strcmp(var,option_FeedPumpMaxFlow)==0){ _dtoa(ret, Option.FeedPumpRate * 1000 / Option.FeedPumpMaxFlow, 3); return ret; } else // мл на 1л расхода
 	if(strcmp(var,option_fFlowIncByPressure)==0){ return strcat(ret, (char*)(GETBIT(Option.flags, fFlowIncByPressure) ? cOne : cZero)); } else
@@ -1113,10 +1119,11 @@ char* MainClass::get_option(char *var, char *ret)
 	if(strcmp(var,option_DrainPumpMaxPower)==0){ return _itoa(Option.DrainPumpMaxPower, ret); } else
 	if(strcmp(var,option_DrainPumpDryPower)==0){ return _itoa(Option.DrainPumpDryPower, ret); } else
 	if(strcmp(var,option_DrainPumpStartTime)==0){ return _itoa(Option.DrainPumpStartTime, ret); } else
-	if(strcmp(var,option_fLED_SRV_INFO_PlanReg)==0){ return strcat(ret, (char*)(GETBIT(Option.flags2, fLED_SRV_INFO_PlanReg) ? cOne : cZero)); } else
+	if(strcmp(var,option_DrainPumpReadPeriod)==0){ return _itoa(Option.DrainPumpReadPeriod, ret); } else
 	if(strcmp(var,option_fCheckDrainPump)==0){ return strcat(ret, (char*)(GETBIT(Option.flags2, fCheckDrainPump) ? cOne : cZero)); } else
 	if(strcmp(var,option_fDrainPumpRelay)==0){ return strcat(ret, (char*)(GETBIT(Option.flags2, fDrainPumpRelay) ? cOne : cZero)); } else
 	if(strcmp(var,option_fSepticHeatRelay)==0){ return strcat(ret, (char*)(GETBIT(Option.flags2, fSepticHeatRelay) ? cOne : cZero)); } else
+	if(strcmp(var,option_fLED_SRV_INFO_PlanReg)==0){ return strcat(ret, (char*)(GETBIT(Option.flags2, fLED_SRV_INFO_PlanReg) ? cOne : cZero)); } else
 	if(strncmp(var, prof_DailySwitch, sizeof(prof_DailySwitch)-1) == 0) {
 		var += sizeof(prof_DailySwitch)-1;
 		uint8_t i = *(var + 1) - '0';
@@ -1132,7 +1139,7 @@ char* MainClass::get_option(char *var, char *ret)
 	} else
 	if(strncmp(var,option_SGL1W, sizeof(option_SGL1W)-1)==0) {
 	   uint8_t bit = var[sizeof(option_SGL1W)-1] - '0' - 1;
-	   if(bit <= 3) {
+	   if(bit <= 2) {
 		   return strcat(ret,(char*)(GETBIT(Option.flags, f1Wire1TSngl + bit) ? cOne : cZero));
 	   }
 	}
@@ -1173,7 +1180,9 @@ char * MainClass::get_listChart(char* str)
 	for(i=0;i<ANUMBER;i++) { strcat(str,sADC[i].get_name()); strcat(str,":0;"); }
 	for(i=0;i<FNUMBER;i++) {
 		strcat(str,sFrequency[i].get_name()); strcat(str,":0;");
+#ifdef F_CHART_ChartLiters
 		strcat(str,sFrequency[i].get_name()); strcat(str,"_L:0;");
+#endif
 	}
 	strcat(str, chart_BrineWeight); strcat(str,":0;");
 	strcat(str, chart_WaterBoost); strcat(str,":0;");
@@ -1183,6 +1192,9 @@ char * MainClass::get_listChart(char* str)
 	strcat(str, chart_FillTank); strcat(str,":0;");
 //	strcat(str,chart_VOLTAGE); strcat(str,":0;");
 	strcat(str,chart_fullPOWER); strcat(str,":0;");
+#ifdef CHECK_DRAIN_PUMP
+	strcat(str, chart_DrainPump); strcat(str,":0;");
+#endif
 	return str;
 }
 
@@ -1214,29 +1226,41 @@ void  MainClass::updateChart()
 	ChartFillTank.addPoint(tmp3 / 10);
 	ChartBrineWeight.addPoint(Weight_Percent);
 	//dPWM.ChartVoltage.addPoint(dPWM.get_Voltage() / 10);
-	dPWM.ChartPower.addPoint(dPWM.get_Power() / 10);
+	tmp1 = dPWM.get_Power();
+	if(GETBIT(Option.flags, fChartOnlyNonZeroW)) {
+		if(tmp1 >= MIN_POWER_FOR_CHARTS || dPWM.ChartPower.get_PrevPoint() >= MIN_POWER_FOR_CHARTS) dPWM.ChartPower.addPoint(tmp1);
+	} else dPWM.ChartPower.addPoint(tmp1);
+#ifdef CHECK_DRAIN_PUMP
+	tmp1 = DrainPumpPower;
+	if(GETBIT(Option.flags, fChartOnlyNonZeroW)) {
+		if(tmp1 >= MIN_POWER_FOR_CHARTS || ChartDrainPump.get_PrevPoint() >= MIN_POWER_FOR_CHARTS) ChartDrainPump.addPoint(tmp1);
+	} else ChartDrainPump.addPoint(tmp1);
+#endif
 }
 
 // сбросить графики в ОЗУ
 void MainClass::clearChart()
 {
- uint8_t i; 
- //for(i=0;i<TNUMBER;i++) sTemp[i].Chart.clear();
- for(i=0;i<ANUMBER;i++) sADC[i].Chart.clear();
- for(i=0;i<FNUMBER;i++) {
-	 sFrequency[i].ChartFlow.clear();
+	uint8_t i;
+	//for(i=0;i<TNUMBER;i++) sTemp[i].Chart.clear();
+	for(i = 0; i < ANUMBER; i++) sADC[i].Chart.clear();
+	for(i = 0; i < FNUMBER; i++) {
+		sFrequency[i].ChartFlow.clear();
 #ifdef F_CHART_ChartLiters
 	 sFrequency[i].ChartLiters.clear();
 	 sFrequency[i].ChartLiters_accum = sFrequency[i].ChartLiters_rest = 0;
+	#endif
+	}
+	ChartWaterBoost.clear();
+	//ChartWaterBoosterCount.clear();
+	ChartFeedPump.clear();
+	ChartFillTank.clear();
+	ChartBrineWeight.clear();
+	// dPWM.ChartVoltage.clear();                              // Статистика по напряжению
+	dPWM.ChartPower.clear();                                // Статистика по Полная мощность
+#ifdef CHECK_DRAIN_PUMP
+	ChartDrainPump.clear();
 #endif
- }
- ChartWaterBoost.clear();
- //ChartWaterBoosterCount.clear();
- ChartFeedPump.clear();
- ChartFillTank.clear();
- ChartBrineWeight.clear();
-// dPWM.ChartVoltage.clear();                              // Статистика по напряжению
- dPWM.ChartPower.clear();                                // Статистика по Полная мощность
 }
 
 // получить данные графика  в виде строки, данные ДОБАВЛЯЮТСЯ к str
@@ -1270,9 +1294,13 @@ void MainClass::get_Chart(char *var, char* str)
 		}
 	}
 	if(strcmp(var, chart_fullPOWER) == 0) {
-		dPWM.ChartPower.get_PointsStrDiv100(str);
+		dPWM.ChartPower.get_PointsStrUintDiv1000(str);
 //	} else if(strcmp(var, chart_VOLTAGE) == 0) {
 //		dPWM.ChartVoltage.get_PointsStr(str);
+#ifdef CHECK_DRAIN_PUMP
+	} else if(strcmp(var, chart_DrainPump) == 0) {
+		ChartDrainPump.get_PointsStrUintDiv1000(str);
+#endif
 	} else if(strcmp(var, chart_WaterBoostCountAll) == 0) {
 		ChartWaterBoosterCount.get_PointsStrAbsDiv100(str);
 	} else if(strcmp(var, chart_WaterBoostCount) == 0) {
@@ -1321,10 +1349,10 @@ int8_t MainClass::Prepare_Temp(uint8_t bus)
 	if(bus == 2) i = OneWireBus3.PrepareTemp();
 	else
   #endif
-  #ifdef ONEWIRE_DS2482_FOURTH
-	if(bus == 3) i = OneWireBus4.PrepareTemp();
-	else
-  #endif
+//  #ifdef ONEWIRE_DS2482_FOURTH
+//	if(bus == 3) i = OneWireBus4.PrepareTemp();
+//	else
+//  #endif
 	i = OneWireBus.PrepareTemp();
 	if(i) {
 		for(uint8_t j = 0; j < TNUMBER; j++) {

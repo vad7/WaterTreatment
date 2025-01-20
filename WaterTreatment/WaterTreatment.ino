@@ -358,10 +358,10 @@ x_I2C_init_std_message:
 			} else if(address == I2C_ADR_DS2482_3) {
 				error = OneWireBus3.Init();
 #endif
-#ifdef ONEWIRE_DS2482_FOURTH
-			} else if(address == I2C_ADR_DS2482_4) {
-				error = OneWireBus4.Init();
-#endif
+//#ifdef ONEWIRE_DS2482_FOURTH
+//			} else if(address == I2C_ADR_DS2482_4) {
+//				error = OneWireBus4.Init();
+//#endif
 			} else
 #endif
 			{
@@ -1303,7 +1303,7 @@ void vReadSensor(void *)
 		if(MC.sFrequency[FLOW].get_ValueReal() <= MC.Option.FlowIncByPress_MinFlow) {
 #ifdef REVERSE_OSMOS_FC
 			if(RO_was_flow) {
-				int32_t v = MC.sFrequency[F_RO].get_ValueReal() - MC.sFrequency[FLOW].get_ValueReal();
+				int32_t v = MC.sFrequency[FLOW_RO].get_ValueReal() - MC.sFrequency[FLOW].get_ValueReal();
 				if(v > 0) {
 					MC.sFrequency[FLOW].add_pulses100 += v * MC.sFrequency[FLOW].get_kfValue() / 3600; // Добавка, чтобы сравнять расход
 				}
@@ -1449,9 +1449,9 @@ void vReadSensor(void *)
 #ifdef ONEWIRE_DS2482_THIRD
 				prtemp |= MC.Prepare_Temp(2);
 #endif
-#ifdef ONEWIRE_DS2482_FOURTH
-				prtemp |= MC.Prepare_Temp(3);
-#endif
+//#ifdef ONEWIRE_DS2482_FOURTH
+//				prtemp |= MC.Prepare_Temp(3);
+//#endif
 			}
 		}
 
@@ -1538,7 +1538,7 @@ void vReadSensor(void *)
 						// to do...
 					} else
 	#endif
-					if(PumpReadCounter >= MODBUS_PUMP_PERIOD) {
+					if(PumpReadCounter >= MC.Option.DrainPumpReadPeriod * 1000 / TIME_READ_SENSOR) {
 						PumpReadCounter = 0;
 						skip_this_iteration = true;
 						int8_t err = Modbus.readInputRegisters32(MODBUS_DRAIN_PUMP_ADDR, PWM_POWER, &tmp);
@@ -1565,10 +1565,11 @@ void vReadSensor(void *)
 							DrainPumpPower = tmp;
 							DrainPumpErrCnt = 0;
 						} else {
-							PumpReadCounter = MODBUS_PUMP_PERIOD - 1;
+							PumpReadCounter = MC.Option.DrainPumpReadPeriod * 1000 / TIME_READ_SENSOR - 1;
 							if(++DrainPumpErrCnt == MODBUS_OTHER_MAX_ERRORS) {
 								if(MC.get_errcode() != ERR_DRAIN_PUMP_LINK) journal.jprintf("%s Link Error %d!\n", "PUMP", err);
 								set_Error(ERR_DRAIN_PUMP_LINK, (char*)"vService");
+								DrainPumpPower = 0;
 								//DrainPumpErrCnt = 0;
 							} else if(GETBIT(MC.Option.flags, fPWMLogErrors)) journal.jprintf_time("%s Read Error %d\n", "PUMP", err);
 						}
