@@ -1543,10 +1543,11 @@ void vReadSensor(void *)
 						skip_this_iteration = true;
 						int8_t err = Modbus.readInputRegisters32(MODBUS_DRAIN_PUMP_ADDR, PWM_POWER, &tmp);
 						if(err == OK) {
-							uint32_t ut = rtcSAM3X8.unixtime();
 							tmp /= 10;	// -> W
-							if(tmp > MC.Option.DrainPumpMinPower * 10) { // работает
-								if(DrainPumpPower <= MC.Option.DrainPumpMinPower * 10) DrainPumpTimeLast = ut; // время включения
+							uint32_t ut = rtcSAM3X8.unixtime();
+							uint32_t dpmp = MC.Option.DrainPumpMinPower * 10;
+							if(tmp > dpmp) { // работает
+								if(DrainPumpPower <= dpmp) DrainPumpTimeLast = ut; // время включения
 								else if(MC.Option.DrainPumpMaxTime && MC.get_errcode() != ERR_DRAIN_PUMP_TOOLONG
 										&& rtcSAM3X8.unixtime() - DrainPumpTimeLast > MC.Option.DrainPumpMaxTime * 30) {
 									set_Error(ERR_DRAIN_PUMP_TOOLONG, (char*)"vService");
@@ -1556,7 +1557,7 @@ void vReadSensor(void *)
 									if(MC.Option.DrainPumpMaxPower && tmp > MC.Option.DrainPumpMaxPower) {
 										set_Error(ERR_DRAIN_PUMP_OVERLOAD, (char*)"vService");
 										DrainPumpRelayStatus = MODBUS_RELAY_CMD_OFF;
-									} else if(MC.Option.DrainPumpDryPower && tmp <= MC.Option.DrainPumpDryPower) {
+									} else if(MC.Option.DrainPumpDryPower && tmp <= MC.Option.DrainPumpDryPower && DrainPumpPower > dpmp && DrainPumpPower <= MC.Option.DrainPumpDryPower) {
 										set_Error(ERR_DRAIN_PUMP_DRAIN_RUN, (char*)"vService");
 										DrainPumpRelayStatus = MODBUS_RELAY_CMD_OFF;
 									}

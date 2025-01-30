@@ -107,17 +107,18 @@ uint32_t SepticAlarmTime;
 #define  MODBUS_RELAY_CMD_ON	1	// need switch on
 #define  MODBUS_RELAY_ON		2
 #ifdef MODBUS_DRAIN_PUMP_ON_PULSE
-int8_t   DrainPumpRelayStatus = MODBUS_RELAY_OFF; // MODBUS_RELAY_*
+int8_t   DrainPumpRelayStatus 	= MODBUS_RELAY_OFF; // MODBUS_RELAY_*
 #else
-uint8_t  DrainPumpRelayStatus = MODBUS_RELAY_CMD_ON;
+uint8_t  DrainPumpRelayStatus	 = MODBUS_RELAY_CMD_ON;
 #endif
-uint8_t  PumpReadCounter = 0;
-uint32_t DrainPumpTimeLast = 0;	// time
-uint16_t DrainPumpPower = 0; // W
-uint8_t  DrainPumpErrCnt = 0;
-uint8_t  DrainPumpRelayErrCnt = 0;
-//uint32_t SepticPumpTimeLast = 0;
-//uint16_t SepticPumpPower = 0; // W
+uint8_t  PumpReadCounter 		= 0;
+uint32_t DrainPumpTimeLast 		= 0;	// time
+uint16_t DrainPumpPower 		= 0; // W
+uint8_t  DrainPumpErrCnt 		= 0;
+uint8_t  DrainPumpRelayErrCnt 	= 0;
+//uint32_t SepticPumpTimeLast 	= 0;
+//uint16_t SepticPumpPower 		= 0; // W
+uint8_t  DrainPumpDryCnt		= 0;
 #endif
 #ifdef MODBUS_SEPTIC_HEAT_RELAY_ADDR
 bool   SepticRelayStatus = false;		// 0 - off, 1 - on
