@@ -107,7 +107,11 @@ uint32_t SepticAlarmTime;
 #define  MODBUS_RELAY_CMD_ON	1	// need switch on
 #define  MODBUS_RELAY_ON		2
 #ifdef MODBUS_DRAIN_PUMP_ON_PULSE
+<<<<<<< Upstream, based on branch 'master' of https://github.com/vad7/WaterTreatment.git
 int8_t   DrainPumpRelayStatus 	= MODBUS_RELAY_OFF; // MODBUS_RELAY_*
+=======
+int8_t   DrainPumpRelayStatus = MODBUS_RELAY_ON; // MODBUS_RELAY_*
+>>>>>>> cef2211 upd
 #else
 uint8_t  DrainPumpRelayStatus	 = MODBUS_RELAY_CMD_ON;
 #endif
