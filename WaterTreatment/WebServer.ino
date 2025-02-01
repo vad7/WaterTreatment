@@ -1123,7 +1123,7 @@ xSaveStats:		if((i = MC.save_WorkStats()) == OK)
 				if(RegMaxFlow) strReturn += m_snprintf(strReturn += strlen(strReturn), 256, "Макс проток за регенерацию, м3ч|%.3d;", RegMaxFlow);
 				if(RegMinPress != 0xFFFF) strReturn += m_snprintf(strReturn += strlen(strReturn), 256, "Мин давление при регенерации, атм|%.2d;", RegMinPress);
 #ifdef MODBUS_DRAIN_PUMP_RELAY_ADDR
-				strcat(strReturn, "Состояние реле дренажного насоса|");
+				strcat(strReturn, "Дренажный насос (защита)|");
 				if(GETBIT(MC.Option.flags2, fDrainPumpRelay)) {
 					strReturn += m_snprintf(strReturn += strlen(strReturn), 256, "%s %s;", abs(DrainPumpRelayStatus) == 1 ? "go ->" : "",
 																							DrainPumpRelayStatus > 0 ? "ON" : "OFF");
