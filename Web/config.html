@@ -54,11 +54,11 @@ function show_all() {
 			<td nowrap><input id="get_opt-mpot" type="number"> <input type="submit" value=">" onclick="setParam('get_Opt(MPOT)');"></td>
 		</tr>
 		<tr>
-			<td>Через сколько делать сброс воды, если не было расхода, ч</td>
+			<td>Через сколько делать сброс воды, если долго не было расхода (0 - нет), ч</td>
 			<td nowrap><input id="get_opt-da" type="number"> <input type="submit" value=">" onclick="setParam('get_Opt(DA)');"></td>
 		</tr>
 		<tr>
-			<td>Время сброса воды (если не было расхода), сек</td>
+			<td>Время сброса воды (когда долго не было расхода), секунды (2 на закрытие клапана)</td>
 			<td nowrap><input id="get_opt-dt" type="number"> <input type="submit" value=">" onclick="setParam('get_Opt(DT)');"></td>
 		</tr>
 		<tr>
@@ -242,7 +242,7 @@ function show_all() {
 			<td><b>Защиты</b></td><td></td>
 		</tr>
 		<tr>
-			<td>Тревога, если слито при сбросе меньше литров</td>
+			<td>Тревога, если слито при сбросе воды (когда долго не было расхода) меньше литров</td>
 			<td nowrap><input id="get_opt-md" type="number"> <input type="submit" value=">" onclick="setParam('get_Opt(MD)');"></td>
 		</tr>
 		<tr>

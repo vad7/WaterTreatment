@@ -664,7 +664,7 @@ void MainClass::resetSetting()
 	Option.BackWashFeedPumpMaxFlow = 1700;
 	Option.FloodingDebounceTime = 10;
 	Option.FloodingTimeout = 600;
-	Option.MinDrainLiters = 30;
+	Option.MinDrainLiters = 20;
 	Option.MinPumpOnTime = 1500;
 	Option.MinRegenLiters = 450;
 	Option.MinWaterBoostOnTime = 4000;
@@ -933,11 +933,11 @@ boolean MainClass::set_option(char *var, float xx)
    if(strcmp(var,option_MinRegenSoftening)==0){ Option.MinRegenLitersSoftening = x; return true; } else
    if(strcmp(var,option_MinRegenWeightDecrease)==0){ Option.MinRegenWeightDecrease = x; return true; } else
    if(strcmp(var,option_MinRegenWeightDecreaseSoftening)==0){ Option.MinRegenWeightDecreaseSoftening = x; return true; } else
+   if(strcmp(var,option_DrainAfterNoConsume)==0){ Option.DrainAfterNoConsume = x * 60 * 60; return true; } else
+   if(strcmp(var,option_DrainTime)==0)       { Option.DrainTime = x; if(Option.DrainAfterNoConsume && Option.DrainTime == 0) Option.DrainTime = 1; return true; } else
    if(strcmp(var,option_MinDrain)==0)        { Option.MinDrainLiters = rd(xx, 10); return true; } else
    if(strcmp(var,option_MinWaterBoosterCountL)==0){ Option.MinWaterBoosterCountL = rd(xx, 100); return true; } else
    if(strcmp(var,option_WaterBoosterMinTank)==0){ Option.WaterBoosterMinTank = rd(xx, 100); return true; } else
-   if(strcmp(var,option_DrainAfterNoConsume)==0){ Option.DrainAfterNoConsume = x * 60 * 60; return true; } else
-   if(strcmp(var,option_DrainTime)==0)       { Option.DrainTime = x; return true; } else
    if(strcmp(var,option_PWM_LOG_ERR)==0)     { Option.flags = (Option.flags & ~(1<<fPWMLogErrors)) | ((x!=0)<<fPWMLogErrors); return true; } else
    if(strcmp(var,option_PWM_DryRun)==0)      { Option.PWM_DryRun = x; return true; } else
    if(strcmp(var,option_PWM_Max)==0)         { Option.PWM_Max = x; return true; } else
