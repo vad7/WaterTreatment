@@ -13,7 +13,7 @@
 		<li class="history"><a href="history.html">Детально</a></li>\
 	</ul>\
 </li>\
-<li name="USR"  class="setsensors sensorst sensorsp relay has-children">\
+<li name="USR" class="sensorsp sensorsfc relay sensorst has-children">\
 	<input type="checkbox" name="group-3" id="group-3">\
 	<label for="group-3"><i></i>Конфигурация</label>\
 	<ul>\

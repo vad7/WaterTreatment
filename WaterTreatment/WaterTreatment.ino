@@ -2186,7 +2186,7 @@ void vService(void *)
 											MC.dRelay[RWATEROFF1].set_ON();
 											if(!MC.dRelay[RWATERON].get_Relay() && !RWATERON_Switching) {
 												MC.dRelay[RSTARTREG].set_ON();
-												journal.jprintf_date("Regen F1 start\n");
+												journal.jprintf_date("Regen F1 start, passed: %d\n", MC.WorkStats.UsedSinceLastRegen + MC.RTC_store.UsedToday);
 												if(RegenStarted == 0) RegenStarted = rtcSAM3X8.unixtime();
 												MC.WorkStats.Flags &= ~WS_F_RegenPreparing;
 											} else if(MC.dRelay[RWATERON].get_Relay()) {
@@ -2198,7 +2198,7 @@ void vService(void *)
 									} else if((need_regen & RTC_Work_Regen_F2) && !MC.dRelay[RSTARTREG2].get_Relay()) {
 										if(!MC.dRelay[RWATERON].get_Relay() && !RWATERON_Switching) {
 											MC.dRelay[RSTARTREG2].set_ON();
-											journal.jprintf_date("Regen F2 start\n");
+											journal.jprintf_date("Regen F2 start, passed: %d\n", MC.WorkStats.UsedSinceLastRegenSoftening + MC.RTC_store.UsedToday);
 											if(RegenStarted == 0) RegenStarted = rtcSAM3X8.unixtime();
 											MC.WorkStats.Flags &= ~WS_F_RegenPreparing;
 										} else if(MC.dRelay[RWATERON].get_Relay()) {
