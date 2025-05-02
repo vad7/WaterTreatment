@@ -1580,7 +1580,7 @@ void vReadSensor(void *)
 	#endif //CHECK_DRAIN_PUMP
 	#if defined(MODBUS_SEPTIC_HEAT_RELAY_ADDR) && defined(SEPTIC_LOW_TEMP)
 			if(!skip_this_iteration && GETBIT(MC.Option.flags2, fSepticHeatRelay)) {
-				bool input = MC.sInput[SEPTIC_LOW_TEMP].get_Input();
+				bool input = LowConsumeMode ? false : MC.sInput[SEPTIC_LOW_TEMP].get_Input();
 				if(input != SepticRelayStatus) { // -> ON/OFF
 					int8_t err = Modbus.MODBUS_SEPTIC_HEAT_FUNC(MODBUS_SEPTIC_HEAT_RELAY_ADDR, MODBUS_SEPTIC_HEAT_RELAY_ID,
 							input ? MODBUS_SEPTIC_HEAT_RELAY_ON : MODBUS_SEPTIC_HEAT_RELAY_OFF);
