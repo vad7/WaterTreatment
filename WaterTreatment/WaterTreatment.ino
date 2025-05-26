@@ -1499,7 +1499,7 @@ void vReadSensor(void *)
 			}
 		}
 
-#ifdef CHECK_DRAIN_PUMP
+#if defined(CHECK_DRAIN_PUMP) || defined(CHECK_SEPTIC_PUMP)
 		static uint32_t tmp;
 		if(GetTickCount() - ttime < cDELAY_DS1820 - cDELAY_DS1820/4) {
 			vReadSensor_delay1ms(20);
@@ -1538,9 +1538,9 @@ void vReadSensor(void *)
 						// to do...
 					} else
 	#endif
-					if(PumpReadCounter >= MC.Option.DrainPumpReadPeriod * 1000 / TIME_READ_SENSOR) {
+					if(PumpReadCounter >= MC.Option.PumpReadPeriod * 1000 / TIME_READ_SENSOR) {
+						if(MC.Option.PumpReadPeriod * 1000 > TIME_READ_SENSOR) skip_this_iteration = true;
 						PumpReadCounter = 0;
-						skip_this_iteration = true;
 						int8_t err = Modbus.readInputRegisters32(MODBUS_DRAIN_PUMP_ADDR, PWM_POWER, &tmp);
 						if(err == OK) {
 							tmp /= 10;	// -> W
@@ -1553,7 +1553,7 @@ void vReadSensor(void *)
 									set_Error(ERR_DRAIN_PUMP_TOOLONG, (char*)"vService");
 									DrainPumpRelayStatus = MODBUS_RELAY_CMD_OFF;
 								}
-								if(ut - DrainPumpTimeLast >= MC.Option.DrainPumpStartTime) {
+								if(ut - DrainPumpTimeLast >= MC.Option.PumpStartTime) {
 									if(MC.Option.DrainPumpMaxPower && tmp > MC.Option.DrainPumpMaxPower) {
 										set_Error(ERR_DRAIN_PUMP_OVERLOAD, (char*)"vService");
 										DrainPumpRelayStatus = MODBUS_RELAY_CMD_OFF;
@@ -1566,7 +1566,7 @@ void vReadSensor(void *)
 							DrainPumpPower = tmp;
 							DrainPumpErrCnt = 0;
 						} else {
-							PumpReadCounter = MC.Option.DrainPumpReadPeriod * 1000 / TIME_READ_SENSOR - 1;
+							PumpReadCounter = MC.Option.PumpReadPeriod * 1000 / TIME_READ_SENSOR - 1;
 							if(++DrainPumpErrCnt == MODBUS_OTHER_MAX_ERRORS) {
 								if(MC.get_errcode() != ERR_DRAIN_PUMP_LINK) journal.jprintf("%s Link Error %d!\n", "PUMP", err);
 								set_Error(ERR_DRAIN_PUMP_LINK, (char*)"vService");

@@ -14,10 +14,20 @@ window.onload = function() {
 	updateParam("get_PWM(K)");
 	updateParam("get_PWM(I)");
 	updateParam("get_PWM(E)");
-	updateParam("get_modbus_val(2:w:0)");
-	updateParam("get_modbus_val(2:l:1)");
-	updateParam("get_modbus_val(2:l:3)");
-	updateParam("get_modbus_val(2:l:5)");
+	loadDrainPump();
+	loadSepticPump();
+}
+procedure loadDrainPump() {
+	loadParam("get_modbus_val(2:w:0)");
+	loadParam("get_modbus_val(2:l:1)");
+	loadParam("get_modbus_val(2:l:3)");
+	loadParam("get_modbus_val(2:l:5)");
+}
+procedure loadSepticPump() {
+	loadParam("get_modbus_val(4:w:0)");
+	loadParam("get_modbus_val(4:l:1)");
+	loadParam("get_modbus_val(4:l:3)");
+	loadParam("get_modbus_val(4:l:5)");
 }
 </script>
 </head>
@@ -99,7 +109,7 @@ window.onload = function() {
 </div>
 
 <div class="row1">
-<h2>Электрический счётчик <span id="get_pwm-name"></span> Modbus <input type="submit" value="Сброс"  onclick='if(confirm("Сбросить накопленную энергию?")) setParam("set_PWM(RESET=1)");' style="float:right;"></h2>
+<h2>Электрические счётчики</h2>
  <table>
 	<thead><tr>
 		<th>Потребитель</th>
@@ -110,6 +120,7 @@ window.onload = function() {
 		<th>Энергия (kWh)</th>
 		<th>Тест (W)</th>
 		<th>Ошибок</th>
+		<th>Сброс</th>
 	</tr></thead><tbody>
 	<tr>
 		<td>Насосная станция</td>
@@ -120,14 +131,25 @@ window.onload = function() {
 		<td id="get_pwm-e"></td>
 		<td nowrap><input id="get_pwm-tp" type="number" step="0.1"><input type="submit" value=">" onclick="setParam('get_PWM(TP)');"></td>
 		<td id="get_pwm-err"></td>
+		<td><input type="submit" value="Сброс" onclick='if(confirm("Сбросить накопленную энергию?")) setParam("set_PWM(RESET=1)");' style="float:right;"></td>
 	</tr>
 	<tr>
-		<td>Дренажный насос</td>
+		<td><input type="submit" value="🗘" onclick='loadDrainPump()'> Дренажный насос</td>
 		<td id="get_modbus_val-2:w:0" class="Div10"></td>
 		<td id="get_modbus_val-2:l:1" class="Div1000"></td>
 		<td id="get_modbus_val-2:l:3" class="Div10"></td>
 		<td></td>
 		<td id="get_modbus_val-2:l:5" class="Div1000"></td>
+		<td></td>
+		<td></td>
+	</tr>
+	<tr>
+		<td><input type="submit" value="🗘" onclick='loadSepticPump()'> Насос септика</td>
+		<td id="get_modbus_val-4:w:0" class="Div10"></td>
+		<td id="get_modbus_val-4:l:1" class="Div1000"></td>
+		<td id="get_modbus_val-4:l:3" class="Div10"></td>
+		<td></td>
+		<td id="get_modbus_val-4:l:5" class="Div1000"></td>
 		<td></td>
 		<td></td>
 	</tr>

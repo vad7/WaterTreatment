@@ -163,6 +163,9 @@ void MainClass::init()
 #ifdef CHECK_DRAIN_PUMP
 	ChartDrainPump.init();
 #endif
+#ifdef CHECK_SEPTIC_PUMP
+	ChartSepticPump.init();
+#endif
 
 	resetSetting();                                           // все переменные
 }
@@ -183,6 +186,10 @@ void MainClass::clear_all_errors()
 			MC.WorkStats.RegenSofteningCntAlarm = MC.Option.RegenSofteningCntAlarm;
 			NeedSaveWorkStats = 1;
 #if defined(CHECK_DRAIN_PUMP) && !defined(MODBUS_DRAIN_PUMP_ON_PULSE)
+		} else if(error == ERR_DRAIN_PUMP_TOOLONG) {
+			DrainPumpRelayStatus = MODBUS_RELAY_CMD_ON;
+#endif
+#if defined(CHECK_SEPTIC_PUMP) && !defined(MODBUS_SEPTIC_PUMP_ON_PULSE)
 		} else if(error == ERR_DRAIN_PUMP_TOOLONG) {
 			DrainPumpRelayStatus = MODBUS_RELAY_CMD_ON;
 #endif
@@ -987,10 +994,11 @@ boolean MainClass::set_option(char *var, float xx)
    if(strcmp(var,option_DrainPumpMinPower)==0){ Option.DrainPumpMinPower = x / 10; return true; } else
    if(strcmp(var,option_DrainPumpMaxPower)==0){ Option.DrainPumpMaxPower = x; return true; } else
    if(strcmp(var,option_DrainPumpDryPower)==0){ Option.DrainPumpDryPower = x; return true; } else
-   if(strcmp(var,option_DrainPumpStartTime)==0){ Option.DrainPumpStartTime = x; return true; } else
-   if(strcmp(var,option_DrainPumpReadPeriod)==0){ Option.DrainPumpReadPeriod = x; return true; } else
+   if(strcmp(var,option_PumpStartTime)==0){ Option.PumpStartTime = x; return true; } else
+   if(strcmp(var,option_PumpReadPeriod)==0){ Option.PumpReadPeriod = x; return true; } else
    if(strcmp(var,option_fLED_SRV_INFO_PlanReg)==0){ Option.flags2 = (Option.flags2 & ~(1<<fLED_SRV_INFO_PlanReg)) | ((x!=0)<<fLED_SRV_INFO_PlanReg); return true; } else
    if(strcmp(var,option_fCheckDrainPump)==0){ Option.flags2 = (Option.flags2 & ~(1<<fCheckDrainPump)) | ((x!=0)<<fCheckDrainPump); return true; } else
+   if(strcmp(var,option_fCheckSepticPump)==0){ Option.flags2 = (Option.flags2 & ~(1<<fCheckSepticPump)) | ((x!=0)<<fCheckSepticPump); return true; } else
    if(strcmp(var,option_fDrainPumpRelay)==0){ Option.flags2 = (Option.flags2 & ~(1<<fDrainPumpRelay)) | ((x!=0)<<fDrainPumpRelay); return true; } else
    if(strcmp(var,option_fSepticHeatRelay)==0){ Option.flags2 = (Option.flags2 & ~(1<<fSepticHeatRelay)) | ((x!=0)<<fSepticHeatRelay); return true; } else
    if(strcmp(var,option_RegenSofteningCntAlarm)==0){
@@ -1118,9 +1126,10 @@ char* MainClass::get_option(char *var, char *ret)
 	if(strcmp(var,option_DrainPumpMinPower)==0){ return _itoa(Option.DrainPumpMinPower * 10, ret); } else
 	if(strcmp(var,option_DrainPumpMaxPower)==0){ return _itoa(Option.DrainPumpMaxPower, ret); } else
 	if(strcmp(var,option_DrainPumpDryPower)==0){ return _itoa(Option.DrainPumpDryPower, ret); } else
-	if(strcmp(var,option_DrainPumpStartTime)==0){ return _itoa(Option.DrainPumpStartTime, ret); } else
-	if(strcmp(var,option_DrainPumpReadPeriod)==0){ return _itoa(Option.DrainPumpReadPeriod, ret); } else
+	if(strcmp(var,option_PumpStartTime)==0){ return _itoa(Option.PumpStartTime, ret); } else
+	if(strcmp(var,option_PumpReadPeriod)==0){ return _itoa(Option.PumpReadPeriod, ret); } else
 	if(strcmp(var,option_fCheckDrainPump)==0){ return strcat(ret, (char*)(GETBIT(Option.flags2, fCheckDrainPump) ? cOne : cZero)); } else
+	if(strcmp(var,option_fCheckSepticPump)==0){ return strcat(ret, (char*)(GETBIT(Option.flags2, fCheckSepticPump) ? cOne : cZero)); } else
 	if(strcmp(var,option_fDrainPumpRelay)==0){ return strcat(ret, (char*)(GETBIT(Option.flags2, fDrainPumpRelay) ? cOne : cZero)); } else
 	if(strcmp(var,option_fSepticHeatRelay)==0){ return strcat(ret, (char*)(GETBIT(Option.flags2, fSepticHeatRelay) ? cOne : cZero)); } else
 	if(strcmp(var,option_fLED_SRV_INFO_PlanReg)==0){ return strcat(ret, (char*)(GETBIT(Option.flags2, fLED_SRV_INFO_PlanReg) ? cOne : cZero)); } else
@@ -1195,6 +1204,9 @@ char * MainClass::get_listChart(char* str)
 #ifdef CHECK_DRAIN_PUMP
 	strcat(str, chart_DrainPump); strcat(str,":0;");
 #endif
+#ifdef CHECK_SEPTIC_PUMP
+	strcat(str, chart_DrainPump); strcat(str,":0;");
+#endif
 	return str;
 }
 
@@ -1236,6 +1248,12 @@ void  MainClass::updateChart()
 		if(tmp1 >= MIN_POWER_FOR_CHARTS || ChartDrainPump.get_PrevPoint() >= MIN_POWER_FOR_CHARTS) ChartDrainPump.addPoint(tmp1);
 	} else ChartDrainPump.addPoint(tmp1);
 #endif
+#ifdef CHECK_SEPTIC_PUMP
+	tmp1 = SepticPumpPower;
+	if(GETBIT(Option.flags, fChartOnlyNonZeroW)) {
+		if(tmp1 >= MIN_POWER_FOR_CHARTS || ChartDrainPump.get_PrevPoint() >= MIN_POWER_FOR_CHARTS) ChartDrainPump.addPoint(tmp1);
+	} else ChartDrainPump.addPoint(tmp1);
+#endif
 }
 
 // сбросить графики в ОЗУ
@@ -1260,6 +1278,9 @@ void MainClass::clearChart()
 	dPWM.ChartPower.clear();                                // Статистика по Полная мощность
 #ifdef CHECK_DRAIN_PUMP
 	ChartDrainPump.clear();
+#endif
+#ifdef CHECK_SEPTIC_PUMP
+	ChartSepticPump.clear();
 #endif
 }
 
@@ -1300,6 +1321,10 @@ void MainClass::get_Chart(char *var, char* str)
 #ifdef CHECK_DRAIN_PUMP
 	} else if(strcmp(var, chart_DrainPump) == 0) {
 		ChartDrainPump.get_PointsStrUintDiv1000(str);
+#endif
+#ifdef CHECK_SEPTIC_PUMP
+	} else if(strcmp(var, chart_SepticPump) == 0) {
+		ChartSepticPump.get_PointsStrUintDiv1000(str);
 #endif
 	} else if(strcmp(var, chart_WaterBoostCountAll) == 0) {
 		ChartWaterBoosterCount.get_PointsStrAbsDiv100(str);

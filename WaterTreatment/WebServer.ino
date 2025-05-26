@@ -742,6 +742,10 @@ xSaveStats:		if((i = MC.save_WorkStats()) == OK)
 			if(*str == 'D') _dtoa(strReturn, DrainPumpPower, 3); // get_PWRD (Drain pump)
 			else
 #endif
+#ifdef CHECK_SEPTIC_PUMP
+			if(*str == 'S') _dtoa(strReturn, SepticPumpPower, 3); // get_PWRS (Septic pump)
+			else
+#endif
 				_dtoa(strReturn, MC.dPWM.get_Power(), 3);
 			ADD_WEBDELIM(strReturn); continue;
 		}

@@ -101,25 +101,37 @@ uint32_t FeedPumpWork = 0;						// ms
 //bool	 TankEmpty = false;
 uint32_t FloodingTime = 0;
 uint32_t SepticAlarmTime;
-#ifdef CHECK_DRAIN_PUMP
+
 #define  MODBUS_RELAY_CMD_OFF	-1	// need switch off
 #define  MODBUS_RELAY_OFF		0
 #define  MODBUS_RELAY_CMD_ON	1	// need switch on
 #define  MODBUS_RELAY_ON		2
+#ifdef CHECK_DRAIN_PUMP
 #ifdef MODBUS_DRAIN_PUMP_ON_PULSE
 int8_t   DrainPumpRelayStatus = MODBUS_RELAY_ON; // MODBUS_RELAY_*
 #else
 uint8_t  DrainPumpRelayStatus	 = MODBUS_RELAY_CMD_ON;
 #endif
-uint8_t  PumpReadCounter 		= 0;
 uint32_t DrainPumpTimeLast 		= 0;	// time
 uint16_t DrainPumpPower 		= 0; // W
 uint8_t  DrainPumpErrCnt 		= 0;
 uint8_t  DrainPumpRelayErrCnt 	= 0;
-//uint32_t SepticPumpTimeLast 	= 0;
-//uint16_t SepticPumpPower 		= 0; // W
 uint8_t  DrainPumpDryCnt		= 0;
 #endif
+#ifdef CHECK_SEPTIC_PUMP
+#ifdef MODBUS_SEPTIC_PUMP_ON_PULSE
+int8_t   SepticPumpRelayStatus = MODBUS_RELAY_ON; // MODBUS_RELAY_*
+#else
+uint8_t  SepticPumpRelayStatus	 = MODBUS_RELAY_CMD_ON;
+#endif
+uint32_t SepticPumpTimeLast 		= 0;	// time
+uint16_t SepticPumpPower 		= 0; // W
+uint8_t  SepticPumpErrCnt 		= 0;
+uint8_t  SepticPumpRelayErrCnt 	= 0;
+uint8_t  SepticPumpDryCnt		= 0;
+#endif
+uint8_t  PumpReadCounter 		= 0;
+
 #ifdef MODBUS_SEPTIC_HEAT_RELAY_ADDR
 bool   SepticRelayStatus = false;		// 0 - off, 1 - on
 uint8_t  SepticRelayErrCnt = 0;
@@ -210,9 +222,10 @@ type_WebSecurity WebSec_admin;				// хеш паролей
 #define fDrainSiltTank 		0				// Сливать осадок с бака периодически
 #define fDrainSiltTankBeforeRegen 1			// Сливать осадок с бака перед регенерацией
 #define fLED_SRV_INFO_PlanReg 2				// Мигать редко на PIN_LED_SRV_INFO при запланированной регенерации
-#define fCheckDrainPump		3				// Проверять работу дренажного насоса
+#define fCheckDrainPump		3				// Проверять работу насоса дренажа
 #define fDrainPumpRelay		4				// Использовать реле отключения насоса
 #define fSepticHeatRelay	5				// Использовать реле нагрева септика
+#define fCheckSepticPump	6				// Проверять работу насоса септика
 
 // Структура для хранения настроек
 struct type_option {
@@ -286,14 +299,18 @@ struct type_option {
 	uint8_t  PWATER_Osmos_FullMinus;// Дельта от макс. давления бака НС, контроль малого потребления после снижения давления ниже, сотые бара
 	uint8_t  WaterBoosterMinTank;	// Контроль среднего минимального объема бака насосной станции, 0 - нет, литры
 	uint16_t DrainPumpMaxPower;		// Максимальная мощность дренажного насоса после времени старта, Вт
-	uint8_t  DrainPumpStartTime;	// Время старта дренажного насоса, с
+	uint8_t  PumpStartTime;			// Время старта дренажного насоса, с
 	uint8_t  PWATER_Osmos_Delay;	// Задержка после прекращения потребления (ниже минимума) до начала работы алгоритма добавки, сек
 	uint16_t RO_FilterCounter1_Max;	// Предел для фильтров обратного осмоса #1, *10л
 	uint16_t RO_FilterCounter2_Max;	// Предел для фильтров обратного осмоса #2, *10л
 	uint32_t RO_FilterCountersResetTime[2];	// UT сброса счетчиков, RO_FilterCounter1,2
 	uint32_t FilterCountersResetTime[2];	// UT сброса счетчиков, FilterCounter1,2
 	uint16_t DrainPumpDryPower;		// Мощность сухого хода насоса (меньше или равно) после времени старта, Вт
-	uint8_t  DrainPumpReadPeriod;	// Периодичность чтения потребляемой мощности дренажного насоса, сек
+	uint8_t  PumpReadPeriod;		// Периодичность чтения потребляемой мощности насосов, сек
+	uint8_t  SepticPumpMinPower;	// Минимальная мощность насоса для определения его работы, W * 10
+	uint16_t SepticPumpDryPower;	// Мощность сухого хода насоса (меньше или равно) после времени старта, Вт
+	uint16_t SepticPumpMaxPower;	// Максимальная мощность насоса после времени старта, Вт
+	uint8_t  SepticPumpMaxTime;		// Максимальное время работы насоса, 0 - нет, сек * 30
 };
 
 //  Работа с отдельными флагами type_DateTime
@@ -512,6 +529,9 @@ public:
 	statChart ChartWaterBoosterCount;
 #ifdef CHECK_DRAIN_PUMP
 	statChart ChartDrainPump;
+#endif
+#ifdef CHECK_SEPTIC_PUMP
+	statChart ChartSepticPump;
 #endif
 
 	TaskHandle_t xHandlePumps;

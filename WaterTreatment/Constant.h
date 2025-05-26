@@ -20,7 +20,7 @@
 #include "Util.h"
 
 // ОПЦИИ КОМПИЛЯЦИИ ПРОЕКТА -------------------------------------------------------
-#define VERSION			  "1.69"			// Версия прошивки
+#define VERSION			  "1.70"			// Версия прошивки
 #define VER_SAVE		  16				// Версия формата сохраняемых данных в I2C память
 //#define LOG                               // В последовательный порт шлет лог веб сервера (логируются запросы)
 #define FAST_LIB                            // использование допиленной библиотеки езернета
@@ -365,6 +365,7 @@ const char *chart_FeedPump   = {"FeedPump, s"};
 const char *chart_FillTank   = {"FillTank, s"};
 const char *chart_BrineWeight= {"Weight"};
 const char *chart_DrainPump  = {"DrainPump"};
+const char *chart_SepticPump  = {"SepticPump"};
 
 // Описание имен параметров опций   для функций get_option ("get_Opt") set_option ("set_Opt")
 const char *option_ATTEMPT            	= {"ATTEMPT"};            // число попыток пуска
@@ -452,11 +453,16 @@ const char *option_DrainPumpMaxTime		= {"DPT"};
 const char *option_DrainPumpMinPower	= {"DPM"};
 const char *option_DrainPumpMaxPower	= {"DPH"};
 const char *option_DrainPumpDryPower	= {"DPD"};
-const char *option_DrainPumpStartTime	= {"DPS"};
-const char *option_DrainPumpReadPeriod	= {"DPP"};
-const char *option_fChartOnlyNonZeroW	= {"CNZ"};
 const char *option_fCheckDrainPump		= {"CDP"};
 const char *option_fDrainPumpRelay		= {"DPR"};
+const char *option_SepticPumpMaxTime	= {"SPT"};
+const char *option_SepticPumpMinPower	= {"SPM"};
+const char *option_SepticPumpMaxPower	= {"SPH"};
+const char *option_SepticPumpDryPower	= {"SPD"};
+const char *option_fCheckSepticPump		= {"CSP"};
+const char *option_PumpStartTime		= {"PS"};
+const char *option_PumpReadPeriod		= {"PP"};
+const char *option_fChartOnlyNonZeroW	= {"CNZ"};
 const char *option_fSepticHeatRelay		= {"SHR"};
 const char *option_fLED_SRV_INFO_PlanReg= {"LPR"};
 const char option_GetCurrentSaltLevel[] = "LvL";	// get_Opt(LvL)
@@ -580,8 +586,14 @@ const char *webWS_NextRegenSoftAfterDays		= { "NS" };
 #define ERR_SEPTIC_RELAY_LINK -84		// Ошибка связи с реле нагрева септика
 #define ERR_LOW_BOOSTER_TANK -85		// Низкий средний рабочий объем бака насосной станции
 #define ERR_SFREQ_I2C_ERROR	-86			// Ошибка частотного датчика на шине I2C
+#define ERR_SEPTIC_PUMP_LINK -87		// Ошибка связи со счетчиком насоса
+#define ERR_SEPTIC_PUMP_RELAY_LINK -88	// Ошибка связи с реле насоса
+#define ERR_SEPTIC_PUMP_TOOLONG -89		// Слишком долго работает насос
+#define ERR_SEPTIC_PUMP_NOT_WORK -90	// Не работает насос
+#define ERR_SEPTIC_PUMP_OVERLOAD -91	// Перегрузка насоса
+#define ERR_SEPTIC_PUMP_DRAIN_RUN -92	// Сухой ход насоса
 
-#define ERR_ERRMAX			-86			// Последняя ошибка
+#define ERR_ERRMAX			-92			// Последняя ошибка
 
 // Предупреждения
 #define WARNING_VALUE        1         // Попытка установить значение за границами диапазона запрос типа SET
@@ -675,6 +687,12 @@ const char *noteError[] = {
 		"Ошибка связи с реле нагрева септика",												//-84
 		"Низкий средний рабочий объем бака насосной станции",								//-85
 		"Ошибка частотного датчика на шине I2C_2",											//-86
+		"Ошибка связи со счетчиком насоса септика",											//-87
+		"Ошибка связи с реле насоса септика",												//-88
+		"Слишком долго работает насос септика",												//-89
+		"Не работает насос септика",														//-90
+		"Перегрузка насоса септика",														//-91
+		"Сухой ход насоса септика",															//-92
 
 		"NULL"
 		};
