@@ -192,6 +192,8 @@ void MainClass::clear_all_errors()
 #if defined(CHECK_SEPTIC_PUMP) && !defined(MODBUS_SEPTIC_PUMP_ON_PULSE)
 		} else if(error == ERR_DRAIN_PUMP_TOOLONG) {
 			DrainPumpRelayStatus = MODBUS_RELAY_CMD_ON;
+		} else if(error == ERR_SEPTIC_PUMP_NOT_WORK) {
+			UsedWaterToSeptic = 0;
 #endif
 		}
 	}
@@ -911,102 +913,108 @@ void MainClass::get_datetime(char *var, char *ret)
 // Установить опции  из числа (float), "set_Opt"
 boolean MainClass::set_option(char *var, float xx)
 {
-   int32_t x = (int32_t) xx;
-   if(strcmp(var,option_TIME_CHART)==0)      { if(x>0) { clearChart(); Option.tChart = x; return true; } else return false; } else // Сбросить статистистику, начать отсчет заново
-   if(strcmp(var,option_BEEP)==0)            {if (x==0) {SETBIT0(Option.flags,fBeep); return true;} else if (x==1) {SETBIT1(Option.flags,fBeep); return true;} else return false;  }else            // Подача звукового сигнала
-   if(strcmp(var,option_History)==0)         {if (x==0) {SETBIT0(Option.flags,fHistory); return true;} else if (x==1) {SETBIT1(Option.flags,fHistory); return true;} else return false;       }else       // Сбрасывать статистику на карту
-   if(strcmp(var,option_WebOnSPIFlash)==0)   { Option.flags = (Option.flags & ~(1<<fWebStoreOnSPIFlash)) | ((x!=0)<<fWebStoreOnSPIFlash); return true; } else
-   if(strcmp(var,option_LogWirelessSensors)==0){ Option.flags = (Option.flags & ~(1<<fLogWirelessSensors)) | ((x!=0)<<fLogWirelessSensors); return true; } else
-   if(strcmp(var,option_fDontRegenOnWeekend)==0){ Option.flags = (Option.flags & ~(1<<fDontRegenOnWeekend)) | ((x!=0)<<fDontRegenOnWeekend); return true; } else
-   if(strcmp(var,option_fDebugToJournal)==0) { Option.flags = (Option.flags & ~(1<<fDebugToJournal)) | (((DebugToJournalOn = x)!=0)<<fDebugToJournal); return true; } else
-   if(strcmp(var,option_fDebugToSerial)==0) { Option.flags = (Option.flags & ~(1<<fDebugToSerial)) | ((x!=0)<<fDebugToSerial); return true; } else
-   if(strcmp(var,option_fRegenAllowed)==0) { Option.flags = (Option.flags & ~(1<<fRegenAllowed)) | ((x!=0)<<fRegenAllowed); return true; } else
-   if(strcmp(var,option_fRegenAllowedSoftener)==0) { Option.flags = (Option.flags & ~(1<<fRegenAllowedSoftener)) | ((x!=0)<<fRegenAllowedSoftener); return true; } else
-   if(strcmp(var,option_fChartOnlyNonZeroW)==0) { Option.flags = (Option.flags & ~(1<<fChartOnlyNonZeroW)) | ((x!=0)<<fChartOnlyNonZeroW); return true; } else
-   if(strcmp(var,option_FeedPumpRate)==0) { Option.FeedPumpRate = rd(xx * 1000, 1000) / 3600; return true; } else
-   if(strcmp(var,option_FeedPumpMaxFlow)==0) { Option.FeedPumpMaxFlow = Option.FeedPumpRate * 1000 / rd(xx, 1000); return true; } else
-   if(strcmp(var,option_fFlowIncByPressure)==0) { Option.flags = (Option.flags & ~(1<<fFlowIncByPressure)) | ((x!=0)<<fFlowIncByPressure); return true; } else
-   if(strcmp(var,option_FlowIncByPress_MinFlow)==0) { Option.FlowIncByPress_MinFlow = rd(xx, 1000); return true; } else // если импульсов = xx * sFrequency[FLOW].get_kfValue() / 100
-   if(strcmp(var,option_BackWashFeedPumpMaxFlow)==0){ Option.BackWashFeedPumpMaxFlow = Option.FeedPumpRate * 1000 / rd(xx, 1000); return true; } else
-   if(strcmp(var,option_BackWashFeedPumpDelay)==0){ Option.BackWashFeedPumpDelay = x; return true; } else
-   if(strcmp(var,option_DaysBeforeRegen)==0) { Option.DaysBeforeRegen = x; return true; } else
-   if(strcmp(var,option_DaysBeforeRegenSoftening)==0) { Option.DaysBeforeRegenSoftening = x; return true; } else
-   if(strcmp(var,option_UsedBeforeRegen)==0) { Option.UsedBeforeRegen = x; return true; } else
-   if(strcmp(var,option_UsedBeforeRegenSoftening)==0) { Option.UsedBeforeRegenSoftening = x; return true; } else
-   if(strcmp(var,option_MinPumpOnTime)==0)   { Option.MinPumpOnTime = x; return true; } else
-   if(strcmp(var,option_MinWaterBoostOnTime)==0){ Option.MinWaterBoostOnTime = x; return true; } else
-   if(strcmp(var,option_MinWaterBoostOffTime)==0){ Option.MinWaterBoostOffTime = x; return true; } else
-   if(strcmp(var,option_MinRegen)==0)        { Option.MinRegenLiters = x; return true; } else
-   if(strcmp(var,option_MinRegenSoftening)==0){ Option.MinRegenLitersSoftening = x; return true; } else
-   if(strcmp(var,option_MinRegenWeightDecrease)==0){ Option.MinRegenWeightDecrease = x; return true; } else
-   if(strcmp(var,option_MinRegenWeightDecreaseSoftening)==0){ Option.MinRegenWeightDecreaseSoftening = x; return true; } else
-   if(strcmp(var,option_DrainAfterNoConsume)==0){ Option.DrainAfterNoConsume = x * 60 * 60; return true; } else
-   if(strcmp(var,option_DrainTime)==0)       { Option.DrainTime = x; if(Option.DrainAfterNoConsume && Option.DrainTime == 0) Option.DrainTime = 1; return true; } else
-   if(strcmp(var,option_MinDrain)==0)        { Option.MinDrainLiters = rd(xx, 10); return true; } else
-   if(strcmp(var,option_MinWaterBoosterCountL)==0){ Option.MinWaterBoosterCountL = rd(xx, 100); return true; } else
-   if(strcmp(var,option_WaterBoosterMinTank)==0){ Option.WaterBoosterMinTank = rd(xx, 100); return true; } else
-   if(strcmp(var,option_PWM_LOG_ERR)==0)     { Option.flags = (Option.flags & ~(1<<fPWMLogErrors)) | ((x!=0)<<fPWMLogErrors); return true; } else
-   if(strcmp(var,option_PWM_DryRun)==0)      { Option.PWM_DryRun = x; return true; } else
-   if(strcmp(var,option_PWM_Max)==0)         { Option.PWM_Max = x; return true; } else
-   if(strcmp(var,option_PWM_StartingTime)==0){ Option.PWM_StartingTime = x; return true; } else
-   if(strcmp(var,option_PWATER_RegMin)==0)   { Option.PWATER_RegMin = rd(xx, 100); return true; } else
-   if(strcmp(var,option_PWATER_Osmos_Min)==0){ Option.PWATER_Osmos_Min = rd(xx, 100); return true; } else
-   if(strcmp(var,option_PWATER_Osmos_Step)==0){ Option.PWATER_Osmos_Step = x; return true; } else
-   if(strcmp(var,option_PWATER_Osmos_TankMul)==0){ Option.PWATER_Osmos_TankMul = rd(xx, 100); return true; } else
-   if(strcmp(var,option_PWATER_Osmos_FullDelay)==0){ Option.PWATER_Osmos_FullDelay = x; return true; } else
-   if(strcmp(var,option_PWATER_Osmos_FullMinus)==0){ Option.PWATER_Osmos_FullMinus = rd(xx, 100); return true; } else
-   if(strcmp(var,option_PWATER_Osmos_Delay)==0){ Option.PWATER_Osmos_Delay = x; return true; } else
-   if(strcmp(var,option_LTANK_Low)==0)     { Option.LTANK_Low = rd(xx, 100); return true; } else
-   if(strcmp(var,option_LTank_LowConsumeMin)==0){ Option.LTank_LowConsumeMin = rd(xx, 100); return true; } else
-   if(strcmp(var,option_LTank_AfterFilledTimer)==0){ Option.LTank_AfterFilledTimer = x; return true; } else
-   if(strcmp(var,option_LTank_Hour_Low)==0) { Option.LTank_Hour_Low = rd(xx, 100); return true; } else
-   if(strcmp(var,option_LTank_Hour)==0){ Option.LTank_Hour = x; return true; } else
-   if(strcmp(var,option_Weight_Low)==0)      { Option.Weight_Low = rd(xx, 100); return true; } else
-   if(strcmp(var,option_FloodingDebounceTime)==0){ Option.FloodingDebounceTime = x; return true; } else
-   if(strcmp(var,option_FloodingTimeout)==0) { Option.FloodingTimeout = x; return true; } else
-   if(strcmp(var,option_FillingTankTimeout)==0){ Option.FillingTankTimeout = x; return true; } else
-   if(strcmp(var,option_TankCheckPercent)==0){ Option.TankCheckPercent = x; return true; } else
-   if(strcmp(var,option_TankFillingTimeMax)==0){ Option.TankFillingTimeMax = x; return true; } else
-   if(strcmp(var,option_CriticalErrorsTimeout)==0){ Option.CriticalErrorsTimeout = x; return true; } else
-   if(strcmp(var,option_FilterTank)==0){ FilterTankSquare = CalcFilterSquare(Option.FilterTank = x); return true; } else
-   if(strcmp(var,option_FilterTankSoftener)==0){ FilterTankSoftenerSquare = CalcFilterSquare(Option.FilterTankSoftener = x); return true; } else
-   if(strcmp(var,option_DrainingWaterAfterRegen)==0){ Option.DrainingWaterAfterRegen = x; return true; } else
-   if(strcmp(var,option_DrainingWaterAfterRegenSoftening)==0){ Option.DrainingWaterAfterRegenSoftening = x; return true; } else
-   if(strcmp(var,option_RegenStart)==0){ Option.DrainingWaterAfterRegen = x; return true; } else // Start regenerate
-   if(strcmp(var,option_RFILL_HoursRepeatPulse)==0){ Option.RFILL_HoursRepeatPulse = x; return true; } else // Start regenerate
-   if(strcmp(var,option_LowConsumeRequestPeriod)==0){ Option.LowConsumeRequestPeriod = x; Request_LowConsume = xTaskGetTickCount(); return true; } else
-   if(strcmp(var,option_fLowConsumeReq_OnByErr)==0) { Option.flags = (Option.flags & ~(1<<fLowConsumeReq_OnByErr)) | ((x!=0)<<fLowConsumeReq_OnByErr); return true; } else
-   if(strcmp(var,option_SepticAlarmDebounce)==0){ Option.SepticAlarmDebounce = x; return true; } else
-   if(strcmp(var,option_GetCurrentSaltLevel)==0){ if(x == 1) MC.WorkStats.RegenSofteningCntAlarm = Option.RegenSofteningCntAlarm; return true; } else
-   if(strcmp(var,option_DrainSiltTime)==0){ Option.DrainSiltTime = x / 10; return true; } else
-   if(strcmp(var,option_DrainSiltAfterL100)==0){ Option.DrainSiltAfterL100 = x > 100 ? x / 100 : 1; return true; } else
-   if(strcmp(var,option_DrainSiltAfterNotUsed)==0){ Option.DrainSiltAfterNotUsed = x; return true; } else
-   if(strcmp(var,option_fDrainSiltTank)==0){ Option.flags2 = (Option.flags2 & ~(1<<fDrainSiltTank)) | ((x!=0)<<fDrainSiltTank); return true; } else
-   if(strcmp(var,option_fDrainSiltTankBeforeRegen)==0){ Option.flags2 = (Option.flags2 & ~(1<<fDrainSiltTankBeforeRegen)) | ((x!=0)<<fDrainSiltTankBeforeRegen); return true; } else
-   if(strcmp(var,option_UsedWaterContinuous)==0){ Option.UsedWaterContinuous = x; UsedWaterContinuousTimerMax = 0; return true; } else
-   if(strcmp(var,option_FilterCounter1_Max)==0){ Option.FilterCounter1_Max = x / 100; return true; } else
-   if(strcmp(var,option_FilterCounter2_Max)==0){ Option.FilterCounter2_Max = x / 100; return true; } else
+	int32_t x = (int32_t) xx;
+	if(strcmp(var,option_TIME_CHART)==0)      { if(x>0) { clearChart(); Option.tChart = x; return true; } else return false; } else // Сбросить статистистику, начать отсчет заново
+	if(strcmp(var,option_BEEP)==0)            {if (x==0) {SETBIT0(Option.flags,fBeep); return true;} else if (x==1) {SETBIT1(Option.flags,fBeep); return true;} else return false;  }else            // Подача звукового сигнала
+	if(strcmp(var,option_History)==0)         {if (x==0) {SETBIT0(Option.flags,fHistory); return true;} else if (x==1) {SETBIT1(Option.flags,fHistory); return true;} else return false;       }else       // Сбрасывать статистику на карту
+	if(strcmp(var,option_WebOnSPIFlash)==0)   { Option.flags = (Option.flags & ~(1<<fWebStoreOnSPIFlash)) | ((x!=0)<<fWebStoreOnSPIFlash); return true; } else
+	if(strcmp(var,option_LogWirelessSensors)==0){ Option.flags = (Option.flags & ~(1<<fLogWirelessSensors)) | ((x!=0)<<fLogWirelessSensors); return true; } else
+	if(strcmp(var,option_fDontRegenOnWeekend)==0){ Option.flags = (Option.flags & ~(1<<fDontRegenOnWeekend)) | ((x!=0)<<fDontRegenOnWeekend); return true; } else
+	if(strcmp(var,option_fDebugToJournal)==0) { Option.flags = (Option.flags & ~(1<<fDebugToJournal)) | (((DebugToJournalOn = x)!=0)<<fDebugToJournal); return true; } else
+	if(strcmp(var,option_fDebugToSerial)==0) { Option.flags = (Option.flags & ~(1<<fDebugToSerial)) | ((x!=0)<<fDebugToSerial); return true; } else
+	if(strcmp(var,option_fRegenAllowed)==0) { Option.flags = (Option.flags & ~(1<<fRegenAllowed)) | ((x!=0)<<fRegenAllowed); return true; } else
+	if(strcmp(var,option_fRegenAllowedSoftener)==0) { Option.flags = (Option.flags & ~(1<<fRegenAllowedSoftener)) | ((x!=0)<<fRegenAllowedSoftener); return true; } else
+	if(strcmp(var,option_fChartOnlyNonZeroW)==0) { Option.flags = (Option.flags & ~(1<<fChartOnlyNonZeroW)) | ((x!=0)<<fChartOnlyNonZeroW); return true; } else
+	if(strcmp(var,option_FeedPumpRate)==0) { Option.FeedPumpRate = rd(xx * 1000, 1000) / 3600; return true; } else
+	if(strcmp(var,option_FeedPumpMaxFlow)==0) { Option.FeedPumpMaxFlow = Option.FeedPumpRate * 1000 / rd(xx, 1000); return true; } else
+	if(strcmp(var,option_fFlowIncByPressure)==0) { Option.flags = (Option.flags & ~(1<<fFlowIncByPressure)) | ((x!=0)<<fFlowIncByPressure); return true; } else
+	if(strcmp(var,option_FlowIncByPress_MinFlow)==0) { Option.FlowIncByPress_MinFlow = rd(xx, 1000); return true; } else // если импульсов = xx * sFrequency[FLOW].get_kfValue() / 100
+	if(strcmp(var,option_BackWashFeedPumpMaxFlow)==0){ Option.BackWashFeedPumpMaxFlow = Option.FeedPumpRate * 1000 / rd(xx, 1000); return true; } else
+	if(strcmp(var,option_BackWashFeedPumpDelay)==0){ Option.BackWashFeedPumpDelay = x; return true; } else
+	if(strcmp(var,option_DaysBeforeRegen)==0) { Option.DaysBeforeRegen = x; return true; } else
+	if(strcmp(var,option_DaysBeforeRegenSoftening)==0) { Option.DaysBeforeRegenSoftening = x; return true; } else
+	if(strcmp(var,option_UsedBeforeRegen)==0) { Option.UsedBeforeRegen = x; return true; } else
+	if(strcmp(var,option_UsedBeforeRegenSoftening)==0) { Option.UsedBeforeRegenSoftening = x; return true; } else
+	if(strcmp(var,option_MinPumpOnTime)==0)   { Option.MinPumpOnTime = x; return true; } else
+	if(strcmp(var,option_MinWaterBoostOnTime)==0){ Option.MinWaterBoostOnTime = x; return true; } else
+	if(strcmp(var,option_MinWaterBoostOffTime)==0){ Option.MinWaterBoostOffTime = x; return true; } else
+	if(strcmp(var,option_MinRegen)==0)        { Option.MinRegenLiters = x; return true; } else
+	if(strcmp(var,option_MinRegenSoftening)==0){ Option.MinRegenLitersSoftening = x; return true; } else
+	if(strcmp(var,option_MinRegenWeightDecrease)==0){ Option.MinRegenWeightDecrease = x; return true; } else
+	if(strcmp(var,option_MinRegenWeightDecreaseSoftening)==0){ Option.MinRegenWeightDecreaseSoftening = x; return true; } else
+	if(strcmp(var,option_DrainAfterNoConsume)==0){ Option.DrainAfterNoConsume = x * 60 * 60; return true; } else
+	if(strcmp(var,option_DrainTime)==0)       { Option.DrainTime = x; if(Option.DrainAfterNoConsume && Option.DrainTime == 0) Option.DrainTime = 1; return true; } else
+	if(strcmp(var,option_MinDrain)==0)        { Option.MinDrainLiters = rd(xx, 10); return true; } else
+	if(strcmp(var,option_MinWaterBoosterCountL)==0){ Option.MinWaterBoosterCountL = rd(xx, 100); return true; } else
+	if(strcmp(var,option_WaterBoosterMinTank)==0){ Option.WaterBoosterMinTank = rd(xx, 100); return true; } else
+	if(strcmp(var,option_PWM_LOG_ERR)==0)     { Option.flags = (Option.flags & ~(1<<fPWMLogErrors)) | ((x!=0)<<fPWMLogErrors); return true; } else
+	if(strcmp(var,option_PWM_DryRun)==0)      { Option.PWM_DryRun = x; return true; } else
+	if(strcmp(var,option_PWM_Max)==0)         { Option.PWM_Max = x; return true; } else
+	if(strcmp(var,option_PWM_StartingTime)==0){ Option.PWM_StartingTime = x; return true; } else
+	if(strcmp(var,option_PWATER_RegMin)==0)   { Option.PWATER_RegMin = rd(xx, 100); return true; } else
+	if(strcmp(var,option_PWATER_Osmos_Min)==0){ Option.PWATER_Osmos_Min = rd(xx, 100); return true; } else
+	if(strcmp(var,option_PWATER_Osmos_Step)==0){ Option.PWATER_Osmos_Step = x; return true; } else
+	if(strcmp(var,option_PWATER_Osmos_TankMul)==0){ Option.PWATER_Osmos_TankMul = rd(xx, 100); return true; } else
+	if(strcmp(var,option_PWATER_Osmos_FullDelay)==0){ Option.PWATER_Osmos_FullDelay = x; return true; } else
+	if(strcmp(var,option_PWATER_Osmos_FullMinus)==0){ Option.PWATER_Osmos_FullMinus = rd(xx, 100); return true; } else
+	if(strcmp(var,option_PWATER_Osmos_Delay)==0){ Option.PWATER_Osmos_Delay = x; return true; } else
+	if(strcmp(var,option_LTANK_Low)==0)     { Option.LTANK_Low = rd(xx, 100); return true; } else
+	if(strcmp(var,option_LTank_LowConsumeMin)==0){ Option.LTank_LowConsumeMin = rd(xx, 100); return true; } else
+	if(strcmp(var,option_LTank_AfterFilledTimer)==0){ Option.LTank_AfterFilledTimer = x; return true; } else
+	if(strcmp(var,option_LTank_Hour_Low)==0) { Option.LTank_Hour_Low = rd(xx, 100); return true; } else
+	if(strcmp(var,option_LTank_Hour)==0){ Option.LTank_Hour = x; return true; } else
+	if(strcmp(var,option_Weight_Low)==0)      { Option.Weight_Low = rd(xx, 100); return true; } else
+	if(strcmp(var,option_FloodingDebounceTime)==0){ Option.FloodingDebounceTime = x; return true; } else
+	if(strcmp(var,option_FloodingTimeout)==0) { Option.FloodingTimeout = x; return true; } else
+	if(strcmp(var,option_FillingTankTimeout)==0){ Option.FillingTankTimeout = x; return true; } else
+	if(strcmp(var,option_TankCheckPercent)==0){ Option.TankCheckPercent = x; return true; } else
+	if(strcmp(var,option_TankFillingTimeMax)==0){ Option.TankFillingTimeMax = x; return true; } else
+	if(strcmp(var,option_CriticalErrorsTimeout)==0){ Option.CriticalErrorsTimeout = x; return true; } else
+	if(strcmp(var,option_FilterTank)==0){ FilterTankSquare = CalcFilterSquare(Option.FilterTank = x); return true; } else
+	if(strcmp(var,option_FilterTankSoftener)==0){ FilterTankSoftenerSquare = CalcFilterSquare(Option.FilterTankSoftener = x); return true; } else
+	if(strcmp(var,option_DrainingWaterAfterRegen)==0){ Option.DrainingWaterAfterRegen = x; return true; } else
+	if(strcmp(var,option_DrainingWaterAfterRegenSoftening)==0){ Option.DrainingWaterAfterRegenSoftening = x; return true; } else
+	if(strcmp(var,option_RegenStart)==0){ Option.DrainingWaterAfterRegen = x; return true; } else // Start regenerate
+	if(strcmp(var,option_RFILL_HoursRepeatPulse)==0){ Option.RFILL_HoursRepeatPulse = x; return true; } else // Start regenerate
+	if(strcmp(var,option_LowConsumeRequestPeriod)==0){ Option.LowConsumeRequestPeriod = x; Request_LowConsume = xTaskGetTickCount(); return true; } else
+	if(strcmp(var,option_fLowConsumeReq_OnByErr)==0) { Option.flags = (Option.flags & ~(1<<fLowConsumeReq_OnByErr)) | ((x!=0)<<fLowConsumeReq_OnByErr); return true; } else
+	if(strcmp(var,option_SepticAlarmDebounce)==0){ Option.SepticAlarmDebounce = x; return true; } else
+	if(strcmp(var,option_GetCurrentSaltLevel)==0){ if(x == 1) MC.WorkStats.RegenSofteningCntAlarm = Option.RegenSofteningCntAlarm; return true; } else
+	if(strcmp(var,option_DrainSiltTime)==0){ Option.DrainSiltTime = x / 10; return true; } else
+	if(strcmp(var,option_DrainSiltAfterL100)==0){ Option.DrainSiltAfterL100 = x > 100 ? x / 100 : 1; return true; } else
+	if(strcmp(var,option_DrainSiltAfterNotUsed)==0){ Option.DrainSiltAfterNotUsed = x; return true; } else
+	if(strcmp(var,option_fDrainSiltTank)==0){ Option.flags2 = (Option.flags2 & ~(1<<fDrainSiltTank)) | ((x!=0)<<fDrainSiltTank); return true; } else
+	if(strcmp(var,option_fDrainSiltTankBeforeRegen)==0){ Option.flags2 = (Option.flags2 & ~(1<<fDrainSiltTankBeforeRegen)) | ((x!=0)<<fDrainSiltTankBeforeRegen); return true; } else
+	if(strcmp(var,option_UsedWaterContinuous)==0){ Option.UsedWaterContinuous = x; UsedWaterContinuousTimerMax = 0; return true; } else
+	if(strcmp(var,option_FilterCounter1_Max)==0){ Option.FilterCounter1_Max = x / 100; return true; } else
+	if(strcmp(var,option_FilterCounter2_Max)==0){ Option.FilterCounter2_Max = x / 100; return true; } else
 #ifdef REVERSE_OSMOS_FC
-   if(strcmp(var,option_RO_FilterCounter1_Max)==0){ Option.RO_FilterCounter1_Max = x / 10; return true; } else
-   if(strcmp(var,option_RO_FilterCounter2_Max)==0){ Option.RO_FilterCounter2_Max = x / 10; return true; } else
+	if(strcmp(var,option_RO_FilterCounter1_Max)==0){ Option.RO_FilterCounter1_Max = x / 10; return true; } else
+	if(strcmp(var,option_RO_FilterCounter2_Max)==0){ Option.RO_FilterCounter2_Max = x / 10; return true; } else
 #endif
-   if(strcmp(var,option_DrainPumpMaxTime)==0){ Option.DrainPumpMaxTime = x / 30; return true; } else
-   if(strcmp(var,option_DrainPumpMinPower)==0){ Option.DrainPumpMinPower = x / 10; return true; } else
-   if(strcmp(var,option_DrainPumpMaxPower)==0){ Option.DrainPumpMaxPower = x; return true; } else
-   if(strcmp(var,option_DrainPumpDryPower)==0){ Option.DrainPumpDryPower = x; return true; } else
-   if(strcmp(var,option_PumpStartTime)==0){ Option.PumpStartTime = x; return true; } else
-   if(strcmp(var,option_PumpReadPeriod)==0){ Option.PumpReadPeriod = x; return true; } else
-   if(strcmp(var,option_fLED_SRV_INFO_PlanReg)==0){ Option.flags2 = (Option.flags2 & ~(1<<fLED_SRV_INFO_PlanReg)) | ((x!=0)<<fLED_SRV_INFO_PlanReg); return true; } else
-   if(strcmp(var,option_fCheckDrainPump)==0){ Option.flags2 = (Option.flags2 & ~(1<<fCheckDrainPump)) | ((x!=0)<<fCheckDrainPump); return true; } else
-   if(strcmp(var,option_fCheckSepticPump)==0){ Option.flags2 = (Option.flags2 & ~(1<<fCheckSepticPump)) | ((x!=0)<<fCheckSepticPump); return true; } else
-   if(strcmp(var,option_fDrainPumpRelay)==0){ Option.flags2 = (Option.flags2 & ~(1<<fDrainPumpRelay)) | ((x!=0)<<fDrainPumpRelay); return true; } else
-   if(strcmp(var,option_fSepticHeatRelay)==0){ Option.flags2 = (Option.flags2 & ~(1<<fSepticHeatRelay)) | ((x!=0)<<fSepticHeatRelay); return true; } else
-   if(strcmp(var,option_RegenSofteningCntAlarm)==0){
+	if(strcmp(var,option_DrainPumpMaxTime)==0){ Option.DrainPumpMaxTime = x / 30; return true; } else
+	if(strcmp(var,option_DrainPumpMinPower)==0){ Option.DrainPumpMinPower = x / 10; return true; } else
+	if(strcmp(var,option_DrainPumpMaxPower)==0){ Option.DrainPumpMaxPower = x; return true; } else
+	if(strcmp(var,option_DrainPumpDryPower)==0){ Option.DrainPumpDryPower = x; return true; } else
+	if(strcmp(var,option_SepticPumpMaxTime)==0){ Option.SepticPumpMaxTime = x / 30; return true; } else
+	if(strcmp(var,option_SepticPumpMinPower)==0){ Option.SepticPumpMinPower = x / 10; return true; } else
+	if(strcmp(var,option_SepticPumpMaxPower)==0){ Option.SepticPumpMaxPower = x; return true; } else
+	if(strcmp(var,option_SepticPumpDryPower)==0){ Option.SepticPumpDryPower = x; return true; } else
+	if(strcmp(var,option_SepticPumpConsumedMax)==0){ Option.SepticPumpConsumedMax = x; return true; } else
+	if(strcmp(var,option_SepticPumpMinPower)==0){ Option.SepticPumpMinPower = x / 10; return true; } else
+	if(strcmp(var,option_PumpStartTime)==0){ Option.PumpStartTime = x; return true; } else
+	if(strcmp(var,option_PumpReadPeriod)==0){ Option.PumpReadPeriod = x; return true; } else
+	if(strcmp(var,option_fLED_SRV_INFO_PlanReg)==0){ Option.flags2 = (Option.flags2 & ~(1<<fLED_SRV_INFO_PlanReg)) | ((x!=0)<<fLED_SRV_INFO_PlanReg); return true; } else
+	if(strcmp(var,option_fCheckDrainPump)==0){ Option.flags2 = (Option.flags2 & ~(1<<fCheckDrainPump)) | ((x!=0)<<fCheckDrainPump); return true; } else
+	if(strcmp(var,option_fCheckSepticPump)==0){ Option.flags2 = (Option.flags2 & ~(1<<fCheckSepticPump)) | ((x!=0)<<fCheckSepticPump); return true; } else
+	if(strcmp(var,option_fDrainPumpRelay)==0){ Option.flags2 = (Option.flags2 & ~(1<<fDrainPumpRelay)) | ((x!=0)<<fDrainPumpRelay); return true; } else
+	if(strcmp(var,option_fSepticHeatRelay)==0){ Option.flags2 = (Option.flags2 & ~(1<<fSepticHeatRelay)) | ((x!=0)<<fSepticHeatRelay); return true; } else
+	if(strcmp(var,option_RegenSofteningCntAlarm)==0){
 	   Option.RegenSofteningCntAlarm = x;
 	   if(x == 0) MC.WorkStats.RegenSofteningCntAlarm = 0; else if(MC.WorkStats.RegenSofteningCntAlarm == 0) MC.WorkStats.RegenSofteningCntAlarm = x;
 	   return true;
-   } else
-   if(strncmp(var, prof_DailySwitch, sizeof(prof_DailySwitch)-1) == 0) {
+	} else
+	if(strncmp(var, prof_DailySwitch, sizeof(prof_DailySwitch)-1) == 0) {
 		var += sizeof(prof_DailySwitch)-1;
 		uint32_t i = *(var + 1) - '0';
 		if(i >= DAILY_SWITCH_MAX) return false;
@@ -1025,15 +1033,15 @@ boolean MainClass::set_option(char *var, float xx)
 			}
 		}
 		return true;
-   } else
-   if(strncmp(var,option_SGL1W, sizeof(option_SGL1W)-1)==0) {
+	} else
+	if(strncmp(var,option_SGL1W, sizeof(option_SGL1W)-1)==0) {
 	   uint8_t bit = var[sizeof(option_SGL1W)-1] - '0' - 1;
 	   if(bit <= 2) {
 		   Option.flags = (Option.flags & ~(1<<(f1Wire1TSngl + bit))) | (x == 0 ? 0 : (1<<(f1Wire1TSngl + bit)));
 		   return true;
 	   }
-   }
-   return false; 
+	}
+	return false;
 }
 
 // Получить опции , результат добавляется в ret, "get_Opt"
@@ -1126,6 +1134,12 @@ char* MainClass::get_option(char *var, char *ret)
 	if(strcmp(var,option_DrainPumpMinPower)==0){ return _itoa(Option.DrainPumpMinPower * 10, ret); } else
 	if(strcmp(var,option_DrainPumpMaxPower)==0){ return _itoa(Option.DrainPumpMaxPower, ret); } else
 	if(strcmp(var,option_DrainPumpDryPower)==0){ return _itoa(Option.DrainPumpDryPower, ret); } else
+	if(strcmp(var,option_SepticPumpMaxTime)==0){ return _itoa(Option.SepticPumpMaxTime * 30, ret); } else
+	if(strcmp(var,option_SepticPumpMinPower)==0){ return _itoa(Option.SepticPumpMinPower * 10, ret); } else
+	if(strcmp(var,option_SepticPumpMaxPower)==0){ return _itoa(Option.SepticPumpMaxPower, ret); } else
+	if(strcmp(var,option_SepticPumpDryPower)==0){ return _itoa(Option.SepticPumpDryPower, ret); } else
+	if(strcmp(var,option_SepticPumpConsumedMax)==0){ return _itoa(Option.SepticPumpConsumedMax, ret); } else
+	if(strcmp(var,option_SepticMinPower)==0){ return _itoa(Option.SepticMinPower * 10, ret); } else
 	if(strcmp(var,option_PumpStartTime)==0){ return _itoa(Option.PumpStartTime, ret); } else
 	if(strcmp(var,option_PumpReadPeriod)==0){ return _itoa(Option.PumpReadPeriod, ret); } else
 	if(strcmp(var,option_fCheckDrainPump)==0){ return strcat(ret, (char*)(GETBIT(Option.flags2, fCheckDrainPump) ? cOne : cZero)); } else

@@ -997,14 +997,14 @@ xSaveStats:		if((i = MC.save_WorkStats()) == OK)
 			strcat(strReturn,"I2C_SPEED|Частота работы шины I2C (кГц)|"); _itoa(I2C_SPEED/1000,strReturn); strcat(strReturn,";");
 			strcat(strReturn,"UART_SPEED|Скорость отладочного порта (бод)|");_itoa(UART_SPEED,strReturn);strcat(strReturn,";");
 			strcat(strReturn,"WDT_TIME|Период сторожевого таймера, 0 - нет (сек)|");_itoa(WDT_TIME,strReturn);strcat(strReturn,";");
-#if PWM_MODBUS_ADR >= MODBUS_SERIAL1_ADDR_LESS
+#if PWM_MODBUS_ADR >= MODBUS_SERIAL1_ADDR_GE
 			strcat(strReturn,"MODBUS_SERIAL1|Modbus RTU порт счетчика насосной станции|Serial");
 			m_snprintf(strReturn + strlen(strReturn), 128, "%d (%d);", GetSerialNum(MODBUS_SERIAL1), MODBUS_SERIAL1_SPEED);
 #else
 			strcat(strReturn,"MODBUS_SERIAL2|Modbus RTU порт счетчика насосной станции|Serial");
 			m_snprintf(strReturn + strlen(strReturn), 128, "%d (%d);", GetSerialNum(MODBUS_SERIAL2), MODBUS_SERIAL2_SPEED);
 #endif
-#if PWM_MODBUS_ADR < MODBUS_SERIAL1_ADDR_LESS
+#if PWM_MODBUS_ADR < MODBUS_SERIAL1_ADDR_GE
 			strcat(strReturn,"MODBUS_SERIAL1|Modbus RTU порт для насосов|Serial");
 			m_snprintf(strReturn + strlen(strReturn), 128, "%d (%d);", GetSerialNum(MODBUS_SERIAL1), MODBUS_SERIAL1_SPEED);
 #else
@@ -1536,27 +1536,36 @@ x_get_RH:			_itoa(MC.Option.RegenHour & 0x1F, strReturn);
 						if(str[0] == 's') Modbus.RS485.ModbusResponseTimeout = l_i32; else l_i32 = Modbus.RS485.ModbusResponseTimeout;
 					} else if(strcmp(x, "pause") == 0) { // Пауза между транзакциями
 						if(str[0] == 's') Modbus.RS485.ModbusMinTimeBetweenTransaction = l_i32; else l_i32 = Modbus.RS485.ModbusMinTimeBetweenTransaction;
-					} else if(strcmp(x, "id") == 0) { // id устройств
+					} else if(strcmp(x, "id") == 0) { // get_modbus_p(id) - перечень id устройств
 						strcat(strReturn, "Serial");
-#if PWM_MODBUS_ADR >= MODBUS_SERIAL1_ADDR_LESS
+#if PWM_MODBUS_ADR >= MODBUS_SERIAL1_ADDR_GE
 						_itoa(GetSerialNum(MODBUS_SERIAL1), strReturn);
 #else
 						_itoa(GetSerialNum(MODBUS_SERIAL2), strReturn);
 #endif
 						strcat(strReturn, ": Счетчик - ");
 						_itoa(PWM_MODBUS_ADR, strReturn);
+#if defined(MODBUS_DRAIN_PUMP) || defined(CHECK_SEPTIC_PUMP)
 						strcat(strReturn, ". Serial");
-#if PWM_MODBUS_ADR < MODBUS_SERIAL1_ADDR_LESS
+#if PWM_MODBUS_ADR < MODBUS_SERIAL1_ADDR_GE
 						_itoa(GetSerialNum(MODBUS_SERIAL1), strReturn);
 #else
 						_itoa(GetSerialNum(MODBUS_SERIAL2), strReturn);
 #endif
-						strcat(strReturn, ": Насос - ");
+#ifdef MODBUS_DRAIN_PUMP_ADDR
+						strcat(strReturn, ": Насос дренажа - ");
 						_itoa(MODBUS_DRAIN_PUMP_ADDR, strReturn);
 #ifdef MODBUS_DRAIN_PUMP_RELAY_ADDR
-						strcat(strReturn, ", Реле - ");
+						strcat(strReturn, ", реле - ");
 						_itoa(MODBUS_DRAIN_PUMP_RELAY_ADDR, strReturn);
 #endif
+#endif
+#ifdef MODBUS_SEPTIC_PUMP_ADDR
+						strcat(strReturn, "; Насос септика - ");
+						_itoa(MODBUS_SEPTIC_PUMP_ADDR, strReturn);
+#endif
+#endif
+
 						ADD_WEBDELIM(strReturn);
 						continue;
 					} else goto x_FunctionNotFound;

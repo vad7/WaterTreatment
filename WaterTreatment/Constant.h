@@ -459,6 +459,8 @@ const char *option_SepticPumpMaxTime	= {"SPT"};
 const char *option_SepticPumpMinPower	= {"SPM"};
 const char *option_SepticPumpMaxPower	= {"SPH"};
 const char *option_SepticPumpDryPower	= {"SPD"};
+const char *option_SepticPumpConsumedMax= {"SPС"};
+const char *option_SepticMinPower		= {"SMP"};
 const char *option_fCheckSepticPump		= {"CSP"};
 const char *option_PumpStartTime		= {"PS"};
 const char *option_PumpReadPeriod		= {"PP"};
@@ -586,14 +588,15 @@ const char *webWS_NextRegenSoftAfterDays		= { "NS" };
 #define ERR_SEPTIC_RELAY_LINK -84		// Ошибка связи с реле нагрева септика
 #define ERR_LOW_BOOSTER_TANK -85		// Низкий средний рабочий объем бака насосной станции
 #define ERR_SFREQ_I2C_ERROR	-86			// Ошибка частотного датчика на шине I2C
-#define ERR_SEPTIC_PUMP_LINK -87		// Ошибка связи со счетчиком насоса
-#define ERR_SEPTIC_PUMP_RELAY_LINK -88	// Ошибка связи с реле насоса
-#define ERR_SEPTIC_PUMP_TOOLONG -89		// Слишком долго работает насос
-#define ERR_SEPTIC_PUMP_NOT_WORK -90	// Не работает насос
-#define ERR_SEPTIC_PUMP_OVERLOAD -91	// Перегрузка насоса
-#define ERR_SEPTIC_PUMP_DRAIN_RUN -92	// Сухой ход насоса
+#define ERR_SEPTIC_PUMP_LINK -87		// Ошибка связи со счетчиком насоса септика
+#define ERR_SEPTIC_PUMP_RELAY_LINK -88	// Ошибка связи с реле насоса септика
+#define ERR_SEPTIC_PUMP_TOOLONG -89		// Слишком долго работает насос септика
+#define ERR_SEPTIC_PUMP_NOT_WORK -90	// Не работает насос септика
+#define ERR_SEPTIC_PUMP_OVERLOAD -91	// Перегрузка насоса септика
+#define ERR_SEPTIC_PUMP_DRAIN_RUN -92	// Сухой ход насоса септика
+#define ERR_SEPTIC_NOT_WORK -93			// Низкое электро-потребление септика
 
-#define ERR_ERRMAX			-92			// Последняя ошибка
+#define ERR_ERRMAX			-93			// Последняя ошибка
 
 // Предупреждения
 #define WARNING_VALUE        1         // Попытка установить значение за границами диапазона запрос типа SET
@@ -690,9 +693,10 @@ const char *noteError[] = {
 		"Ошибка связи со счетчиком насоса септика",											//-87
 		"Ошибка связи с реле насоса септика",												//-88
 		"Слишком долго работает насос септика",												//-89
-		"Не работает насос септика",														//-90
+		"Насос септика не срабатывает",														//-90
 		"Перегрузка насоса септика",														//-91
 		"Сухой ход насоса септика",															//-92
+		"Низкое электро-потребление септика",												//-93
 
 		"NULL"
 		};

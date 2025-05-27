@@ -220,6 +220,7 @@ struct History_setup {
 		//#define MODBUS_SEPTIC_PUMP_ON_CMD		0	// Команда - насос может работать
 		//#define MODBUS_SEPTIC_PUMP_OFF_CMD		1	// Команда отключения питания насоса при аварии
 		//#define MODBUS_SEPTIC_PUMP_ON_PULSE			// Если активно, то импульс 1 сек для выключения (N замыкается на GND для срабатывания УЗО)
+		#define SEPTIC_MIN_POWER_CNT			250	// Через сколько периодов низкого потребления септика выдавать ошибку
 	#endif
 	#define MODBUS_PUMP_FUNC(ADDR,ID,ST) 	writeSingleCoil(ADDR,ID,ST)	// функция переключения реле
 
