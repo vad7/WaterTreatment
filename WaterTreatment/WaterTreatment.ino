@@ -1536,7 +1536,7 @@ void vReadSensor(void *)
 				{
 					PumpReadCounter++;
 #ifdef CHECK_SEPTIC_PUMP
-					if(GETBIT(MC.Option.flags2, fCheckSepticPump) && PumpReadCounter >= MC.Option.PumpReadPeriod * 1000 / TIME_READ_SENSOR / 2) {
+					if(GETBIT(MC.Option.flags2, fCheckSepticPump) && (PumpReadCounter == MC.Option.PumpReadPeriod * 1000 / TIME_READ_SENSOR / 2 || MC.Option.PumpReadPeriod == 1)) {
 						int8_t err = Modbus.readInputRegisters32(MODBUS_SEPTIC_PUMP_ADDR, PWM_POWER, &tmp);
 						if(err == OK) {
 							tmp /= 10;	// -> W
@@ -1559,7 +1559,7 @@ void vReadSensor(void *)
 										//SepticPumpRelayStatus = MODBUS_RELAY_CMD_OFF;
 									}
 								}
-							} else if(MC.Option.SepticPumpConsumedMax && MC.Option.SepticPumpConsumedMax < UsedWaterToSeptic) {
+							} else if(MC.Option.SepticPumpConsumedMax && UsedWaterToSeptic > MC.Option.SepticPumpConsumedMax) {
 								set_Error(ERR_SEPTIC_PUMP_NOT_WORK, (char*)"vService");
 								UsedWaterToSeptic = 0;
 							}

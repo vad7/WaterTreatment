@@ -274,15 +274,15 @@ function show_all() {
 			<td><b>Насосы</b></td><td></td>
 		</tr>
 		<tr>
-			<td><b>Насос дренажа</b></td><td></td>
-		</tr>
-		<tr>
 			<td>Периодичность чтения мощности насосов, сек</td>
 			<td nowrap><input id="get_opt-dpp" type="number"> <input type="submit" value=">" onclick="setParam('get_Opt(DPP)');"></td>
 		</tr>
 		<tr>
 			<td>Время пуска мотора насосов, сек</td>
 			<td nowrap><input id="get_opt-dps" type="number"> <input type="submit" value=">" onclick="setParam('get_Opt(DPS)');"></td>
+		</tr>
+		<tr>
+			<td><b>Насос дренажа</b></td><td></td>
 		</tr>
 		<tr>
 			<td>Проверять работу насоса дренажа</td>
@@ -320,19 +320,19 @@ function show_all() {
 			<td nowrap><input id="get_opt-spm" type="number"> <input type="submit" value=">" onclick="setParam('get_Opt(SPM)');"></td>
 		</tr>
 		<tr>
-			<td>Мощность сухого хода насоса септика (отключение, если меньше или равно), Вт</td>
+			<td>Мощность сухого хода насоса септика (ошибка, если меньше или равно), Вт</td>
 			<td nowrap><input id="get_opt-spd" type="number"> <input type="submit" value=">" onclick="setParam('get_Opt(SPD)');"></td>
 		</tr>
 		<tr>
-			<td>Максимальная мощность насоса септика, Вт</td>
+			<td>Максимальная мощность насоса септика до ошибки, Вт</td>
 			<td nowrap><input id="get_opt-sph" type="number"> <input type="submit" value=">" onclick="setParam('get_Opt(SPH)');"></td>
 		</tr>
 		<tr>
-			<td>Максимальное время работы насоса септика, сек</td>
+			<td>Максимальное время работы насоса септика до ошибки, сек</td>
 			<td nowrap><input id="get_opt-spt" type="number"> <input type="submit" value=">" onclick="setParam('get_Opt(SPT)');"></td>
 		</tr>
 		<tr>
-			<td>Максимальное потребление литров до включения насоса, 0 - нет, л</td>
+			<td>Максимальное потребление литров до ошибки, 0 - не проверять, л</td>
 			<td nowrap><input id="get_opt-spc" type="number"> <input type="submit" value=">" onclick="setParam('get_Opt(SPC)');"></td>
 		</tr>
 		<tr>

@@ -1003,7 +1003,7 @@ boolean MainClass::set_option(char *var, float xx)
 	if(strcmp(var,option_SepticPumpConsumedMax)==0){ Option.SepticPumpConsumedMax = x; return true; } else
 	if(strcmp(var,option_SepticPumpMinPower)==0){ Option.SepticPumpMinPower = x / 10; return true; } else
 	if(strcmp(var,option_PumpStartTime)==0){ Option.PumpStartTime = x; return true; } else
-	if(strcmp(var,option_PumpReadPeriod)==0){ Option.PumpReadPeriod = x; return true; } else
+	if(strcmp(var,option_PumpReadPeriod)==0){ Option.PumpReadPeriod = x == 0 ? 1 : x; return true; } else
 	if(strcmp(var,option_fLED_SRV_INFO_PlanReg)==0){ Option.flags2 = (Option.flags2 & ~(1<<fLED_SRV_INFO_PlanReg)) | ((x!=0)<<fLED_SRV_INFO_PlanReg); return true; } else
 	if(strcmp(var,option_fCheckDrainPump)==0){ Option.flags2 = (Option.flags2 & ~(1<<fCheckDrainPump)) | ((x!=0)<<fCheckDrainPump); return true; } else
 	if(strcmp(var,option_fCheckSepticPump)==0){ Option.flags2 = (Option.flags2 & ~(1<<fCheckSepticPump)) | ((x!=0)<<fCheckSepticPump); return true; } else
