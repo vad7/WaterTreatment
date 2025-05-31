@@ -17,13 +17,13 @@ window.onload = function() {
 	loadDrainPump();
 	loadSepticPump();
 }
-procedure loadDrainPump() {
+function loadDrainPump() {
 	loadParam("get_modbus_val(2:w:0)");
 	loadParam("get_modbus_val(2:l:1)");
 	loadParam("get_modbus_val(2:l:3)");
 	loadParam("get_modbus_val(2:l:5)");
 }
-procedure loadSepticPump() {
+function loadSepticPump() {
 	loadParam("get_modbus_val(4:w:0)");
 	loadParam("get_modbus_val(4:l:1)");
 	loadParam("get_modbus_val(4:l:3)");

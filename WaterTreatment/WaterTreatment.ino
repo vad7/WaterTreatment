@@ -1546,7 +1546,7 @@ void vReadSensor(void *)
 								UsedWaterToSeptic = 0;
 								if(SepticPumpPower <= dpmp) SepticPumpTimeLast = ut; // время включения
 								else if(MC.Option.SepticPumpMaxTime && MC.get_errcode() != ERR_SEPTIC_PUMP_TOOLONG
-										&& ut - SepticPumpTimeLast > MC.Option.SepticPumpMaxTime * 30) {
+										&& ut - SepticPumpTimeLast > MC.Option.SepticPumpMaxTime * 20) {
 									set_Error(ERR_SEPTIC_PUMP_TOOLONG, (char*)"vService");
 									//SepticPumpRelayStatus = MODBUS_RELAY_CMD_OFF;
 								}
@@ -1595,7 +1595,7 @@ void vReadSensor(void *)
 							if(tmp > dpmp) { // работает
 								if(DrainPumpPower <= dpmp) DrainPumpTimeLast = ut; // время включения
 								else if(MC.Option.DrainPumpMaxTime && MC.get_errcode() != ERR_DRAIN_PUMP_TOOLONG
-										&& ut - DrainPumpTimeLast > MC.Option.DrainPumpMaxTime * 30) {
+										&& ut - DrainPumpTimeLast > MC.Option.DrainPumpMaxTime * 20) {
 									set_Error(ERR_DRAIN_PUMP_TOOLONG, (char*)"vService");
 									DrainPumpRelayStatus = MODBUS_RELAY_CMD_OFF;
 								}

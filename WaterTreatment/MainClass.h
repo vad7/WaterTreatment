@@ -288,7 +288,7 @@ struct type_option {
 	uint8_t  UsedWaterContinuous;	// Максимальное время непрерывного потребления воды, минуты
 	uint16_t FilterCounter1_Max;	// Предел для счетчика 1, *100л
 	uint16_t FilterCounter2_Max;	// Предел для счетчика 2, *100л
-	uint8_t  DrainPumpMaxTime;		// Максимальное время работы дренажного насоса, 0 - нет, сек * 30
+	uint8_t  DrainPumpMaxTime;		// Максимальное время работы дренажного насоса, 0 - нет, сек * 20
 	uint8_t  DrainPumpMinPower;		// Минимальная мощность дренажного насоса для определения его работы, Вт * 10
 	uint8_t  PWATER_Osmos_TankMul;	// Множитель объема расчетного бака, сотые
 	uint8_t  PWATER_Osmos_FullDelay;// Задержка начала контроля малого потребления после наполнения бака НС, сек
@@ -307,7 +307,7 @@ struct type_option {
 	uint16_t SepticPumpDryPower;	// Мощность сухого хода насоса (меньше или равно) после времени старта, Вт
 	uint16_t SepticPumpMaxPower;	// Максимальная мощность насоса после времени старта, Вт
 	uint16_t SepticPumpConsumedMax;	// Максимальное потребление литров до включения насоса, 0 - нет, л
-	uint8_t  SepticPumpMaxTime;		// Максимальное время работы насоса, 0 - нет, сек * 30
+	uint8_t  SepticPumpMaxTime;		// Максимальное время работы насоса, 0 - нет, сек * 20
 	uint8_t  SepticMinPower;		// Минимальное потребление септика, если меньше, то ошибка, Вт * 10
 };
 

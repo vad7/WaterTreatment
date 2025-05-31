@@ -992,16 +992,16 @@ boolean MainClass::set_option(char *var, float xx)
 	if(strcmp(var,option_RO_FilterCounter1_Max)==0){ Option.RO_FilterCounter1_Max = x / 10; return true; } else
 	if(strcmp(var,option_RO_FilterCounter2_Max)==0){ Option.RO_FilterCounter2_Max = x / 10; return true; } else
 #endif
-	if(strcmp(var,option_DrainPumpMaxTime)==0){ Option.DrainPumpMaxTime = x / 30; return true; } else
+	if(strcmp(var,option_DrainPumpMaxTime)==0){ Option.DrainPumpMaxTime = x / 20; return true; } else
 	if(strcmp(var,option_DrainPumpMinPower)==0){ Option.DrainPumpMinPower = x / 10; return true; } else
 	if(strcmp(var,option_DrainPumpMaxPower)==0){ Option.DrainPumpMaxPower = x; return true; } else
 	if(strcmp(var,option_DrainPumpDryPower)==0){ Option.DrainPumpDryPower = x; return true; } else
-	if(strcmp(var,option_SepticPumpMaxTime)==0){ Option.SepticPumpMaxTime = x / 30; return true; } else
+	if(strcmp(var,option_SepticPumpMaxTime)==0){ Option.SepticPumpMaxTime = x / 20; return true; } else
 	if(strcmp(var,option_SepticPumpMinPower)==0){ Option.SepticPumpMinPower = x / 10; return true; } else
 	if(strcmp(var,option_SepticPumpMaxPower)==0){ Option.SepticPumpMaxPower = x; return true; } else
 	if(strcmp(var,option_SepticPumpDryPower)==0){ Option.SepticPumpDryPower = x; return true; } else
 	if(strcmp(var,option_SepticPumpConsumedMax)==0){ Option.SepticPumpConsumedMax = x; return true; } else
-	if(strcmp(var,option_SepticPumpMinPower)==0){ Option.SepticPumpMinPower = x / 10; return true; } else
+	if(strcmp(var,option_SepticMinPower)==0){ Option.SepticMinPower = x / 10; return true; } else
 	if(strcmp(var,option_PumpStartTime)==0){ Option.PumpStartTime = x; return true; } else
 	if(strcmp(var,option_PumpReadPeriod)==0){ Option.PumpReadPeriod = x == 0 ? 1 : x; return true; } else
 	if(strcmp(var,option_fLED_SRV_INFO_PlanReg)==0){ Option.flags2 = (Option.flags2 & ~(1<<fLED_SRV_INFO_PlanReg)) | ((x!=0)<<fLED_SRV_INFO_PlanReg); return true; } else
@@ -1130,11 +1130,11 @@ char* MainClass::get_option(char *var, char *ret)
 	if(strcmp(var,option_RO_FilterCounter1_Max)==0){ return strcat(ret, "-"); } else
 	if(strcmp(var,option_RO_FilterCounter2_Max)==0){ return strcat(ret, "-"); } else
 #endif
-	if(strcmp(var,option_DrainPumpMaxTime)==0){ return _itoa(Option.DrainPumpMaxTime * 30, ret); } else
+	if(strcmp(var,option_DrainPumpMaxTime)==0){ return _itoa(Option.DrainPumpMaxTime * 20, ret); } else
 	if(strcmp(var,option_DrainPumpMinPower)==0){ return _itoa(Option.DrainPumpMinPower * 10, ret); } else
 	if(strcmp(var,option_DrainPumpMaxPower)==0){ return _itoa(Option.DrainPumpMaxPower, ret); } else
 	if(strcmp(var,option_DrainPumpDryPower)==0){ return _itoa(Option.DrainPumpDryPower, ret); } else
-	if(strcmp(var,option_SepticPumpMaxTime)==0){ return _itoa(Option.SepticPumpMaxTime * 30, ret); } else
+	if(strcmp(var,option_SepticPumpMaxTime)==0){ return _itoa(Option.SepticPumpMaxTime * 20, ret); } else
 	if(strcmp(var,option_SepticPumpMinPower)==0){ return _itoa(Option.SepticPumpMinPower * 10, ret); } else
 	if(strcmp(var,option_SepticPumpMaxPower)==0){ return _itoa(Option.SepticPumpMaxPower, ret); } else
 	if(strcmp(var,option_SepticPumpDryPower)==0){ return _itoa(Option.SepticPumpDryPower, ret); } else
@@ -1219,7 +1219,7 @@ char * MainClass::get_listChart(char* str)
 	strcat(str, chart_DrainPump); strcat(str,":0;");
 #endif
 #ifdef CHECK_SEPTIC_PUMP
-	strcat(str, chart_DrainPump); strcat(str,":0;");
+	strcat(str, chart_SepticPump); strcat(str,":0;");
 #endif
 	return str;
 }
@@ -1265,8 +1265,8 @@ void  MainClass::updateChart()
 #ifdef CHECK_SEPTIC_PUMP
 	tmp1 = SepticPumpPower;
 	if(GETBIT(Option.flags, fChartOnlyNonZeroW)) {
-		if(tmp1 >= MIN_POWER_FOR_CHARTS || ChartDrainPump.get_PrevPoint() >= MIN_POWER_FOR_CHARTS) ChartDrainPump.addPoint(tmp1);
-	} else ChartDrainPump.addPoint(tmp1);
+		if(tmp1 >= MIN_POWER_FOR_CHARTS || ChartSepticPump.get_PrevPoint() >= MIN_POWER_FOR_CHARTS) ChartSepticPump.addPoint(tmp1);
+	} else ChartSepticPump.addPoint(tmp1);
 #endif
 }
 
