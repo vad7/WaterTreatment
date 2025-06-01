@@ -179,6 +179,7 @@ struct History_setup {
 	#define PWM_READ_PERIOD				(3*1000)    // Время опроса не критичных параметров счетчика, ms
 	#define PWM_NUM_READ				2           // Число попыток чтения счетчика (подряд) до ошибки
 	#define PWM_DELAY_REPEAT			50          // мсек Время между ПОВТОРНЫМИ попытками чтения
+	#define PWM_NAME 					"Насосная станция"
 
 	#define MODBUS_SERIAL1	        	Serial1     // Modbus порт для счетчика насосной станции
 	#define MODBUS_SERIAL1_SPEED		9600
@@ -201,6 +202,7 @@ struct History_setup {
 
 	#define CHECK_DRAIN_PUMP						// Контроль и отключение дренажного насоса (в дренаж идет регенерация)
 	#ifdef CHECK_DRAIN_PUMP
+		#define MODBUS_DRAIN_PUMP_NAME			"Дренажный насос"
 		#define MODBUS_DRAIN_PUMP_ADDR			2	// Адрес счетчика дренажного насоса
 		#define MODBUS_DRAIN_PUMP_RELAY_NAME	"Дренажный насос (защита)"
 		#define MODBUS_DRAIN_PUMP_RELAY_ADDR	3	// Адрес реле дренажного насоса
@@ -208,12 +210,13 @@ struct History_setup {
 		#define MODBUS_DRAIN_PUMP_ON_CMD		0	// Команда - насос может работать
 		#define MODBUS_DRAIN_PUMP_OFF_CMD		1	// Команда отключения питания насоса при аварии
 		#define MODBUS_DRAIN_PUMP_ON_PULSE			// Если активно, то импульс 1 сек для выключения (N замыкается на GND для срабатывания УЗО)
-		//#define MODBUS_SEPTIC_PUMP_ADDR		3	// Адрес насоса септика
+		//#define MODBUS_SEPTIC_ADDR		3	// Адрес насоса септика
 		//#define MODBUS_SEPTIC_PUMP_RELAY_ADDR	4	// Адрес отключения дренажного насоса
 	#endif
-	#define CHECK_SEPTIC_PUMP						// Контроль и отключение насоса септика
-	#ifdef CHECK_SEPTIC_PUMP
-		#define MODBUS_SEPTIC_PUMP_ADDR			4	// Адрес счетчика насоса септика
+	#define CHECK_SEPTIC						// Контроль септика
+	#ifdef CHECK_SEPTIC
+		#define MODBUS_SEPTIC_NAME				"Септик"
+		#define MODBUS_SEPTIC_ADDR				4	// Адрес счетчика насоса септика
 		//#define MODBUS_SEPTIC_PUMP_RELAY_NAME	"Насос септика (защита)"
 		//#define MODBUS_SEPTIC_PUMP_RELAY_ADDR	3	// Адрес реле насоса септика
 		//#define MODBUS_SEPTIC_PUMP_RELAY_ID		1	// Номер реле (нумерация с 0)

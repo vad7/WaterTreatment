@@ -287,13 +287,13 @@ private:
 
 // Класс Электрический счетчик -----------------------------------------------------------------------------------------------
 const char *namePWM = {"PZEM-004T"};
-const char *notePWM = {"Электрический счетчик"};       // Описание счетчика
+const char *notePWM = {PWM_NAME};       // Описание счетчика
 
 // Флаги Электросчетчика
 #define fPWM           0              // флаг наличие счетчика
 #define fPWMLink       1              //  флаг связь установлена
 
-// PZEM-004T v3 Modbus (UART)
+// PZEM-004T v3 (PZEM-014, PZEM-016) Modbus (UART)
 // Read Input register, Function code 04:
 #define PWM_VOLTAGE          0x0000			// int16, 0.1V
 #define PWM_CURRENT          0x0001			// int32, 0.001A
@@ -323,6 +323,7 @@ class devPWM
 
       char* get_param(char *var, char *ret);           // Получить параметр PWM в виде строки
       boolean set_param(char *var, int32_t f);
+      void get_param_now(uint8_t modbus_addr, char var, char *strReturn); // Запросить регистр счетчика сейчас, для веб
       
        // Графики из счетчика
       //statChart ChartVoltage;                          // Статистика по напряжению

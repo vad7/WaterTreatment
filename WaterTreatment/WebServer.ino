@@ -739,14 +739,24 @@ xSaveStats:		if((i = MC.save_WorkStats()) == OK)
 		if(strncmp(str,"get_PWR", 7) == 0) {
 			str += 7;
 #ifdef CHECK_DRAIN_PUMP
-			if(*str == 'D') _dtoa(strReturn, DrainPumpPower, 3); // get_PWRD (Drain pump)
-			else
+			if(*str == 'D') {
+				str++;
+				if(*str == 'E') _itoa(DrainPumpErrors, strReturn);
+				else if(*str == 'P') _dtoa(strReturn, DrainPumpPower, 3);
+				else if(*str == 'N') strcat(strReturn, MODBUS_DRAIN_PUMP_NAME);
+				else MC.dPWM.get_param_now(MODBUS_DRAIN_PUMP_ADDR, *str, strReturn); // get_PWRDV, get_PWRDI, get_PWRDP, get_PWRDW, get_PWRDE
+			} else
 #endif
-#ifdef CHECK_SEPTIC_PUMP
-			if(*str == 'S') _dtoa(strReturn, SepticPumpPower, 3); // get_PWRS (Septic pump)
-			else
+#ifdef CHECK_SEPTIC
+			if(*str == 'S') {
+				str++;
+				if(*str == 'E') _itoa(SepticErrors, strReturn);
+				else if(*str == 'P') _dtoa(strReturn, SepticPower, 3);
+				else if(*str == 'N') strcat(strReturn, MODBUS_SEPTIC_NAME);
+				else MC.dPWM.get_param_now(MODBUS_SEPTIC_ADDR, *str, strReturn); // get_PWRSV, get_PWRSI, get_PWRSP, get_PWRSW, get_PWRSE
+			} else
 #endif
-				_dtoa(strReturn, MC.dPWM.get_Power(), 3);
+			if(*str == '\0') _dtoa(strReturn, MC.dPWM.get_Power(), 3);
 			ADD_WEBDELIM(strReturn); continue;
 		}
 		if(strcmp(str, "get_WDIS") == 0) { // Выход воды отключен
@@ -1145,9 +1155,10 @@ xSaveStats:		if((i = MC.save_WorkStats()) == OK)
 #ifdef CHECK_DRAIN_PUMP
 				strcat(strReturn,"Последнее включение насоса Дренажа|"); DecodeTimeDate(DrainPumpTimeLast, strReturn, 3); strcat(strReturn,";");
 #endif
-#ifdef CHECK_SEPTIC_PUMP
-				strcat(strReturn,"Последнее включение насоса Септика|"); DecodeTimeDate(SepticPumpTimeLast, strReturn, 3); //strcat(strReturn,";");
+#ifdef CHECK_SEPTIC
+				strcat(strReturn,"Последнее включение насоса Септика|"); DecodeTimeDate(SepticPumpTimeLast, strReturn, 3); strcat(strReturn,";");
 #endif
+				strReturn[strlen(strReturn) - 1] = '\0';	// удалить последнюю ';'
 
 			} else if(strcmp(str, "Info2") == 0) { // "get_sysInfo2" - Функция вывода системной информации для разработчика
 				strcat(strReturn,"<b> Счетчики ошибок</b>|;");
@@ -1507,7 +1518,7 @@ x_get_RH:			_itoa(MC.Option.RegenHour & 0x1F, strReturn);
 				if(str[10] == 'R') { // get_modbusR(n) - получить состояние реле Modbus
 #ifdef MODBUS_SEPTIC_HEAT_RELAY_ADDR
 					if(*x == '1') {
-						_itoa(SepticRelayStatus, strReturn);
+						_itoa(SepticHeatRelayStatus, strReturn);
 						ADD_WEBDELIM(strReturn); continue;
 					}
 #endif
@@ -1524,7 +1535,7 @@ x_get_RH:			_itoa(MC.Option.RegenHour & 0x1F, strReturn);
 				} else if(str[10] == 'E') { // get_modbusE(n) - получить ошибки реле Modbus
 #ifdef MODBUS_SEPTIC_HEAT_RELAY_ADDR
 					if(*x == '1') {
-						_itoa(SepticRelayErrCnt, strReturn);
+						_itoa(SepticHeatRelayErrCnt, strReturn);
 						ADD_WEBDELIM(strReturn); continue;
 					}
 #endif
@@ -1549,7 +1560,7 @@ x_get_RH:			_itoa(MC.Option.RegenHour & 0x1F, strReturn);
 #endif
 						strcat(strReturn, ": Счетчик - ");
 						_itoa(PWM_MODBUS_ADR, strReturn);
-#if defined(MODBUS_DRAIN_PUMP) || defined(CHECK_SEPTIC_PUMP)
+#if defined(MODBUS_DRAIN_PUMP) || defined(CHECK_SEPTIC)
 						strcat(strReturn, ". Serial");
 #if PWM_MODBUS_ADR < MODBUS_SERIAL1_ADDR_GE
 						_itoa(GetSerialNum(MODBUS_SERIAL1), strReturn);
@@ -1564,9 +1575,9 @@ x_get_RH:			_itoa(MC.Option.RegenHour & 0x1F, strReturn);
 						_itoa(MODBUS_DRAIN_PUMP_RELAY_ADDR, strReturn);
 #endif
 #endif
-#ifdef MODBUS_SEPTIC_PUMP_ADDR
+#ifdef MODBUS_SEPTIC_ADDR
 						strcat(strReturn, "; Насос септика - ");
-						_itoa(MODBUS_SEPTIC_PUMP_ADDR, strReturn);
+						_itoa(MODBUS_SEPTIC_ADDR, strReturn);
 #endif
 #endif
 

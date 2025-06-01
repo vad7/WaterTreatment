@@ -9,7 +9,7 @@
 urlupdate = 2000;
 window.onload = function() {
 	loadParam("get_listADC");
-	loadParam("get_PWM(NAME),get_PWM(NOTE),get_Wgt(P),get_Wgt(0),get_PWM(TP),get_Wgt(X)");
+	loadParam("get_PWM(NAME),get_PWM(NOTE),get_Wgt(P),get_Wgt(0),get_PWM(TP),get_Wgt(X),get_PWRDN,get_PWRSN");
 	updateParam("get_PWM(V),get_PWM(P),get_PWM(ERR),get_Wgt(LvL),get_Wgt(W),get_Wgt(T),get_Wgt(N),get_Wgt(K),get_Wgt(A)");
 	updateParam("get_PWM(K)");
 	updateParam("get_PWM(I)");
@@ -18,16 +18,15 @@ window.onload = function() {
 	loadSepticPump();
 }
 function loadDrainPump() {
-	loadParam("get_modbus_val(2:w:0)");
-	loadParam("get_modbus_val(2:l:1)");
-	loadParam("get_modbus_val(2:l:3)");
-	loadParam("get_modbus_val(2:l:5)");
+get_PWRDV, get_PWRDI, get_PWRDP, get_PWRDW, get_PWRDE
+	loadParam("get_PWRDV,get_PWRDP,get_PWRDE");
+	loadParam("get_PWRDI");
+	loadParam("get_PWRDW");
 }
 function loadSepticPump() {
-	loadParam("get_modbus_val(4:w:0)");
-	loadParam("get_modbus_val(4:l:1)");
-	loadParam("get_modbus_val(4:l:3)");
-	loadParam("get_modbus_val(4:l:5)");
+	loadParam("get_PWRSV,get_PWRSP,get_PWRSE");
+	loadParam("get_PWRSI");
+	loadParam("get_PWRSW");
 }
 </script>
 </head>
@@ -123,7 +122,7 @@ function loadSepticPump() {
 		<th>Сброс</th>
 	</tr></thead><tbody>
 	<tr>
-		<td>Насосная станция</td>
+		<td><span id="get_pwm-note"></span> (<span id="get_pwm-name"></span>)</td>
 		<td id="get_pwm-v"></td>
 		<td id="get_pwm-i"></td>
 		<td id="get_pwm-p"></td>
@@ -134,23 +133,25 @@ function loadSepticPump() {
 		<td><input type="submit" value="Сброс" onclick='if(confirm("Сбросить накопленную энергию?")) setParam("set_PWM(RESET=1)");' style="float:right;"></td>
 	</tr>
 	<tr>
-		<td><input type="submit" value="🗘" onclick='loadDrainPump()'> Дренажный насос</td>
-		<td id="get_modbus_val-2:w:0" class="Div10"></td>
-		<td id="get_modbus_val-2:l:1" class="Div1000"></td>
-		<td id="get_modbus_val-2:l:3" class="Div10"></td>
+		<td><input type="submit" value="🗘" onclick='loadDrainPump()'> <span id="get_pwrdn"></span></td>
+		<td id="get_pwrdv"></td>
+		<td id="get_pwrdi"></td>
+		<td id="get_pwrdp"</td>
 		<td></td>
-		<td id="get_modbus_val-2:l:5" class="Div1000"></td>
+		<td id="get_pwrdw"></td>
 		<td></td>
+		<td id="get_pwrde"></td>
 		<td></td>
 	</tr>
 	<tr>
-		<td><input type="submit" value="🗘" onclick='loadSepticPump()'> Насос септика</td>
-		<td id="get_modbus_val-4:w:0" class="Div10"></td>
-		<td id="get_modbus_val-4:l:1" class="Div1000"></td>
-		<td id="get_modbus_val-4:l:3" class="Div10"></td>
+		<td><input type="submit" value="🗘" onclick='loadSepticPump()'> <span id="get_pwrsn"></span></td>
+		<td id="get_pwrsv"></td>
+		<td id="get_pwrsi"></td>
+		<td id="get_pwrsp"</td>
 		<td></td>
-		<td id="get_modbus_val-4:l:5" class="Div1000"></td>
+		<td id="get_pwrsw"></td>
 		<td></td>
+		<td id="get_pwrse"></td>
 		<td></td>
 	</tr>
  </tbody></table>

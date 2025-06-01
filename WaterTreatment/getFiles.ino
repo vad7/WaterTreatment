@@ -641,17 +641,57 @@ void get_mailState(EthernetClient client, char *tempBuf)
 			client.write(tempBuf, strlen(tempBuf));
 		}
 	}
+#ifdef MODBUS_DRAIN_PUMP_RELAY_ADDR
+	if(GETBIT(MC.Option.flags2, fDrainPumpRelay)) {
+		strcpy(tempBuf, MODBUS_DRAIN_PUMP_RELAY_NAME);
+		strcat(tempBuf, ": ");
+		_itoa(DrainPumpRelayStatus, tempBuf);
+		strcat(tempBuf, cStrEnd);
+		client.write(tempBuf, strlen(tempBuf));
+	}
+#endif
+#ifdef MODBUS_SEPTIC_HEAT_RELAY_ADDR
+	if(GETBIT(MC.Option.flags2, fSepticHeatRelay)) {
+		strcpy(tempBuf, MODBUS_SEPTIC_HEAT_RELAY_NAME);
+		strcat(tempBuf, ": ");
+		_itoa(SepticHeatRelayStatus, tempBuf);
+		strcat(tempBuf, cStrEnd);
+		client.write(tempBuf, strlen(tempBuf));
+	}
+#endif
 
-	strcpy(tempBuf, "\n 8. Электросчетчик");
+	strcpy(tempBuf, "\n 8. Электросчетчики");
+	strcat(tempBuf, cStrEnd);
+	strcat(tempBuf, MC.dPWM.get_note());
+	strcat(tempBuf, " (");
+	strcat(tempBuf, MC.dPWM.get_name());
+	strcat(tempBuf, "):");
 	strcat(tempBuf, cStrEnd);
 	client.write(tempBuf, strlen(tempBuf));
-	strcpy(tempBuf, "Текущее входное напряжение, В: ");
+	strcpy(tempBuf, " Напряжение, В: ");
 	MC.dPWM.get_param((char*) pwm_VOLTAGE, tempBuf);
 	strcat(tempBuf, cStrEnd);
-	client.write(tempBuf, strlen(tempBuf));
-	strcpy(tempBuf, "Текущая потребляемая мощность, Вт: ");
+	strcat(tempBuf, " Мощность, Вт: ");
 	MC.dPWM.get_param((char*) pwm_POWER, tempBuf);
 	strcat(tempBuf, cStrEnd);
 	client.write(tempBuf, strlen(tempBuf));
+#ifdef CHECK_DRAIN_PUMP
+	if(GETBIT(MC.Option.flags2, fCheckDrainPump)) {
+		strcpy(tempBuf, MODBUS_DRAIN_PUMP_RELAY_NAME);
+		strcat(tempBuf, ". Мощность, Вт: ");
+		_dtoa(tempBuf, DrainPumpPower, 3);
+		strcat(tempBuf, cStrEnd);
+		client.write(tempBuf, strlen(tempBuf));
+	}
+#endif
+#ifdef CHECK_SEPTIC
+	if(GETBIT(MC.Option.flags2, fCheckSeptic)) {
+		strcpy(tempBuf, MODBUS_SEPTIC_NAME);
+		strcat(tempBuf, ". Мощность, Вт: ");
+		_dtoa(tempBuf, SepticPower, 3);
+		strcat(tempBuf, cStrEnd);
+		client.write(tempBuf, strlen(tempBuf));
+	}
+#endif
 }
 

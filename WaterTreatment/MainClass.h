@@ -115,20 +115,23 @@ uint8_t  DrainPumpRelayStatus	 = MODBUS_RELAY_CMD_ON;
 uint32_t DrainPumpTimeLast 		= 0;	// time
 uint16_t DrainPumpPower 		= 0; // W
 uint8_t  DrainPumpErrCnt 		= 0;
+uint16_t DrainPumpErrors 		= 0;
 uint8_t  DrainPumpRelayErrCnt 	= 0;
 uint8_t  DrainPumpDryCnt		= 0;
 #endif
-#ifdef CHECK_SEPTIC_PUMP
+#ifdef CHECK_SEPTIC
 uint32_t SepticPumpTimeLast 	= 0;	// time
-uint16_t SepticPumpPower 		= 0; // W
-uint8_t  SepticPumpErrCnt 		= 0;
+uint16_t SepticPower 			= 0; // W
+uint8_t  SepticErrCnt 			= 0;
+uint16_t SepticErrors 			= 0;
 uint8_t  SepticPumpDryCnt		= 0;
 #endif
 uint8_t  PumpReadCounter 		= 0;
 
 #ifdef MODBUS_SEPTIC_HEAT_RELAY_ADDR
-bool   SepticRelayStatus = false;		// 0 - off, 1 - on
-uint8_t  SepticRelayErrCnt = 0;
+bool   SepticHeatRelayStatus = false;		// 0 - off, 1 - on
+uint8_t  SepticHeatRelayErrCnt = 0;
+uint8_t  SepticHeatRelayErrors = 0;
 #endif
 uint16_t FillingTankTimer = 0;
 int16_t  FillingTankLastLevel = 0;	// in 0.01%
@@ -221,7 +224,7 @@ type_WebSecurity WebSec_admin;				// хеш паролей
 #define fCheckDrainPump		3				// Проверять работу насоса дренажа
 #define fDrainPumpRelay		4				// Использовать реле отключения насоса
 #define fSepticHeatRelay	5				// Использовать реле нагрева септика
-#define fCheckSepticPump	6				// Проверять работу насоса септика
+#define fCheckSeptic		6				// Проверять работу септика
 
 // Структура для хранения настроек
 struct type_option {
@@ -528,7 +531,7 @@ public:
 #ifdef CHECK_DRAIN_PUMP
 	statChart ChartDrainPump;
 #endif
-#ifdef CHECK_SEPTIC_PUMP
+#ifdef CHECK_SEPTIC
 	statChart ChartSepticPump;
 #endif
 

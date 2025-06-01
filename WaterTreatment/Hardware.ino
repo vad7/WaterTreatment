@@ -790,6 +790,29 @@ boolean devPWM::set_param(char *var, int32_t f)
    return false;
 }
 
+void devPWM::get_param_now(uint8_t modbus_addr, char var, char *strReturn)
+{
+	int8_t _err = 0;
+	int32_t v = 0;
+	if(var == 'V')	{
+		_err = Modbus.readInputRegisters16(modbus_addr, PWM_VOLTAGE, (uint16_t*)&v);
+		if(_err == OK) _dtoa(strReturn, v, 1);
+	} else if(var == 'I') {
+		_err = Modbus.readInputRegisters32(modbus_addr, PWM_CURRENT, (uint32_t*)&v);
+		if(_err == OK) _dtoa(strReturn, v, 3);
+	} else if(var == 'P') {
+		_err = Modbus.readInputRegisters32(modbus_addr, PWM_POWER, (uint32_t*)&v);
+		if(_err == OK) _dtoa(strReturn, v, 1);
+	} else if(var == 'W') {
+		_err = Modbus.readInputRegisters32(modbus_addr, PWM_ENERGY, (uint32_t*)&v);
+		if(_err == OK) _dtoa(strReturn, v, 3);
+	} else _err = 1;
+	if(_err) {
+		strcat(strReturn, "E");
+		_itoa(_err, strReturn);
+	}
+}
+
 // МОДБАС Устройство ----------------------------------------------------------
 // функции обратного вызова
 static uint8_t Modbus_Entered_Critical = 0;
