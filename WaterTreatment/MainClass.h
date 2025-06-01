@@ -121,6 +121,7 @@ uint8_t  DrainPumpDryCnt		= 0;
 #endif
 #ifdef CHECK_SEPTIC
 uint32_t SepticPumpTimeLast 	= 0;	// time
+uint32_t SepticPumpTimeBetween	= 0;	// сек между включениями
 uint16_t SepticPower 			= 0; // W
 uint8_t  SepticErrCnt 			= 0;
 uint16_t SepticErrors 			= 0;
@@ -161,6 +162,7 @@ uint8_t  UsedWaterContinuousCntUsed = 0;
 uint8_t  UsedWaterContinuousCntNot = 0;
 uint16_t UsedWaterContinuousTimer = 0;	// /=USED_WATER_CONTINUOUS_MINTIME
 uint16_t UsedWaterContinuousTimerMax = 0;
+uint16_t UsedWaterToSepticLast = 0;
 uint16_t UsedWaterToSeptic = 0;
 uint8_t  SepticMinPowerCnt = 0;
 uint8_t  PIN_LED_SRV_INFO_off = 0;		// off value

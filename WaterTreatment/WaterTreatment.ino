@@ -1544,8 +1544,13 @@ void vReadSensor(void *)
 							uint32_t dpmp = MC.Option.SepticPumpMinPower * 10;
 							if(tmp > dpmp) { // работает
 								UsedWaterToSeptic = 0;
-								if(SepticPower <= dpmp) SepticPumpTimeLast = ut; // время включения
-								else if(MC.Option.SepticPumpMaxTime && MC.get_errcode() != ERR_SEPTIC_PUMP_TOOLONG
+								if(SepticPower <= dpmp) {
+									if(SepticPumpTimeLast) {
+										SepticPumpTimeBetween = ut - SepticPumpTimeLast;
+										UsedWaterToSepticLast = UsedWaterToSeptic;
+									}
+									SepticPumpTimeLast = ut; // время включения
+								} else if(MC.Option.SepticPumpMaxTime && MC.get_errcode() != ERR_SEPTIC_PUMP_TOOLONG
 										&& ut - SepticPumpTimeLast > MC.Option.SepticPumpMaxTime * 20) {
 									set_Error(ERR_SEPTIC_PUMP_TOOLONG, (char*)"vService");
 									//SepticPumpRelayStatus = MODBUS_RELAY_CMD_OFF;
@@ -1559,9 +1564,11 @@ void vReadSensor(void *)
 										//SepticPumpRelayStatus = MODBUS_RELAY_CMD_OFF;
 									}
 								}
-							} else if(MC.Option.SepticPumpConsumedMax && UsedWaterToSeptic > MC.Option.SepticPumpConsumedMax) {
-								set_Error(ERR_SEPTIC_PUMP_NOT_WORK, (char*)"vService");
-								UsedWaterToSeptic = 0;
+							} else {
+								if(SepticPower > dpmp) UsedWaterToSeptic = 0; // Остановился
+								if(MC.Option.SepticPumpConsumedMax && UsedWaterToSeptic > MC.Option.SepticPumpConsumedMax) {
+									set_Error(ERR_SEPTIC_PUMP_NOT_WORK, (char*)"vService");
+								}
 							}
 							if(tmp < MC.Option.SepticMinPower) {
 								if(++SepticMinPowerCnt > SEPTIC_MIN_POWER_CNT) {

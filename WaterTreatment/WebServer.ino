@@ -1156,7 +1156,11 @@ xSaveStats:		if((i = MC.save_WorkStats()) == OK)
 				strcat(strReturn,"Последнее включение насоса Дренажа|"); DecodeTimeDate(DrainPumpTimeLast, strReturn, 3); strcat(strReturn,";");
 #endif
 #ifdef CHECK_SEPTIC
-				strcat(strReturn,"Последнее включение насоса Септика|"); DecodeTimeDate(SepticPumpTimeLast, strReturn, 3); strcat(strReturn,";");
+				strcat(strReturn,"Последнее включение насоса Септика (");
+				if(SepticPumpTimeBetween) TimeIntervalToStr(SepticPumpTimeBetween, strReturn, 1);
+				strcat(strReturn, ", ");
+				_itoa(UsedWaterToSepticLast, strReturn);
+				strcat(strReturn,"л)|"); DecodeTimeDate(SepticPumpTimeLast, strReturn, 3); strcat(strReturn,";");
 #endif
 				strReturn[strlen(strReturn) - 1] = '\0';	// удалить последнюю ';'
 
