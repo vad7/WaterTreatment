@@ -1543,12 +1543,8 @@ void vReadSensor(void *)
 							uint32_t ut = rtcSAM3X8.unixtime();
 							uint32_t dpmp = MC.Option.SepticPumpMinPower * 10;
 							if(tmp > dpmp) { // работает
-								UsedWaterToSeptic = 0;
 								if(SepticPower <= dpmp) {
-									if(SepticPumpTimeLast) {
-										SepticPumpTimeBetween = ut - SepticPumpTimeLast;
-										UsedWaterToSepticLast = UsedWaterToSeptic;
-									}
+									if(SepticPumpTimeLast) UsedWaterToSepticLast = UsedWaterToSeptic;
 									SepticPumpTimeLast = ut; // время включения
 								} else if(MC.Option.SepticPumpMaxTime && MC.get_errcode() != ERR_SEPTIC_PUMP_TOOLONG
 										&& ut - SepticPumpTimeLast > MC.Option.SepticPumpMaxTime * 20) {
@@ -1565,7 +1561,10 @@ void vReadSensor(void *)
 									}
 								}
 							} else {
-								if(SepticPower > dpmp) UsedWaterToSeptic = 0; // Остановился
+								if(SepticPower > dpmp) {
+									SepticPumpTimeWorkTime = ut - SepticPumpTimeLast;
+									UsedWaterToSeptic = 0; // Остановился
+								}
 								if(MC.Option.SepticPumpConsumedMax && UsedWaterToSeptic > MC.Option.SepticPumpConsumedMax) {
 									set_Error(ERR_SEPTIC_PUMP_NOT_WORK, (char*)"vService");
 								}

@@ -121,7 +121,7 @@ uint8_t  DrainPumpDryCnt		= 0;
 #endif
 #ifdef CHECK_SEPTIC
 uint32_t SepticPumpTimeLast 	= 0;	// time
-uint32_t SepticPumpTimeBetween	= 0;	// сек между включениями
+uint32_t SepticPumpTimeWorkTime	= 0;	// сек время работы
 uint16_t SepticPower 			= 0; // W
 uint8_t  SepticErrCnt 			= 0;
 uint16_t SepticErrors 			= 0;

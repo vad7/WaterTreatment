@@ -1271,7 +1271,7 @@ void  MainClass::updateChart()
 #ifdef CHECK_SEPTIC
 	tmp1 = SepticPower;
 	if(GETBIT(Option.flags, fChartOnlyNonZeroW)) {
-		if(tmp1 >= Option.DrainPumpMinPower || ChartSepticPump.get_PrevPoint() >= Option.DrainPumpMinPower) ChartSepticPump.addPoint(tmp1);
+		if(tmp1 >= Option.SepticPumpMinPower || ChartSepticPump.get_PrevPoint() >= Option.SepticPumpMinPower) ChartSepticPump.addPoint(tmp1);
 	} else ChartSepticPump.addPoint(tmp1);
 #endif
 }
