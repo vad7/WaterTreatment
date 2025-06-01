@@ -742,7 +742,7 @@ xSaveStats:		if((i = MC.save_WorkStats()) == OK)
 			if(*str == 'D') {
 				str++;
 				if(*str == 'E') _itoa(DrainPumpErrors, strReturn);
-				else if(*str == 'P') _dtoa(strReturn, DrainPumpPower, 3);
+				else if(*str == 'P') _itoa(DrainPumpPower, strReturn);
 				else if(*str == 'N') strcat(strReturn, MODBUS_DRAIN_PUMP_NAME);
 				else MC.dPWM.get_param_now(MODBUS_DRAIN_PUMP_ADDR, *str, strReturn); // get_PWRDV, get_PWRDI, get_PWRDP, get_PWRDW, get_PWRDE
 			} else
@@ -751,7 +751,7 @@ xSaveStats:		if((i = MC.save_WorkStats()) == OK)
 			if(*str == 'S') {
 				str++;
 				if(*str == 'E') _itoa(SepticErrors, strReturn);
-				else if(*str == 'P') _dtoa(strReturn, SepticPower, 3);
+				else if(*str == 'P') _itoa(SepticPower, strReturn);
 				else if(*str == 'N') strcat(strReturn, MODBUS_SEPTIC_NAME);
 				else MC.dPWM.get_param_now(MODBUS_SEPTIC_ADDR, *str, strReturn); // get_PWRSV, get_PWRSI, get_PWRSP, get_PWRSW, get_PWRSE
 			} else
