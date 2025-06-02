@@ -998,22 +998,24 @@ boolean MainClass::set_option(char *var, float xx)
 	if(strcmp(var,option_RO_FilterCounter1_Max)==0){ Option.RO_FilterCounter1_Max = x / 10; return true; } else
 	if(strcmp(var,option_RO_FilterCounter2_Max)==0){ Option.RO_FilterCounter2_Max = x / 10; return true; } else
 #endif
+	if(strcmp(var,option_PumpStartTime)==0){ Option.PumpStartTime = x; return true; } else
+	if(strcmp(var,option_PumpReadPeriod)==0){ Option.PumpReadPeriod = x == 0 ? 1 : x; return true; } else
 	if(strcmp(var,option_DrainPumpMaxTime)==0){ Option.DrainPumpMaxTime = x / 20; return true; } else
 	if(strcmp(var,option_DrainPumpMinPower)==0){ Option.DrainPumpMinPower = x / 10; return true; } else
 	if(strcmp(var,option_DrainPumpMaxPower)==0){ Option.DrainPumpMaxPower = x; return true; } else
 	if(strcmp(var,option_DrainPumpDryPower)==0){ Option.DrainPumpDryPower = x; return true; } else
+	if(strcmp(var,option_fDrainPumpRelay)==0){ Option.flags2 = (Option.flags2 & ~(1<<fDrainPumpRelay)) | ((x!=0)<<fDrainPumpRelay); return true; } else
 	if(strcmp(var,option_SepticPumpMaxTime)==0){ Option.SepticPumpMaxTime = x / 20; return true; } else
 	if(strcmp(var,option_SepticPumpMinPower)==0){ Option.SepticPumpMinPower = x / 10; return true; } else
 	if(strcmp(var,option_SepticPumpMaxPower)==0){ Option.SepticPumpMaxPower = x; return true; } else
 	if(strcmp(var,option_SepticPumpDryPower)==0){ Option.SepticPumpDryPower = x; return true; } else
 	if(strcmp(var,option_SepticPumpConsumedMax)==0){ Option.SepticPumpConsumedMax = x; return true; } else
 	if(strcmp(var,option_SepticMinPower)==0){ Option.SepticMinPower = x / 10; return true; } else
-	if(strcmp(var,option_PumpStartTime)==0){ Option.PumpStartTime = x; return true; } else
-	if(strcmp(var,option_PumpReadPeriod)==0){ Option.PumpReadPeriod = x == 0 ? 1 : x; return true; } else
 	if(strcmp(var,option_fLED_SRV_INFO_PlanReg)==0){ Option.flags2 = (Option.flags2 & ~(1<<fLED_SRV_INFO_PlanReg)) | ((x!=0)<<fLED_SRV_INFO_PlanReg); return true; } else
 	if(strcmp(var,option_fCheckDrainPump)==0){ Option.flags2 = (Option.flags2 & ~(1<<fCheckDrainPump)) | ((x!=0)<<fCheckDrainPump); return true; } else
 	if(strcmp(var,option_fCheckSepticPump)==0){ Option.flags2 = (Option.flags2 & ~(1<<fCheckSeptic)) | ((x!=0)<<fCheckSeptic); return true; } else
-	if(strcmp(var,option_fDrainPumpRelay)==0){ Option.flags2 = (Option.flags2 & ~(1<<fDrainPumpRelay)) | ((x!=0)<<fDrainPumpRelay); return true; } else
+	if(strcmp(var,option_fSepticPumpRelay)==0){ Option.flags2 = (Option.flags2 & ~(1<<fSepticPumpRelay)) | ((x!=0)<<fSepticPumpRelay); return true; } else
+	if(strcmp(var,option_fSepticPumpRelayNoErr)==0){ Option.flags2 = (Option.flags2 & ~(1<<fSepticPumpRelayNoErr)) | ((x!=0)<<fSepticPumpRelayNoErr); return true; } else
 	if(strcmp(var,option_fSepticHeatRelay)==0){ Option.flags2 = (Option.flags2 & ~(1<<fSepticHeatRelay)) | ((x!=0)<<fSepticHeatRelay); return true; } else
 	if(strcmp(var,option_RegenSofteningCntAlarm)==0){
 	   Option.RegenSofteningCntAlarm = x;
@@ -1136,21 +1138,23 @@ char* MainClass::get_option(char *var, char *ret)
 	if(strcmp(var,option_RO_FilterCounter1_Max)==0){ return strcat(ret, "-"); } else
 	if(strcmp(var,option_RO_FilterCounter2_Max)==0){ return strcat(ret, "-"); } else
 #endif
+	if(strcmp(var,option_PumpStartTime)==0){ return _itoa(Option.PumpStartTime, ret); } else
+	if(strcmp(var,option_PumpReadPeriod)==0){ return _itoa(Option.PumpReadPeriod, ret); } else
 	if(strcmp(var,option_DrainPumpMaxTime)==0){ return _itoa(Option.DrainPumpMaxTime * 20, ret); } else
 	if(strcmp(var,option_DrainPumpMinPower)==0){ return _itoa(Option.DrainPumpMinPower * 10, ret); } else
 	if(strcmp(var,option_DrainPumpMaxPower)==0){ return _itoa(Option.DrainPumpMaxPower, ret); } else
 	if(strcmp(var,option_DrainPumpDryPower)==0){ return _itoa(Option.DrainPumpDryPower, ret); } else
+	if(strcmp(var,option_fCheckDrainPump)==0){ return strcat(ret, (char*)(GETBIT(Option.flags2, fCheckDrainPump) ? cOne : cZero)); } else
+	if(strcmp(var,option_fDrainPumpRelay)==0){ return strcat(ret, (char*)(GETBIT(Option.flags2, fDrainPumpRelay) ? cOne : cZero)); } else
 	if(strcmp(var,option_SepticPumpMaxTime)==0){ return _itoa(Option.SepticPumpMaxTime * 20, ret); } else
 	if(strcmp(var,option_SepticPumpMinPower)==0){ return _itoa(Option.SepticPumpMinPower * 10, ret); } else
 	if(strcmp(var,option_SepticPumpMaxPower)==0){ return _itoa(Option.SepticPumpMaxPower, ret); } else
 	if(strcmp(var,option_SepticPumpDryPower)==0){ return _itoa(Option.SepticPumpDryPower, ret); } else
 	if(strcmp(var,option_SepticPumpConsumedMax)==0){ return _itoa(Option.SepticPumpConsumedMax, ret); } else
 	if(strcmp(var,option_SepticMinPower)==0){ return _itoa(Option.SepticMinPower * 10, ret); } else
-	if(strcmp(var,option_PumpStartTime)==0){ return _itoa(Option.PumpStartTime, ret); } else
-	if(strcmp(var,option_PumpReadPeriod)==0){ return _itoa(Option.PumpReadPeriod, ret); } else
-	if(strcmp(var,option_fCheckDrainPump)==0){ return strcat(ret, (char*)(GETBIT(Option.flags2, fCheckDrainPump) ? cOne : cZero)); } else
 	if(strcmp(var,option_fCheckSepticPump)==0){ return strcat(ret, (char*)(GETBIT(Option.flags2, fCheckSeptic) ? cOne : cZero)); } else
-	if(strcmp(var,option_fDrainPumpRelay)==0){ return strcat(ret, (char*)(GETBIT(Option.flags2, fDrainPumpRelay) ? cOne : cZero)); } else
+	if(strcmp(var,option_fSepticPumpRelay)==0){ return strcat(ret, (char*)(GETBIT(Option.flags2, fSepticPumpRelay) ? cOne : cZero)); } else
+	if(strcmp(var,option_fSepticPumpRelayNoErr)==0){ return strcat(ret, (char*)(GETBIT(Option.flags2, fSepticPumpRelayNoErr) ? cOne : cZero)); } else
 	if(strcmp(var,option_fSepticHeatRelay)==0){ return strcat(ret, (char*)(GETBIT(Option.flags2, fSepticHeatRelay) ? cOne : cZero)); } else
 	if(strcmp(var,option_fLED_SRV_INFO_PlanReg)==0){ return strcat(ret, (char*)(GETBIT(Option.flags2, fLED_SRV_INFO_PlanReg) ? cOne : cZero)); } else
 	if(strncmp(var, prof_DailySwitch, sizeof(prof_DailySwitch)-1) == 0) {

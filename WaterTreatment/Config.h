@@ -217,13 +217,14 @@ struct History_setup {
 	#ifdef CHECK_SEPTIC
 		#define MODBUS_SEPTIC_NAME				"Септик"
 		#define MODBUS_SEPTIC_ADDR				4	// Адрес счетчика насоса септика
-		//#define MODBUS_SEPTIC_PUMP_RELAY_NAME	"Насос септика (защита)"
-		//#define MODBUS_SEPTIC_PUMP_RELAY_ADDR	3	// Адрес реле насоса септика
-		//#define MODBUS_SEPTIC_PUMP_RELAY_ID		1	// Номер реле (нумерация с 0)
-		//#define MODBUS_SEPTIC_PUMP_ON_CMD		0	// Команда - насос может работать
-		//#define MODBUS_SEPTIC_PUMP_OFF_CMD		1	// Команда отключения питания насоса при аварии
-		//#define MODBUS_SEPTIC_PUMP_ON_PULSE			// Если активно, то импульс 1 сек для выключения (N замыкается на GND для срабатывания УЗО)
+		#define MODBUS_SEPTIC_PUMP_RELAY_NAME	"Насос септика"
+		#define MODBUS_SEPTIC_PUMP_RELAY_ADDR	3	// Адрес реле насоса септика
+		#define MODBUS_SEPTIC_PUMP_RELAY_ID		1	// Номер реле (нумерация с 0)
+		#define MODBUS_SEPTIC_PUMP_ON_CMD		0	// Команда - насос может работать
+		#define MODBUS_SEPTIC_PUMP_OFF_CMD		1	// Команда отключения питания насоса при аварии
+		//#define MODBUS_SEPTIC_PUMP_ON_PULSE		// Если активно, то импульс 1 сек для выключения (N замыкается на GND для срабатывания УЗО)
 		#define SEPTIC_MIN_POWER_CNT			250	// Через сколько периодов низкого потребления септика выдавать ошибку
+		#define SEPTIC_PUMP_CONSUMED_MAX_PERCENT 15	// Уменьшение уже потребленной воды в % для защиты по потреблению септика при попытки включить насос повторно
 	#endif
 	#define MODBUS_PUMP_FUNC(ADDR,ID,ST) 	writeSingleCoil(ADDR,ID,ST)	// функция переключения реле
 

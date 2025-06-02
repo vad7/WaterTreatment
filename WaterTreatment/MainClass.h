@@ -110,9 +110,9 @@ uint32_t SepticAlarmTime;
 #ifdef MODBUS_DRAIN_PUMP_ON_PULSE
 int8_t   DrainPumpRelayStatus = MODBUS_RELAY_ON; // MODBUS_RELAY_*
 #else
-uint8_t  DrainPumpRelayStatus	 = MODBUS_RELAY_CMD_ON;
+int8_t  DrainPumpRelayStatus	 = MODBUS_RELAY_CMD_ON;
 #endif
-uint32_t DrainPumpTimeLast 		= 0;	// time
+uint32_t DrainPumpTimeLast 		= 0; // time
 uint16_t DrainPumpPower 		= 0; // W
 uint8_t  DrainPumpErrCnt 		= 0;
 uint16_t DrainPumpErrors 		= 0;
@@ -120,11 +120,17 @@ uint8_t  DrainPumpRelayErrCnt 	= 0;
 uint8_t  DrainPumpDryCnt		= 0;
 #endif
 #ifdef CHECK_SEPTIC
-uint32_t SepticPumpTimeLast 	= 0;	// time
-uint32_t SepticPumpTimeWorkTime	= 0;	// сек время работы
+#ifdef MODBUS_SEPTIC_PUMP_ON_PULSE
+int8_t   DrainPumpRelayStatus = MODBUS_RELAY_ON; // MODBUS_RELAY_*
+#else
+int8_t  SepticPumpRelayStatus	 = MODBUS_RELAY_CMD_ON;
+#endif
+uint32_t SepticPumpTimeLast 	= 0; // time
+uint32_t SepticPumpTimeWorkTime	= 0; // сек время работы
 uint16_t SepticPower 			= 0; // W
 uint8_t  SepticErrCnt 			= 0;
 uint16_t SepticErrors 			= 0;
+uint8_t  SepticPumpRelayErrCnt 	= 0;
 uint8_t  SepticPumpDryCnt		= 0;
 #endif
 uint8_t  PumpReadCounter 		= 0;
@@ -227,6 +233,8 @@ type_WebSecurity WebSec_admin;				// хеш паролей
 #define fDrainPumpRelay		4				// Использовать реле отключения насоса
 #define fSepticHeatRelay	5				// Использовать реле нагрева септика
 #define fCheckSeptic		6				// Проверять работу септика
+#define fSepticPumpRelay	7				// Использовать реле отключения насоса
+#define fSepticPumpRelayNoErr 8				// При сухом ходе насоса септика или при долгой его работе не генерить ошибку, а только отключать
 
 // Структура для хранения настроек
 struct type_option {
