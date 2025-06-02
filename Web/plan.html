@@ -13,7 +13,7 @@
 urlupdate = 2000;
 window.onload = function() {
 	loadParam("get_WSUY,get_WSA,get_WSD,get_WSRC,get_WSRD,get_WSRSC,get_WSRSD");
-	updateParam("get_Relay(RWOFF1),get_WDIS,get_Relay(RWON),get_Relay(RDRAIN),get_Relay(RBST2),get_Relay(RFILL),get_Relay(RFEEDP),get_ADCLvL(LTANK),get_Wgt(LvL),get_Opt(LvL),get_Input(REG),get_Input(REGBW),get_Input(REG2),get_Err(B),get_Flow(FLOW),get_ADC(PWATER),get_MODED,get_PWR,get_Temp(AIR),get_WSRSS,get_WSUD,get_WST,get_WSRL,get_WSRSL,get_WSB,get_WSDD,get_WSV,get_WSV2,get_WSRS,get_WSN,get_WSNS,get_WSF,get_PWRD,get_WSOD,get_Flow(FLOW_RO),get_WSOT");
+	updateParam("get_Relay(RWOFF1),get_WDIS,get_Relay(RWON),get_Relay(RDRAIN),get_Relay(RBST2),get_Relay(RFILL),get_Relay(RFEEDP),get_ADCLvL(LTANK),get_Wgt(LvL),get_Opt(LvL),get_Input(REG),get_Input(REGBW),get_Input(REG2),get_Err(B),get_Flow(FLOW),get_ADC(PWATER),get_MODED,get_PWR,get_PWRZ,get_Temp(AIR),get_WSRSS,get_WSUD,get_WST,get_WSRL,get_WSRSL,get_WSB,get_WSDD,get_WSV,get_WSV2,get_WSRS,get_WSN,get_WSNS,get_WSF,get_PWRD,get_WSOD,get_Flow(FLOW_RO),get_WSOT,get_PWRDO,get_PWRSO");
 	updateParam("get_tblErr");
 };
 var mouseclk = [];
@@ -37,7 +37,11 @@ function ResetSalt() {
 function loadParam_after(paramid) {
 	var el_iron = "", st_iron = "", el_soft = "", st_soft = "";
 	if(paramid.indexOf("et_WSF") != -1) {
-		var s = document.getElementById("get_wsn").innerHTML;
+		var s = (element = document.getElementById("get_pwrdo")).innerHTML;
+		element.innerHTML = s != "" ? "Работает насос Дренажа: " + s : ""
+		s = (element = document.getElementById("get_pwrso")).innerHTML;
+		element.innerHTML = s != "" ? "Работает насос Септика: " + s : ""
+		s = document.getElementById("get_wsn").innerHTML;
 		if(s == "0") { el_iron = "ожидается"; st_iron = "color:red"; 
 		} else if(s != "" && s != "255") { el_iron = "Следующее через " + s + " дн."; st_iron = "color:inherit"; }
 		s = document.getElementById("get_wsns").innerHTML;
@@ -48,9 +52,7 @@ function loadParam_after(paramid) {
 		else if(s & 0x40) { el_iron = "скоро будет"; st_iron = "color:red"; }
 		if(s & 2) { el_soft = "запланировано"; st_soft = "color:red"; }
 		else if(s & 0x80) { el_soft = "скоро будет"; st_soft = "color:red"; }
-		var s = document.getElementById("get_pwrd").innerHTML;
-		document.getElementById("get_wsn").innerHTML = s != "" && Number(s) > 10 ? "Работает дренажный насос: " + s + " кВт" : ""
-	}
+	} 
 	if(el_iron != "") {
 		element = document.getElementById("planiron");
 		element.innerHTML = el_iron;
@@ -93,7 +95,7 @@ function loadParam_after(paramid) {
 </div>
 <div class="row1">
 <table>
-	<tr><td width="22%" style="font-weight:bold;" nowrap>Состояние:</td><td width="11%" nowrap><b><span id="get_moded"></span></b></td><td width="22%" style="font-weight: normal;" nowrap>Электричество, кВт:</td><td width="11%"><span id="get_pwr"></span></td><td width="22%" style="font-weight: normal;">Температура:</td><td width="11%"><span id="get_temp-air">-</span>&deg;</td></tr>
+	<tr><td width="22%" style="font-weight:bold;" nowrap>Состояние:</td><td width="11%" nowrap><b><span id="get_moded"></span></b></td><td width="22%" style="font-weight: normal;" nowrap>Электричество, кВт:</td><td width="11%" nowrap><span id="get_pwr"></span> / <span id="get_pwrz"></span></td><td width="22%" style="font-weight: normal;">Температура:</td><td width="11%"><span id="get_temp-air">-</span>&deg;</td></tr>
 	<tr><td style="font-weight:normal;" nowrap>Сегодня, л:</td><td id="get_wsud"></td><td style="font-weight: normal;" nowrap>Вчера, л:</td><td id="get_wsuy"></td><td style="font-weight: normal;" nowrap>Среднее за день, л:</td><td id="get_wsa"></td></tr>
 	<tr><td style="font-weight:normal;" nowrap>Бак НС, л:</td><td id="get_wsb"></td><td style="font-weight:normal;" nowrap>Слито (<span id="get_wsdd">-</span>), л:</td><td id="get_wsd"></td><td style="font-weight: normal;" nowrap>Итого, м³:</td><td id="get_wst"></td><td style="font-weight: normal;"></td></tr>
 	<tr><td style="font-weight:bold;" nowrap>Питьевой фильтр, м³ч:</td><td id="get_flow-flow_ro"></td><td style="font-weight:normal;" nowrap>Сегодня, л:</td><td id="get_wsod"></td><td style="font-weight: normal;" nowrap>Итого, л:</td><td id="get_wsot"></td><td style="font-weight: normal;"></td></tr>
@@ -103,7 +105,8 @@ function loadParam_after(paramid) {
 	<tr><td style="font-weight:normal;" nowrap>C регенерации, дней:</td><td id="get_wsrsd"></td><td style="font-weight: normal;" nowrap>C регенерации, л:</td><td id="get_wsrss"></td><td style="font-weight: normal;" nowrap>За регенерацию, л:</td><td id="get_wsrsl" nowrap></td></tr>
 	<tr><td style="font-weight:normal;"></td><td></td><td style="font-weight: normal;"></td><td></td><td style="font-weight: normal;"></td><td></td></tr>
 </table>
-<span id="pwrd_str" style="color:blue;font-size:medium"></span>
+<b><span id="get_pwrdo" style="color:blue;font-size:medium"></span><br>
+<span id="get_pwrso" style="color:blue;font-size:medium"></span></b>
 </div>
 <div class="row1">
 <table id="get_tblerr_t" hidden>

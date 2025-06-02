@@ -743,8 +743,15 @@ xSaveStats:		if((i = MC.save_WorkStats()) == OK)
 				str++;
 				if(*str == 'E') _itoa(DrainPumpErrors, strReturn);
 				else if(*str == 'P') _itoa(DrainPumpPower, strReturn);
-				else if(*str == 'N') strcat(strReturn, MODBUS_DRAIN_PUMP_NAME);
-				else MC.dPWM.get_param_now(MODBUS_DRAIN_PUMP_ADDR, *str, strReturn); // get_PWRDV, get_PWRDI, get_PWRDP, get_PWRDW, get_PWRDE
+				else if(*str == 'O') {
+					if(DrainPumpPower > MC.Option.DrainPumpMinPower * 10) {
+						_itoa(DrainPumpPower, strReturn);
+						strcat(strReturn, " Вт (");
+						TimeIntervalToStr(rtcSAM3X8.unixtime() - DrainPumpTimeLast, strReturn, 1);
+						strcat(strReturn, ")");
+					}
+				} else if(*str == 'N') strcat(strReturn, MODBUS_DRAIN_PUMP_NAME);
+				else MC.dPWM.get_param_now(MODBUS_DRAIN_PUMP_ADDR, *str, strReturn); // get_PWRDV, get_PWRDI, get_PWRDP, get_PWRDW, get_PWRDE, get_PWRDN, get_PWRDO
 			} else
 #endif
 #ifdef CHECK_SEPTIC
@@ -752,11 +759,19 @@ xSaveStats:		if((i = MC.save_WorkStats()) == OK)
 				str++;
 				if(*str == 'E') _itoa(SepticErrors, strReturn);
 				else if(*str == 'P') _itoa(SepticPower, strReturn);
-				else if(*str == 'N') strcat(strReturn, MODBUS_SEPTIC_NAME);
-				else MC.dPWM.get_param_now(MODBUS_SEPTIC_ADDR, *str, strReturn); // get_PWRSV, get_PWRSI, get_PWRSP, get_PWRSW, get_PWRSE
+				else if(*str == 'O') {
+					if(SepticPower > MC.Option.SepticPumpMinPower * 10) {
+						_itoa(SepticPower, strReturn);
+						strcat(strReturn, " Вт (");
+						TimeIntervalToStr(rtcSAM3X8.unixtime() - SepticPumpTimeLast, strReturn, 1);
+						strcat(strReturn, ")");
+					}
+				} else if(*str == 'N') strcat(strReturn, MODBUS_SEPTIC_NAME);
+				else MC.dPWM.get_param_now(MODBUS_SEPTIC_ADDR, *str, strReturn); // get_PWRSV, get_PWRSI, get_PWRSP, get_PWRSW, get_PWRSE, get_PWRSO
 			} else
 #endif
-			if(*str == '\0') _dtoa(strReturn, MC.dPWM.get_Power(), 3);
+			if(*str == 'Z') _dtoa(strReturn, DrainPumpPower + SepticPower, 3); // get_PWRZ
+			else if(*str == '\0') _dtoa(strReturn, MC.dPWM.get_Power(), 3);
 			ADD_WEBDELIM(strReturn); continue;
 		}
 		if(strcmp(str, "get_WDIS") == 0) { // Выход воды отключен

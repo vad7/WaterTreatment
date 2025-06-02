@@ -13,7 +13,8 @@ function createChart(values, resultdiv) {
 	var title = values[0].replace("get_Chart(", "").replace(/\)[0-9]?/g, "");
 	var yizm = '';
 	if(/^(T)/g.test(title)) { yizm = "Температура, °C"; }
-	else if(/^Pow|Dr/g.test(title)) { yizm = "Мощность, кВт"; }
+	else if(/^Pow/g.test(title)) { yizm = "Мощность, кВт"; }
+	else if(/Pump$/g.test(title)) { yizm = "Мощность, Вт"; }
 	else if(/^FL/g.test(title)) { yizm = "м³ч"; }
 	else if(/^P/g.test(title)) { yizm = "Давление, атм"; }
 	else if(/^L|We/g.test(title)) { yizm = "%"; }
@@ -93,7 +94,7 @@ function createChart(values, resultdiv) {
 				yAxis: 0,
 				name: title,
 				tooltip: {
-					valueDecimals: (title.substr(0,4) == "FLOW" || title == "Power" || title.substr(-4) == "Pump" ? 3 : 2)},
+					valueDecimals: (title.substr(0,4) == "FLOW" || title == "Power" ? 3 : title.substr(-4) == "Pump" ? 0 : 2)},
 				states: {
 					hover: {
 						enabled: false}},
