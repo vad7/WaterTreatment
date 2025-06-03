@@ -38,9 +38,9 @@ function loadParam_after(paramid) {
 	var el_iron = "", st_iron = "", el_soft = "", st_soft = "";
 	if(paramid.indexOf("et_WSF") != -1) {
 		var s = (element = document.getElementById("get_pwrdo")).innerHTML;
-		element.innerHTML = s != "" ? "Работает насос Дренажа: " + s : ""
+		element.innerHTML = s != "" ? "Насос Дренажа: " + s : ""
 		s = (element = document.getElementById("get_pwrso")).innerHTML;
-		element.innerHTML = s != "" ? "Работает насос Септика: " + s : ""
+		element.innerHTML = s != "" ? "Насос Септика: " + s : ""
 		s = document.getElementById("get_wsn").innerHTML;
 		if(s == "0") { el_iron = "ожидается"; st_iron = "color:red"; 
 		} else if(s != "" && s != "255") { el_iron = "Следующее через " + s + " дн."; st_iron = "color:inherit"; }

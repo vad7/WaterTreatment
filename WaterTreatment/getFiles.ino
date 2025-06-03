@@ -641,16 +641,16 @@ void get_mailState(EthernetClient client, char *tempBuf)
 			client.write(tempBuf, strlen(tempBuf));
 		}
 	}
-#ifdef MODBUS_DRAIN_PUMP_RELAY_ADDR
-	if(GETBIT(MC.Option.flags2, fDrainPumpRelay)) {
-		strcpy(tempBuf, MODBUS_DRAIN_PUMP_RELAY_NAME);
+#ifdef MODBUS_SEPTIC_HEAT_RELAY_ADDR
+	if(GETBIT(MC.Option.flags2, fSepticHeatRelay)) {
+		strcpy(tempBuf, MODBUS_SEPTIC_HEAT_RELAY_NAME);
 		strcat(tempBuf, ": ");
-		_itoa(DrainPumpRelayStatus, tempBuf);
+		_itoa(SepticHeatRelayStatus, tempBuf);
 		strcat(tempBuf, cStrEnd);
 		client.write(tempBuf, strlen(tempBuf));
 	}
 #endif
-#ifdef MODBUS_DRAIN_PUMP_RELAY_ADDR
+#ifdef MODBUS_SEPTIC_PUMP_RELAY_ADDR
 	if(GETBIT(MC.Option.flags2, fSepticPumpRelay)) {
 		strcpy(tempBuf, MODBUS_SEPTIC_PUMP_RELAY_NAME);
 		strcat(tempBuf, ": ");
@@ -659,11 +659,11 @@ void get_mailState(EthernetClient client, char *tempBuf)
 		client.write(tempBuf, strlen(tempBuf));
 	}
 #endif
-#ifdef MODBUS_SEPTIC_HEAT_RELAY_ADDR
-	if(GETBIT(MC.Option.flags2, fSepticHeatRelay)) {
-		strcpy(tempBuf, MODBUS_SEPTIC_HEAT_RELAY_NAME);
+#ifdef MODBUS_DRAIN_PUMP_RELAY_ADDR
+	if(GETBIT(MC.Option.flags2, fDrainPumpRelay)) {
+		strcpy(tempBuf, MODBUS_DRAIN_PUMP_RELAY_NAME);
 		strcat(tempBuf, ": ");
-		_itoa(SepticHeatRelayStatus, tempBuf);
+		_itoa(DrainPumpRelayStatus, tempBuf);
 		strcat(tempBuf, cStrEnd);
 		client.write(tempBuf, strlen(tempBuf));
 	}

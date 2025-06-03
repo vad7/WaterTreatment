@@ -766,6 +766,9 @@ xSaveStats:		if((i = MC.save_WorkStats()) == OK)
 						TimeIntervalToStr(rtcSAM3X8.unixtime() - SepticPumpTimeLast, strReturn, 1);
 						strcat(strReturn, ")");
 					}
+#ifndef MODBUS_SEPTIC_PUMP_ON_PULSE
+					if(SepticPumpRelayStatus == MODBUS_RELAY_OFF) strcat(strReturn, " ОТКЛЮЧЕН");
+#endif
 				} else if(*str == 'N') strcat(strReturn, MODBUS_SEPTIC_NAME);
 				else MC.dPWM.get_param_now(MODBUS_SEPTIC_ADDR, *str, strReturn); // get_PWRSV, get_PWRSI, get_PWRSP, get_PWRSW, get_PWRSE, get_PWRSO
 			} else
@@ -1151,13 +1154,6 @@ xSaveStats:		if((i = MC.save_WorkStats()) == OK)
 				strReturn += m_snprintf(strReturn += strlen(strReturn), 256, "Потреблено с последнего слива осадка, л|%d;", MC.WorkStats.UsedDrainSiltL100 * 100);
 				if(RegMaxFlow) strReturn += m_snprintf(strReturn += strlen(strReturn), 256, "Макс проток за регенерацию, м3ч|%.3d;", RegMaxFlow);
 				if(RegMinPress != 0xFFFF) strReturn += m_snprintf(strReturn += strlen(strReturn), 256, "Мин давление при регенерации, атм|%.2d;", RegMinPress);
-#ifdef MODBUS_DRAIN_PUMP_RELAY_ADDR
-				strcat(strReturn, "Дренажный насос (защита)|");
-				if(GETBIT(MC.Option.flags2, fDrainPumpRelay)) {
-					strReturn += m_snprintf(strReturn += strlen(strReturn), 256, "%s %s;", abs(DrainPumpRelayStatus) == 1 ? "go ->" : "",
-																							DrainPumpRelayStatus > 0 ? "ON" : "OFF");
-				} else strcat(strReturn, "DISABLED;");
-#endif
 				STORE_DEBUG_INFO(47);
 
 				strcat(strReturn,"<b> Времена</b>|;");
@@ -1277,8 +1273,17 @@ xSaveStats:		if((i = MC.save_WorkStats()) == OK)
 				_itoa(MODBUS_SEPTIC_HEAT_RELAY_ID, strReturn);
 				strcat(strReturn, ";");
 #endif
-#ifdef MODBUS_DRAIN_PUMP_RELAY_ADDR
+#ifdef MODBUS_SEPTIC_PUMP_RELAY_ADDR
 				strcat(strReturn, "2|");
+				strcat(strReturn, MODBUS_SEPTIC_PUMP_RELAY_NAME);
+				strcat(strReturn, "|");
+				_itoa(MODBUS_SEPTIC_PUMP_RELAY_ADDR, strReturn);
+				strcat(strReturn, "|");
+				_itoa(MODBUS_SEPTIC_PUMP_RELAY_ID, strReturn);
+				strcat(strReturn, ";");
+#endif
+#ifdef MODBUS_DRAIN_PUMP_RELAY_ADDR
+				strcat(strReturn, "3|");
 				strcat(strReturn, MODBUS_DRAIN_PUMP_RELAY_NAME);
 				strcat(strReturn, "|");
 				_itoa(MODBUS_DRAIN_PUMP_RELAY_ADDR, strReturn);
