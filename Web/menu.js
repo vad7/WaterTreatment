@@ -4,10 +4,10 @@
 	<b><span id="get_mode"></span></b><br>\
 </div>\
 <ul class="cd-accordion-menu">\
-<li class="plan"><a href="plan.html"><i></i>Схема</a></li>\
+<li class="plan"><a href="plan.html"><i class="menu-icon menu-icon-plan"></i>Схема</a></li>\
 <li class="stats history has-children">\
 	<input type="checkbox" name="group-2" id="group-2">\
-	<label for="group-2"><i></i>Статистика</label>\
+	<label for="group-2"><i class="menu-icon menu-icon-stats"></i>Статистика</label>\
 	<ul>\
 		<li class="stats"><a href="stats.html">По дням</a></li>\
 		<li class="history"><a href="history.html">Детально</a></li>\
@@ -15,7 +15,7 @@
 </li>\
 <li name="USR" class="sensorsp sensorsfc relay sensorst has-children">\
 	<input type="checkbox" name="group-3" id="group-3">\
-	<label for="group-3"><i></i>Конфигурация</label>\
+	<label for="group-3"><i class="menu-icon menu-icon-config"></i>Конфигурация</label>\
 	<ul>\
 		<li class="sensorsp"><a href="sensorsp.html">Датчики</a></li>\
 		<li class="sensorsfc"><a href="sensorsfc.html">Датчики протока</a></li>\
@@ -23,9 +23,9 @@
 		<li class="sensorst"><a href="sensorst.html">Датчики температуры</a></li>\
 	</ul>\
 </li>\
-<li name="USR" class="system config lan files time notice mqtt const has-children">\
+<li name="USR" class="system config lan files time notice mqtt const has-children" id="MService">\
 	<input type="checkbox" name="group-4" id="group-4">\
-	<label for="group-4"><i></i>Сервис</label>\
+	<label for="group-4"><i class="menu-icon menu-icon-service"></i>Сервис</label>\
 	<ul>\
 		<li class="system"><a href="system.html">Система</a></li>\
 		<li class="config"><a href="config.html">Настройки</a></li>\
@@ -39,7 +39,7 @@
 </li>\
 <li name="USR" class="charts test modbus log freertos has-children">\
 	<input type="checkbox" name="group-5" id="group-5">\
-	<label for="group-5"><i></i>Отладка</label>\
+	<label for="group-5"><i class="menu-icon menu-icon-debug"></i>Отладка</label>\
 	<ul>\
 		<li class="charts"><a href="charts.html">Графики</a></li>\
 		<li class="test"><a href="test.html">Тестирование</a></li>\
@@ -48,8 +48,8 @@
 		<li class="freertos"><a href="freertos.html">ОС RTOS</a></li>\
 	</ul>\
 </li>\
-<li class="about"><a href="about.html"><i></i>О контроллере</a></li>\
-<li name="USR" id="mlogin" hidden><a href="planf.html" onclick="NeedLogin=0"><i></i>Логин</a></li>\
+<li class="about"><a href="about.html"><i class="menu-icon menu-icon-about"></i>О контроллере</a></li>\
+<li name="USR" id="mlogin" hidden><a href="planf.html" onclick="NeedLogin=0"><i class="menu-icon"></i>Логин</a></li>\
 </ul>\
 <div class="dateinfo">\
 	<div id="get_status"></div>\

@@ -503,8 +503,10 @@ function loadParam(paramid, noretry, resultdiv) {
 										var elements = document.getElementsByName("USR");
 										for(var j = 0; j < elements.length; j++) {
 											if(elements[j].id == "mlogin") elements[j].hidden = false;
-											else elements[j].hidden = true; 
+											else { elements[j].remove(); j--; }
 										}
+										element = document.getElementById("MService");
+										element.innerHTML = '<a href="system.html"><i class="menu-icon menu-icon-service"></i>Сервис</a>';
 									}
 								} else if(type == "bar") {
 									var elval = Number(values[1]);

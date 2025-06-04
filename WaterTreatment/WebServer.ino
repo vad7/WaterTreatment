@@ -147,13 +147,12 @@ void web_server(uint8_t thread)
 					{
 						// Для обычного пользователя подменить файл меню, для сокращения функционала
 						if(GETBIT(Socket[thread].flags, fUser)) {
-							if(strstr(Socket[thread].inPtr, ".html")) {
-								if(!(strcmp(Socket[thread].inPtr, "index.html") == 0
-									|| strcmp(Socket[thread].inPtr, "plan.html") == 0
-									|| strcmp(Socket[thread].inPtr, "stats.html") == 0
-									|| strcmp(Socket[thread].inPtr, "history.html") == 0
-									|| strcmp(Socket[thread].inPtr, "about.html") == 0)) goto xUNAUTHORIZED;
-							}
+							if(!(strcmp(Socket[thread].inPtr, "index.html") == 0
+							|| strcmp(Socket[thread].inPtr, "plan.html") == 0
+							|| strcmp(Socket[thread].inPtr, "stats.html") == 0
+							|| strcmp(Socket[thread].inPtr, "system.html") == 0
+							|| strcmp(Socket[thread].inPtr, "history.html") == 0
+							|| strcmp(Socket[thread].inPtr, "about.html") == 0)) goto xUNAUTHORIZED;
 						}
 						urldecode(Socket[thread].inPtr, Socket[thread].inPtr, len + 1);
 						readFileSD(Socket[thread].inPtr, thread);
@@ -706,10 +705,7 @@ xSaveStats:		if((i = MC.save_WorkStats()) == OK)
 						i = Stats.SaveHistory(1);
 				_itoa(i, strReturn);
 			} else if(strcmp(str, "_UPD") == 0) { // Подготовка к обновлению
-				//if(MC.is_compressor_on()) _itoa(-1, strReturn);
-				//else
-					goto xSaveStats;
-				//}
+				goto xSaveStats;
 			} else {
 				l_i32 = MC.save();   // записать настройки в еепром и получить размер записываемых данных
 				_itoa(l_i32, strReturn); // сохранение настроек ВСЕХ!
@@ -1139,7 +1135,7 @@ xSaveStats:		if((i = MC.save_WorkStats()) == OK)
 
 				strReturn += m_snprintf(strReturn += strlen(strReturn), 256, "Состояние системы (день недели: %d)|Err:%d(%X) B:%d ", MC.RTC_store.Work & RTC_Work_WeekDay_MASK, MC.get_errcode(), CriticalErrors, WaterBoosterStatus);
 				strReturn += m_snprintf(strReturn += strlen(strReturn), 256, "%s%s Day:%d Reg:%d;", MC.RTC_store.Work & RTC_Work_Regen_F1 ? "R1 " : "", MC.RTC_store.Work & RTC_Work_Regen_F2 ? "R2 " : "", MC.RTC_store.UsedToday, MC.RTC_store.UsedRegen);
-				strReturn += m_snprintf(strReturn += strlen(strReturn), 256, "Состояние FreeRTOS при старте (task+err_code) <sup>2</sup>|0x%04X 0x%04X;", lastErrorFreeRtosCode, GPBR->SYS_GPBR[5]);
+				strReturn += m_snprintf(strReturn += strlen(strReturn), 256, "Состояние FreeRTOS при старте (task+err_code) <sup>1</sup>|0x%04X 0x%04X;", lastErrorFreeRtosCode, GPBR->SYS_GPBR[5]);
 
 				startSupcStatusReg |= SUPC->SUPC_SR;                                  // Копим изменения
 				strReturn += m_snprintf(strReturn += strlen(strReturn), 256, "Регистры контроллера питания (SUPC) SAM3X8E [SMMR MR SR]|0x%08X %08X %08X", SUPC->SUPC_SMMR, SUPC->SUPC_MR, startSupcStatusReg);  // Регистры состояния контроллера питания
@@ -1177,7 +1173,7 @@ xSaveStats:		if((i = MC.save_WorkStats()) == OK)
 
 			} else if(strcmp(str, "Info2") == 0) { // "get_sysInfo2" - Функция вывода системной информации для разработчика
 				strcat(strReturn,"<b> Счетчики ошибок</b>|;");
-				strcat(strReturn,"Счетчик \"Потеря связи с "); strcat(strReturn,nameWiznet);strcat(strReturn,"\", повторная инициализация  <sup>3</sup>|");_itoa(MC.num_resW5200,strReturn);strcat(strReturn,";");
+				strcat(strReturn,"Счетчик \"Потеря связи с "); strcat(strReturn,nameWiznet);strcat(strReturn,"\", повторная инициализация  <sup>2</sup>|");_itoa(MC.num_resW5200,strReturn);strcat(strReturn,";");
 				strcat(strReturn,"Счетчик числа сбросов мютекса захвата шины SPI|");_itoa(MC.num_resMutexSPI,strReturn);strcat(strReturn,";");
 				strcat(strReturn,"Счетчик числа сбросов мютекса захвата шины I2C|");_itoa(MC.num_resMutexI2C,strReturn);strcat(strReturn,";");
 	#ifdef MQTT

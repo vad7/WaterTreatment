@@ -4,7 +4,7 @@
 <link rel="stylesheet" type="text/css" href="style.css">
 <script type='text/javascript' src='scripts.js'></script>
 <script type="text/javascript">
-window.onload = function() { //clock();
+window.onload = function() {
 	updateParam("get_resetCause,get_uptime,get_tDS,get_startDT,get_freeRam,get_sysInfo,get_sysInfo2");
 };
 </script>
@@ -12,7 +12,7 @@ window.onload = function() { //clock();
 <body class="about">
 <div id="menu" class="menu"><script src="menu.js"></script></div>
 <div class="content">
-<h1>Система <input type="submit" value="Сохранить статистику (1)" onclick='loadParam("set_SAVE_STATS")'> <input type="submit" value="Подготовка к обновлению" onclick='loadParam("set_SAVE_UPD")' style="float:right;margin-right:10px;"></h1>
+<h1>Система</h1>
 <div class="row1">
 <table border="1" rules="rows">
 	<thead><tr><th>Параметр</th><th>Значение</th></tr></thead>
@@ -29,13 +29,8 @@ window.onload = function() { //clock();
 	</tbody>
 </table>
 <br>
-<input type="submit" value="Сброс контроллера" onclick='if(confirm("Перезагрузить контроллер?")) loadParam("RESET_DUE",true);'>
-<input type="submit" value="Сброс W5500" onclick='loadParam("RESET_NET",true)'>
-<input type="submit" value="Сброс счетчиков" onclick='if(document.getElementById("reset_code").value=="RESET") loadParam("RESET_CNT_ALL,RELOAD");'> Введите RESET: <input id="reset_code" size="7">
-<br><br>
-1. Запись накопленных данных за последний день, нужно делать перед обновлением прошивки.<br>
-2. Старший байт номер задачи (номер см. на странице ОС RTOS), младший байт код ошибки (1-configASSERT fails, 2-malloc fails, 3-stack overflow, 4-hard fault, 5-bus fault, 6-usage fault, 7-crash data)<br>
-3. Установка флага: Сервис - Сеть - Ежеминутный контроль связи с w5500, и при необходимости его сброс<br>
+1. Старший байт номер задачи (номер см. на странице ОС RTOS), младший байт код ошибки (1-configASSERT fails, 2-malloc fails, 3-stack overflow, 4-hard fault, 5-bus fault, 6-usage fault, 7-crash data)<br>
+2. Установка флага: Сервис - Сеть - Ежеминутный контроль связи с w5500, и при необходимости его сброс<br>
 <br><a href="log-help.html">Перечень ошибок.</a><br><br>
 </div>
 </div>
