@@ -9,14 +9,13 @@ var urlupdate = 4000; // время обновления параметров в
 
 function setParam(paramid, resultid) {
 	// Замена set_Par(Var1) на set_par-var1 для получения значения 
-	var elid = paramid.replace("(", "-").replace(")", "");
+	var elid = paramid.replace("(", "-").replace(")", "").toLowerCase();
 	var rec = new RegExp('et_listChart.?');
 	var res = new RegExp('et_testMode|et_mode');
 	var elval, clear = true, equate = true;
 	var element;
 	if((clear = equate = elid.indexOf("=")==-1)) { // Не (x=n)
-		if((element = document.getElementById(elid.toLowerCase()))) ;
-		else element = document.getElementById(resultid);
+		if((element = document.getElementById(elid))); else element = document.getElementById(resultid);
 		if(element.getAttribute('type') == 'checkbox') {
 			if(element.checked) elval = 1; else elval = 0;
 		} else elval = element.value;
@@ -33,7 +32,7 @@ function setParam(paramid, resultid) {
 			if(elsend.substr(-1) == ")") elsend = elsend.replace(")", "") + "=" + elval + ")"; else elsend += "=" + elval;
 		}
 	}
-	if(!resultid) resultid = elid.replace("set_", "get_").toLowerCase();
+	if(!resultid) resultid = elid.replace("set_", "get_");
 	if(clear) {
 		element = document.getElementById(resultid);
 		if(element) {
@@ -459,7 +458,7 @@ function loadParam(paramid, noretry, resultdiv) {
 											if(valuevar == '0') element.style = "display:none"; else element.style = "display:default";
 										} else if(element.className == "charsw") {
 											element.innerHTML = element.title.substr(valuevar,1);
-										} else if(/^E\d+/.test(values[1])) {
+										} else if(values[1].match(/^E-?\d/)) {
 											if(element.getAttribute("type") == "submit") alert("Ошибка " + values[1]);
 											else element.placeholder = values[1];
 										} else if(element != document.activeElement) {
