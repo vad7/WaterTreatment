@@ -414,6 +414,7 @@ const char *option_PWATER_Osmos_FullDelay= {"OFD"};
 const char *option_PWATER_Osmos_FullMinus={"OFM"};
 const char *option_PWATER_Osmos_Delay	= {"OD"};
 const char *option_LTANK_Low			= {"TE"};
+const char *option_LTank_CriticalMax	= {"LCM"};
 const char *option_Weight_Low			= {"WE"};
 const char *option_fDebugToJournal		= {"DBG"};
 const char *option_fDebugToSerial		= {"DBGS"};
@@ -502,103 +503,104 @@ const char *webWS_NextRegenSoftAfterDays		= { "NS" };
 // --------------------------------------------------------------------------------
 // ОШИБКИ едины для всего - сквозной список
 // --------------------------------------------------------------------------------
-#define OK                  0          // Ошибок нет
-#define ERR_MINTEMP        -1          // Выход за нижнюю границу температурного датчика
-#define ERR_MAXTEMP        -2          // Выход за верхнюю границу температурного датчика
-#define ERR_MINPRESS       -3          // Выход за нижнюю границу  датчика давления
-#define ERR_MAXPRESS       -4          // Выход за верхнюю границу датчика давления
-#define ERR_DINPUT         -5          // Срабатывания контактного датчика -  авария
-#define ERR_DEVICE         -6         // Устройство запрещено в текущей конфигурации
-#define ERR_ONEWIRE        -7         // Ошибка сброса на OneWire шине (обрыв или замыкание)
-#define ERR_MEM_FREERTOS   -8         // Free RTOS не может создать задачу - мало пямяти
-#define ERR_SAVE_EEPROM    -9         // Ошибка записи настроек в eeprom I2C
-#define ERR_LOAD_EEPROM    -10         // Ошибка чтения настроек из eeprom I2C
-#define ERR_CRC16_EEPROM   -11         // Ошибка контрольной суммы для настроек
-#define ERR_BAD_LEN_EEPROM -12         // Не совпадение размера данных при чтении настроек
-#define ERR_HEADER_EEPROM  -13         // Данные настроек не найдены  в eeprom I2C
-#define ERR_SAVE1_EEPROM   -14         // Ошибка записи состояния в eeprom I2C
-#define ERR_LOAD1_EEPROM   -15         // Ошибка чтения состояния из eeprom I2C
-#define ERR_HEADER1_EEPROM -16         // Данные состояния не найдены в eeprom I2C
-#define ERR_SAVE2_EEPROM   -17         // Ошибка записи счетчиков в eeprom I2C
-#define ERR_LOAD2_EEPROM   -18         // Ошибка чтения счетчиков из eeprom I2C
-#define ERR_READ_PRESS     -19         // Ошибка чтения датчика давления (данные не готовы)
-#define ERR_CONFIG         -20         // Сбой внутренней конфигурации (обратитесь к разработчику)
-#define ERR_SD_INIT        -21         // Ошибка инициализации SD карты
-#define ERR_SD_INDEX       -22         // Файл index.xxx не найден на SD карте
-#define ERR_SD_READ        -23         // Ошибка чтения файла с SD карты
-#define ERR_485_BUZY       -24         // При обращении к 485 порту привышено время ожидания его освобождения
+#define OK						0			// Ошибок нет
+#define ERR_MINTEMP				-1			// Выход за нижнюю границу температурного датчика
+#define ERR_MAXTEMP				-2			// Выход за верхнюю границу температурного датчика
+#define ERR_MINPRESS			-3			// Выход за нижнюю границу  датчика давления
+#define ERR_MAXPRESS			-4			// Выход за верхнюю границу датчика давления
+#define ERR_DINPUT				-5			// Срабатывания контактного датчика -  авария
+#define ERR_DEVICE				-6			// Устройство запрещено в текущей конфигурации
+#define ERR_ONEWIRE				-7			// Ошибка сброса на OneWire шине (обрыв или замыкание)
+#define ERR_MEM_FREERTOS		-8			// Free RTOS не может создать задачу - мало пямяти
+#define ERR_SAVE_EEPROM			-9			// Ошибка записи настроек в eeprom I2C
+#define ERR_LOAD_EEPROM			-10			// Ошибка чтения настроек из eeprom I2C
+#define ERR_CRC16_EEPROM		-11			// Ошибка контрольной суммы для настроек
+#define ERR_BAD_LEN_EEPROM		-12			// Не совпадение размера данных при чтении настроек
+#define ERR_HEADER_EEPROM		-13			// Данные настроек не найдены  в eeprom I2C
+#define ERR_SAVE1_EEPROM		-14         // Ошибка записи состояния в eeprom I2C
+#define ERR_LOAD1_EEPROM		-15         // Ошибка чтения состояния из eeprom I2C
+#define ERR_HEADER1_EEPROM		-16         // Данные состояния не найдены в eeprom I2C
+#define ERR_SAVE2_EEPROM		-17         // Ошибка записи счетчиков в eeprom I2C
+#define ERR_LOAD2_EEPROM		-18         // Ошибка чтения счетчиков из eeprom I2C
+#define ERR_READ_PRESS			-19         // Ошибка чтения датчика давления (данные не готовы)
+#define ERR_CONFIG				-20         // Сбой внутренней конфигурации (обратитесь к разработчику)
+#define ERR_SD_INIT				-21         // Ошибка инициализации SD карты
+#define ERR_SD_INDEX			-22         // Файл index.xxx не найден на SD карте
+#define ERR_SD_READ				-23         // Ошибка чтения файла с SD карты
+#define ERR_485_BUZY			-24         // При обращении к 485 порту привышено время ожидания его освобождения
 // Ошибки описаные в протоколе Modbus
-#define ERR_MODBUS_0x01    -25         // Modbus 0x01 protocol illegal function exception
-#define ERR_MODBUS_0x02    -26         // Modbus 0x02 protocol illegal data address exception
-#define ERR_MODBUS_0x03    -27         // Modbus 0x03 protocol illegal data value exception
-#define ERR_MODBUS_0x04    -28         // Modbus 0х04 protocol slave device failure exception
-#define ERR_MODBUS_0xe0    -29         // Modbus 0xe0 Master invalid response slave ID exception
-#define ERR_MODBUS_0xe1    -30         // Modbus 0xe1 Master invalid response function exception
-#define ERR_MODBUS_0xe2    -31         // Modbus 0xe2 Master response timed out exception
-#define ERR_MODBUS_0xe3    -32         // Modbus 0xe3 Master invalid response CRC exception
-#define ERR_MODBUS_UNKNOWN -33         // Modbus не известная ошибка (сбой протокола)
-#define ERR_MODBUS_STATE   -34         // Запрещенное (не верное) состояние инвертора
-#define ERR_OUT_OF_MEMORY  -35         // Не хватает памяти для выделения массивов
-#define ERR_DS2482_NOT_FOUND -36       // Мастер DS2482 не найден на шине, возможно ошибка шины I2C
-#define ERR_DS2482_ONEWIRE -37         // Мастер DS2482 не может сбросить шину OneWire бит PPD равен 0
-#define ERR_I2C_BUZY       -38         // При обращении к I2C шине превышено время ожидания ее освобождения
-#define ERR_HEADER2_EEPROM -39         // Ошибка заголовка счетчиков в eeprom I2C
-#define ERR_OPEN_I2C_JOURNAL -40       // Ошибка открытия журнала в I2C памяти (инициализация чипа)
-#define ERR_READ_I2C_JOURNAL -41       // Ошибка чтения журнала в I2C памяти
-#define ERR_WRITE_I2C_JOURNAL -42      // Ошибка записи журнала в I2C памяти
-#define ERR_MAX_VOLTAGE     -43        // Слишком большое напряжение сети
-#define ERR_MAX_POWER       -44        // Слишком большая портебляемая мощность
-#define ERR_NO_MODBUS       -45        // Modbus требуется но отсутвует в конфигурации
-#define ERR_READ_TEMP       -46        // Ошибка чтения температурного датчика (лимит чтения исчерпан)
-#define ERR_ONEWIRE_CRC     -47		   // ошибка CRC во время чтения OneWire
-#define ERR_ONEWIRE_RW      -48		   // ошибка во время чтения/записи OneWire
-#define ERR_SD_WRITE		-49		   // ошибка записи на SD карту
-#define ERR_ADDRESS			-50        // Адрес датчика температуры не установлен
-#define ERR_FEW_LITERS_REG	-51			// Мало израсходовано воды при регенерации
-#define ERR_FEW_LITERS_DRAIN -52		// Мало израсходовано воды при сбросе воды
-#define ERR_WATER_CNT_FAIL	-53			// Неисправность счетчика воды
-#define ERR_RTC_LOW_BATTERY -54			// Села батарея часов
-#define ERR_PWM_DRY_RUN		-55			// Сухой ход двигателя насоса
-#define ERR_PWM_MAX			-56			// Перегрузка двигателя насоса
-#define ERR_PRESS			-57			// Ошибка давления
-#define ERR_FLOODING		-58			// Затопление
-//#define ERR_TANK_EMPTY	-59				// Пустой бак! (defined in config.h)
-#define ERR_TANK_NO_FILLING	-60			// Бак не заполняется
-#define ERR_RTC_WRITE		-61			// Ошибка записи в RTC память
-#define ERR_START_REG		-62			// Не запускается регенерация обезжелезивателя
-#define ERR_START_REG2		-63			// Не запускается регенерация умягчителя
-#define ERR_WEIGHT_LOW		-64			// Маленький вес реагента
-#define ERR_WEIGHT_EMPTY	-65			// Пустой бак с реагентом
-#define ERR_LEAK			-66			// Протечка
-#define ERR_SEPTIC_ALARM	-67			// Авария септика
-#define ERR_NO_POWER		-68			// Нет электричества
+#define ERR_MODBUS_0x01			-25         // Modbus 0x01 protocol illegal function exception
+#define ERR_MODBUS_0x02			-26         // Modbus 0x02 protocol illegal data address exception
+#define ERR_MODBUS_0x03			-27         // Modbus 0x03 protocol illegal data value exception
+#define ERR_MODBUS_0x04			-28         // Modbus 0х04 protocol slave device failure exception
+#define ERR_MODBUS_0xe0			-29         // Modbus 0xe0 Master invalid response slave ID exception
+#define ERR_MODBUS_0xe1			-30         // Modbus 0xe1 Master invalid response function exception
+#define ERR_MODBUS_0xe2			-31         // Modbus 0xe2 Master response timed out exception
+#define ERR_MODBUS_0xe3			-32         // Modbus 0xe3 Master invalid response CRC exception
+#define ERR_MODBUS_UNKNOWN		-33         // Modbus не известная ошибка (сбой протокола)
+#define ERR_MODBUS_STATE		-34         // Запрещенное (не верное) состояние инвертора
+#define ERR_OUT_OF_MEMORY		-35			// Не хватает памяти для выделения массивов
+#define ERR_DS2482_NOT_FOUND	-36			// Мастер DS2482 не найден на шине, возможно ошибка шины I2C
+#define ERR_DS2482_ONEWIRE		-37			// Мастер DS2482 не может сбросить шину OneWire бит PPD равен 0
+#define ERR_I2C_BUZY			-38			// При обращении к I2C шине превышено время ожидания ее освобождения
+#define ERR_HEADER2_EEPROM		-39			// Ошибка заголовка счетчиков в eeprom I2C
+#define ERR_OPEN_I2C_JOURNAL	-40			// Ошибка открытия журнала в I2C памяти (инициализация чипа)
+#define ERR_READ_I2C_JOURNAL	-41			// Ошибка чтения журнала в I2C памяти
+#define ERR_WRITE_I2C_JOURNAL	-42			// Ошибка записи журнала в I2C памяти
+#define ERR_MAX_VOLTAGE			-43			// Слишком большое напряжение сети
+#define ERR_MAX_POWER			-44			// Слишком большая портебляемая мощность
+#define ERR_NO_MODBUS			-45			// Modbus требуется но отсутвует в конфигурации
+#define ERR_READ_TEMP			-46			// Ошибка чтения температурного датчика (лимит чтения исчерпан)
+#define ERR_ONEWIRE_CRC			-47			// ошибка CRC во время чтения OneWire
+#define ERR_ONEWIRE_RW			-48			// ошибка во время чтения/записи OneWire
+#define ERR_SD_WRITE			-49			// ошибка записи на SD карту
+#define ERR_ADDRESS				-50			// Адрес датчика температуры не установлен
+#define ERR_FEW_LITERS_REG		-51			// Мало израсходовано воды при регенерации
+#define ERR_FEW_LITERS_DRAIN	-52			// Мало израсходовано воды при сбросе воды
+#define ERR_WATER_CNT_FAIL		-53			// Неисправность счетчика воды
+#define ERR_RTC_LOW_BATTERY 	-54			// Села батарея часов
+#define ERR_PWM_DRY_RUN			-55			// Сухой ход двигателя насоса
+#define ERR_PWM_MAX				-56			// Перегрузка двигателя насоса
+#define ERR_PRESS				-57			// Ошибка давления
+#define ERR_FLOODING			-58			// Затопление
+//#define ERR_TANK_EMPTY		-59				// Пустой бак! (defined in config.h)
+#define ERR_TANK_NO_FILLING		-60			// Бак не заполняется
+#define ERR_RTC_WRITE			-61			// Ошибка записи в RTC память
+#define ERR_START_REG			-62			// Не запускается регенерация обезжелезивателя
+#define ERR_START_REG2			-63			// Не запускается регенерация умягчителя
+#define ERR_WEIGHT_LOW			-64			// Маленький вес реагента
+#define ERR_WEIGHT_EMPTY		-65			// Пустой бак с реагентом
+#define ERR_LEAK				-66			// Протечка
+#define ERR_SEPTIC_ALARM		-67			// Авария септика
+#define ERR_NO_POWER			-68			// Нет электричества
 #define ERR_REG_FEW_WEIGHT_CONSUME -69	// Мало израсходовано реагента во время регенерации
-#define ERR_SALT_FINISH		-70			// Закончилась соль в баке умягчителя
-#define ERR_REGEN_CONFLICT	-71			// Две регенерации в одно и тоже время
-#define ERR_REGEN_EXPIRED	-72			// Регенерация обезжелезивателя долго не запускалась!
-#define ERR_REGEN2_EXPIRED	-73			// Регенерация умягчителя долго не запускалась!
-#define ERR_FEEDPUMP_TIME	-74			// Слишком долго работает дозатор!
-#define ERR_TANK_LEAKAGE	-75			// Бак протек
-#define ERR_TANK_FILLING_LONG -76		// Слишком долгое заполнение бака
-#define ERR_LONG_WATER_CONSUMING -77	// Долгое непрерывное потребление воды!
-#define ERR_DRAIN_PUMP_LINK	 -78		// Ошибка связи со счетчиком насоса
-#define ERR_DRAIN_PUMP_RELAY_LINK -79	// Ошибка связи с реле насоса
-#define ERR_DRAIN_PUMP_TOOLONG -80		// Слишком долго работает насос
-#define ERR_DRAIN_PUMP_NOT_WORK -81		// Не работает дренажный насос
-#define ERR_DRAIN_PUMP_OVERLOAD -82		// Перегрузка дренажного насоса
-#define ERR_DRAIN_PUMP_DRAIN_RUN -83	// Сухой ход дренажного насоса
-#define ERR_SEPTIC_RELAY_LINK -84		// Ошибка связи с реле нагрева септика
-#define ERR_LOW_BOOSTER_TANK -85		// Низкий средний рабочий объем бака насосной станции
-#define ERR_SFREQ_I2C_ERROR	-86			// Ошибка частотного датчика на шине I2C
-#define ERR_SEPTIC_PUMP_LINK -87		// Ошибка связи со счетчиком насоса септика
-#define ERR_SEPTIC_PUMP_RELAY_LINK -88	// Ошибка связи с реле насоса септика
-#define ERR_SEPTIC_PUMP_TOOLONG -89		// Слишком долго работает насос септика
-#define ERR_SEPTIC_PUMP_NOT_WORK -90	// Не работает насос септика
-#define ERR_SEPTIC_PUMP_OVERLOAD -91	// Перегрузка насоса септика
-#define ERR_SEPTIC_PUMP_DRAIN_RUN -92	// Сухой ход насоса септика
-#define ERR_SEPTIC_NOT_WORK -93			// Низкое электро-потребление септика
+#define ERR_SALT_FINISH			-70			// Закончилась соль в баке умягчителя
+#define ERR_REGEN_CONFLICT		-71			// Две регенерации в одно и тоже время
+#define ERR_REGEN_EXPIRED		-72			// Регенерация обезжелезивателя долго не запускалась!
+#define ERR_REGEN2_EXPIRED		-73			// Регенерация умягчителя долго не запускалась!
+#define ERR_FEEDPUMP_TIME		-74			// Слишком долго работает дозатор!
+#define ERR_TANK_LEAKAGE		-75			// Бак протек
+#define ERR_TANK_FILLING_LONG 	-76			// Слишком долгое заполнение бака
+#define ERR_LONG_WATER_CONSUMING -77		// Долгое непрерывное потребление воды!
+#define ERR_DRAIN_PUMP_LINK		-78			// Ошибка связи со счетчиком насоса
+#define ERR_DRAIN_PUMP_RELAY_LINK -79		// Ошибка связи с реле насоса
+#define ERR_DRAIN_PUMP_TOOLONG	-80			// Слишком долго работает насос
+#define ERR_DRAIN_PUMP_NOT_WORK -81			// Не работает дренажный насос
+#define ERR_DRAIN_PUMP_OVERLOAD -82			// Перегрузка дренажного насоса
+#define ERR_DRAIN_PUMP_DRAIN_RUN -83		// Сухой ход дренажного насоса
+#define ERR_SEPTIC_RELAY_LINK	-84			// Ошибка связи с реле нагрева септика
+#define ERR_LOW_BOOSTER_TANK	-85			// Низкий средний рабочий объем бака насосной станции
+#define ERR_SFREQ_I2C_ERROR		-86			// Ошибка частотного датчика на шине I2C
+#define ERR_SEPTIC_PUMP_LINK	-87			// Ошибка связи со счетчиком насоса септика
+#define ERR_SEPTIC_PUMP_RELAY_LINK -88		// Ошибка связи с реле насоса септика
+#define ERR_SEPTIC_PUMP_TOOLONG -89			// Слишком долго работает насос септика
+#define ERR_SEPTIC_PUMP_NOT_WORK -90		// Не работает насос септика
+#define ERR_SEPTIC_PUMP_OVERLOAD -91		// Перегрузка насоса септика
+#define ERR_SEPTIC_PUMP_DRAIN_RUN -92		// Сухой ход насоса септика
+#define ERR_SEPTIC_NOT_WORK		-93			// Низкое электро-потребление септика
+#define ERR_TANK_OVERFLOW		-94			// Бак переполнен!
 
-#define ERR_ERRMAX			-93			// Последняя ошибка
+#define ERR_ERRMAX				-94			// Последняя ошибка
 
 // Предупреждения
 #define WARNING_VALUE        1         // Попытка установить значение за границами диапазона запрос типа SET
@@ -699,6 +701,7 @@ const char *noteError[] = {
 		"Перегрузка насоса септика",														//-91
 		"Сухой ход насоса септика",															//-92
 		"Низкое электро-потребление септика",												//-93
+		"Бак переполнен!",																	//-94
 
 		"NULL"
 		};

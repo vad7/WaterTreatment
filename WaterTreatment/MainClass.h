@@ -322,6 +322,7 @@ struct type_option {
 	uint16_t SepticPumpConsumedMax;	// Максимальное потребление литров до включения насоса, 0 - нет, л
 	uint8_t  SepticPumpMaxTime;		// Максимальное время работы насоса, 0 - нет, сек * 20
 	uint8_t  SepticMinPower;		// Минимальное потребление септика, если меньше, то ошибка, Вт * 10
+	uint8_t  LTank_CriticalMax;		// Максимальный уровень бака, выше - ошибка, %
 };
 
 //  Работа с отдельными флагами type_DateTime

@@ -964,16 +964,17 @@ boolean MainClass::set_option(char *var, float xx)
 	if(strcmp(var,option_PWATER_Osmos_FullDelay)==0){ Option.PWATER_Osmos_FullDelay = x; return true; } else
 	if(strcmp(var,option_PWATER_Osmos_FullMinus)==0){ Option.PWATER_Osmos_FullMinus = rd(xx, 100); return true; } else
 	if(strcmp(var,option_PWATER_Osmos_Delay)==0){ Option.PWATER_Osmos_Delay = x; return true; } else
-	if(strcmp(var,option_LTANK_Low)==0)     { Option.LTANK_Low = rd(xx, 100); return true; } else
+	if(strcmp(var,option_LTANK_Low)==0)        { Option.LTANK_Low = rd(xx, 100); return true; } else
+	if(strcmp(var,option_LTank_CriticalMax)==0){ Option.LTank_CriticalMax = x; return true; } else
 	if(strcmp(var,option_LTank_LowConsumeMin)==0){ Option.LTank_LowConsumeMin = rd(xx, 100); return true; } else
 	if(strcmp(var,option_LTank_AfterFilledTimer)==0){ Option.LTank_AfterFilledTimer = x; return true; } else
-	if(strcmp(var,option_LTank_Hour_Low)==0) { Option.LTank_Hour_Low = rd(xx, 100); return true; } else
+	if(strcmp(var,option_LTank_Hour_Low)==0)   { Option.LTank_Hour_Low = rd(xx, 100); return true; } else
 	if(strcmp(var,option_LTank_Hour)==0){ Option.LTank_Hour = x; return true; } else
-	if(strcmp(var,option_Weight_Low)==0)      { Option.Weight_Low = rd(xx, 100); return true; } else
+	if(strcmp(var,option_Weight_Low)==0)       { Option.Weight_Low = rd(xx, 100); return true; } else
 	if(strcmp(var,option_FloodingDebounceTime)==0){ Option.FloodingDebounceTime = x; return true; } else
-	if(strcmp(var,option_FloodingTimeout)==0) { Option.FloodingTimeout = x; return true; } else
+	if(strcmp(var,option_FloodingTimeout)==0)  { Option.FloodingTimeout = x; return true; } else
 	if(strcmp(var,option_FillingTankTimeout)==0){ Option.FillingTankTimeout = x; return true; } else
-	if(strcmp(var,option_TankCheckPercent)==0){ Option.TankCheckPercent = x; return true; } else
+	if(strcmp(var,option_TankCheckPercent)==0) { Option.TankCheckPercent = x; return true; } else
 	if(strcmp(var,option_TankFillingTimeMax)==0){ Option.TankFillingTimeMax = x; return true; } else
 	if(strcmp(var,option_CriticalErrorsTimeout)==0){ Option.CriticalErrorsTimeout = x; return true; } else
 	if(strcmp(var,option_FilterTank)==0){ FilterTankSquare = CalcFilterSquare(Option.FilterTank = x); return true; } else
@@ -1109,6 +1110,7 @@ char* MainClass::get_option(char *var, char *ret)
 	if(strcmp(var,option_FillingTankTimeout)==0){ return _itoa(Option.FillingTankTimeout, ret); } else
 	if(strcmp(var,option_TankCheckPercent)==0){ return _itoa(Option.TankCheckPercent, ret); } else
 	if(strcmp(var,option_TankFillingTimeMax)==0){ return _itoa(Option.TankFillingTimeMax, ret); } else
+	if(strcmp(var,option_LTank_CriticalMax)==0){ return _itoa(Option.LTank_CriticalMax, ret); } else
 	if(strcmp(var,option_CriticalErrorsTimeout)==0){ return _itoa(Option.CriticalErrorsTimeout, ret); } else
 	if(strcmp(var,option_FilterTank)==0){ return _itoa(Option.FilterTank, ret); } else
 	if(strcmp(var,option_FilterTankSoftener)==0){ return _itoa(Option.FilterTankSoftener, ret); } else
