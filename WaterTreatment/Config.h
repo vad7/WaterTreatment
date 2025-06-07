@@ -203,6 +203,20 @@ struct History_setup {
 	#define MODBUS_SEPTIC_HEAT_RELAY_ON			1
 	#define MODBUS_SEPTIC_HEAT_RELAY_OFF		0
 
+	#define CHECK_DRAIN_PUMP						// Контроль и отключение дренажного насоса (в дренаж идет регенерация)
+	#ifdef CHECK_DRAIN_PUMP
+		#define MODBUS_DRAIN_PUMP_NAME			"Насос Дренажа"
+		#define MODBUS_DRAIN_PUMP_ADDR			2	// Адрес счетчика дренажного насоса
+		#define MODBUS_DRAIN_PUMP_RELAY_NAME	"Реле насоса Дренажа"
+		#define MODBUS_DRAIN_PUMP_RELAY_ADDR	MODBUS_RELAY_ADDR // Адрес реле дренажного насоса
+		#define MODBUS_DRAIN_PUMP_RELAY_ID		1	// Номер реле (нумерация с 0)
+		#define MODBUS_DRAIN_PUMP_ON_CMD		0	// Команда - насос может работать
+		#define MODBUS_DRAIN_PUMP_OFF_CMD		1	// Команда отключения питания насоса при аварии
+		#define MODBUS_DRAIN_PUMP_ON_PULSE			// Если активно, то импульс 1 сек для выключения (N замыкается на GND для срабатывания УЗО)
+		//#define MODBUS_SEPTIC_ADDR		3	// Адрес насоса септика
+		//#define MODBUS_SEPTIC_PUMP_RELAY_ADDR	4	// Адрес отключения дренажного насоса
+	#endif
+
 	#define MODBUS_SEPTIC_HEAT_FUNC(ADDR,ID,ST) writeSingleCoil(ADDR,ID,ST) // функция переключения реле
 	#define CHECK_SEPTIC						// Контроль септика
 	#ifdef CHECK_SEPTIC
@@ -210,7 +224,7 @@ struct History_setup {
 		#define MODBUS_SEPTIC_ADDR				4	// Адрес счетчика септика
 		#define MODBUS_SEPTIC_PUMP_RELAY_NAME	"Реле насоса Септика"
 		#define MODBUS_SEPTIC_PUMP_RELAY_ADDR	MODBUS_RELAY_ADDR // Адрес реле насоса септика, реле подключено на контакт NC
-		#define MODBUS_SEPTIC_PUMP_RELAY_ID		1	// Номер реле (нумерация с 0)
+		#define MODBUS_SEPTIC_PUMP_RELAY_ID		2	// Номер реле (нумерация с 0)
 		#define MODBUS_SEPTIC_PUMP_ON_CMD		0	// Команда - насос может работать
 		#define MODBUS_SEPTIC_PUMP_OFF_CMD		1	// Команда отключения питания насоса при аварии
 		//#define MODBUS_SEPTIC_PUMP_ON_PULSE	// Если активно, то импульс 1 сек для выключения (N замыкается на GND для срабатывания УЗО), иначе выкл/вкл и работа без поплавка насоса
@@ -218,19 +232,6 @@ struct History_setup {
 		#define SEPTIC_PUMP_CONSUMED_MAX_PERCENT 15	// Уменьшение уже потребленной воды в % для защиты по потреблению септика при попытки включить насос повторно
 	#endif
 
-	#define CHECK_DRAIN_PUMP						// Контроль и отключение дренажного насоса (в дренаж идет регенерация)
-	#ifdef CHECK_DRAIN_PUMP
-		#define MODBUS_DRAIN_PUMP_NAME			"Насос Дренажа"
-		#define MODBUS_DRAIN_PUMP_ADDR			2	// Адрес счетчика дренажного насоса
-		#define MODBUS_DRAIN_PUMP_RELAY_NAME	"Реле насоса Дренажа"
-		#define MODBUS_DRAIN_PUMP_RELAY_ADDR	MODBUS_RELAY_ADDR // Адрес реле дренажного насоса
-		#define MODBUS_DRAIN_PUMP_RELAY_ID		2	// Номер реле (нумерация с 0)
-		#define MODBUS_DRAIN_PUMP_ON_CMD		0	// Команда - насос может работать
-		#define MODBUS_DRAIN_PUMP_OFF_CMD		1	// Команда отключения питания насоса при аварии
-		#define MODBUS_DRAIN_PUMP_ON_PULSE			// Если активно, то импульс 1 сек для выключения (N замыкается на GND для срабатывания УЗО)
-		//#define MODBUS_SEPTIC_ADDR		3	// Адрес насоса септика
-		//#define MODBUS_SEPTIC_PUMP_RELAY_ADDR	4	// Адрес отключения дренажного насоса
-	#endif
 
 #ifdef  TEST_BOARD
 	#undef PWM_READ_PERIOD
