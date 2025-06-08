@@ -346,6 +346,8 @@ class devPWM
 //flags:
 #define fModbus    			0               // флаг наличие modbus
 #define fModbus_Serial2		1				// Следующая команда: 0 - Serial1, 1 - Serial2
+#define MODBUS_SET_SERIAL_AND_ID RS485.begin(id, id >= MODBUS_SERIAL1_ADDR_GE ? MODBUS_SERIAL1 : id >= MODBUS_SERIAL3_ADDR_GE ? MODBUS_SERIAL3 : MODBUS_SERIAL2)
+
 class devModbus
   {
   public:  
