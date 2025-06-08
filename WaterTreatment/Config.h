@@ -196,7 +196,7 @@ struct History_setup {
 	#define MODBUS_TIME_TRANSMISION 	0           // Пауза (msec) между запросом и ответом по модбас было 4, если заремарено, то паузы между отправко и получением - нет.
 	#define MODBUS_OTHER_MAX_ERRORS		10			// Подряд ошибок, чтобы выдать ошибку
     //#define PIN_MODBUS_RSE          	22          // Не используется из-за платы UART-RS485! Управление направлением передачи 485 для связи с инвертором по Modbus (1-передача 0-прием)
-	#define MODBUS_DESCRIPTION_WEB		"Serial1: Счетчик - 248; Serial2: Реле - 3, Насос дренажа - 2; Serial3: Насос септика - 1"
+	#define MODBUS_DESCRIPTION_WEB		"Serial1: Счетчик - 248; Serial2: Реле - 3, Насос дренажа - 2; Serial3: Насос септика - 4"
 
 	#define MODBUS_RELAY_ADDR					3		// Адрес Modbus x4 реле
 	#define MODBUS_PUMP_FUNC(ADDR,ID,ST) 		writeSingleCoil(ADDR,ID,ST)	// функция переключения реле

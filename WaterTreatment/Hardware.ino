@@ -941,7 +941,7 @@ int8_t devModbus::readInputRegisters32(uint8_t id, uint16_t cmd, uint32_t *ret)
 		journal.jprintf((char*) cErrorMutex, __FUNCTION__, MutexModbusBuzy);
 		return err = ERR_485_BUZY;
 	}
-	RS485.begin(id, id >= MODBUS_SERIAL1_ADDR_GE ? MODBUS_SERIAL1 : MODBUS_SERIAL2);	// установка сериала и адреса устройства
+	RS485.begin(id, id >= MODBUS_SERIAL1_ADDR_GE ? MODBUS_SERIAL1 : id >= MODBUS_SERIAL3_ADDR_GE ? MODBUS_SERIAL3 : MODBUS_SERIAL2);// установка сериала и адреса устройства
 	uint8_t result = RS485.readInputRegisters(cmd, 2);
 	if(result == RS485.ku8MBSuccess) {
 		*ret = (RS485.getResponseBuffer(1) << 16) | RS485.getResponseBuffer(0);
