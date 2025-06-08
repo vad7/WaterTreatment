@@ -1347,11 +1347,11 @@ void MainClass::get_Chart(char *var, char* str)
 //		dPWM.ChartVoltage.get_PointsStr(str);
 #ifdef CHECK_DRAIN_PUMP
 	} else if(strcmp(var, chart_DrainPump) == 0) {
-		ChartDrainPump.get_PointsStrUintDiv1000(str);
+		ChartDrainPump.get_PointsStr(str);
 #endif
 #ifdef CHECK_SEPTIC
 	} else if(strcmp(var, chart_SepticPump) == 0) {
-		ChartSepticPump.get_PointsStrUintDiv1000(str);
+		ChartSepticPump.get_PointsStr(str);
 #endif
 	} else if(strcmp(var, chart_WaterBoostCountAll) == 0) {
 		ChartWaterBoosterCount.get_PointsStrAbsDiv100(str);

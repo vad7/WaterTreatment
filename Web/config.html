@@ -328,7 +328,7 @@ function show_all() {
 			<td nowrap><input id="get_opt-spm" type="number"> <input type="submit" value=">" onclick="setParam('get_Opt(SPM)');"></td>
 		</tr>
 		<tr>
-			<td>Мощность сухого хода насоса септика (ошибка, если меньше или равно), Вт</td>
+			<td>Мощность сухого хода насоса септика, Вт</td>
 			<td nowrap><input id="get_opt-spd" type="number"> <input type="submit" value=">" onclick="setParam('get_Opt(SPD)');"></td>
 		</tr>
 		<tr>
@@ -336,11 +336,11 @@ function show_all() {
 			<td nowrap><input id="get_opt-sph" type="number"> <input type="submit" value=">" onclick="setParam('get_Opt(SPH)');"></td>
 		</tr>
 		<tr>
-			<td>Максимальное время работы насоса септика до ошибки, сек</td>
+			<td>Максимальное время работы насоса септика, сек</td>
 			<td nowrap><input id="get_opt-spt" type="number"> <input type="submit" value=">" onclick="setParam('get_Opt(SPT)');"></td>
 		</tr>
 		<tr>
-			<td>Максимальное потребление литров без включения насоса до ошибки, 0 - не проверять, л</td>
+			<td>Максимальное потребление литров без включения насоса, 0 - не проверять, л</td>
 			<td nowrap><input id="get_opt-spc" type="number"> <input type="submit" value=">" onclick="setParam('get_Opt(SPC)');"></td>
 		</tr>
 		<tr>
@@ -348,7 +348,7 @@ function show_all() {
 			<td><input type="checkbox" id="get_opt-spr" onchange="setParam('get_Opt(SPR)');"></td>
 		</tr>
 		<tr>
-			<td>Не генерить ошибки при сухом ходе и длительной работе насоса септика</td>
+			<td>Вместо ошибки откл/вкл насос при сухом ходе и длительной работе насоса септика, если потребление заполнено</td>
 			<td><input type="checkbox" id="get_opt-spe" onchange="setParam('get_Opt(SPE)');"></td>
 		</tr>
 

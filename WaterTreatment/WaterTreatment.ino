@@ -1577,7 +1577,7 @@ void vReadSensor(void *)
 								} else if(MC.Option.SepticPumpMaxTime && MC.get_errcode() != ERR_SEPTIC_PUMP_TOOLONG
 										&& ut - SepticPumpTimeLast > MC.Option.SepticPumpMaxTime * 20) {
 #ifndef MODBUS_SEPTIC_PUMP_ON_PULSE
-									if(!GETBIT(MC.Option.flags2, fSepticPumpRelayNoErr))
+									if(!GETBIT(MC.Option.flags2, fSepticPumpRelayNoErr) || MC.Option.SepticPumpConsumedMax == 0)
 #endif
 										set_Error(ERR_SEPTIC_PUMP_TOOLONG, (char*)"vService");
 									SepticPumpRelayStatus = MODBUS_RELAY_CMD_OFF;
@@ -1588,7 +1588,7 @@ void vReadSensor(void *)
 										SepticPumpRelayStatus = MODBUS_RELAY_CMD_OFF;
 									} else if(MC.Option.SepticPumpDryPower && tmp <= MC.Option.SepticPumpDryPower && SepticPower > dpmp && SepticPower <= MC.Option.SepticPumpDryPower) {
 #ifndef MODBUS_SEPTIC_PUMP_ON_PULSE
-										if(!GETBIT(MC.Option.flags2, fSepticPumpRelayNoErr))
+										if(!GETBIT(MC.Option.flags2, fSepticPumpRelayNoErr) || MC.Option.SepticPumpConsumedMax == 0)
 #endif
 											set_Error(ERR_SEPTIC_PUMP_DRAIN_RUN, (char*)"vService");
 										SepticPumpRelayStatus = MODBUS_RELAY_CMD_OFF;

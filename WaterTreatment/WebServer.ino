@@ -1264,8 +1264,17 @@ xSaveStats:		if((i = MC.save_WorkStats()) == OK)
 				for(i=0;i<RNUMBER;i++) if(MC.dRelay[i].get_present()){strcat(strReturn,MC.dRelay[i].get_name());strcat(strReturn,";");}
 			} else if(strcmp(str,"RelayMdb")==0)     // Функция get_tblRelayMdb
 			{
-#ifdef MODBUS_SEPTIC_HEAT_RELAY_ADDR
+#ifdef MODBUS_DRAIN_PUMP_RELAY_ADDR
 				strcat(strReturn, "1|");
+				strcat(strReturn, MODBUS_DRAIN_PUMP_RELAY_NAME);
+				strcat(strReturn, "|");
+				_itoa(MODBUS_DRAIN_PUMP_RELAY_ADDR, strReturn);
+				strcat(strReturn, "|");
+				_itoa(MODBUS_DRAIN_PUMP_RELAY_ID, strReturn);
+				strcat(strReturn, ";");
+#endif
+#ifdef MODBUS_SEPTIC_HEAT_RELAY_ADDR
+				strcat(strReturn, "2|");
 				strcat(strReturn, MODBUS_SEPTIC_HEAT_RELAY_NAME);
 				strcat(strReturn, "|");
 				_itoa(MODBUS_SEPTIC_HEAT_RELAY_ADDR, strReturn);
@@ -1274,21 +1283,12 @@ xSaveStats:		if((i = MC.save_WorkStats()) == OK)
 				strcat(strReturn, ";");
 #endif
 #ifdef MODBUS_SEPTIC_PUMP_RELAY_ADDR
-				strcat(strReturn, "2|");
+				strcat(strReturn, "3|");
 				strcat(strReturn, MODBUS_SEPTIC_PUMP_RELAY_NAME);
 				strcat(strReturn, "|");
 				_itoa(MODBUS_SEPTIC_PUMP_RELAY_ADDR, strReturn);
 				strcat(strReturn, "|");
 				_itoa(MODBUS_SEPTIC_PUMP_RELAY_ID, strReturn);
-				strcat(strReturn, ";");
-#endif
-#ifdef MODBUS_DRAIN_PUMP_RELAY_ADDR
-				strcat(strReturn, "3|");
-				strcat(strReturn, MODBUS_DRAIN_PUMP_RELAY_NAME);
-				strcat(strReturn, "|");
-				_itoa(MODBUS_DRAIN_PUMP_RELAY_ADDR, strReturn);
-				strcat(strReturn, "|");
-				_itoa(MODBUS_DRAIN_PUMP_RELAY_ID, strReturn);
 				strcat(strReturn, ";");
 #endif
 			} else if(strncmp(str, "Flow", 4) == 0 || strcmp(str, "FlowC") == 0) // Функция get_tblFlow или get_tblFlowC
@@ -1540,35 +1540,27 @@ x_get_RH:			_itoa(MC.Option.RegenHour & 0x1F, strReturn);
 			if(strncmp(str+1, "et_modbus", 9) == 0) {
 				STORE_DEBUG_INFO(38);
 				if(str[10] == 'R') { // get_modbusR(n) - получить состояние реле Modbus
-#ifdef MODBUS_SEPTIC_HEAT_RELAY_ADDR
-					if(*x == '1') {
-						_itoa(SepticHeatRelayStatus, strReturn);
-						ADD_WEBDELIM(strReturn); continue;
-					}
-#endif
 #ifdef MODBUS_DRAIN_PUMP_RELAY_ADDR
-					if(*x == '2') {
-#ifdef MODBUS_DRAIN_PUMP_ON_PULSE
-						_itoa(DrainPumpRelayStatus > 0, strReturn);
-#else
-						_itoa(DrainPumpRelayStatus <= 0, strReturn);
+					if(*x == '1') _itoa(DrainPumpRelayStatus > 0, strReturn);
 #endif
-						ADD_WEBDELIM(strReturn); continue;
-					}
+#ifdef MODBUS_SEPTIC_HEAT_RELAY_ADDR
+					if(*x == '2') _itoa(SepticHeatRelayStatus, strReturn);
 #endif
+#ifdef MODBUS_SEPTIC_PUMP_RELAY_ADDR
+					if(*x == '3') _itoa(SepticPumpRelayStatus > 0, strReturn);
+#endif
+					ADD_WEBDELIM(strReturn); continue;
 				} else if(str[10] == 'E') { // get_modbusE(n) - получить ошибки реле Modbus
-#ifdef MODBUS_SEPTIC_HEAT_RELAY_ADDR
-					if(*x == '1') {
-						_itoa(SepticHeatRelayErrCnt, strReturn);
-						ADD_WEBDELIM(strReturn); continue;
-					}
-#endif
 #ifdef MODBUS_DRAIN_PUMP_RELAY_ADDR
-					if(*x == '2') {
-						_itoa(DrainPumpRelayErrCnt, strReturn);
-						ADD_WEBDELIM(strReturn); continue;
-					}
+					if(*x == '1') _itoa(DrainPumpRelayErrors, strReturn);
 #endif
+#ifdef MODBUS_SEPTIC_HEAT_RELAY_ADDR
+					if(*x == '2') _itoa(SepticHeatRelayErrors, strReturn);
+#endif
+#ifdef MODBUS_SEPTIC_PUMP_RELAY_ADDR
+					if(*x == '3') _itoa(SepticPumpRelayErrors, strReturn);
+#endif
+					ADD_WEBDELIM(strReturn); continue;
 				} else if(str[11] == 'p') { // set_modbus_p(n=x) - установить параметры протокола Modbus
 					l_i32 = pm;
 					if(strcmp(x, "timeout") == 0) { // Таймаут

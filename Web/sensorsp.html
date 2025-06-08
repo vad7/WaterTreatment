@@ -9,7 +9,7 @@
 urlupdate = 2000;
 window.onload = function() {
 	loadParam("get_listADC");
-	loadParam("get_PWM(NAME),get_PWM(NOTE),get_Wgt(P),get_Wgt(0),get_PWM(TP),get_Wgt(X),get_PWRDN,get_PWRSN");
+	loadParam("get_PWM(NAME),get_PWM(NOTE),get_Wgt(P),get_Wgt(0),get_PWM(TP),get_Wgt(X),get_PWRDN,get_PWRSN,get_PWRDP,get_PWRDE,get_PWRSP,get_PWRSE");
 	updateParam("get_PWM(V),get_PWM(P),get_PWM(ERR),get_Wgt(LvL),get_Wgt(W),get_Wgt(T),get_Wgt(N),get_Wgt(K),get_Wgt(A)");
 	updateParam("get_PWM(K)");
 	updateParam("get_PWM(I)");
@@ -18,12 +18,12 @@ window.onload = function() {
 	loadSepticPump();
 }
 function loadDrainPump() {
-	loadParam("get_PWRDV,get_PWRDP,get_PWRDE");
+	loadParam("get_PWRDV");
 	loadParam("get_PWRDI");
 	loadParam("get_PWRDW");
 }
 function loadSepticPump() {
-	loadParam("get_PWRSV,get_PWRSP,get_PWRSE");
+	loadParam("get_PWRSV");
 	loadParam("get_PWRSI");
 	loadParam("get_PWRSW");
 }
