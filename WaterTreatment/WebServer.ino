@@ -1032,8 +1032,12 @@ xSaveStats:		if((i = MC.save_WorkStats()) == OK)
 			strcat(strReturn,"MODBUS_SERIAL1|Modbus RTU порт для насосов|Serial");
 			m_snprintf(strReturn + strlen(strReturn), 128, "%d (%d);", GetSerialNum(MODBUS_SERIAL1), MODBUS_SERIAL1_SPEED);
 #else
-			strcat(strReturn,"MODBUS_SERIAL2|Modbus RTU порт для насосов|Serial");
+			strcat(strReturn,"MODBUS_SERIAL2|Modbus RTU порт для насосов и реле|Serial");
 			m_snprintf(strReturn + strlen(strReturn), 128, "%d (%d);", GetSerialNum(MODBUS_SERIAL2), MODBUS_SERIAL2_SPEED);
+#endif
+#ifdef MODBUS_SERIAL3
+			strcat(strReturn,"MODBUS_SERIAL3|Modbus RTU порт для насосов и реле|Serial");
+			m_snprintf(strReturn + strlen(strReturn), 128, "%d (%d);", GetSerialNum(MODBUS_SERIAL3), MODBUS_SERIAL3_SPEED);
 #endif
 			strcat(strReturn,"MODBUS_PORT_CONFIG|Конфигурация порта|8N1;");
 			strcat(strReturn,"MODBUS_TIME_WAIT|Максимальное время ожидания освобождения порта (мсек)|");_itoa(MODBUS_TIME_WAIT,strReturn);strcat(strReturn,";");
@@ -1572,35 +1576,7 @@ x_get_RH:			_itoa(MC.Option.RegenHour & 0x1F, strReturn);
 					} else if(strcmp(x, "pause") == 0) { // Пауза между транзакциями
 						if(str[0] == 's') Modbus.RS485.ModbusMinTimeBetweenTransaction = l_i32; else l_i32 = Modbus.RS485.ModbusMinTimeBetweenTransaction;
 					} else if(strcmp(x, "id") == 0) { // get_modbus_p(id) - перечень id устройств
-						strcat(strReturn, "Serial");
-#if PWM_MODBUS_ADR >= MODBUS_SERIAL1_ADDR_GE
-						_itoa(GetSerialNum(MODBUS_SERIAL1), strReturn);
-#else
-						_itoa(GetSerialNum(MODBUS_SERIAL2), strReturn);
-#endif
-						strcat(strReturn, ": Счетчик - ");
-						_itoa(PWM_MODBUS_ADR, strReturn);
-#if defined(MODBUS_DRAIN_PUMP) || defined(CHECK_SEPTIC)
-						strcat(strReturn, ". Serial");
-#if PWM_MODBUS_ADR < MODBUS_SERIAL1_ADDR_GE
-						_itoa(GetSerialNum(MODBUS_SERIAL1), strReturn);
-#else
-						_itoa(GetSerialNum(MODBUS_SERIAL2), strReturn);
-#endif
-#ifdef MODBUS_DRAIN_PUMP_ADDR
-						strcat(strReturn, ": Насос дренажа - ");
-						_itoa(MODBUS_DRAIN_PUMP_ADDR, strReturn);
-#ifdef MODBUS_DRAIN_PUMP_RELAY_ADDR
-						strcat(strReturn, ", реле - ");
-						_itoa(MODBUS_DRAIN_PUMP_RELAY_ADDR, strReturn);
-#endif
-#endif
-#ifdef MODBUS_SEPTIC_ADDR
-						strcat(strReturn, "; Насос септика - ");
-						_itoa(MODBUS_SEPTIC_ADDR, strReturn);
-#endif
-#endif
-
+						strcat(strReturn, MODBUS_DESCRIPTION_WEB);
 						ADD_WEBDELIM(strReturn);
 						continue;
 					} else goto x_FunctionNotFound;

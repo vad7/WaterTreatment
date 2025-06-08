@@ -1531,7 +1531,7 @@ void vReadSensor(void *)
 							DrainPumpRelayStatus = MODBUS_RELAY_ON;
 						}
 					}
-				} else
+				}
 #endif
 #ifdef MODBUS_SEPTIC_PUMP_RELAY_ADDR
 				if(GETBIT(MC.Option.flags2, fSepticPumpRelay) &&
@@ -1558,12 +1558,13 @@ void vReadSensor(void *)
 							SepticPumpRelayStatus = MODBUS_RELAY_ON;
 						}
 					}
-				} else
+				}
 #endif
 				{
 					PumpReadCounter++;
 #ifdef CHECK_SEPTIC
-					if(GETBIT(MC.Option.flags2, fCheckSeptic) && (PumpReadCounter == MC.Option.PumpReadPeriod * 1000 / TIME_READ_SENSOR / 2 || MC.Option.PumpReadPeriod == 1)) {
+					if(!GETBIT(MC.Option.flags2, fCheckSeptic)) SepticPower = 0;
+					else if(PumpReadCounter == MC.Option.PumpReadPeriod * 1000 / TIME_READ_SENSOR / 2 || MC.Option.PumpReadPeriod == 1) {
 						int8_t err = Modbus.readInputRegisters32(MODBUS_SEPTIC_ADDR, PWM_POWER, &tmp);
 						if(err == OK) {
 							tmp /= 10;	// -> W
@@ -1627,7 +1628,8 @@ void vReadSensor(void *)
 					}
 #endif
 #ifdef CHECK_DRAIN_PUMP
-					if(GETBIT(MC.Option.flags2, fCheckDrainPump) && PumpReadCounter >= MC.Option.PumpReadPeriod * 1000 / TIME_READ_SENSOR) {
+					if(GETBIT(MC.Option.flags2, fCheckDrainPump)) DrainPumpPower = 0;
+					else if(PumpReadCounter >= MC.Option.PumpReadPeriod * 1000 / TIME_READ_SENSOR) {
 						//skip_this_iteration = true;
 						PumpReadCounter = 0;
 						int8_t err = Modbus.readInputRegisters32(MODBUS_DRAIN_PUMP_ADDR, PWM_POWER, &tmp);
