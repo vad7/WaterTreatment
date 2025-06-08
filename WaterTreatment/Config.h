@@ -205,7 +205,7 @@ struct History_setup {
 	#ifdef CHECK_DRAIN_PUMP
 		#define MODBUS_DRAIN_PUMP_NAME			"Насос Дренажа"
 		#define MODBUS_DRAIN_PUMP_ADDR			2	// Адрес счетчика дренажного насоса
-		#define MODBUS_DRAIN_PUMP_RELAY_NAME	"Реле откл. насоса Дренажа"
+		#define MODBUS_DRAIN_PUMP_RELAY_NAME	"Реле насоса Дренажа"
 		#define MODBUS_DRAIN_PUMP_RELAY_ADDR	MODBUS_RELAY_ADDR // Адрес реле дренажного насоса
 		#define MODBUS_DRAIN_PUMP_RELAY_ID		0	// Номер реле (нумерация с 0)
 		#define MODBUS_DRAIN_PUMP_ON_CMD		0	// Команда - насос может работать
