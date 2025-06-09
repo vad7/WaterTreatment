@@ -192,15 +192,15 @@ void MainClass::clear_all_errors()
 			MC.WorkStats.RegenSofteningCntAlarm = MC.Option.RegenSofteningCntAlarm;
 			NeedSaveWorkStats = 1;
 #if defined(CHECK_DRAIN_PUMP) && !defined(MODBUS_DRAIN_PUMP_ON_PULSE)
-		} else if(error == ERR_DRAIN_PUMP_TOOLONG) {
+		} else if(error == ERR_DRAIN_PUMP_TOOLONG || error == ERR_DRAIN_PUMP_OVERLOAD || error == ERR_DRAIN_PUMP_DRAIN_RUN) {
 			DrainPumpRelayStatus = MODBUS_RELAY_CMD_ON;
 #endif
 #if defined(CHECK_SEPTIC) && !defined(MODBUS_SEPTIC_PUMP_ON_PULSE)
-		} else if(error == ERR_DRAIN_PUMP_TOOLONG) {
+		} else if(error == ERR_SEPTIC_PUMP_TOOLONG || error == ERR_SEPTIC_PUMP_OVERLOAD || error == ERR_SEPTIC_PUMP_DRAIN_RUN) {
 			DrainPumpRelayStatus = MODBUS_RELAY_CMD_ON;
+#endif
 		} else if(error == ERR_SEPTIC_PUMP_NOT_WORK) {
 			UsedWaterToSeptic = 0;
-#endif
 		}
 	}
 	memset(Errors, 0, sizeof(Errors));
@@ -1347,11 +1347,11 @@ void MainClass::get_Chart(char *var, char* str)
 //		dPWM.ChartVoltage.get_PointsStr(str);
 #ifdef CHECK_DRAIN_PUMP
 	} else if(strcmp(var, chart_DrainPump) == 0) {
-		ChartDrainPump.get_PointsStrUintDiv1000(str);
+		ChartDrainPump.get_PointsStr(str);
 #endif
 #ifdef CHECK_SEPTIC
 	} else if(strcmp(var, chart_SepticPump) == 0) {
-		ChartSepticPump.get_PointsStrUintDiv1000(str);
+		ChartSepticPump.get_PointsStr(str);
 #endif
 	} else if(strcmp(var, chart_WaterBoostCountAll) == 0) {
 		ChartWaterBoosterCount.get_PointsStrAbsDiv100(str);

@@ -117,6 +117,7 @@ uint16_t DrainPumpPower 		= 0; // W
 uint8_t  DrainPumpErrCnt 		= 0;
 uint16_t DrainPumpErrors 		= 0;
 uint8_t  DrainPumpRelayErrCnt 	= 0;
+uint16_t DrainPumpRelayErrors 	= 0;
 uint8_t  DrainPumpDryCnt		= 0;
 #endif
 #ifdef CHECK_SEPTIC
@@ -131,6 +132,7 @@ uint16_t SepticPower 			= 0; // W
 uint8_t  SepticErrCnt 			= 0;
 uint16_t SepticErrors 			= 0;
 uint8_t  SepticPumpRelayErrCnt 	= 0;
+uint16_t  SepticPumpRelayErrors = 0;
 uint8_t  SepticPumpDryCnt		= 0;
 #endif
 uint8_t  PumpReadCounter 		= 0;

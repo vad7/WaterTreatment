@@ -1501,9 +1501,9 @@ void vReadSensor(void *)
 		}
 
 #if defined(CHECK_DRAIN_PUMP) || defined(CHECK_SEPTIC)
+		vReadSensor_delay1ms(20);
 		static uint32_t tmp;
-		if(GetTickCount() - ttime < cDELAY_DS1820 - cDELAY_DS1820/4) {
-			vReadSensor_delay1ms(20);
+		if(GetTickCount() - ttime < cDELAY_DS1820 - cDELAY_DS1820/10) {
 			bool skip_this_iteration = false;
 			if(MC.Option.flags2 & ((1<<fCheckDrainPump) | (1<<fCheckSeptic))) {
 #ifdef MODBUS_DRAIN_PUMP_RELAY_ADDR
@@ -1531,7 +1531,7 @@ void vReadSensor(void *)
 							DrainPumpRelayStatus = MODBUS_RELAY_ON;
 						}
 					}
-				} else
+				}
 #endif
 #ifdef MODBUS_SEPTIC_PUMP_RELAY_ADDR
 				if(GETBIT(MC.Option.flags2, fSepticPumpRelay) &&
@@ -1558,12 +1558,13 @@ void vReadSensor(void *)
 							SepticPumpRelayStatus = MODBUS_RELAY_ON;
 						}
 					}
-				} else
+				}
 #endif
 				{
 					PumpReadCounter++;
 #ifdef CHECK_SEPTIC
-					if(GETBIT(MC.Option.flags2, fCheckSeptic) && (PumpReadCounter == MC.Option.PumpReadPeriod * 1000 / TIME_READ_SENSOR / 2 || MC.Option.PumpReadPeriod == 1)) {
+					if(!GETBIT(MC.Option.flags2, fCheckSeptic)) SepticPower = 0;
+					else if(PumpReadCounter == MC.Option.PumpReadPeriod * 1000 / TIME_READ_SENSOR / 2 || MC.Option.PumpReadPeriod == 1) {
 						int8_t err = Modbus.readInputRegisters32(MODBUS_SEPTIC_ADDR, PWM_POWER, &tmp);
 						if(err == OK) {
 							tmp /= 10;	// -> W
@@ -1576,7 +1577,7 @@ void vReadSensor(void *)
 								} else if(MC.Option.SepticPumpMaxTime && MC.get_errcode() != ERR_SEPTIC_PUMP_TOOLONG
 										&& ut - SepticPumpTimeLast > MC.Option.SepticPumpMaxTime * 20) {
 #ifndef MODBUS_SEPTIC_PUMP_ON_PULSE
-									if(!GETBIT(MC.Option.flags2, fSepticPumpRelayNoErr))
+									if(!GETBIT(MC.Option.flags2, fSepticPumpRelayNoErr) || MC.Option.SepticPumpConsumedMax == 0)
 #endif
 										set_Error(ERR_SEPTIC_PUMP_TOOLONG, (char*)"vService");
 									SepticPumpRelayStatus = MODBUS_RELAY_CMD_OFF;
@@ -1587,7 +1588,7 @@ void vReadSensor(void *)
 										SepticPumpRelayStatus = MODBUS_RELAY_CMD_OFF;
 									} else if(MC.Option.SepticPumpDryPower && tmp <= MC.Option.SepticPumpDryPower && SepticPower > dpmp && SepticPower <= MC.Option.SepticPumpDryPower) {
 #ifndef MODBUS_SEPTIC_PUMP_ON_PULSE
-										if(!GETBIT(MC.Option.flags2, fSepticPumpRelayNoErr))
+										if(!GETBIT(MC.Option.flags2, fSepticPumpRelayNoErr) || MC.Option.SepticPumpConsumedMax == 0)
 #endif
 											set_Error(ERR_SEPTIC_PUMP_DRAIN_RUN, (char*)"vService");
 										SepticPumpRelayStatus = MODBUS_RELAY_CMD_OFF;
@@ -1615,7 +1616,7 @@ void vReadSensor(void *)
 							SepticErrCnt = 0;
 						} else {
 #ifndef CHECK_DRAIN_PUMP
-							PumpReadCounter = MC.Option.PumpReadPeriod * 1000 / TIME_READ_SENSOR - 1;
+							PumpReadCounter = MC.Option.PumpReadPeriod * 1000 / TIME_READ_SENSOR / 2 - 1;
 #endif
 							SepticErrors++;
 							if(++SepticErrCnt == MODBUS_OTHER_MAX_ERRORS) {
@@ -1626,49 +1627,52 @@ void vReadSensor(void *)
 						}
 					}
 #endif
-#ifdef CHECK_DRAIN_PUMP
-					if(GETBIT(MC.Option.flags2, fCheckDrainPump) && PumpReadCounter >= MC.Option.PumpReadPeriod * 1000 / TIME_READ_SENSOR) {
+					if(PumpReadCounter >= MC.Option.PumpReadPeriod * 1000 / TIME_READ_SENSOR) {
 						//skip_this_iteration = true;
 						PumpReadCounter = 0;
-						int8_t err = Modbus.readInputRegisters32(MODBUS_DRAIN_PUMP_ADDR, PWM_POWER, &tmp);
-						if(err == OK) {
-							tmp /= 10;	// -> W
-							uint32_t ut = rtcSAM3X8.unixtime();
-							uint32_t dpmp = MC.Option.DrainPumpMinPower * 10;
-							if(tmp > dpmp) { // работает
-								if(DrainPumpPower <= dpmp) DrainPumpTimeLast = ut; // время включения
-								else if(MC.Option.DrainPumpMaxTime && MC.get_errcode() != ERR_DRAIN_PUMP_TOOLONG
-										&& ut - DrainPumpTimeLast > MC.Option.DrainPumpMaxTime * 20) {
-									set_Error(ERR_DRAIN_PUMP_TOOLONG, (char*)"vService");
-									DrainPumpRelayStatus = MODBUS_RELAY_CMD_OFF;
-								}
-								if(ut - DrainPumpTimeLast >= MC.Option.PumpStartTime) {
-									if(MC.Option.DrainPumpMaxPower && tmp > MC.Option.DrainPumpMaxPower) {
-										set_Error(ERR_DRAIN_PUMP_OVERLOAD, (char*)"vService");
-										DrainPumpRelayStatus = MODBUS_RELAY_CMD_OFF;
-									} else if(MC.Option.DrainPumpDryPower && tmp <= MC.Option.DrainPumpDryPower && DrainPumpPower > dpmp && DrainPumpPower <= MC.Option.DrainPumpDryPower) {
-										set_Error(ERR_DRAIN_PUMP_DRAIN_RUN, (char*)"vService");
+#ifdef CHECK_DRAIN_PUMP
+						if(!GETBIT(MC.Option.flags2, fCheckDrainPump)) DrainPumpPower = 0;
+						else {
+							int8_t err = Modbus.readInputRegisters32(MODBUS_DRAIN_PUMP_ADDR, PWM_POWER, &tmp);
+							if(err == OK) {
+								tmp /= 10;	// -> W
+								uint32_t ut = rtcSAM3X8.unixtime();
+								uint32_t dpmp = MC.Option.DrainPumpMinPower * 10;
+								if(tmp > dpmp) { // работает
+									if(DrainPumpPower <= dpmp) DrainPumpTimeLast = ut; // время включения
+									else if(MC.Option.DrainPumpMaxTime && MC.get_errcode() != ERR_DRAIN_PUMP_TOOLONG
+											&& ut - DrainPumpTimeLast > MC.Option.DrainPumpMaxTime * 20) {
+										set_Error(ERR_DRAIN_PUMP_TOOLONG, (char*)"vService");
 										DrainPumpRelayStatus = MODBUS_RELAY_CMD_OFF;
 									}
+									if(ut - DrainPumpTimeLast >= MC.Option.PumpStartTime) {
+										if(MC.Option.DrainPumpMaxPower && tmp > MC.Option.DrainPumpMaxPower) {
+											set_Error(ERR_DRAIN_PUMP_OVERLOAD, (char*)"vService");
+											DrainPumpRelayStatus = MODBUS_RELAY_CMD_OFF;
+										} else if(MC.Option.DrainPumpDryPower && tmp <= MC.Option.DrainPumpDryPower && DrainPumpPower > dpmp && DrainPumpPower <= MC.Option.DrainPumpDryPower) {
+											set_Error(ERR_DRAIN_PUMP_DRAIN_RUN, (char*)"vService");
+											DrainPumpRelayStatus = MODBUS_RELAY_CMD_OFF;
+										}
+									}
 								}
-							}
-							DrainPumpPower = tmp;
-							DrainPumpErrCnt = 0;
-						} else {
+								DrainPumpPower = tmp;
+								DrainPumpErrCnt = 0;
+							} else {
 #ifndef CHECK_SEPTIC
-							PumpReadCounter = MC.Option.PumpReadPeriod * 1000 / TIME_READ_SENSOR - 1;
+								PumpReadCounter = MC.Option.PumpReadPeriod * 1000 / TIME_READ_SENSOR - 1;
 #endif
-							DrainPumpErrors++;
-							if(++DrainPumpErrCnt == MODBUS_OTHER_MAX_ERRORS) {
-								if(MC.get_errcode() != ERR_DRAIN_PUMP_LINK) journal.jprintf("%s Link Error %d!\n", "PUMP", err);
-								set_Error(ERR_DRAIN_PUMP_LINK, (char*)"vService");
-								DrainPumpPower = 0;
-							} else if(GETBIT(MC.Option.flags, fPWMLogErrors)) journal.jprintf_time("%s Read Error %d\n", "PUMP", err);
+								DrainPumpErrors++;
+								if(++DrainPumpErrCnt == MODBUS_OTHER_MAX_ERRORS) {
+									if(MC.get_errcode() != ERR_DRAIN_PUMP_LINK) journal.jprintf("%s Link Error %d!\n", "PUMP", err);
+									set_Error(ERR_DRAIN_PUMP_LINK, (char*)"vService");
+									DrainPumpPower = 0;
+								} else if(GETBIT(MC.Option.flags, fPWMLogErrors)) journal.jprintf_time("%s Read Error %d\n", "PUMP", err);
+							}
 						}
 					}
+#endif
 				}
 			}
-#endif
 #endif //CHECK_DRAIN_PUMP || CHECK_SEPTIC
 	#if defined(MODBUS_SEPTIC_HEAT_RELAY_ADDR) && defined(SEPTIC_LOW_TEMP)
 			if(!skip_this_iteration && GETBIT(MC.Option.flags2, fSepticHeatRelay)) {
