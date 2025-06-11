@@ -448,9 +448,15 @@ xFileFound:
 void parserGET(uint8_t thread)
 {
 	char *str,*x,*y,*z;
-	float pm=0;
 	int16_t i;
-	int32_t l_i32;
+	union {
+		float pm;
+		int32_t pm_i32;
+	};
+	union {
+		int32_t l_i32;
+		uint32_t l_u32;
+	};
 
 	char *buf = Socket[thread].inPtr;
 	char *strReturn = Socket[thread].outBuf;
@@ -585,6 +591,9 @@ void parserGET(uint8_t thread)
 				strcat(strReturn, "---;"); // #0
 				for(i = DAILY_RELAY_START_FROM; i < RNUMBER; i++) { // #1..
 					strcat(strReturn, MC.dRelay[i].get_name()); strcat(strReturn,";");
+				}
+				for(i = 0; i < MODBUS_TIMER_RELAY_MAX; i++) { // Modbus relay
+					strcat(strReturn, "MODBUS-"); _itoa(i, strReturn); strcat(strReturn,";");
 				}
 				ADD_WEBDELIM(strReturn);
 				continue;
@@ -763,7 +772,11 @@ xSaveStats:		if((i = MC.save_WorkStats()) == OK)
 						strcat(strReturn, ")");
 					}
 #ifndef MODBUS_SEPTIC_PUMP_ON_PULSE
-					if(SepticPumpRelayStatus == MODBUS_RELAY_OFF) strcat(strReturn, " ОТКЛЮЧЕН");
+					if(SepticPumpRelayStatus == MODBUS_RELAY_OFF) {
+						strcat(strReturn, " Отключен (+");
+						_itoa(UsedWaterToSeptic, strReturn);
+						strcat(strReturn, "л)");
+					}
 #endif
 				} else if(*str == 'N') strcat(strReturn, MODBUS_SEPTIC_NAME);
 				else MC.dPWM.get_param_now(MODBUS_SEPTIC_ADDR, *str, strReturn); // get_PWRSV, get_PWRSI, get_PWRSP, get_PWRSW, get_PWRSE, get_PWRSO
@@ -808,8 +821,10 @@ xSaveStats:		if((i = MC.save_WorkStats()) == OK)
 				if(i) MC.WorkStats.RO_UsedTotal = l_i32;
 				_itoa(MC.WorkStats.RO_UsedTotal, strReturn);
 			} else if(strcmp(str, webWS_UsedYesterday) == 0) _itoa(MC.WorkStats.UsedYesterday, strReturn); // get_WSUY
-			else if(strcmp(str, webWS_LastDrain) == 0) {
-				if(MC.WorkStats.LastDrain) TimeIntervalToStr(rtcSAM3X8.unixtime() - MC.WorkStats.LastDrain, strReturn, 0); else strcat(strReturn, "-"); // get_WSDD
+			else if(strcmp(str, webWS_LastDrain) == 0) {  // get_WSDD
+				l_u32 = rtcSAM3X8.unixtime() - MC.WorkStats.LastDrain;
+				if(MC.WorkStats.LastDrain && l_u32 < WEB_DONT_SHOW_DRAIN_AFTER * 86400U) TimeIntervalToStr(l_u32, strReturn, 0);
+				else strcat(strReturn, "-");
 			} else if(strcmp(str, webWS_RegCnt) == 0) {  // get_WSRC
 				if(i) MC.WorkStats.RegCnt = l_i32;  // set_WSRC=x
 				_itoa(MC.WorkStats.RegCnt, strReturn);
@@ -834,8 +849,10 @@ xSaveStats:		if((i = MC.save_WorkStats()) == OK)
 			} else if(strcmp(str, webWS_UsedSinceLastRegenSoftening) == 0) _itoa(MC.WorkStats.UsedSinceLastRegenSoftening + MC.RTC_store.UsedToday, strReturn); // get_WSRSS
 			else if(strcmp(str, webWS_NextRegenSoftAfterDays) == 0) _itoa(MC.NextRegenSoftAfterDays, strReturn); // get_WSNS
 			else if(strcmp(str, webWS_NextRegenAfterDays) == 0) _itoa(MC.NextRegenAfterDays, strReturn); // get_WSN
-			else if(*str == webWS_UsedDrain) _dtoa(strReturn, MC.WorkStats.UsedDrain, 1); // get_WSD
-			else if(*str == webWS_UsedTotal) {  // get_WST
+			else if(*str == webWS_UsedDrain) {  // get_WSD
+				if(MC.WorkStats.UsedDrain && rtcSAM3X8.unixtime() - MC.WorkStats.LastDrain < WEB_DONT_SHOW_DRAIN_AFTER * 86400U) _dtoa(strReturn, MC.WorkStats.UsedDrain, 1);
+				else strcat(strReturn, "-");
+			} else if(*str == webWS_UsedTotal) {  // get_WST
 				if(i) MC.WorkStats.UsedTotal = pm * 1000 + 0.0005f; // set_WST=x
 				_dtoa(strReturn, MC.WorkStats.UsedTotal + MC.RTC_store.UsedToday, 3);
 			} else if(*str == webWS_UsedAverageDay) _itoa(MC.WorkStats.UsedAverageDay / MC.WorkStats.UsedAverageDayNum, strReturn); // get_WSA
@@ -1015,6 +1032,7 @@ xSaveStats:		if((i = MC.save_WorkStats()) == OK)
 			strcat(strReturn,"__DATE__ __TIME__|Дата и время сборки прошивки|");strcat(strReturn,__DATE__);strcat(strReturn," ");strcat(strReturn,__TIME__) ;strcat(strReturn,";");
 			strcat(strReturn,"CONFIG_NAME|Имя конфигурации|");strcat(strReturn,CONFIG_NAME);strcat(strReturn,";");
 			strcat(strReturn,"CONFIG_NOTE|");strcat(strReturn,CONFIG_NOTE);strcat(strReturn,"|;");
+			strcat(strReturn,"VER_SAVE|Версия формата сохраненных данных в I2C памяти|"); _itoa(VER_SAVE,strReturn); strcat(strReturn,";");
 			strcat(strReturn,"configCPU_CLOCK_HZ|Частота CPU (МГц)|");_itoa(configCPU_CLOCK_HZ/1000000,strReturn);strcat(strReturn,";");
 			strcat(strReturn,"SD_SPI_SPEED|Частота SPI SD карты (МГц)|");_itoa(SD_CLOCK, strReturn);strcat(strReturn,";");
 			strcat(strReturn,"W5200_SPI_SPEED|Частота SPI сети "); strcat(strReturn,nameWiznet);strcat(strReturn," (МГц)|");_itoa(84/W5200_SPI_SPEED, strReturn);strcat(strReturn,";");
@@ -1078,10 +1096,6 @@ xSaveStats:		if((i = MC.save_WorkStats()) == OK)
 			strcat(strReturn,"PWATER_OSMOS_MIN_DELTA|Минимальная разница между показаниями давления для добавки|");_dtoa(strReturn,PWATER_OSMOS_MIN_DELTA,2);strcat(strReturn,";");
 			strcat(strReturn,"PWATER_OSMOS_LASTPRESS_RENEW|Через сколько времени обновлять LastPress, с|");_dtoa(strReturn,PWATER_OSMOS_MIN_DELTA,2);strcat(strReturn,";");
 
-			strcat(strReturn,"VER_SAVE|Версия формата сохраненных данных в I2C памяти|");
-			_itoa(VER_SAVE,strReturn);
-			//if(VER_SAVE != MC.Option.ver) { strcat(strReturn," ("); _itoa(MC.Option.ver, strReturn); strcat(strReturn,")"); }
-			strcat(strReturn,";");
 			strcat(strReturn,"DEBUG|Вывод в порт отладочных сообщений|");
 #ifdef DEBUG
 			strcat(strReturn,"ON;");
@@ -1157,12 +1171,6 @@ xSaveStats:		if((i = MC.save_WorkStats()) == OK)
 				STORE_DEBUG_INFO(47);
 
 				strcat(strReturn,"<b> Времена</b>|;");
-				strReturn += m_snprintf(strReturn += strlen(strReturn), 256, "Текущее время [%u]|", GetTickCount());
-				DecodeTimeDate(rtcSAM3X8.unixtime(),strReturn,3); strcat(strReturn,";");
-				strcat(strReturn,"Время сохранения текущих настроек |");DecodeTimeDate(MC.get_saveTime(),strReturn,3);strcat(strReturn,";");
-				strcat(strReturn,"Время заполнения бака|");if(MC.RFILL_last_time_ON) DecodeTimeDate(MC.RFILL_last_time_ON,strReturn,3); strcat(strReturn,";");
-				strcat(strReturn,"Время последнего потребления|");DecodeTimeDate(MC.WorkStats.UsedLastTime,strReturn,3);strcat(strReturn,";");
-				strcat(strReturn,"Максимальное потребление воды за раз|"); TimeIntervalToStr(UsedWaterContinuousTimerMax * USED_WATER_CONTINUOUS_MINTIME, strReturn, 1); strcat(strReturn,";");
 #ifdef CHECK_DRAIN_PUMP
 				strcat(strReturn,"Последнее включение насоса Дренажа|"); DecodeTimeDate(DrainPumpTimeLast, strReturn, 3); strcat(strReturn,";");
 #endif
@@ -1173,6 +1181,11 @@ xSaveStats:		if((i = MC.save_WorkStats()) == OK)
 				if(SepticPumpTimeWorkTime) TimeIntervalToStr(SepticPumpTimeWorkTime, strReturn, 1); else strcat(strReturn, "-");
 				strcat(strReturn,")|"); DecodeTimeDate(SepticPumpTimeLast, strReturn, 3); strcat(strReturn,";");
 #endif
+				strReturn += m_snprintf(strReturn += strlen(strReturn), 256, "Текущее время [%u]|", GetTickCount()); DecodeTimeDate(rtcSAM3X8.unixtime(),strReturn,3); strcat(strReturn,";");
+				strcat(strReturn,"Время последнего потребления|");DecodeTimeDate(MC.WorkStats.UsedLastTime,strReturn,3);strcat(strReturn,";");
+				strcat(strReturn,"Время заполнения бака|");if(MC.RFILL_last_time_ON) DecodeTimeDate(MC.RFILL_last_time_ON,strReturn,3); strcat(strReturn,";");
+				strcat(strReturn,"Время сохранения текущих настроек |");DecodeTimeDate(MC.get_saveTime(),strReturn,3);strcat(strReturn,";");
+				strcat(strReturn,"Максимальное потребление воды за раз|"); TimeIntervalToStr(UsedWaterContinuousTimerMax * USED_WATER_CONTINUOUS_MINTIME, strReturn, 1); strcat(strReturn,";");
 				strReturn[strlen(strReturn) - 1] = '\0';	// удалить последнюю ';'
 
 			} else if(strcmp(str, "Info2") == 0) { // "get_sysInfo2" - Функция вывода системной информации для разработчика
@@ -1185,6 +1198,7 @@ xSaveStats:		if((i = MC.save_WorkStats()) == OK)
 	#endif
 				strcat(strReturn,"Счетчик неудачных ping|");_itoa(MC.num_resPing,strReturn);strcat(strReturn,";");
 				strcat(strReturn,"Счетчик числа ошибок чтения датчиков температуры|");_itoa(MC.get_errorReadTemp(),strReturn);strcat(strReturn,";");
+				strcat(strReturn,"Счетчик ошибок Modbus реле|"); _itoa(ModbusRelayErrors, strReturn); strcat(strReturn, ";");
 
 				strcat(strReturn,"<b> Глобальные счетчики</b>|;");
 				strcat(strReturn,"Время сброса|"); DecodeTimeDate(MC.WorkStats.ResetTime, strReturn, 3); strcat(strReturn,";");
@@ -1297,11 +1311,15 @@ xSaveStats:		if((i = MC.save_WorkStats()) == OK)
 			} else if(strcmp(str,"PDS")==0) {    // Функция get_tblPDS
 				for(i = 0; i < DAILY_SWITCH_MAX; i++) {
 					if(MC.Option.DailySwitch[i].Device == 0) {
-						strcat(strReturn, "---;;00:00;00:00|");
+						strcat(strReturn, "---;;;00:00;00:00|");
 						break;
 					}
-					strReturn += m_snprintf(strReturn += m_strlen(strReturn), 256, "%s;%s;%02d:%d0;%02d:%d0|", MC.dRelay[MC.Option.DailySwitch[i].Device].get_name(), MC.dRelay[MC.Option.DailySwitch[i].Device].get_note(),
-							MC.Option.DailySwitch[i].TimeOn / 10, MC.Option.DailySwitch[i].TimeOn % 10, MC.Option.DailySwitch[i].TimeOff / 10, MC.Option.DailySwitch[i].TimeOff % 10);
+					l_i32 = (MC.Option.DailySwitch[i].Device & ~(1<<DS_TimerBit));
+					if(l_i32 >= RNUMBER) strReturn += m_snprintf(strReturn += m_strlen(strReturn), 256, "MODBUS-%d;%s;", l_i32 - RNUMBER, MODBUS_TIMER_RELAY_NAME[l_i32 - RNUMBER]);
+					else strReturn += m_snprintf(strReturn += m_strlen(strReturn), 256, "%s;%s;", MC.dRelay[l_i32].get_name(), MC.dRelay[l_i32].get_note());
+					if(GETBIT(MC.Option.DailySwitch[i].Device, DS_TimerBit))
+						strReturn += m_snprintf(strReturn += m_strlen(strReturn), 64, "Таймер;%d;%d|", MC.Option.DailySwitch[i].TimeOn * DS_TimerMin, MC.Option.DailySwitch[i].TimeOff * DS_TimerMin);
+					else strReturn += m_snprintf(strReturn += m_strlen(strReturn), 64, ";%02d:%d0;%02d:%d0|", MC.Option.DailySwitch[i].TimeOn / 10, MC.Option.DailySwitch[i].TimeOn % 10, MC.Option.DailySwitch[i].TimeOff / 10, MC.Option.DailySwitch[i].TimeOff % 10);
 				}
 #ifdef CORRECT_POWER220
 			} else if(strcmp(str,"PwrC")==0) {    // Функция get_tblPwrC
@@ -1518,6 +1536,37 @@ x_get_RH:			_itoa(MC.Option.RegenHour & 0x1F, strReturn);
 						MC.Option.RegenHour = (atoi(z) & 0x1F) + l_i32;
 						goto x_get_RH;
 					} else strcat(strReturn,"E17");
+				} else if(strncmp(x, prof_DailySwitch, sizeof(prof_DailySwitch)-1) == 0) { // 000..235 / -0..P255
+					x += sizeof(prof_DailySwitch)-1;
+					uint32_t i = *(x + 1) - '0';
+					if(i >= DAILY_SWITCH_MAX) {
+						strcat(strReturn,"E17");
+					} else {
+						l_i32 = (int32_t)pm;
+						if(*x == prof_DailySwitchDevice) {
+							MC.Option.DailySwitch[i].Device = (l_i32 == 0 ? 0 : DAILY_RELAY_START_FROM + l_i32 - 1) + (GETBIT(MC.Option.DailySwitch[i].Device, DS_TimerBit)<<DS_TimerBit);
+							MC.DailySwitchTimerCnt[i] = 0;
+						} else {
+							if(*z == '-') { // Таймер
+								SETBIT1(MC.Option.DailySwitch[i].Device, DS_TimerBit);
+								l_i32 = abs(l_i32) / DS_TimerMin;
+							} else {
+								SETBIT0(MC.Option.DailySwitch[i].Device, DS_TimerBit);
+								i = l_i32 / 10;
+								if(i > 23) i = 23;
+								l_i32 %= 10;
+								if(l_i32 > 5) l_i32 = 5;
+								l_i32 = i * 10 + l_i32;
+							}
+							if(*x == prof_DailySwitchOn) {
+								MC.Option.DailySwitch[i].TimeOn = l_i32;
+								MC.DailySwitchTimerCnt[i] &= (1<<DS_StatusBit);
+							} else if(*x == prof_DailySwitchOff) {
+								MC.Option.DailySwitch[i].TimeOff = l_i32;
+								MC.DailySwitchTimerCnt[i] &= (1<<DS_StatusBit);
+							}
+						}
+					}
 				} else if(pm != ATOF_ERROR) {   // нет ошибки преобразования
 					if (MC.set_option(x,pm)) MC.get_option(x,strReturn);  // преобразование удачно,
 					else strcat(strReturn,"E17") ; // выход за диапазон значений

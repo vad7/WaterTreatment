@@ -1,6 +1,10 @@
 <html lang="ru"><head>
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/><title>Инструкция по обслуживанию</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<script>
+const returnTimeout = setTimeout(() => { history.back();}, 3600000); // возврат обратно через час
+window.addEventListener('beforeunload', () => { clearTimeout(returnTimeout); });
+</script>
 <style type="text/css"> * {margin:0; padding:0; text-indent:0; }
  h1 { color: black; font-family:Calibri, sans-serif; font-style: normal; font-weight: bold; text-decoration: none; font-size: 14pt; }
  p { color: black; font-family:Calibri, sans-serif; font-style: normal; font-weight: normal; text-decoration: none; font-size: 10pt; margin:0pt; }

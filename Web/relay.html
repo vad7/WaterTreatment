@@ -14,7 +14,8 @@ window.onload = function() {
 function setDS(v, i) {
 	var val = document.getElementById("get_opt-ds" + v.toLowerCase() + i).value;
 	if(val[2] == ':') setParam("get_Opt(DS" + v + i + "=" + val.replace(":","").substr(0,3) + ")");
-	else setParam("get_Opt(DS" + v + i + "=" + val.toUpperCase() + ")");
+	else setParam("get_Opt(DS" + v + i + "=-" + val + ")");
+	loadParam("get_Opt(DST" + i + "),get_Opt(DSS" + i + "),get_Opt(DSE" + i + ")");
 }
 
 </script>
@@ -92,8 +93,10 @@ function setDS(v, i) {
 	<thead><tr>
 		<th>Имя</th>
 		<th>Описание</th>
-		<th>Время включения</th>
-		<th>Включено по</th>
+		<th>Тип</th>
+		<th>Время включения / Пауза минут</th>
+		<th>Включено по / Вкл. минут</th>
+		<th>Состояние</th>
 	</tr></thead>
 	<tbody id="get_tblpds"></tbody>
 </table>

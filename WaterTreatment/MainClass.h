@@ -86,8 +86,9 @@ struct type_RTC_memory { // DS3231/DS3232 used alarm memory, starts from 0x07, m
 volatile uint32_t CriticalErrors = 0;	// Stop any work when these errors have occurred
 int32_t  vPumpsNewErrorData = 0;
 int8_t   vPumpsNewError = 0;
-int8_t   Errors[16] = { 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0 };// Active Errors array
-uint32_t ErrorsTime[16];
+#define ERRORS_ARR_SIZE			16
+int8_t   Errors[ERRORS_ARR_SIZE];		// Active Errors array
+uint32_t ErrorsTime[ERRORS_ARR_SIZE];
 
 volatile bool ADC_has_been_read = false;
 int		 WaterBoosterStatus = 0; // 0 - все выключены, 1 - вкл твердотельное, 2 - вкл оба, -1 - выкл обычное
@@ -116,7 +117,6 @@ uint32_t DrainPumpTimeLast 		= 0; // time
 uint16_t DrainPumpPower 		= 0; // W
 uint8_t  DrainPumpErrCnt 		= 0;
 uint16_t DrainPumpErrors 		= 0;
-uint8_t  DrainPumpRelayErrCnt 	= 0;
 uint16_t DrainPumpRelayErrors 	= 0;
 uint8_t  DrainPumpDryCnt		= 0;
 #endif
@@ -131,17 +131,17 @@ uint32_t SepticPumpTimeWorkTime	= 0; // сек время работы
 uint16_t SepticPower 			= 0; // W
 uint8_t  SepticErrCnt 			= 0;
 uint16_t SepticErrors 			= 0;
-uint8_t  SepticPumpRelayErrCnt 	= 0;
-uint16_t  SepticPumpRelayErrors = 0;
+uint16_t SepticPumpRelayErrors = 0;
 uint8_t  SepticPumpDryCnt		= 0;
 #endif
 uint8_t  PumpReadCounter 		= 0;
 
 #ifdef MODBUS_SEPTIC_HEAT_RELAY_ADDR
 bool   SepticHeatRelayStatus = false;		// 0 - off, 1 - on
-uint8_t  SepticHeatRelayErrCnt = 0;
-uint8_t  SepticHeatRelayErrors = 0;
+uint16_t SepticHeatRelayErrors = 0;
 #endif
+uint16_t ModbusRelayErrors = 0;
+
 uint16_t FillingTankTimer = 0;
 int16_t  FillingTankLastLevel = 0;	// in 0.01%
 uint8_t  TankCheckFlag = 0;			// 0 - проверка на герметичность, 1 - проверка на скорость заполнения, 2 - сброс
@@ -201,10 +201,13 @@ volatile uint8_t NeedSaveRTC = 0;
 
 uint16_t task_updstat_chars = 0;
 
+#define DS_TimerBit			7		// On - (Device & DS_TimerMask)
+#define DS_StatusBit		15		// On/Off (DailySwitchTimerCnt & DS_StatusMask)
+#define DS_TimerMin			6		// дискретность таймера
 struct type_DailySwitch {
-	uint8_t Device;					// Реле; 0 - нет и конец массива
-	uint8_t TimeOn;					// Время включения hh:m0
-	uint8_t TimeOff;				// Время выключения hh:m0
+	uint8_t Device;					// Реле; 0 - нет и конец массива, если > RNUMBER, то Модбас реле (MODBUS_RELAY_ADDR), +DS_TimerMask - Таймер
+	uint8_t TimeOn;					// Время включения hh:m0, или если таймер через сколько минут * DS_TimerMin
+	uint8_t TimeOff;				// Время выключения hh:m0, или если таймер сколько вкл минут * DS_TimerMin
 } __attribute__((packed));
 
 type_WebSecurity WebSec_user;				// хеш паролей
@@ -584,13 +587,13 @@ public:
 	uint32_t RFILL_last_time_ON;					// время последнего включения реле RFILL, если 0, то RFILL -> OFF
 	uint8_t  NextRegenAfterDays;
 	uint8_t  NextRegenSoftAfterDays;
+	uint16_t DailySwitchTimerCnt[DAILY_SWITCH_MAX];	// +DS_StatusMask - On/Off
 
 private:
 
 	void resetSetting();                // Функция сброса настроек
 	void relayAllOFF();                   // Все реле выключить
 	int8_t check_crc16_eeprom(int32_t addr, uint16_t size);// Проверить контрольную сумму в EEPROM для данных на выходе ошибка, длина определяется из заголовка
-
 
 	// Ошибки и описания
 	int8_t error;                         // Код ошибки

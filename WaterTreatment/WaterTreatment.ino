@@ -223,6 +223,7 @@ void setup() {
 	digitalWriteDirect(PIN_BEEP,LOW);       // Выключить пищалку
 	digitalWriteDirect(PIN_LED_OK,HIGH);    // Включить светодиод
 
+	memset(Errors, 0, sizeof(Errors));
 	// 2. Инициализация журнала и в нем последовательный порт
 	// 2. Инициализация журнала
 	uint8_t b;
@@ -1510,19 +1511,12 @@ void vReadSensor(void *)
 				if(GETBIT(MC.Option.flags2, fDrainPumpRelay) &&
 						(DrainPumpRelayStatus == MODBUS_RELAY_CMD_ON || DrainPumpRelayStatus == MODBUS_RELAY_CMD_OFF)) {
 					skip_this_iteration = true;
-					int8_t err = Modbus.MODBUS_PUMP_FUNC(MODBUS_DRAIN_PUMP_RELAY_ADDR, MODBUS_DRAIN_PUMP_RELAY_ID,
-								DrainPumpRelayStatus == MODBUS_RELAY_CMD_ON ? MODBUS_DRAIN_PUMP_ON_CMD : MODBUS_DRAIN_PUMP_OFF_CMD);
-					if(err) {
-						if(++DrainPumpRelayErrCnt == MODBUS_OTHER_MAX_ERRORS) {
-							if(MC.get_errcode() != ERR_DRAIN_PUMP_RELAY_LINK) journal.jprintf("%s Link Error %d!\n", "Drain Relay", err);
-							set_Error(ERR_DRAIN_PUMP_RELAY_LINK, (char*)"vService");
-						} else if(GETBIT(MC.Option.flags, fPWMLogErrors)) journal.jprintf_time("%s Read Error %d\n", "Drain Relay", err);
-					} else {
-						DrainPumpRelayErrCnt = 0;
+					if(Modbus.RelaySwitch(MODBUS_DRAIN_PUMP_RELAY_ADDR, MODBUS_DRAIN_PUMP_RELAY_ID,
+										DrainPumpRelayStatus == MODBUS_RELAY_CMD_ON ? MODBUS_DRAIN_PUMP_ON_CMD : MODBUS_DRAIN_PUMP_OFF_CMD) == OK) {
 						journal.jprintfopt_time("%s Relay: %s\n", "PUMP", DrainPumpRelayStatus == MODBUS_RELAY_CMD_ON ? "ON" : "OFF");
 						if(DrainPumpRelayStatus == MODBUS_RELAY_CMD_OFF) {
 	#ifdef MODBUS_DRAIN_PUMP_ON_PULSE
-							journal.jprintf_time("DRAIN PUMP -> OFF!\n", err);
+							journal.jprintf_time("DRAIN PUMP -> OFF!\n");
 							DrainPumpRelayStatus = MODBUS_RELAY_CMD_ON;	// Pulse 1 sec
 	#else
 							DrainPumpRelayStatus = MODBUS_RELAY_OFF;
@@ -1537,15 +1531,8 @@ void vReadSensor(void *)
 				if(GETBIT(MC.Option.flags2, fSepticPumpRelay) &&
 						(SepticPumpRelayStatus == MODBUS_RELAY_CMD_ON || SepticPumpRelayStatus == MODBUS_RELAY_CMD_OFF)) {
 					skip_this_iteration = true;
-					int8_t err = Modbus.MODBUS_PUMP_FUNC(MODBUS_SEPTIC_PUMP_RELAY_ADDR, MODBUS_SEPTIC_PUMP_RELAY_ID,
-								SepticPumpRelayStatus == MODBUS_RELAY_CMD_ON ? MODBUS_SEPTIC_PUMP_ON_CMD : MODBUS_SEPTIC_PUMP_OFF_CMD);
-					if(err) {
-						if(++SepticPumpRelayErrCnt == MODBUS_OTHER_MAX_ERRORS) {
-							if(MC.get_errcode() != ERR_SEPTIC_PUMP_RELAY_LINK) journal.jprintf("%s Link Error %d!\n", "Septic Relay", err);
-							set_Error(ERR_SEPTIC_PUMP_RELAY_LINK, (char*)"vService");
-						} else if(GETBIT(MC.Option.flags, fPWMLogErrors)) journal.jprintf_time("%s Read Error %d\n", "Septic Relay", err);
-					} else {
-						SepticPumpRelayErrCnt = 0;
+					if(Modbus.RelaySwitch(MODBUS_SEPTIC_PUMP_RELAY_ADDR, MODBUS_SEPTIC_PUMP_RELAY_ID,
+										SepticPumpRelayStatus == MODBUS_RELAY_CMD_ON ? MODBUS_SEPTIC_PUMP_ON_CMD : MODBUS_SEPTIC_PUMP_OFF_CMD) == OK) {
 						journal.jprintfopt_time("%s Relay: %s\n", "PUMP", SepticPumpRelayStatus == MODBUS_RELAY_CMD_ON ? "ON" : "OFF");
 						if(SepticPumpRelayStatus == MODBUS_RELAY_CMD_OFF) {
 	#ifdef MODBUS_SEPTIC_PUMP_ON_PULSE
@@ -1579,18 +1566,18 @@ void vReadSensor(void *)
 #ifndef MODBUS_SEPTIC_PUMP_ON_PULSE
 									if(!GETBIT(MC.Option.flags2, fSepticPumpRelayNoErr) || MC.Option.SepticPumpConsumedMax == 0)
 #endif
-										set_Error(ERR_SEPTIC_PUMP_TOOLONG, (char*)"vService");
+										set_Error(ERR_SEPTIC_PUMP_TOOLONG, NULL);
 									SepticPumpRelayStatus = MODBUS_RELAY_CMD_OFF;
 								}
 								if(ut - SepticPumpTimeLast >= MC.Option.PumpStartTime) {
 									if(MC.Option.SepticPumpMaxPower && tmp > MC.Option.SepticPumpMaxPower) {
-										set_Error(ERR_SEPTIC_PUMP_OVERLOAD, (char*)"vService");
+										set_Error(ERR_SEPTIC_PUMP_OVERLOAD, NULL);
 										SepticPumpRelayStatus = MODBUS_RELAY_CMD_OFF;
 									} else if(MC.Option.SepticPumpDryPower && tmp <= MC.Option.SepticPumpDryPower && SepticPower > dpmp && SepticPower <= MC.Option.SepticPumpDryPower) {
 #ifndef MODBUS_SEPTIC_PUMP_ON_PULSE
 										if(!GETBIT(MC.Option.flags2, fSepticPumpRelayNoErr) || MC.Option.SepticPumpConsumedMax == 0)
 #endif
-											set_Error(ERR_SEPTIC_PUMP_DRAIN_RUN, (char*)"vService");
+											set_Error(ERR_SEPTIC_PUMP_DRAIN_RUN, NULL);
 										SepticPumpRelayStatus = MODBUS_RELAY_CMD_OFF;
 									}
 								}
@@ -1603,12 +1590,12 @@ void vReadSensor(void *)
 									if(SepticPumpRelayStatus == MODBUS_RELAY_OFF) {
 										UsedWaterToSeptic -= UsedWaterToSeptic * SEPTIC_PUMP_CONSUMED_MAX_PERCENT / 100;
 										SepticPumpRelayStatus = MODBUS_RELAY_CMD_ON;
-									} else set_Error(ERR_SEPTIC_PUMP_NOT_WORK, (char*)"vService");
+									} else set_Error(ERR_SEPTIC_PUMP_NOT_WORK, NULL);
 								}
 							}
 							if(tmp < MC.Option.SepticMinPower) {
 								if(++SepticMinPowerCnt > SEPTIC_MIN_POWER_CNT) {
-									set_Error(ERR_SEPTIC_NOT_WORK, (char*)"vService");
+									set_Error(ERR_SEPTIC_NOT_WORK, NULL);
 									SepticMinPowerCnt = 0;
 								}
 							} else SepticMinPowerCnt = 0;
@@ -1620,8 +1607,8 @@ void vReadSensor(void *)
 #endif
 							SepticErrors++;
 							if(++SepticErrCnt == MODBUS_OTHER_MAX_ERRORS) {
-								if(MC.get_errcode() != ERR_SEPTIC_PUMP_LINK) journal.jprintf("%s Link Error %d!\n", "PUMP SEPTIC", err);
-								set_Error(ERR_SEPTIC_PUMP_LINK, (char*)"vService");
+								if(Check_Error_Active(ERR_SEPTIC_PUMP_LINK) != ERRORS_ARR_SIZE) journal.jprintf("%s Link Error %d!\n", "PUMP SEPTIC", err);
+								set_Error(ERR_SEPTIC_PUMP_LINK, NULL);
 								SepticPower = 0;
 							} else if(GETBIT(MC.Option.flags, fPWMLogErrors)) journal.jprintf_time("%s Read Error %d\n", "PUMP SEPTIC", err);
 						}
@@ -1642,15 +1629,15 @@ void vReadSensor(void *)
 									if(DrainPumpPower <= dpmp) DrainPumpTimeLast = ut; // время включения
 									else if(MC.Option.DrainPumpMaxTime && MC.get_errcode() != ERR_DRAIN_PUMP_TOOLONG
 											&& ut - DrainPumpTimeLast > MC.Option.DrainPumpMaxTime * 20) {
-										set_Error(ERR_DRAIN_PUMP_TOOLONG, (char*)"vService");
+										set_Error(ERR_DRAIN_PUMP_TOOLONG, NULL);
 										DrainPumpRelayStatus = MODBUS_RELAY_CMD_OFF;
 									}
 									if(ut - DrainPumpTimeLast >= MC.Option.PumpStartTime) {
 										if(MC.Option.DrainPumpMaxPower && tmp > MC.Option.DrainPumpMaxPower) {
-											set_Error(ERR_DRAIN_PUMP_OVERLOAD, (char*)"vService");
+											set_Error(ERR_DRAIN_PUMP_OVERLOAD, NULL);
 											DrainPumpRelayStatus = MODBUS_RELAY_CMD_OFF;
 										} else if(MC.Option.DrainPumpDryPower && tmp <= MC.Option.DrainPumpDryPower && DrainPumpPower > dpmp && DrainPumpPower <= MC.Option.DrainPumpDryPower) {
-											set_Error(ERR_DRAIN_PUMP_DRAIN_RUN, (char*)"vService");
+											set_Error(ERR_DRAIN_PUMP_DRAIN_RUN, NULL);
 											DrainPumpRelayStatus = MODBUS_RELAY_CMD_OFF;
 										}
 									}
@@ -1663,8 +1650,8 @@ void vReadSensor(void *)
 #endif
 								DrainPumpErrors++;
 								if(++DrainPumpErrCnt == MODBUS_OTHER_MAX_ERRORS) {
-									if(MC.get_errcode() != ERR_DRAIN_PUMP_LINK) journal.jprintf("%s Link Error %d!\n", "PUMP", err);
-									set_Error(ERR_DRAIN_PUMP_LINK, (char*)"vService");
+									if(Check_Error_Active(ERR_DRAIN_PUMP_LINK) != ERRORS_ARR_SIZE) journal.jprintf("%s Link Error %d!\n", "PUMP", err);
+									set_Error(ERR_DRAIN_PUMP_LINK, NULL);
 									DrainPumpPower = 0;
 								} else if(GETBIT(MC.Option.flags, fPWMLogErrors)) journal.jprintf_time("%s Read Error %d\n", "PUMP", err);
 							}
@@ -1678,19 +1665,11 @@ void vReadSensor(void *)
 			if(!skip_this_iteration && GETBIT(MC.Option.flags2, fSepticHeatRelay)) {
 				bool input = LowConsumeMode ? false : MC.sInput[SEPTIC_LOW_TEMP].get_Input();
 				if(input != SepticHeatRelayStatus) { // -> ON/OFF
-					int8_t err = Modbus.MODBUS_SEPTIC_HEAT_FUNC(MODBUS_SEPTIC_HEAT_RELAY_ADDR, MODBUS_SEPTIC_HEAT_RELAY_ID,
-							input ? MODBUS_SEPTIC_HEAT_RELAY_ON : MODBUS_SEPTIC_HEAT_RELAY_OFF);
-					if(err) {
-						SepticHeatRelayErrors++;
-						if(++SepticHeatRelayErrCnt == MODBUS_OTHER_MAX_ERRORS) {
-							if(MC.get_errcode() != ERR_SEPTIC_RELAY_LINK) journal.jprintf("%s Link Error %d!\n", "SEPTIC Relay", err);
-							set_Error(ERR_SEPTIC_RELAY_LINK, (char*)"vService");
-						} else if(GETBIT(MC.Option.flags, fPWMLogErrors)) journal.jprintf_time("%s Read Error %d\n", "SEPTIC Relay", err);
-					} else {
+					if(Modbus.RelaySwitch(MODBUS_SEPTIC_HEAT_RELAY_ADDR, MODBUS_SEPTIC_HEAT_RELAY_ID,
+										input ? MODBUS_SEPTIC_HEAT_RELAY_ON : MODBUS_SEPTIC_HEAT_RELAY_OFF) == OK) {
 						SepticHeatRelayStatus = input;
-						SepticHeatRelayErrCnt = 0;
 						journal.jprintfopt_time("%s Relay: %s\n", "SEPTIC", input ? "ON" : "OFF");
-					}
+					} else SepticHeatRelayErrors++;
 				}
 			}
 		}
@@ -2132,7 +2111,6 @@ xWaterBooster_OFF:
 void vService(void *)
 {
 	static uint8_t  task_updstat_countm = rtcSAM3X8.get_minutes();
-	static uint8_t  task_dailyswitch_countm = task_updstat_countm;
 	static uint8_t  task_every_min = task_updstat_countm;
 	static TickType_t timer_sec = GetTickCount(), timer_idle = 0, timer_total = 0;
 
@@ -2319,6 +2297,53 @@ void vService(void *)
 						}
 					}
 				}
+				// Ежесуточные включения реле, каждую минуту
+				uint32_t tt = rtcSAM3X8.get_hours() * 100 + m;
+				for(uint8_t i = 0; i < DAILY_SWITCH_MAX; i++) {
+					if(MC.Option.DailySwitch[i].Device == 0) break;
+					uint8_t d = (MC.Option.DailySwitch[i].Device & ~(1<<DS_TimerBit));
+					if(GETBIT(MC.Option.DailySwitch[i].Device, DS_TimerBit)) { // Таймер
+						uint16_t _cnt = MC.DailySwitchTimerCnt[i] & ~(1<<DS_StatusBit);
+						if(_cnt <= 1) { // switch
+							if(d >= RNUMBER) { // Modbus
+								d -= RNUMBER;
+								if(GETBIT(MC.DailySwitchTimerCnt[i], DS_StatusBit)) { // -> off
+									if(Modbus.RelaySwitch(MODBUS_TIMER_RELAY_ADDR, d, MODBUS_TIMER_RELAY_OFF) == OK) {
+										MC.DailySwitchTimerCnt[i] = MC.Option.DailySwitch[i].TimeOn * DS_TimerMin;
+									}
+								} else { // -> on
+									if(Modbus.RelaySwitch(MODBUS_TIMER_RELAY_ADDR, d, MODBUS_TIMER_RELAY_ON) == OK) {
+										MC.DailySwitchTimerCnt[i] = (MC.Option.DailySwitch[i].TimeOff * DS_TimerMin) | (1<<DS_StatusBit);
+									}
+								}
+							} else {
+								if(GETBIT(MC.DailySwitchTimerCnt[i], DS_StatusBit)) { // -> off
+									MC.dRelay[d].set_Relay(-fR_StatusDaily);
+									MC.DailySwitchTimerCnt[i] = MC.Option.DailySwitch[i].TimeOn * DS_TimerMin;
+								} else { // -> on
+									MC.dRelay[d].set_Relay(fR_StatusDaily);
+									MC.DailySwitchTimerCnt[i] = (MC.Option.DailySwitch[i].TimeOff * DS_TimerMin) | (1<<DS_StatusBit);
+								}
+							}
+						} else MC.DailySwitchTimerCnt[i]--;
+					} else { // Вкл/Выкл по времени
+						uint32_t st = MC.Option.DailySwitch[i].TimeOn * 10;
+						uint32_t end = MC.Option.DailySwitch[i].TimeOff * 10;
+						bool fl_on = ((end >= st && tt >= st && tt < end) || (end < st && (tt >= st || tt < end))) /* && !MC.NO_Power && !LowConsumeMode */;
+						if(d >= RNUMBER) { // Modbus
+							if(GETBIT(MC.DailySwitchTimerCnt[i], DS_StatusBit) != fl_on) {
+								if(Modbus.RelaySwitch(MODBUS_TIMER_RELAY_ADDR, d - RNUMBER, fl_on ? MODBUS_TIMER_RELAY_ON : MODBUS_TIMER_RELAY_OFF) == OK) {
+									MC.DailySwitchTimerCnt[i] = (MC.DailySwitchTimerCnt[i] & ~(1<<DS_StatusBit)) | (fl_on<<DS_StatusBit);
+								}
+							}
+						} else {
+							if(GETBIT(MC.DailySwitchTimerCnt[i], DS_StatusBit) != fl_on) {
+								MC.dRelay[d].set_Relay(fl_on ? fR_StatusDaily : -fR_StatusDaily);
+								MC.DailySwitchTimerCnt[i] = (MC.DailySwitchTimerCnt[i] & ~(1<<DS_StatusBit)) | (fl_on<<DS_StatusBit);
+							}
+						}
+					}
+				}
 			} else { // Every 1 sec except updstat sec
 				if(MC.RFILL_last_time_ON == 0) {
 					MC.dRelay[RFILL].set_OFF();
@@ -2428,20 +2453,6 @@ void vService(void *)
 							}
 							journal.jprintf_date("Regen F2 begin\n");
 							NewRegenStatus &= ~1;
-						}
-					}
-					uint32_t tt = rtcSAM3X8.get_hours() * 100 + m;
-					for(uint8_t i = 0; i < DAILY_SWITCH_MAX; i++) {
-						if(MC.Option.DailySwitch[i].Device == 0) break;
-						uint32_t st = MC.Option.DailySwitch[i].TimeOn * 10;
-						uint32_t end = MC.Option.DailySwitch[i].TimeOff * 10;
-						uint32_t tmr = MC.dRelay[MC.Option.DailySwitch[i].Device].get_TimerOn();
-						if(st == end && tmr && TIMER_TO_SHOW_STATUS - 1000 > tmr && MC.dRelay[MC.Option.DailySwitch[i].Device].get_Relay()) { // after 1 sec -> off
-							MC.dRelay[MC.Option.DailySwitch[i].Device].set_Relay(-fR_StatusDaily);
-						} else if(m != task_dailyswitch_countm) {
-							task_dailyswitch_countm = m;
-							MC.dRelay[MC.Option.DailySwitch[i].Device].set_Relay(((end >= st && tt >= st && tt <= end) || (end < st && (tt >= st || tt <= end)))
-									&& !MC.NO_Power /* && !LowConsumeMode */ ? fR_StatusDaily : -fR_StatusDaily);
 						}
 					}
 				}

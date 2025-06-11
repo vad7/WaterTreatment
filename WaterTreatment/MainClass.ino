@@ -18,58 +18,66 @@
 
 /* structsize
   char checker(int);
-  char checkSizeOfInt1[sizeof(MC.Option)]={checker(&checkSizeOfInt1)};
+  char checkSizeOfInt1[sizeof(MC.Option.DailySwitch)]={checker(&checkSizeOfInt1)};
   char checkSizeOfInt1[sizeof(MC.WorkStats)]={checker(&checkSizeOfInt1)};
 //*/
 
-// Установка критической ошибки для класса  вызывает останов 
-// Возвращает ошибку останова 
+// Установка критической ошибки, Возвращает ошибку останова, если nam == NULL короткая запись в лог.
 int8_t set_Error(int8_t _err, char *nam)
 {
 	if(MC.error != _err) {
 		MC.error = _err;
-		strncpy(MC.source_error, nam, sizeof(MC.source_error)-1);
-		m_snprintf(MC.note_error, sizeof(MC.note_error), "%s %s: %s", NowTimeToStr(), nam, noteError[abs(_err)]);
+		if(nam) strncpy(MC.source_error, nam, sizeof(MC.source_error)-1);
+		m_snprintf(MC.note_error, sizeof(MC.note_error), "%s %s: %s", NowTimeToStr(), nam != NULL ? nam : "", noteError[abs(_err)]);
 	}
-	uint32_t i = 0;
-	for(; i < sizeof(Errors) / sizeof(Errors[0]); i++) {
-		if(Errors[i] == OK) break;
-		if(Errors[i] == _err) {
-			i = sizeof(Errors) / sizeof(Errors[0]);
-			break;
-		}
-	}
-	if(i != sizeof(Errors) / sizeof(Errors[0])) {
+	uint32_t i = Check_Error_Active(_err);
+	if(i != ERRORS_ARR_SIZE) {
 		Errors[i] = _err;
 		ErrorsTime[i] = rtcSAM3X8.unixtime();
-		journal.jprintf_date("$ERROR source: %s, code: %d (0x%X)\n", nam, _err, CriticalErrors);
-		if(xTaskGetSchedulerState() == taskSCHEDULER_RUNNING) {
-			journal.jprintf(" State:");
-			for(i = 0; i < RNUMBER; i++) journal.jprintf(" %s:%d", MC.dRelay[i].get_name(), MC.dRelay[i].get_Relay());
-			for(i = 0; i < INUMBER; i++) if(MC.sInput[i].get_present()) journal.jprintf(" %s:%d", MC.sInput[i].get_name(), MC.sInput[i].get_Input());
-			journal.jprintf("\n Power:%d", MC.dPWM.get_Power());
+		if(nam) {
+			journal.jprintf_date("$ERROR source: %s, code: %d (0x%X)\n", nam, _err, CriticalErrors);
+			if(xTaskGetSchedulerState() == taskSCHEDULER_RUNNING) {
+				journal.jprintf(" State:");
+				for(i = 0; i < RNUMBER; i++) journal.jprintf(" %s:%d", MC.dRelay[i].get_name(), MC.dRelay[i].get_Relay());
+				for(i = 0; i < INUMBER; i++) if(MC.sInput[i].get_present()) journal.jprintf(" %s:%d", MC.sInput[i].get_name(), MC.sInput[i].get_Input());
+				journal.jprintf("\n Power:%d", MC.dPWM.get_Power());
 #ifdef CHECK_DRAIN_PUMP
-			journal.jprintf(",%d", DrainPumpPower);
+				journal.jprintf(",%d", DrainPumpPower);
 #endif
 #ifdef CHECK_SEPTIC
-			journal.jprintf(",%d", SepticPower);
+				journal.jprintf(",%d", SepticPower);
 #endif
-			for(i = 0; i < ANUMBER; i++) if(MC.sADC[i].get_present()) journal.jprintf(" %s:%.2d", MC.sADC[i].get_name(), MC.sADC[i].get_Value());
-			for(i = 0; i < TNUMBER; i++) if(MC.sTemp[i].get_present()) journal.jprintf(" %s:%.2d", MC.sTemp[i].get_name(), MC.sTemp[i].get_Temp());
-			journal.jprintf(" Weight:%.2d%%", Weight_Percent);
-			if(_err == ERR_WEIGHT_LOW) {
-				journal.jprintf("(%.1d=%d) [", Weight_value, Weight_adc_sum / (Weight_adc_flagFull ? WEIGHT_AVERAGE_BUFFER : Weight_adc_idx));
-				for(i = 0; i < WEIGHT_AVERAGE_BUFFER; i++) journal.jprintf("%d,", Weight_adc_filter[i]);
-				journal.jprintf("] %d", Weight_adc_idx);
-			} else if(_err == ERR_PWM_DRY_RUN || _err == ERR_PWM_MAX) {
-				journal.jprintf(" WBTime:%d", WaterBoosterTimeout);
+				for(i = 0; i < ANUMBER; i++) if(MC.sADC[i].get_present()) journal.jprintf(" %s:%.2d", MC.sADC[i].get_name(), MC.sADC[i].get_Value());
+				for(i = 0; i < TNUMBER; i++) if(MC.sTemp[i].get_present()) journal.jprintf(" %s:%.2d", MC.sTemp[i].get_name(), MC.sTemp[i].get_Temp());
+				journal.jprintf(" Weight:%.2d%%", Weight_Percent);
+				if(_err == ERR_WEIGHT_LOW) {
+					journal.jprintf("(%.1d=%d) [", Weight_value, Weight_adc_sum / (Weight_adc_flagFull ? WEIGHT_AVERAGE_BUFFER : Weight_adc_idx));
+					for(i = 0; i < WEIGHT_AVERAGE_BUFFER; i++) journal.jprintf("%d,", Weight_adc_filter[i]);
+					journal.jprintf("] %d", Weight_adc_idx);
+				} else if(_err == ERR_PWM_DRY_RUN || _err == ERR_PWM_MAX) {
+					journal.jprintf(" WBTime:%d", WaterBoosterTimeout);
 
+				}
+				journal.jprintf("\n");
 			}
-			journal.jprintf("\n");
-		}
+		} else journal.jprintf_date("$ERROR code: %d (0x%X)\n", _err, CriticalErrors);
 		MC.message.setMessage(pMESSAGE_ERROR, MC.note_error, 0);    // сформировать уведомление об ошибке
 	}
 	return _err;
+}
+
+// Возврат номера в массиве или размер массива, если он переполнен или ошибка уже в нем есть
+uint32_t Check_Error_Active(int8_t _err)
+{
+	uint32_t i = 0;
+	for(; i < ERRORS_ARR_SIZE; i++) {
+		if(Errors[i] == OK) break;
+		if(Errors[i] == _err) {
+			i = ERRORS_ARR_SIZE;
+			break;
+		}
+	}
+	return i;
 }
 
 void Weight_Clear_Averaging(void)
@@ -142,8 +150,9 @@ bool Weight_Read(bool skip_error)
 
 void MainClass::init()
 {
-	uint8_t i;
+	int i;
 	clear_error();
+	memset(&DailySwitchTimerCnt, 0, sizeof(DailySwitchTimerCnt));
 
 	for(i = 0; i < TNUMBER; i++) sTemp[i].initTemp(i);            // Инициализация датчиков температуры
 
@@ -187,7 +196,7 @@ void MainClass::clear_error()
 // стереть все ошибки
 void MainClass::clear_all_errors()
 {
-	for(uint8_t i = 0; i < sizeof(Errors)/sizeof(Errors[0]); i++) {
+	for(int i = 0; i < ERRORS_ARR_SIZE; i++) {
 		if(error == ERR_SALT_FINISH) {
 			MC.WorkStats.RegenSofteningCntAlarm = MC.Option.RegenSofteningCntAlarm;
 			NeedSaveWorkStats = 1;
@@ -449,6 +458,8 @@ x_Error:
 		journal.jprintf("\nEEPROM with garbage - reseting!\n");
 		resetSetting();
 		return error = ERR_CRC16_EEPROM;
+//	} else if(Option.ver == 16) { // Convert
+//		memmove((uint8_t*)&Option.DailySwitch + 40, (uint8_t*)&Option.DailySwitch + 30, sizeof(Option) - ((uint8_t*)&Option.DailySwitch - (uint8_t*)&Option.ver) - 40);
 	}
 	load_struct(&DateTime, &buffer, sizeof(DateTime));
 	load_struct(&Network, &buffer, sizeof(Network));
@@ -1023,26 +1034,6 @@ boolean MainClass::set_option(char *var, float xx)
 	   if(x == 0) MC.WorkStats.RegenSofteningCntAlarm = 0; else if(MC.WorkStats.RegenSofteningCntAlarm == 0) MC.WorkStats.RegenSofteningCntAlarm = x;
 	   return true;
 	} else
-	if(strncmp(var, prof_DailySwitch, sizeof(prof_DailySwitch)-1) == 0) {
-		var += sizeof(prof_DailySwitch)-1;
-		uint32_t i = *(var + 1) - '0';
-		if(i >= DAILY_SWITCH_MAX) return false;
-		if(*var == prof_DailySwitchDevice) {
-			Option.DailySwitch[i].Device = x == 0 ? 0 : DAILY_RELAY_START_FROM + x - 1;
-		} else {
-			uint32_t h = x / 10;
-			if(h > 23) h = 23;
-			uint32_t m = x % 10;
-			if(m > 5) m = 5;
-			x = h * 10 + m;
-			if(*var == prof_DailySwitchOn) {
-				Option.DailySwitch[i].TimeOn = x;
-			} else if(*var == prof_DailySwitchOff) {
-				Option.DailySwitch[i].TimeOff = x;
-			}
-		}
-		return true;
-	} else
 	if(strncmp(var,option_SGL1W, sizeof(option_SGL1W)-1)==0) {
 	   uint8_t bit = var[sizeof(option_SGL1W)-1] - '0' - 1;
 	   if(bit <= 2) {
@@ -1164,11 +1155,18 @@ char* MainClass::get_option(char *var, char *ret)
 		uint8_t i = *(var + 1) - '0';
 		if(i >= DAILY_SWITCH_MAX) return false;
 		if(*var == prof_DailySwitchDevice) {
-		 _itoa(Option.DailySwitch[i].Device == 0 ? 0 : Option.DailySwitch[i].Device - DAILY_RELAY_START_FROM + 1, ret);
+			_itoa(Option.DailySwitch[i].Device == 0 ? 0 : (Option.DailySwitch[i].Device & ~(1<<DS_TimerBit)) - DAILY_RELAY_START_FROM + 1, ret);
+		} else if(*var == prof_DailySwitchState) {
+			if(GETBIT(MC.DailySwitchTimerCnt[i], DS_StatusBit)) strcat(ret, "Вкл ");
+			if(GETBIT(MC.Option.DailySwitch[i].Device, DS_TimerBit)) { strcat(ret, "-"); _itoa(MC.DailySwitchTimerCnt[i] & ~(1<<DS_StatusBit), ret); }
+		} else if(*var == prof_DailySwitchType) {
+			if(GETBIT(MC.Option.DailySwitch[i].Device, DS_TimerBit)) strcat(ret, "Таймер");
 		} else if(*var == prof_DailySwitchOn) {
-		 m_snprintf(ret + m_strlen(ret), 32, "%02d:%d0", Option.DailySwitch[i].TimeOn / 10, Option.DailySwitch[i].TimeOn % 10);
+			if(GETBIT(MC.Option.DailySwitch[i].Device, DS_TimerBit)) _itoa(Option.DailySwitch[i].TimeOn ? Option.DailySwitch[i].TimeOn * DS_TimerMin : 1, ret);
+			else m_snprintf(ret + strlen(ret), 32, "%02d:%d0", Option.DailySwitch[i].TimeOn / 10, Option.DailySwitch[i].TimeOn % 10);
 		} else if(*var == prof_DailySwitchOff) {
-		 m_snprintf(ret + m_strlen(ret), 32, "%02d:%d0", Option.DailySwitch[i].TimeOff / 10, Option.DailySwitch[i].TimeOff % 10);
+			if(GETBIT(MC.Option.DailySwitch[i].Device, DS_TimerBit)) _itoa(Option.DailySwitch[i].TimeOff ? Option.DailySwitch[i].TimeOff * DS_TimerMin : 1, ret);
+			else m_snprintf(ret + strlen(ret), 32, "%02d:%d0", Option.DailySwitch[i].TimeOff / 10, Option.DailySwitch[i].TimeOff % 10);
 		}
 		return ret;
 	} else

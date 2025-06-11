@@ -1,8 +1,8 @@
 // Copyright by Vadim Kulakov vad7@yahoo.com, vad711
-var VER_WEB = "1.71";
+var VER_WEB = "1.72";
 var urlcontrol = ''; //  автоопределение (если адрес сервера совпадает с адресом контроллера)
 // адрес и порт контроллера, если адрес сервера отличен от адреса контроллера (не рекомендуется)
-//var urlcontrol = 'http://192.168.0.199/';
+//var urlcontrol = 'http://192.168.0.199';
 //var urlcontrol = 'http://192.168.0.8';
 var urltimeout = 1800; // таймаут ожидание ответа от контроллера. Чем хуже интернет, тем выше значения. Но не более времени обновления параметров
 var urlupdate = 4000; // время обновления параметров в миллисекундах
@@ -422,15 +422,20 @@ function loadParam(paramid, noretry, resultdiv) {
 												document.getElementById(valueid).innerHTML = content;
 											}
 										} else if(values[0] == 'get_tblPDS') {
-											var content = "";
+											var content = "", upsens = "";
 											var trows = values[1].split('|');
 											var elem = document.getElementById("get_listdsr");
 											for(var j = 0; j < trows.length - 1; j++) {
 												var tflds = trows[j].split(';');
-												content += '<tr><td><select id="get_opt-dsd' + j + '" onchange="setParam(\'get_Opt(DSD' + j + ')\')">' + elem.innerHTML.replace('>' + tflds[0] + '<', ' selected>' + tflds[0] + '<') + '<\select></td><td>' + tflds[1] 
-													+ '</td><td nowrap><input id="get_opt-dss' + j + '" type="text" size="6" value="' + tflds[2] + '"> <input type="submit" value=">" onclick="setDS(\'S\',' + j + ')"></td><td nowrap><input id="get_opt-dse' + j + '" type="text" size="6" value="' + tflds[3] + '"> <input type="submit" value=">" onclick="setDS(\'E\',' + j + ')"></td></tr>';
+												upsens += 'get_Opt(DSO' + j + '),';
+												content += '<tr><td><select id="get_opt-dsd' + j + '" onchange="setParam(\'get_Opt(DSD' + j + ')\')">' + elem.innerHTML.replace('>' + tflds[0] + '<', ' selected>' + tflds[0] + '<') + '</select></td><td>' + tflds[1] + '</td>' +
+														'<td id="get_opt-dst' + j + '">' + tflds[2] + '</td>' +
+														'<td nowrap><input id="get_opt-dss' + j + '" type="text" size="6" value="' + tflds[3] + '"> <input type="submit" value=">" onclick="setDS(\'S\',' + j + ')"></td>' +
+														'<td nowrap><input id="get_opt-dse' + j + '" type="text" size="6" value="' + tflds[4] + '"> <input type="submit" value=">" onclick="setDS(\'E\',' + j + ')"></td>' +
+														'<td id="get_opt-dso' + j + '" nowrap></td></tr>';
 											}
 											document.getElementById(valueid).innerHTML = content;
+											updateParam(upsens);
 										} else {
 											var content = values[1].replace(/</g, "&lt;").replace(/\|$/g, "").replace(/\|/g, "</td><td>").replace(/\n/g, "</td></tr><tr><td>");
 											var element = document.getElementById(valueid);
@@ -691,9 +696,12 @@ function setKanalog() {
 }
 
 function updateParam(paramids) {
-	setInterval(function() {
-		loadParam(paramids)
-	}, urlupdate);
+	setInterval(function() { loadParam(paramids) }, urlupdate);
+	loadParam(paramids);
+}
+
+function updateParamPeriod(paramids, period) {
+	setInterval(function() { loadParam(paramids) }, period);
 	loadParam(paramids);
 }
 

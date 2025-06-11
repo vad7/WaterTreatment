@@ -292,8 +292,8 @@ void  sensorDiditalInput::initInput(int sensor)
 // Чтение датчика возвращает ошибку или ОК
 int8_t sensorDiditalInput::Read(boolean fast)
 {
-	err = OK;                                            // Ошибки сбросить
-	if(testMode != NORMAL) Input = testInput;            // В режиме теста
+	err = OK;
+	if(testMode != NORMAL) Input = InputLevel == testInput; // В режиме теста
 	else {
 		boolean in = digitalReadDirect(pin) == InputLevel;
 		if(!fast) {
@@ -678,7 +678,8 @@ int8_t devPWM::get_readState(uint8_t group)
 		return err;
 	}
 
-	for(int8_t i=0; i < PWM_NUM_READ; i++)   // делаем PWM_NUM_READ попыток чтения
+	uint8_t i = 0;
+	while(1)   // делаем PWM_NUM_READ попыток чтения
 	{
 		if(group == 0) {
 			uint32_t tmp;
@@ -715,6 +716,7 @@ xErr:
 		if(GETBIT(MC.Option.flags, fPWMLogErrors)) {
 			journal.jprintf_time("%s: Read #%d error %d\n", name, group, err);      // Выводим сообщение о повторном чтении
 		}
+		if(++i == PWM_NUM_READ) break;
 		_delay(PWM_DELAY_REPEAT);  // Чтение не удачно, делаем паузу
 	}
 #ifdef  USE_UPS_220
@@ -1207,6 +1209,26 @@ int8_t devModbus::CustomRequestData(uint8_t id, char *str)
 	uint8_t result = RS485.ModbusMasterTransaction(ku8MBCustomRequest);
 	SemaphoreGive(xModbusSemaphore);
 	return err = translateErr(result);
+}
+
+int8_t devModbus::RelaySwitch(uint8_t id, uint16_t cmd, uint8_t r)
+{
+	int8_t _errs = 0;
+	while(1) {
+		int8_t err = MODBUS_RELAY_FUNC(id, cmd, r);
+		if(err == OK) return err;
+		ModbusRelayErrors++;
+		if(++_errs == MODBUS_OTHER_MAX_ERRORS) {
+			_errs = id == MODBUS_DRAIN_PUMP_RELAY_ADDR ? ERR_DRAIN_PUMP_RELAY_LINK :
+					id == MODBUS_SEPTIC_PUMP_RELAY_ADDR ? ERR_SEPTIC_PUMP_RELAY_LINK :
+					id == MODBUS_SEPTIC_HEAT_RELAY_ADDR ? ERR_SEPTIC_HEAT_RELAY_LINK :
+					ERR_MODBUS_RELAY;
+			if(Check_Error_Active(_errs) != ERRORS_ARR_SIZE) journal.jprintf("Modbus Relay %s #%d-%d Error %d!\n", r ? "on" : "off", id, cmd, err);
+			set_Error(_errs, NULL);
+			return err;
+		}
+		_delay(MODBUS_TIMER_ERROR_REPEAT_DELAY);
+	}
 }
 
 // Перевод ошибки протокола Модбас (что дает либа)

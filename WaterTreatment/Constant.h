@@ -20,7 +20,7 @@
 #include "Util.h"
 
 // ОПЦИИ КОМПИЛЯЦИИ ПРОЕКТА -------------------------------------------------------
-#define VERSION			  "1.71"			// Версия прошивки
+#define VERSION			  "1.72"			// Версия прошивки
 #define VER_SAVE		  16				// Версия формата сохраняемых данных в I2C память
 //#define LOG                               // В последовательный порт шлет лог веб сервера (логируются запросы)
 #define FAST_LIB                            // использование допиленной библиотеки езернета
@@ -475,7 +475,8 @@ const char prof_DailySwitch[] 	= "DS";
 const char prof_DailySwitchDevice = 'D';		// DSD
 const char prof_DailySwitchOn  	= 'S';			// DSS
 const char prof_DailySwitchOff 	= 'E';			// DSE
-
+const char prof_DailySwitchType	= 'T';			// DST
+const char prof_DailySwitchState= 'O';			// DSO
 
 // WorkStats, get_WS..., set_WS...(x)
 const char *webWS_UsedToday 					= { "UD" };
@@ -588,7 +589,7 @@ const char *webWS_NextRegenSoftAfterDays		= { "NS" };
 #define ERR_DRAIN_PUMP_NOT_WORK -81			// Не работает дренажный насос
 #define ERR_DRAIN_PUMP_OVERLOAD -82			// Перегрузка дренажного насоса
 #define ERR_DRAIN_PUMP_DRAIN_RUN -83		// Сухой ход дренажного насоса
-#define ERR_SEPTIC_RELAY_LINK	-84			// Ошибка связи с реле нагрева септика
+#define ERR_SEPTIC_HEAT_RELAY_LINK -84		// Ошибка связи с реле нагрева септика
 #define ERR_LOW_BOOSTER_TANK	-85			// Низкий средний рабочий объем бака насосной станции
 #define ERR_SFREQ_I2C_ERROR		-86			// Ошибка частотного датчика на шине I2C
 #define ERR_SEPTIC_PUMP_LINK	-87			// Ошибка связи со счетчиком насоса септика
@@ -599,8 +600,9 @@ const char *webWS_NextRegenSoftAfterDays		= { "NS" };
 #define ERR_SEPTIC_PUMP_DRAIN_RUN -92		// Сухой ход насоса септика
 #define ERR_SEPTIC_NOT_WORK		-93			// Низкое электро-потребление септика
 #define ERR_TANK_OVERFLOW		-94			// Бак переполнен!
+#define ERR_MODBUS_RELAY		-95			// Ошибка связи с Modbus реле
 
-#define ERR_ERRMAX				-94			// Последняя ошибка
+#define ERR_ERRMAX				-95			// Последняя ошибка
 
 // Предупреждения
 #define WARNING_VALUE        1         // Попытка установить значение за границами диапазона запрос типа SET
@@ -702,6 +704,7 @@ const char *noteError[] = {
 		"Сухой ход насоса септика",															//-92
 		"Низкое электро-потребление септика",												//-93
 		"Бак переполнен!",																	//-94
+		"Ошибка связи с Modbus реле",														//-95
 
 		"NULL"
 		};
