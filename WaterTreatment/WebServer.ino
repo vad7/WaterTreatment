@@ -1538,13 +1538,14 @@ x_get_RH:			_itoa(MC.Option.RegenHour & 0x1F, strReturn);
 					} else strcat(strReturn,"E17");
 				} else if(strncmp(x, prof_DailySwitch, sizeof(prof_DailySwitch)-1) == 0) { // 000..235 / -0..P255
 					x += sizeof(prof_DailySwitch)-1;
-					uint32_t i = *(x + 1) - '0';
+					i = *(x + 1) - '0';
 					if(i >= DAILY_SWITCH_MAX) {
 						strcat(strReturn,"E17");
 					} else {
 						l_i32 = (int32_t)pm;
 						if(*x == prof_DailySwitchDevice) {
-							MC.Option.DailySwitch[i].Device = (l_i32 == 0 ? 0 : DAILY_RELAY_START_FROM + l_i32 - 1) + (GETBIT(MC.Option.DailySwitch[i].Device, DS_TimerBit)<<DS_TimerBit);
+							if(l_i32 == 0) MC.Option.DailySwitch[i].Device = 0;
+							else MC.Option.DailySwitch[i].Device = (DAILY_RELAY_START_FROM + l_i32 - 1) | (GETBIT(MC.Option.DailySwitch[i].Device, DS_TimerBit)<<DS_TimerBit);
 							MC.DailySwitchTimerCnt[i] = 0;
 						} else {
 							if(*z == '-') { // Таймер
@@ -1552,11 +1553,11 @@ x_get_RH:			_itoa(MC.Option.RegenHour & 0x1F, strReturn);
 								l_i32 = abs(l_i32) / DS_TimerMin;
 							} else {
 								SETBIT0(MC.Option.DailySwitch[i].Device, DS_TimerBit);
-								i = l_i32 / 10;
-								if(i > 23) i = 23;
+								pm_i32 = l_i32 / 10;
+								if(pm_i32 > 23) pm_i32 = 23;
 								l_i32 %= 10;
 								if(l_i32 > 5) l_i32 = 5;
-								l_i32 = i * 10 + l_i32;
+								l_i32 = pm_i32 * 10 + l_i32;
 							}
 							if(*x == prof_DailySwitchOn) {
 								MC.Option.DailySwitch[i].TimeOn = l_i32;
@@ -1566,6 +1567,7 @@ x_get_RH:			_itoa(MC.Option.RegenHour & 0x1F, strReturn);
 								MC.DailySwitchTimerCnt[i] &= (1<<DS_StatusBit);
 							}
 						}
+						MC.get_option(x, strReturn);
 					}
 				} else if(pm != ATOF_ERROR) {   // нет ошибки преобразования
 					if (MC.set_option(x,pm)) MC.get_option(x,strReturn);  // преобразование удачно,
