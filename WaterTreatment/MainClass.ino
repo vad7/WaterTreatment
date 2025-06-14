@@ -210,6 +210,9 @@ void MainClass::clear_all_errors()
 #endif
 		} else if(error == ERR_SEPTIC_PUMP_NOT_WORK) {
 			UsedWaterToSeptic = 0;
+#if !defined(MODBUS_SEPTIC_PUMP_ON_PULSE)
+			DrainPumpRelayStatus = MODBUS_RELAY_CMD_ON;
+#endif
 		}
 	}
 	memset(Errors, 0, sizeof(Errors));
@@ -1024,11 +1027,27 @@ boolean MainClass::set_option(char *var, float xx)
 	if(strcmp(var,option_SepticPumpConsumedMax)==0){ Option.SepticPumpConsumedMax = x; return true; } else
 	if(strcmp(var,option_SepticMinPower)==0){ Option.SepticMinPower = x / 10; return true; } else
 	if(strcmp(var,option_fLED_SRV_INFO_PlanReg)==0){ Option.flags2 = (Option.flags2 & ~(1<<fLED_SRV_INFO_PlanReg)) | ((x!=0)<<fLED_SRV_INFO_PlanReg); return true; } else
-	if(strcmp(var,option_fCheckDrainPump)==0){ Option.flags2 = (Option.flags2 & ~(1<<fCheckDrainPump)) | ((x!=0)<<fCheckDrainPump); return true; } else
-	if(strcmp(var,option_fCheckSepticPump)==0){ Option.flags2 = (Option.flags2 & ~(1<<fCheckSeptic)) | ((x!=0)<<fCheckSeptic); return true; } else
+	if(strcmp(var,option_fCheckDrainPump)==0){
+		Option.flags2 = (Option.flags2 & ~(1<<fCheckDrainPump)) | ((x!=0)<<fCheckDrainPump);
+#if !defined(MODBUS_DRAIN_PUMP_ON_PULSE)
+		if(!x) DrainPumpRelayStatus = MODBUS_RELAY_CMD_ON;
+#endif
+		return true;
+	} else
+	if(strcmp(var,option_fCheckSepticPump)==0){
+		Option.flags2 = (Option.flags2 & ~(1<<fCheckSeptic)) | ((x!=0)<<fCheckSeptic);
+#if !defined(SEPTIC_DRAIN_PUMP_ON_PULSE)
+		if(!x) SepticPumpRelayStatus = MODBUS_RELAY_CMD_ON;
+#endif
+		return true;
+	} else
 	if(strcmp(var,option_fSepticPumpRelay)==0){ Option.flags2 = (Option.flags2 & ~(1<<fSepticPumpRelay)) | ((x!=0)<<fSepticPumpRelay); return true; } else
 	if(strcmp(var,option_fSepticPumpRelayNoErr)==0){ Option.flags2 = (Option.flags2 & ~(1<<fSepticPumpRelayNoErr)) | ((x!=0)<<fSepticPumpRelayNoErr); return true; } else
-	if(strcmp(var,option_fSepticHeatRelay)==0){ Option.flags2 = (Option.flags2 & ~(1<<fSepticHeatRelay)) | ((x!=0)<<fSepticHeatRelay); return true; } else
+	if(strcmp(var,option_fSepticHeatRelay)==0){
+		Option.flags2 = (Option.flags2 & ~(1<<fSepticHeatRelay)) | ((x!=0)<<fSepticHeatRelay);
+		if(!x) Modbus.RelaySwitch(MODBUS_SEPTIC_HEAT_RELAY_ADDR, MODBUS_SEPTIC_HEAT_RELAY_ID, MODBUS_SEPTIC_HEAT_RELAY_OFF);
+		return true;
+	} else
 	if(strcmp(var,option_RegenSofteningCntAlarm)==0){
 	   Option.RegenSofteningCntAlarm = x;
 	   if(x == 0) MC.WorkStats.RegenSofteningCntAlarm = 0; else if(MC.WorkStats.RegenSofteningCntAlarm == 0) MC.WorkStats.RegenSofteningCntAlarm = x;

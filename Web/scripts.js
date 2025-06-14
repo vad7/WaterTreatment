@@ -1,5 +1,5 @@
 // Copyright by Vadim Kulakov vad7@yahoo.com, vad711
-var VER_WEB = "1.72";
+var VER_WEB = "1.73";
 var urlcontrol = ''; //  автоопределение (если адрес сервера совпадает с адресом контроллера)
 // адрес и порт контроллера, если адрес сервера отличен от адреса контроллера (не рекомендуется)
 //var urlcontrol = 'http://192.168.0.199';
@@ -112,16 +112,25 @@ function loadParam(paramid, noretry, resultdiv) {
 								} else {
 									if(values[0].indexOf("CMD_")==0) valueid = values[0].substring(0, values[0].indexOf("(")).toLowerCase();
 									if((element = document.getElementById(valueid + "-ONOFF"))) { // Надпись
-										element.innerHTML = values[1] == 1 ? "Вкл" : "Выкл";
+										if(values[1].match(/^E-?\d|^ERR/)) element.innerHTML = values[1];
+										else element.innerHTML = values[1] == 1 ? "Вкл" : "Выкл";
 									}
 									element = document.getElementById(valueid);
 									if(element && element.getAttribute('type') == 'checkbox') {
-										var onoff = values[1] == 1;
-										element.checked = onoff;
-										var elements = document.getElementsByName(valueid + "-hide");
-										for(var j = 0; j < elements.length; j++) elements[j].style = "display:" + (onoff ? "inline" : "none");
-										var elements = document.getElementsByName(valueid + "-unhide");
-										for(var j = 0; j < elements.length; j++) elements[j].style = "display:" + (!onoff ? "inline" : "none");
+										if(values[1].match(/^E-?\d|^ERR/)) {
+											if(values[0].substr(0, 3) == "set") element.checked = !element.checked;
+											var element2 = document.getElementById(valueid + '-LBL');
+											if(element2) element2.textContent = values[1];
+											else element.insertAdjacentHTML('afterend', '<label id="' + valueid + '-L" for="' + valueid + '">' + values[1] + '</label>');
+										} else {
+											var onoff = values[1] == 1;
+											element.checked = onoff;
+											if((element = document.getElementById(valueid + '-LBL'))) element.textContent = "";
+											var elements = document.getElementsByName(valueid + "-hide");
+											for(var j = 0; j < elements.length; j++) elements[j].style = "display:" + (onoff ? "inline" : "none");
+											var elements = document.getElementsByName(valueid + "-unhide");
+											for(var j = 0; j < elements.length; j++) elements[j].style = "display:" + (!onoff ? "inline" : "none");
+										}
 										continue;
 									} 
 									type = /\([a-z0-9_]+\)/i.test(values[0]) ? "values" : "str";
@@ -463,7 +472,7 @@ function loadParam(paramid, noretry, resultdiv) {
 											if(valuevar == '0') element.style = "display:none"; else element.style = "display:default";
 										} else if(element.className == "charsw") {
 											element.innerHTML = element.title.substr(valuevar,1);
-										} else if(values[1].match(/^E-?\d/)) {
+										} else if(values[1].match(/^E-?\d|^ERR/)) {
 											if(element.getAttribute("type") == "submit") alert("Ошибка " + values[1]);
 											else element.placeholder = values[1];
 										} else if(element != document.activeElement) {
@@ -484,7 +493,7 @@ function loadParam(paramid, noretry, resultdiv) {
 									}
 								} else if(type == 'tbv') {
 									var element2 = document.getElementById(valueid.replace("val", "err"));
-									if(values[1].match(/^E-?\d/)) {
+									if(values[1].match(/^E-?\d|^ERR/)) {
 										if(element2) {
 											if(values[1] == "E-29") element2.innerHTML = "ERR ID";
 											else if(values[1] == "E-30") element2.innerHTML = "ERR Func";
