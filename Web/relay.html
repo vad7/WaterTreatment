@@ -15,7 +15,7 @@ function setDS(v, i) {
 	var val = document.getElementById("get_opt-ds" + v.toLowerCase() + i).value;
 	if(val[2] == ':') setParam("get_Opt(DS" + v + i + "=" + val.replace(":","").substr(0,3) + ")");
 	else setParam("get_Opt(DS" + v + i + "=-" + val + ")");
-	loadParam("get_Opt(DST" + i + "),get_Opt(DSS" + i + "),get_Opt(DSE" + i + ")");
+	setTimeout(function(){ loadParam("get_Opt(DST" + i + "),get_Opt(DSS" + i + "),get_Opt(DSE" + i + ")"); }, 500);
 }
 
 </script>
