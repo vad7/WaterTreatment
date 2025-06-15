@@ -206,12 +206,12 @@ void MainClass::clear_all_errors()
 #endif
 #if defined(CHECK_SEPTIC) && !defined(MODBUS_SEPTIC_PUMP_ON_PULSE)
 		} else if(error == ERR_SEPTIC_PUMP_TOOLONG || error == ERR_SEPTIC_PUMP_OVERLOAD || error == ERR_SEPTIC_PUMP_DRAIN_RUN) {
-			DrainPumpRelayStatus = MODBUS_RELAY_CMD_ON;
+			SepticPumpRelayStatus = MODBUS_RELAY_CMD_ON;
 #endif
 		} else if(error == ERR_SEPTIC_PUMP_NOT_WORK) {
 			UsedWaterToSeptic = 0;
 #if !defined(MODBUS_SEPTIC_PUMP_ON_PULSE)
-			DrainPumpRelayStatus = MODBUS_RELAY_CMD_ON;
+			SepticPumpRelayStatus = MODBUS_RELAY_CMD_ON;
 #endif
 		}
 	}
