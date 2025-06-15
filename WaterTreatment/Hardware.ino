@@ -1223,7 +1223,7 @@ int8_t devModbus::RelaySwitch(uint8_t id, uint16_t cmd, uint8_t r)
 					id == MODBUS_SEPTIC_PUMP_RELAY_ADDR ? ERR_SEPTIC_PUMP_RELAY_LINK :
 					id == MODBUS_SEPTIC_HEAT_RELAY_ADDR ? ERR_SEPTIC_HEAT_RELAY_LINK :
 					ERR_MODBUS_RELAY;
-			if(Check_Error_Active(_errs) != ERRORS_ARR_SIZE) journal.jprintf("Modbus Relay %s #%d-%d Error %d!\n", r ? "on" : "off", id, cmd, err);
+			if(Get_Errors_IndexEnd(_errs) != ERRORS_ARR_SIZE) journal.jprintf("Modbus Relay %s #%d-%d Error %d!\n", r ? "on" : "off", id, cmd, err);
 			set_Error(_errs, NULL);
 			return err;
 		}

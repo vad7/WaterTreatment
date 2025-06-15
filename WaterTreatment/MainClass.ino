@@ -30,7 +30,7 @@ int8_t set_Error(int8_t _err, char *nam)
 		if(nam) strncpy(MC.source_error, nam, sizeof(MC.source_error)-1);
 		m_snprintf(MC.note_error, sizeof(MC.note_error), "%s %s: %s", NowTimeToStr(), nam != NULL ? nam : "", noteError[abs(_err)]);
 	}
-	uint32_t i = Check_Error_Active(_err);
+	uint32_t i = Get_Errors_IndexEnd(_err);
 	if(i != ERRORS_ARR_SIZE) {
 		Errors[i] = _err;
 		ErrorsTime[i] = rtcSAM3X8.unixtime();
@@ -66,8 +66,8 @@ int8_t set_Error(int8_t _err, char *nam)
 	return _err;
 }
 
-// Возврат номера в массиве или размер массива, если он переполнен или ошибка уже в нем есть
-uint32_t Check_Error_Active(int8_t _err)
+// Возврат номера свободного места в массиве ошибок или размер массива, если он переполнен или ошибка уже в нем есть
+uint32_t Get_Errors_IndexEnd(int8_t _err)
 {
 	uint32_t i = 0;
 	for(; i < ERRORS_ARR_SIZE; i++) {

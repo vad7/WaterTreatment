@@ -1607,7 +1607,7 @@ void vReadSensor(void *)
 #endif
 							SepticErrors++;
 							if(++SepticErrCnt == MODBUS_OTHER_MAX_ERRORS) {
-								if(Check_Error_Active(ERR_SEPTIC_PUMP_LINK) != ERRORS_ARR_SIZE) journal.jprintf("%s Link Error %d!\n", "PUMP SEPTIC", err);
+								if(Get_Errors_IndexEnd(ERR_SEPTIC_PUMP_LINK) != ERRORS_ARR_SIZE) journal.jprintf("%s Link Error %d!\n", "PUMP SEPTIC", err);
 								set_Error(ERR_SEPTIC_PUMP_LINK, NULL);
 								SepticPower = 0;
 							} else if(GETBIT(MC.Option.flags, fPWMLogErrors)) journal.jprintf_time("%s Read Error %d\n", "PUMP SEPTIC", err);
@@ -1650,7 +1650,7 @@ void vReadSensor(void *)
 #endif
 								DrainPumpErrors++;
 								if(++DrainPumpErrCnt == MODBUS_OTHER_MAX_ERRORS) {
-									if(Check_Error_Active(ERR_DRAIN_PUMP_LINK) != ERRORS_ARR_SIZE) journal.jprintf("%s Link Error %d!\n", "PUMP", err);
+									if(Get_Errors_IndexEnd(ERR_DRAIN_PUMP_LINK) != ERRORS_ARR_SIZE) journal.jprintf("%s Link Error %d!\n", "PUMP", err);
 									set_Error(ERR_DRAIN_PUMP_LINK, NULL);
 									DrainPumpPower = 0;
 								} else if(GETBIT(MC.Option.flags, fPWMLogErrors)) journal.jprintf_time("%s Read Error %d\n", "PUMP", err);
@@ -2055,7 +2055,7 @@ xWaterBooster_OFF:
 			//taskEXIT_CRITICAL();
 		} else {
 			if(MC.sADC[LTANK].get_Value() <= (MC.sInput[REG_BACKWASH_ACTIVE].get_Input() ? MC.sADC[LTANK].get_maxValue() - FILL_TANK_REGEN_DELTA : LowConsumeMode ? MC.Option.LTank_LowConsumeMin : rtcSAM3X8.get_hours() == MC.Option.LTank_Hour ? MC.Option.LTank_Hour_Low : MC.Option.LTANK_Low)) {
-				if(!(CriticalErrors & ~ERRC_TankEmpty)) {
+				if(!(CriticalErrors & ~ERRC_TankEmpty) && Get_Errors_IndexEnd(ERR_TANK_FILLING_LONG) != ERRORS_ARR_SIZE) {
 					if(!LowConsumeMode || (!MC.dRelay[RFEEDPUMP].get_Relay() && WaterBoosterStatus == 0)) {
 						if(LowConsumeMode && !(MC.RTC_store.Work & (RTC_Work_Regen_F1 | RTC_Work_Regen_F2))) AfterFilledTimer = MC.Option.LTank_AfterFilledTimer * 1000;
 						FillingTankLastLevel = 0;
@@ -2185,7 +2185,7 @@ void vService(void *)
 					MC.dRelay[RFILL].set_ON();
 					MC.RFILL_last_time_ON = 0;
 				} else if(MC.Option.TankFillingTimeMax && MC.dRelay[RFILL].get_Relay() && ut - MC.RFILL_last_time_ON > MC.Option.TankFillingTimeMax * 60) {
-					CriticalErrors |= ERRC_TankFillingLong;
+					//CriticalErrors |= ERRC_TankFillingLong;
 					set_Error(ERR_TANK_FILLING_LONG, (char*)"vService");
 					MC.dRelay[RFILL].set_Relay(fR_StatusAllOff);
 				}
