@@ -37,21 +37,22 @@ function ResetSalt() {
 function loadParam_after(paramid) {
 	var el_iron = "", st_iron = "", el_soft = "", st_soft = "";
 	if(paramid.indexOf("et_WSF") != -1) {
+		var cwarn = "color:blue";
 		var s = (element = document.getElementById("get_pwrdo")).innerHTML;
 		element.innerHTML = s != "" ? "Насос Дренажа: " + s : ""
 		s = (element = document.getElementById("get_pwrso")).innerHTML;
 		element.innerHTML = s != "" ? "Насос Септика: " + s : "";
 		s = document.getElementById("get_wsn").innerHTML;
-		if(s == "0") { el_iron = "ожидается"; st_iron = "color:red"; 
+		if(s == "0") { el_iron = "ожидается"; st_iron = cwarn; 
 		} else if(s != "" && s != "255") { el_iron = "Следующее через " + s + " дн."; st_iron = "color:inherit"; }
 		s = document.getElementById("get_wsns").innerHTML;
-		if(s == "0") { el_soft = "ожидается"; st_soft = "color:red"; 
+		if(s == "0") { el_soft = "ожидается"; st_soft = cwarn; 
 		} else if(s != "" && s != "255") { el_soft = "Следующее через " + s + " дн."; st_soft = "color:inherit"; }
 		s = Number(document.getElementById("get_wsf").innerText);
-		if(s & 1) { el_iron = "запланировано"; st_iron = "color:red"; }
-		else if(s & 0x40) { el_iron = "скоро будет"; st_iron = "color:red"; }
-		if(s & 2) { el_soft = "запланировано"; st_soft = "color:red"; }
-		else if(s & 0x80) { el_soft = "скоро будет"; st_soft = "color:red"; }
+		if(s & 1) { el_iron = "запланировано"; st_iron = cwarn; }
+		else if(s & 0x40) { el_iron = "скоро будет"; st_iron = cwarn; }
+		if(s & 2) { el_soft = "запланировано"; st_soft = cwarn; }
+		else if(s & 0x80) { el_soft = "скоро будет"; st_soft = cwarn; }
 	} 
 	if(el_iron != "") {
 		element = document.getElementById("planiron");

@@ -89,6 +89,7 @@ int8_t   vPumpsNewError = 0;
 #define ERRORS_ARR_SIZE			16
 int8_t   Errors[ERRORS_ARR_SIZE];		// Active Errors array
 uint32_t ErrorsTime[ERRORS_ARR_SIZE];
+uint32_t LastErrorsClearManual = 0;
 
 volatile bool ADC_has_been_read = false;
 int		 WaterBoosterStatus = 0; // 0 - все выключены, 1 - вкл твердотельное, 2 - вкл оба, -1 - выкл обычное
@@ -101,7 +102,7 @@ uint32_t FeedPumpWork = 0;						// ms
 //volatile bool FloodingError = false;
 //bool	 TankEmpty = false;
 uint32_t FloodingTime = 0;
-uint32_t SepticAlarmTime;
+int32_t  SepticAlarmTime;
 
 #define  MODBUS_RELAY_CMD_OFF	-1	// need switch off
 #define  MODBUS_RELAY_OFF		0

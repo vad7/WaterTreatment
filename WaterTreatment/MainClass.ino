@@ -61,7 +61,8 @@ int8_t set_Error(int8_t _err, char *nam)
 				journal.jprintf("\n");
 			}
 		} else journal.jprintf_date("$ERROR code: %d (0x%X)\n", _err, CriticalErrors);
-		MC.message.setMessage(pMESSAGE_ERROR, MC.note_error, 0);    // сформировать уведомление об ошибке
+		if(i > 0 && ErrorsTime[i] - LastErrorsClearManual < 60 * 2)	Error_Beep_confirmed = true;// Убрать звук и не посылать ошибку, если прошло меньше 2х минут после очистки ошибок.
+		else MC.message.setMessage(pMESSAGE_ERROR, MC.note_error, 0);    // сформировать уведомление об ошибке
 	}
 	return _err;
 }
@@ -78,6 +79,47 @@ uint32_t Get_Errors_IndexEnd(int8_t _err)
 		}
 	}
 	return i;
+}
+
+// Стереть последнюю ошибку
+void MainClass::clear_error()
+{
+	if(!CriticalErrors) {
+		strcpy(note_error, "OK");			// Строка c описанием ошибки
+		source_error[0] = '\0';				// Источник ошибки
+		error = OK;                         // Код ошибки
+	}
+}
+
+// стереть все ошибки
+void MainClass::clear_all_errors()
+{
+	for(int i = 0; i < ERRORS_ARR_SIZE; i++) {
+		if(error == ERR_SALT_FINISH) {
+			MC.WorkStats.RegenSofteningCntAlarm = MC.Option.RegenSofteningCntAlarm;
+			NeedSaveWorkStats = 1;
+#if defined(CHECK_DRAIN_PUMP) && !defined(MODBUS_DRAIN_PUMP_ON_PULSE)
+		} else if(error == ERR_DRAIN_PUMP_TOOLONG || error == ERR_DRAIN_PUMP_OVERLOAD || error == ERR_DRAIN_PUMP_DRAIN_RUN) {
+			DrainPumpRelayStatus = MODBUS_RELAY_CMD_ON;
+#endif
+#if defined(CHECK_SEPTIC) && !defined(MODBUS_SEPTIC_PUMP_ON_PULSE)
+		} else if(error == ERR_SEPTIC_PUMP_TOOLONG || error == ERR_SEPTIC_PUMP_OVERLOAD || error == ERR_SEPTIC_PUMP_DRAIN_RUN) {
+			SepticPumpRelayStatus = MODBUS_RELAY_CMD_ON;
+#endif
+		} else if(error == ERR_SEPTIC_PUMP_NOT_WORK) {
+			UsedWaterToSeptic = 0;
+#if !defined(MODBUS_SEPTIC_PUMP_ON_PULSE)
+			SepticPumpRelayStatus = MODBUS_RELAY_CMD_ON;
+#endif
+		}
+	}
+	memset(Errors, 0, sizeof(Errors));
+	memset(ErrorsTime, 0, sizeof(ErrorsTime));
+	CriticalErrors = 0;
+	MC.clear_error();
+	// Water ON
+	MC.dRelay[RWATEROFF1].set_OFF();
+	MC.dRelay[RWATERON].set_ON();
 }
 
 void Weight_Clear_Averaging(void)
@@ -183,45 +225,6 @@ void MainClass::init()
 #endif
 
 	resetSetting();                                           // все переменные
-}
-
-// Стереть последнюю ошибку
-void MainClass::clear_error()
-{
-	strcpy(note_error, "OK");			// Строка c описанием ошибки
-	source_error[0] = '\0';				// Источник ошибки
-	error = OK;                         // Код ошибки
-}
-
-// стереть все ошибки
-void MainClass::clear_all_errors()
-{
-	for(int i = 0; i < ERRORS_ARR_SIZE; i++) {
-		if(error == ERR_SALT_FINISH) {
-			MC.WorkStats.RegenSofteningCntAlarm = MC.Option.RegenSofteningCntAlarm;
-			NeedSaveWorkStats = 1;
-#if defined(CHECK_DRAIN_PUMP) && !defined(MODBUS_DRAIN_PUMP_ON_PULSE)
-		} else if(error == ERR_DRAIN_PUMP_TOOLONG || error == ERR_DRAIN_PUMP_OVERLOAD || error == ERR_DRAIN_PUMP_DRAIN_RUN) {
-			DrainPumpRelayStatus = MODBUS_RELAY_CMD_ON;
-#endif
-#if defined(CHECK_SEPTIC) && !defined(MODBUS_SEPTIC_PUMP_ON_PULSE)
-		} else if(error == ERR_SEPTIC_PUMP_TOOLONG || error == ERR_SEPTIC_PUMP_OVERLOAD || error == ERR_SEPTIC_PUMP_DRAIN_RUN) {
-			SepticPumpRelayStatus = MODBUS_RELAY_CMD_ON;
-#endif
-		} else if(error == ERR_SEPTIC_PUMP_NOT_WORK) {
-			UsedWaterToSeptic = 0;
-#if !defined(MODBUS_SEPTIC_PUMP_ON_PULSE)
-			SepticPumpRelayStatus = MODBUS_RELAY_CMD_ON;
-#endif
-		}
-	}
-	memset(Errors, 0, sizeof(Errors));
-	memset(ErrorsTime, 0, sizeof(ErrorsTime));
-	CriticalErrors = 0;
-	MC.clear_error();
-	// Water ON
-	MC.dRelay[RWATEROFF1].set_OFF();
-	MC.dRelay[RWATERON].set_ON();
 }
 
 // Получить число ошибок чтения ВСЕХ датчиков темпеартуры

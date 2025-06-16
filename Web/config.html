@@ -351,6 +351,10 @@ function show_all() {
 			<td>Вместо ошибки откл/вкл насос при сухом ходе и длительной работе насоса септика, если потребление заполнено</td>
 			<td><input type="checkbox" id="get_opt-spe" onchange="setParam('get_Opt(SPE)');"></td>
 		</tr>
+		<tr>
+			<td>Время срабатывания датчика аварии септика до критичной ошибки, сек</td>
+			<td nowrap><input id="get_opt-sd" type="number"> <input type="submit" value=">" onclick="setParam('get_Opt(SD)');"></td>
+		</tr>
 
 		<tr>
 			<td><b>Критичные ошибки (подача воды прекращается)</b></td><td></td>
@@ -378,10 +382,6 @@ function show_all() {
 		<tr>
 			<td>Время ожидания после ликвидации протечки, сек</td>
 			<td nowrap><input id="get_opt-ft" type="number"> <input type="submit" value=">" onclick="setParam('get_Opt(FT)');"></td>
-		</tr>
-		<tr>
-			<td>Время срабатывания датчика аварии септика для регистрации события, сек</td>
-			<td nowrap><input id="get_opt-sd" type="number"> <input type="submit" value=">" onclick="setParam('get_Opt(SD)');"></td>
 		</tr>
 		<tr>
 			<td>Низкий уровень реагента - авария, %</td>

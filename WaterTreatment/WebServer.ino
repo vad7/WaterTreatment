@@ -147,12 +147,14 @@ void web_server(uint8_t thread)
 					{
 						// Для обычного пользователя подменить файл меню, для сокращения функционала
 						if(GETBIT(Socket[thread].flags, fUser)) {
-							if(!(strcmp(Socket[thread].inPtr, "index.html") == 0
-							|| strcmp(Socket[thread].inPtr, "plan.html") == 0
-							|| strcmp(Socket[thread].inPtr, "stats.html") == 0
-							|| strcmp(Socket[thread].inPtr, "system.html") == 0
-							|| strcmp(Socket[thread].inPtr, "history.html") == 0
-							|| strcmp(Socket[thread].inPtr, "about.html") == 0)) goto xUNAUTHORIZED;
+							if(strstr(Socket[thread].inPtr, ".html")) {
+								if(!(strcmp(Socket[thread].inPtr, "index.html") == 0
+									|| strcmp(Socket[thread].inPtr, "plan.html") == 0
+									|| strcmp(Socket[thread].inPtr, "stats.html") == 0
+									|| strcmp(Socket[thread].inPtr, "system.html") == 0
+									|| strcmp(Socket[thread].inPtr, "history.html") == 0
+									|| strcmp(Socket[thread].inPtr, "about.html") == 0)) goto xUNAUTHORIZED;
+							}
 						}
 						urldecode(Socket[thread].inPtr, Socket[thread].inPtr, len + 1);
 						readFileSD(Socket[thread].inPtr, thread);
@@ -1016,6 +1018,7 @@ xSaveStats:		if((i = MC.save_WorkStats()) == OK)
 			} else if (strcmp(str,"ERR")==0) // RESET_ERR
 			{
 				MC.clear_all_errors();
+				LastErrorsClearManual = rtcSAM3X8.unixtime();
 			}
 			ADD_WEBDELIM(strReturn); continue;
 		}

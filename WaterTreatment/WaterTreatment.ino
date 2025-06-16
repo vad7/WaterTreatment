@@ -1919,11 +1919,17 @@ void vPumps( void * )
 			} else FloodingTime = 0;
 		}
 		if(MC.sInput[SEPTIC_ALARM].get_Input()) {
+#if defined(CHECK_SEPTIC) && !defined(MODBUS_SEPTIC_PUMP_ON_PULSE)
+			if(SepticAlarmTime == 0 && SepticPumpRelayStatus == MODBUS_RELAY_OFF) SepticPumpRelayStatus = MODBUS_RELAY_CMD_ON;
+#endif
 			if(++SepticAlarmTime > MC.Option.SepticAlarmDebounce * 1000 / TIME_SLICE_PUMPS) {
 				vPumpsNewError = ERR_SEPTIC_ALARM;
 				CriticalErrors |= ERRC_SepticAlarm;
 				MC.dRelay[RWATEROFF1].set_ON();
 				MC.dRelay[RWATERON].set_Relay(fR_StatusAllOff);
+#if defined(CHECK_SEPTIC) && !defined(MODBUS_SEPTIC_PUMP_ON_PULSE)
+				if(SepticPumpRelayStatus == MODBUS_RELAY_OFF) SepticPumpRelayStatus = MODBUS_RELAY_CMD_ON;
+#endif
 				SepticAlarmTime = 0;
 			}
 		} else SepticAlarmTime = 0;
@@ -2209,7 +2215,55 @@ void vService(void *)
 						DrainingSiltNowTimer = MC.Option.DrainSiltTime * 10;
 					}
 				}
+				// Ежесуточные включения реле, каждую минуту
+				uint32_t tt = rtcSAM3X8.get_hours() * 100 + m;
+				for(uint8_t i = 0; i < DAILY_SWITCH_MAX; i++) {
+					if(MC.Option.DailySwitch[i].Device == 0) break;
+					uint8_t d = (MC.Option.DailySwitch[i].Device & ~(1<<DS_TimerBit));
+					if(GETBIT(MC.Option.DailySwitch[i].Device, DS_TimerBit)) { // Таймер
+						uint16_t _cnt = MC.DailySwitchTimerCnt[i] & ~(1<<DS_StatusBit);
+						if(_cnt <= 1) { // switch
+							if(d >= RNUMBER) { // Modbus
+								d -= RNUMBER;
+								if(GETBIT(MC.DailySwitchTimerCnt[i], DS_StatusBit)) { // -> off
+									if(Modbus.RelaySwitch(MODBUS_TIMER_RELAY_ADDR, d, MODBUS_TIMER_RELAY_OFF) == OK) {
+										MC.DailySwitchTimerCnt[i] = MC.Option.DailySwitch[i].TimeOn * DS_TimerMin;
+									}
+								} else { // -> on
+									if(Modbus.RelaySwitch(MODBUS_TIMER_RELAY_ADDR, d, MODBUS_TIMER_RELAY_ON) == OK) {
+										MC.DailySwitchTimerCnt[i] = (MC.Option.DailySwitch[i].TimeOff * DS_TimerMin) | (1<<DS_StatusBit);
+									}
+								}
+							} else {
+								if(GETBIT(MC.DailySwitchTimerCnt[i], DS_StatusBit)) { // -> off
+									MC.dRelay[d].set_Relay(-fR_StatusDaily);
+									MC.DailySwitchTimerCnt[i] = MC.Option.DailySwitch[i].TimeOn * DS_TimerMin;
+								} else { // -> on
+									MC.dRelay[d].set_Relay(fR_StatusDaily);
+									MC.DailySwitchTimerCnt[i] = (MC.Option.DailySwitch[i].TimeOff * DS_TimerMin) | (1<<DS_StatusBit);
+								}
+							}
+						} else MC.DailySwitchTimerCnt[i]--;
+					} else { // Вкл/Выкл по времени
+						uint32_t st = MC.Option.DailySwitch[i].TimeOn * 10;
+						uint32_t end = MC.Option.DailySwitch[i].TimeOff * 10;
+						bool fl_on = ((end >= st && tt >= st && tt < end) || (end < st && (tt >= st || tt < end))) /* && !MC.NO_Power && !LowConsumeMode */;
+						if(d >= RNUMBER) { // Modbus
+							if(GETBIT(MC.DailySwitchTimerCnt[i], DS_StatusBit) != fl_on) {
+								if(Modbus.RelaySwitch(MODBUS_TIMER_RELAY_ADDR, d - RNUMBER, fl_on ? MODBUS_TIMER_RELAY_ON : MODBUS_TIMER_RELAY_OFF) == OK) {
+									MC.DailySwitchTimerCnt[i] = (MC.DailySwitchTimerCnt[i] & ~(1<<DS_StatusBit)) | (fl_on<<DS_StatusBit);
+								}
+							}
+						} else {
+							if(GETBIT(MC.DailySwitchTimerCnt[i], DS_StatusBit) != fl_on) {
+								MC.dRelay[d].set_Relay(fl_on ? fR_StatusDaily : -fR_StatusDaily);
+								MC.DailySwitchTimerCnt[i] = (MC.DailySwitchTimerCnt[i] & ~(1<<DS_StatusBit)) | (fl_on<<DS_StatusBit);
+							}
+						}
+					}
+				}
 
+				// Регенерация
 				if(MC.dRelay[RSTARTREG].get_Relay() && !(MC.RTC_store.Work & RTC_Work_Regen_F1)) { // 1 minute passed but regeneration did not start
 					if(ut - RegenStarted > START_REGEN_WAIT_TIME) set_Error(ERR_START_REG, (char*)__FUNCTION__);
 					MC.dRelay[RSTARTREG].set_OFF();
@@ -2222,7 +2276,7 @@ void vService(void *)
 				}
 				if(!CriticalErrors) {
 					int8_t err = MC.get_errcode();
-					if((err == ERR_FLOODING || err == ERR_TANK_EMPTY) && Errors[1] == 0) MC.clear_error();
+					if((err == ERR_FLOODING || err == ERR_TANK_EMPTY) && Errors[1] == 0) MC.clear_error(); // Критическая ошибка пропала, очищаем errcode
 					uint8_t h = rtcSAM3X8.get_hours();
 					if(h == NOT_CITICAL_ALARM_HOUR && MC.WorkStats.RegenSofteningCntAlarm == 0 && MC.Option.RegenSofteningCntAlarm && err != ERR_SALT_FINISH) {
 						set_Error(ERR_SALT_FINISH, (char*)__FUNCTION__);
@@ -2297,53 +2351,7 @@ void vService(void *)
 						}
 					}
 				}
-				// Ежесуточные включения реле, каждую минуту
-				uint32_t tt = rtcSAM3X8.get_hours() * 100 + m;
-				for(uint8_t i = 0; i < DAILY_SWITCH_MAX; i++) {
-					if(MC.Option.DailySwitch[i].Device == 0) break;
-					uint8_t d = (MC.Option.DailySwitch[i].Device & ~(1<<DS_TimerBit));
-					if(GETBIT(MC.Option.DailySwitch[i].Device, DS_TimerBit)) { // Таймер
-						uint16_t _cnt = MC.DailySwitchTimerCnt[i] & ~(1<<DS_StatusBit);
-						if(_cnt <= 1) { // switch
-							if(d >= RNUMBER) { // Modbus
-								d -= RNUMBER;
-								if(GETBIT(MC.DailySwitchTimerCnt[i], DS_StatusBit)) { // -> off
-									if(Modbus.RelaySwitch(MODBUS_TIMER_RELAY_ADDR, d, MODBUS_TIMER_RELAY_OFF) == OK) {
-										MC.DailySwitchTimerCnt[i] = MC.Option.DailySwitch[i].TimeOn * DS_TimerMin;
-									}
-								} else { // -> on
-									if(Modbus.RelaySwitch(MODBUS_TIMER_RELAY_ADDR, d, MODBUS_TIMER_RELAY_ON) == OK) {
-										MC.DailySwitchTimerCnt[i] = (MC.Option.DailySwitch[i].TimeOff * DS_TimerMin) | (1<<DS_StatusBit);
-									}
-								}
-							} else {
-								if(GETBIT(MC.DailySwitchTimerCnt[i], DS_StatusBit)) { // -> off
-									MC.dRelay[d].set_Relay(-fR_StatusDaily);
-									MC.DailySwitchTimerCnt[i] = MC.Option.DailySwitch[i].TimeOn * DS_TimerMin;
-								} else { // -> on
-									MC.dRelay[d].set_Relay(fR_StatusDaily);
-									MC.DailySwitchTimerCnt[i] = (MC.Option.DailySwitch[i].TimeOff * DS_TimerMin) | (1<<DS_StatusBit);
-								}
-							}
-						} else MC.DailySwitchTimerCnt[i]--;
-					} else { // Вкл/Выкл по времени
-						uint32_t st = MC.Option.DailySwitch[i].TimeOn * 10;
-						uint32_t end = MC.Option.DailySwitch[i].TimeOff * 10;
-						bool fl_on = ((end >= st && tt >= st && tt < end) || (end < st && (tt >= st || tt < end))) /* && !MC.NO_Power && !LowConsumeMode */;
-						if(d >= RNUMBER) { // Modbus
-							if(GETBIT(MC.DailySwitchTimerCnt[i], DS_StatusBit) != fl_on) {
-								if(Modbus.RelaySwitch(MODBUS_TIMER_RELAY_ADDR, d - RNUMBER, fl_on ? MODBUS_TIMER_RELAY_ON : MODBUS_TIMER_RELAY_OFF) == OK) {
-									MC.DailySwitchTimerCnt[i] = (MC.DailySwitchTimerCnt[i] & ~(1<<DS_StatusBit)) | (fl_on<<DS_StatusBit);
-								}
-							}
-						} else {
-							if(GETBIT(MC.DailySwitchTimerCnt[i], DS_StatusBit) != fl_on) {
-								MC.dRelay[d].set_Relay(fl_on ? fR_StatusDaily : -fR_StatusDaily);
-								MC.DailySwitchTimerCnt[i] = (MC.DailySwitchTimerCnt[i] & ~(1<<DS_StatusBit)) | (fl_on<<DS_StatusBit);
-							}
-						}
-					}
-				}
+				// Не помещать тут код
 			} else { // Every 1 sec except updstat sec
 				if(MC.RFILL_last_time_ON == 0) {
 					MC.dRelay[RFILL].set_OFF();
