@@ -6,6 +6,9 @@ var urlcontrol = ''; //  автоопределение (если адрес с�
 //var urlcontrol = 'http://192.168.0.8';
 var urltimeout = 1800; // таймаут ожидание ответа от контроллера. Чем хуже интернет, тем выше значения. Но не более времени обновления параметров
 var urlupdate = 4000; // время обновления параметров в миллисекундах
+//if(navigator.userAgent.indexOf("rk3568_r109")!=-1) {
+//	document.addEventListener('click', () => { if(document.documentElement.requestFullscreen) document.documentElement.requestFullscreen(); else if(document.documentElement.webkitRequestFullscreen) document.documentElement.webkitRequestFullscreen(); });
+//}
 
 function setParam(paramid, resultid) {
 	// Замена set_Par(Var1) на set_par-var1 для получения значения 
@@ -514,12 +517,9 @@ function loadParam(paramid, noretry, resultdiv) {
 								} else if(values[0] == "USR") {
 									if(values[1] != "0") {
 										var elements = document.getElementsByName("USR");
-										for(var j = 0; j < elements.length; j++) {
-											if(elements[j].id == "mlogin") elements[j].hidden = false;
-											else { elements[j].remove(); j--; }
-										}
-										element = document.getElementById("MService");
-										element.innerHTML = '<a href="system.html"><i class="menu-icon menu-icon-service"></i>Сервис</a>';
+										while(elements.length > 0) elements[0].remove();
+										if((element = document.getElementById("mlogin"))) element.hidden = false;
+										if((element = document.getElementById("MService"))) element.innerHTML = '<a href="system.html"><i class="menu-icon menu-icon-service"></i>Сервис</a>';
 									}
 								} else if(type == "bar") {
 									var elval = Number(values[1]);

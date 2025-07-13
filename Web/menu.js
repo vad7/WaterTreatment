@@ -23,7 +23,7 @@
 		<li class="sensorst"><a href="sensorst.html">Датчики температуры</a></li>\
 	</ul>\
 </li>\
-<li name="USR" class="system config lan files time notice mqtt const has-children" id="MService">\
+<li class="system config lan files time notice mqtt const has-children" id="MService">\
 	<input type="checkbox" name="group-4" id="group-4">\
 	<label for="group-4"><i class="menu-icon menu-icon-service"></i>Сервис</label>\
 	<ul>\
@@ -49,7 +49,7 @@
 	</ul>\
 </li>\
 <li class="about"><a href="about.html"><i class="menu-icon menu-icon-about"></i>О контроллере</a></li>\
-<li name="USR" id="mlogin" hidden><a href="planf.html" onclick="NeedLogin=0"><i class="menu-icon"></i>Логин</a></li>\
+<li id="mlogin" hidden><a href="planf.html" onclick="NeedLogin=0"><i class="menu-icon"></i>Логин</a></li>\
 </ul>\
 <div class="dateinfo">\
 	<div id="get_status"></div>\
