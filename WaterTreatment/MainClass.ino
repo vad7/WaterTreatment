@@ -724,7 +724,7 @@ void MainClass::resetSetting()
 	FilterTankSoftenerSquare = CalcFilterSquare(Option.FilterTankSoftener);
 	Option.LowConsumeRequestPeriod = HTTP_REQ_LowConsume;
 	Option.SepticAlarmDebounce = 30;
-	Option.TankCheckPercent = FILLING_TANK_STEP / 100;
+	Option.TankCheckPercent = FILLING_TANK_STEP / 10;
 	Option.TankFillingTimeMax = 120;
 	Option.PWATER_Osmos_TankMul = 100;
 	Option.PWATER_Osmos_FullDelay = 20;
@@ -991,7 +991,7 @@ boolean MainClass::set_option(char *var, float xx)
 	if(strcmp(var,option_FloodingDebounceTime)==0){ Option.FloodingDebounceTime = x; return true; } else
 	if(strcmp(var,option_FloodingTimeout)==0)  { Option.FloodingTimeout = x; return true; } else
 	if(strcmp(var,option_FillingTankTimeout)==0){ Option.FillingTankTimeout = x; return true; } else
-	if(strcmp(var,option_TankCheckPercent)==0) { Option.TankCheckPercent = x; return true; } else
+	if(strcmp(var,option_TankCheckPercent)==0) { Option.TankCheckPercent = rd(xx, 10); return true; } else
 	if(strcmp(var,option_TankFillingTimeMax)==0){ Option.TankFillingTimeMax = x; return true; } else
 	if(strcmp(var,option_CriticalErrorsTimeout)==0){ Option.CriticalErrorsTimeout = x; return true; } else
 	if(strcmp(var,option_FilterTank)==0){ FilterTankSquare = CalcFilterSquare(Option.FilterTank = x); return true; } else
@@ -1121,7 +1121,7 @@ char* MainClass::get_option(char *var, char *ret)
 	if(strcmp(var,option_FloodingDebounceTime)==0){ return _itoa(Option.FloodingDebounceTime, ret); } else
 	if(strcmp(var,option_FloodingTimeout)==0){ return _itoa(Option.FloodingTimeout, ret); } else
 	if(strcmp(var,option_FillingTankTimeout)==0){ return _itoa(Option.FillingTankTimeout, ret); } else
-	if(strcmp(var,option_TankCheckPercent)==0){ return _itoa(Option.TankCheckPercent, ret); } else
+	if(strcmp(var,option_TankCheckPercent)==0){ return _dtoa(ret, Option.TankCheckPercent, 1); } else
 	if(strcmp(var,option_TankFillingTimeMax)==0){ return _itoa(Option.TankFillingTimeMax, ret); } else
 	if(strcmp(var,option_LTank_CriticalMax)==0){ return _itoa(Option.LTank_CriticalMax, ret); } else
 	if(strcmp(var,option_CriticalErrorsTimeout)==0){ return _itoa(Option.CriticalErrorsTimeout, ret); } else

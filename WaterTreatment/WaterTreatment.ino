@@ -2472,7 +2472,7 @@ void vService(void *)
 						if(TankCheckFlag == 1 && FillingTankLastLevel && DrainingSiltFlag == 0) { // No water consuming from tank
 							if(++FillingTankTimer >= MC.Option.FillingTankTimeout) {
 								int16_t d = MC.sADC[LTANK].get_Value() - FillingTankLastLevel;
-								if(d < (MC.Option.TankCheckPercent ? MC.Option.TankCheckPercent * 100 : FILLING_TANK_STEP)) {
+								if(d < (MC.Option.TankCheckPercent ? MC.Option.TankCheckPercent * 10 : FILLING_TANK_STEP)) {
 									set_Error(ERR_TANK_NO_FILLING, (char*)"vService");
 									journal.jprintf("FILLING %d sec = +%.2d%%!\n", MC.Option.FillingTankTimeout, d);
 								}
@@ -2491,7 +2491,7 @@ void vService(void *)
 					FillingTankTimer = 0;
 				} else if(MC.Option.TankCheckPercent) {
 					int16_t d = FillingTankLastLevel - MC.sADC[LTANK].get_Value();
- 					if(d > MC.Option.TankCheckPercent * 100) {
+ 					if(d > MC.Option.TankCheckPercent * 10) {
 						set_Error(ERR_TANK_LEAKAGE, (char*)"vService");
 						journal.jprintf("LEAKAGE %.2d%%!\n", d);
 						DrainingSiltFlag = 2;
