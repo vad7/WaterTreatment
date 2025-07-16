@@ -2498,7 +2498,7 @@ void vService(void *)
 					}
 					if(++FillingTankTimer > LEAKAGE_TANK_RESTART_TIME) DrainingSiltFlag = 255;
 				}
-				if(MC.Option.LTank_CriticalMax && MC.sADC[LTANK].get_Value() > MC.Option.LTank_CriticalMax) {
+				if(MC.Option.LTank_CriticalMax && MC.sADC[LTANK].get_Value() > MC.Option.LTank_CriticalMax * 100) {
 					set_Error(ERR_TANK_OVERFLOW, (char*)"vService");
 				}
 			}
