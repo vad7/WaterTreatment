@@ -6,9 +6,7 @@ var urlcontrol = ''; //  автоопределение (если адрес с�
 //var urlcontrol = 'http://192.168.0.8';
 var urltimeout = 1800; // таймаут ожидание ответа от контроллера. Чем хуже интернет, тем выше значения. Но не более времени обновления параметров
 var urlupdate = 4000; // время обновления параметров в миллисекундах
-//if(navigator.userAgent.indexOf("rk3568_r109")!=-1) {
-//	document.addEventListener('click', () => { if(document.documentElement.requestFullscreen) document.documentElement.requestFullscreen(); else if(document.documentElement.webkitRequestFullscreen) document.documentElement.webkitRequestFullscreen(); });
-//}
+//if(navigator.userAgent.indexOf("rk3568_r109")!=-1) { }
 
 function setParam(paramid, resultid) {
 	// Замена set_Par(Var1) на set_par-var1 для получения значения 
