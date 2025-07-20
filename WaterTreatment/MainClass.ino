@@ -1121,7 +1121,7 @@ char* MainClass::get_option(char *var, char *ret)
 	if(strcmp(var,option_FloodingDebounceTime)==0){ return _itoa(Option.FloodingDebounceTime, ret); } else
 	if(strcmp(var,option_FloodingTimeout)==0){ return _itoa(Option.FloodingTimeout, ret); } else
 	if(strcmp(var,option_FillingTankTimeout)==0){ return _itoa(Option.FillingTankTimeout, ret); } else
-	if(strcmp(var,option_TankCheckPercent)==0){ return _dtoa(ret, Option.TankCheckPercent, 1); } else
+	if(strcmp(var,option_TankCheckPercent)==0){ _dtoa(ret, Option.TankCheckPercent, 1); return ret; } else
 	if(strcmp(var,option_TankFillingTimeMax)==0){ return _itoa(Option.TankFillingTimeMax, ret); } else
 	if(strcmp(var,option_LTank_CriticalMax)==0){ return _itoa(Option.LTank_CriticalMax, ret); } else
 	if(strcmp(var,option_CriticalErrorsTimeout)==0){ return _itoa(Option.CriticalErrorsTimeout, ret); } else
