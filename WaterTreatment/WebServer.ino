@@ -1034,15 +1034,20 @@ xSaveStats:		if((i = MC.save_WorkStats()) == OK)
 			STORE_DEBUG_INFO(25);
 			strcat(strReturn,"VERSION|Версия прошивки|");strcat(strReturn,VERSION);strcat(strReturn,";");
 			strcat(strReturn,"__DATE__ __TIME__|Дата и время сборки прошивки|");strcat(strReturn,__DATE__);strcat(strReturn," ");strcat(strReturn,__TIME__) ;strcat(strReturn,";");
+			strcat(strReturn,"VER_SAVE|Версия формата сохраненных данных в I2C памяти|"); _itoa(VER_SAVE,strReturn); strcat(strReturn,";");
 			strcat(strReturn,"CONFIG_NAME|Имя конфигурации|");strcat(strReturn,CONFIG_NAME);strcat(strReturn,";");
 			strcat(strReturn,"CONFIG_NOTE|");strcat(strReturn,CONFIG_NOTE);strcat(strReturn,"|;");
-			strcat(strReturn,"VER_SAVE|Версия формата сохраненных данных в I2C памяти|"); _itoa(VER_SAVE,strReturn); strcat(strReturn,";");
-			strcat(strReturn,"configCPU_CLOCK_HZ|Частота CPU (МГц)|");_itoa(configCPU_CLOCK_HZ/1000000,strReturn);strcat(strReturn,";");
-			strcat(strReturn,"SD_SPI_SPEED|Частота SPI SD карты (МГц)|");_itoa(SD_CLOCK, strReturn);strcat(strReturn,";");
-			strcat(strReturn,"W5200_SPI_SPEED|Частота SPI сети "); strcat(strReturn,nameWiznet);strcat(strReturn," (МГц)|");_itoa(84/W5200_SPI_SPEED, strReturn);strcat(strReturn,";");
-			strcat(strReturn,"I2C_SPEED|Частота работы шины I2C (кГц)|"); _itoa(I2C_SPEED/1000,strReturn); strcat(strReturn,";");
-			strcat(strReturn,"UART_SPEED|Скорость отладочного порта (бод)|");_itoa(UART_SPEED,strReturn);strcat(strReturn,";");
-			strcat(strReturn,"WDT_TIME|Период сторожевого таймера, 0 - нет (сек)|");_itoa(WDT_TIME,strReturn);strcat(strReturn,";");
+			strcat(strReturn,"TIME_READ_SENSOR|Период опроса датчиков, мсек|");_itoa(TIME_READ_SENSOR,strReturn);strcat(strReturn,";");
+			strcat(strReturn,"ADC_FREQ|Частота АЦП, Гц|");_itoa(ADC_FREQ,strReturn);strcat(strReturn,";");
+			strcat(strReturn,"TIME_SLICE_PUMPS|Период управления насосами, мсек|");_itoa(TIME_SLICE_PUMPS,strReturn);strcat(strReturn,";");
+			strcat(strReturn,"WDT_TIME|Период сторожевого таймера, 0 - нет, сек|");_itoa(WDT_TIME,strReturn);strcat(strReturn,";");
+			strcat(strReturn,"DISPLAY_UPDATE|Период отображения LCD дисплея, мсек|");_itoa(DISPLAY_UPDATE,strReturn);strcat(strReturn,";");
+			strcat(strReturn,"TIME_WEB_SERVER|Период опроса web сервера "); strcat(strReturn,nameWiznet);strcat(strReturn,", мсек|");_itoa(TIME_WEB_SERVER,strReturn);strcat(strReturn,";");
+			strcat(strReturn,"configCPU_CLOCK_HZ|Частота CPU, МГц|");_itoa(configCPU_CLOCK_HZ/1000000,strReturn);strcat(strReturn,";");
+			strcat(strReturn,"SD_SPI_SPEED|Частота SPI SD карты, МГц|");_itoa(SD_CLOCK, strReturn);strcat(strReturn,";");
+			strcat(strReturn,"W5200_SPI_SPEED|Частота SPI сети "); strcat(strReturn,nameWiznet);strcat(strReturn,", МГц|");_itoa(84/W5200_SPI_SPEED, strReturn);strcat(strReturn,";");
+			strcat(strReturn,"I2C_SPEED|Частота работы шины I2C, кГц)|"); _itoa(I2C_SPEED/1000,strReturn); strcat(strReturn,";");
+			strcat(strReturn,"UART_SPEED|Скорость отладочного порта, бод)|");_itoa(UART_SPEED,strReturn);strcat(strReturn,";");
 #if PWM_MODBUS_ADR >= MODBUS_SERIAL1_ADDR_GE
 			strcat(strReturn,"MODBUS_SERIAL1|Modbus RTU порт счетчика насосной станции|Serial");
 			m_snprintf(strReturn + strlen(strReturn), 128, "%d (%d);", GetSerialNum(MODBUS_SERIAL1), MODBUS_SERIAL1_SPEED);
@@ -1062,33 +1067,31 @@ xSaveStats:		if((i = MC.save_WorkStats()) == OK)
 			m_snprintf(strReturn + strlen(strReturn), 128, "%d (%d);", GetSerialNum(MODBUS_SERIAL3), MODBUS_SERIAL3_SPEED);
 #endif
 			strcat(strReturn,"MODBUS_PORT_CONFIG|Конфигурация порта|8N1;");
-			strcat(strReturn,"MODBUS_TIME_WAIT|Максимальное время ожидания освобождения порта (мсек)|");_itoa(MODBUS_TIME_WAIT,strReturn);strcat(strReturn,";");
+			strcat(strReturn,"MODBUS_TIME_WAIT|Максимальное время ожидания освобождения порта, мсек|");_itoa(MODBUS_TIME_WAIT,strReturn);strcat(strReturn,";");
 
 			// Карта
 			m_snprintf(strReturn + strlen(strReturn), 128, "SD_FAT_VERSION|Версия библиотеки SdFat|%s;", SD_FAT_VERSION);
 			m_snprintf(strReturn + strlen(strReturn), 128, "USE_SD_CRC|SD - Использовать проверку CRC|%c;", USE_SD_CRC ? '0'+USE_SD_CRC : USE_SD_CRC_FOR_WRITE ? 'W' : '-');
-			strcat(strReturn,"SD_REPEAT|SD - Число попыток чтения, при неудаче переход на работу без карты|");_itoa(SD_REPEAT,strReturn);strcat(strReturn,";");
+			strcat(strReturn,"SD_REPEAT|SD - Число попыток чтения, при неудаче переход на работу без карты|");_itoa(SD_REPEAT,strReturn);//strcat(strReturn,";");
 
-			// W5200
-			strcat(strReturn,"W5200_THREAD|Число потоков для сетевого чипа (web сервера) "); strcat(strReturn,nameWiznet);strcat(strReturn,"|");_itoa(W5200_THREAD,strReturn);strcat(strReturn,";");
-			strcat(strReturn,"W5200_TIME_WAIT|Время ожидания захвата мютекса, для управления потоками (мсек)|");_itoa( W5200_TIME_WAIT,strReturn);strcat(strReturn,";");
-			strcat(strReturn,"STACK_vWebX|Размер стека для задачи одного web потока "); strcat(strReturn,nameWiznet);strcat(strReturn," (х4 байта)|");_itoa(STACK_vWebX,strReturn);strcat(strReturn,";");
-			strcat(strReturn,"W5200_NUM_PING|Число попыток пинга до определения потери связи |");_itoa(W5200_NUM_PING,strReturn);strcat(strReturn,";");
-			strcat(strReturn,"W5200_MAX_LEN|Размер аппаратного буфера  сетевого чипа "); strcat(strReturn,nameWiznet);strcat(strReturn," (байт)|");_itoa(W5200_MAX_LEN,strReturn);strcat(strReturn,";");
-			strcat(strReturn,"INDEX_FILE|Файл загружаемый по умолчанию|");strcat(strReturn,INDEX_FILE);strcat(strReturn,";");
-			strcat(strReturn,"TIME_ZONE|Часовой пояс|");_itoa(TIME_ZONE,strReturn);strcat(strReturn,";");
-			// FreeRTOS
-			strcat(strReturn,"FREE_RTOS_ARM_VERSION|Версия библиотеки FreeRTOS|");_itoa(FREE_RTOS_ARM_VERSION,strReturn);strcat(strReturn,";");
-			strcat(strReturn,"configTICK_RATE_HZ|Квант времени системы FreeRTOS (мкс)|");_itoa(configTICK_RATE_HZ,strReturn);strcat(strReturn,";");
-
-			strcat(strReturn,"TIME_READ_SENSOR|Период опроса датчиков (мсек)|");_itoa(TIME_READ_SENSOR,strReturn);//strcat(strReturn,";");
 			ADD_WEBDELIM(strReturn);  continue;
 		} // end CONST
 
 		if (strcmp(str,"CONST1")==0)   // Команда CONST1 Информация очень большая по этому разбито на 2 запроса CONST CONST1
 		{
-			strcat(strReturn,"TIME_WEB_SERVER|Период опроса web сервера "); strcat(strReturn,nameWiznet);strcat(strReturn," (мсек)|");_itoa(TIME_WEB_SERVER,strReturn);strcat(strReturn,";");
+			// W5200
+			strcat(strReturn,"W5200_THREAD|Число потоков для сетевого чипа (web сервера) "); strcat(strReturn,nameWiznet);strcat(strReturn,"|");_itoa(W5200_THREAD,strReturn);strcat(strReturn,";");
+			strcat(strReturn,"W5200_TIME_WAIT|Время ожидания захвата мютекса, для управления потоками, мсек|");_itoa( W5200_TIME_WAIT,strReturn);strcat(strReturn,";");
+			strcat(strReturn,"STACK_vWebX|Размер стека для задачи одного web потока "); strcat(strReturn,nameWiznet);strcat(strReturn,", х4 байта|");_itoa(STACK_vWebX,strReturn);strcat(strReturn,";");
+			strcat(strReturn,"W5200_NUM_PING|Число попыток пинга до определения потери связи |");_itoa(W5200_NUM_PING,strReturn);strcat(strReturn,";");
+			strcat(strReturn,"W5200_MAX_LEN|Размер аппаратного буфера  сетевого чипа "); strcat(strReturn,nameWiznet);strcat(strReturn,", байт)|");_itoa(W5200_MAX_LEN,strReturn);strcat(strReturn,";");
+			strcat(strReturn,"INDEX_FILE|Файл загружаемый по умолчанию|");strcat(strReturn,INDEX_FILE);strcat(strReturn,";");
+			strcat(strReturn,"TIME_ZONE|Часовой пояс|");_itoa(TIME_ZONE,strReturn);strcat(strReturn,";");
 			strcat(strReturn,"TIME_I2C_UPDATE |Период синхронизации внутренних часов с I2C часами (мсек)|");_itoa(TIME_I2C_UPDATE,strReturn);strcat(strReturn,";");
+			// FreeRTOS
+			strcat(strReturn,"FREE_RTOS_ARM_VERSION|Версия библиотеки FreeRTOS|");_itoa(FREE_RTOS_ARM_VERSION,strReturn);strcat(strReturn,";");
+			strcat(strReturn,"configTICK_RATE_HZ|Квант времени системы FreeRTOS, мксек|");_itoa(configTICK_RATE_HZ,strReturn);strcat(strReturn,";");
+
 			// i2c
 			strcat(strReturn,"I2C_COUNT_EEPROM|Адрес внутри чипа I2C с которого пишется счетчики |"); strcat(strReturn,uint16ToHex(I2C_COUNT_EEPROM)); strcat(strReturn,";");
 			strcat(strReturn,"I2C_SETTING_EEPROM|Адрес внутри чипа I2C с которого пишутся настройки |"); strcat(strReturn,uint16ToHex(I2C_SETTING_EEPROM)); strcat(strReturn,";");

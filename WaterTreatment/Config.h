@@ -545,7 +545,7 @@ struct History_setup {
 	const int16_t MINPRESS[ANUMBER]   = {  250,  7500 };	// минимальные значения давления, в сотых
 	const uint16_t MAXPRESS[ANUMBER]  = {  370, 10000 };	// Максимальные значения давления, в сотых
 	const uint16_t TESTPRESS[ANUMBER] = {  300,  8000 };	// Значения датчиков при тестировании  опция TEST, в сотых
-	const uint8_t ADC_FILTER[ANUMBER] = {    4,   120 };	// Длина фильтра усреднения
+	const uint8_t ADC_FILTER[ANUMBER] = {    5,    10 };	// Длина фильтра усреднения
 
 	//#define ANALOG_MODBUS 								// Данные аналоговых датчиков читаются по Modbus RTU
 	#ifdef ANALOG_MODBUS
@@ -558,7 +558,7 @@ struct History_setup {
 	#define ADC_PRESCAL					9		// = (42 / ADCClockMhz - 1), - 4.2 MHz
 	//#define ADC_SKIP_EXTREMUM			50		// Отбрасывать максимумы/минимумы больше заданной дельты
 	#define P_NUMSAMLES					1		// Число значений для усреднения показаний давления
-	#define ADC_FREQ					10		// период опроса аналоговых датчиков в секунду
+	#define ADC_FREQ					20		// период опроса аналоговых датчиков в секунду
 
 	#define CHART_POINTS				500		// Максимальное число точек графика, одна точка это 2 байта * число графиков
 	// Статистика по дням

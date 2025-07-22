@@ -891,7 +891,7 @@ void vKeysLCD( void * )
 	lcd.print((char*)"WaterTreatment v");
 	lcd.print((char*)VERSION);
 	lcd.setCursor(0, 2);
-	lcd.print((char*)"Vadim Kulakov(c)2022");
+	lcd.print((char*)"Vadim Kulakov(c)2025");
 	lcd.setCursor(0, 3);
 	lcd.print((char*)"vad7@yahoo.com");
 	vTaskDelay(3000);
