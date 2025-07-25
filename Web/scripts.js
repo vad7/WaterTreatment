@@ -482,7 +482,7 @@ function loadParam(paramid, noretry, resultdiv) {
 										}
 									}
 									if((element = document.getElementById(valueid + "-div1000"))) {
-										element.innerHTML = element.value = (Number(values[1])/1000).toFixed(3);
+										if(isNaN(Number(values[1]))) element.placeholder = values[1]; else element.value = (Number(values[1])/1000).toFixed(3);
 									}
 								} else if(type == 'is') {
 									if(values[1] == 0 || values[1].substring(0,1) == 'E') {
