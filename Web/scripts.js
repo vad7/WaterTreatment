@@ -478,7 +478,7 @@ function loadParam(paramid, noretry, resultdiv) {
 											else element.placeholder = values[1];
 										} else if(element != document.activeElement) {
 											element.innerHTML = values[1];
-											element.value = element.type == "number" ? values[1].replace(/[^\-\d.,]/g, "") : values[1];
+											element.value = element.type == "number" ? values[1].replace(/[^\-\d.,]|^\-+$/g, "") : values[1];
 										}
 									}
 									if((element = document.getElementById(valueid + "-div1000"))) {
