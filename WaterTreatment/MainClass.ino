@@ -637,7 +637,7 @@ void MainClass::resetSetting()
 	fSD = false;                                    // СД карта не рабоатет
 
 	num_resW5200 = 0;                               // текущее число сбросов сетевого чипа
-	num_resMutexSPI = 0;                            // текущее число сброса митекса SPI
+	num_resMutexWEB = 0;                            // текущее число сброса митекса SPI
 	num_resMutexI2C = 0;                            // текущее число сброса митекса I2C
 	num_resMQTT = 0;                                // число повторных инициализация MQTT клиента
 	num_resPing = 0;                                // число не прошедших пингов

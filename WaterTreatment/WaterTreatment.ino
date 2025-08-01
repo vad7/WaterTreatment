@@ -96,13 +96,12 @@ void USART2_Handler(void)   // Interrupt handler for UART2
 #endif
 
 // Мютексы блокираторы железа
-SemaphoreHandle_t xWebThreadSemaphore;              // Семафор потоки вебсервера,  деление сетевой карты
-SemaphoreHandle_t xI2CSemaphore;                    // Семафор шины I2C (Wire), часы, память, мастер OneWire
+type_SEMAPHORE xWebThreadSemaphore;              // Семафор потоки вебсервера,  деление сетевой карты
+type_SEMAPHORE xI2CSemaphore;                    // Семафор шины I2C (Wire), часы, память, мастер OneWire
 #ifdef SECOND_I2C_USED
-SemaphoreHandle_t xI2CSemaphore2;                   // Семафор второй шины I2C (Wire1) (частотные датчики)
+type_SEMAPHORE xI2CSemaphore2;                   // Семафор второй шины I2C (Wire1) (частотные датчики)
 #endif
-SemaphoreHandle_t xSPISemaphore;                    // Семафор шины SPI  сетевая карта, память. SD карта // пока не используется
-SemaphoreHandle_t xLoadingWebSemaphore;             // Семафор загрузки веб морды в spi память
+type_SEMAPHORE xLoadingWebSemaphore;             // Семафор загрузки веб морды в spi память
 uint16_t lastErrorFreeRtosCode;                     // код последней ошибки операционки нужен для отладки
 uint32_t startSupcStatusReg;                        // Состояние при старте SUPC Supply Controller Status Register - проверяем что с питание
 
@@ -143,26 +142,6 @@ __attribute__((always_inline)) inline void _delay(int t) // Функция за�
 void yield(void)
 {
 	if(xTaskGetSchedulerState() == taskSCHEDULER_RUNNING) taskYIELD();
-}
-
-// Захватить семафор с проверкой, что шедуллер работает
-BaseType_t SemaphoreTake(QueueHandle_t xSemaphore, TickType_t xBlockTime)
-{
-	if(xTaskGetSchedulerState() != taskSCHEDULER_RUNNING) return pdTRUE;
-	else {
-		for(;;) {
-			if(xSemaphoreTake(xSemaphore, 0) == pdTRUE) return pdTRUE;
-			if(!xBlockTime--) break;
-			vTaskDelay(1/portTICK_PERIOD_MS);
-		}
-		return pdFALSE;
-	}
-}
-
-// Освободить семафор с проверкой, что шедуллер работает
-inline void SemaphoreGive(QueueHandle_t xSemaphore)
-{
-	if(xTaskGetSchedulerState() == taskSCHEDULER_RUNNING) xSemaphoreGive(xSemaphore);
 }
 
 // Остановить шедулер задач, возврат 1, если получилось
@@ -579,20 +558,12 @@ x_I2C_init_std_message:
 	MC.mRTOS=MC.mRTOS+64+4*STACK_vWebX;
 	if(xTaskCreate(vWeb2,"Web2", STACK_vWebX,NULL,1,&MC.xHandleUpdateWeb2)==errCOULD_NOT_ALLOCATE_REQUIRED_MEMORY) set_Error(ERR_MEM_FREERTOS,(char*)nameFREERTOS);
 	MC.mRTOS=MC.mRTOS+64+4*STACK_vWebX;
-	vSemaphoreCreateBinary(xLoadingWebSemaphore);           // Создание семафора загрузки веб морды в spi память
-	if(xLoadingWebSemaphore==NULL) set_Error(ERR_MEM_FREERTOS,(char*)nameFREERTOS);
-
-	vSemaphoreCreateBinary(xWebThreadSemaphore);               // Создание мютекса
-	if (xWebThreadSemaphore==NULL) set_Error(ERR_MEM_FREERTOS,(char*)nameFREERTOS);
-	vSemaphoreCreateBinary(xI2CSemaphore);                     // Создание мютекса
-	if (xI2CSemaphore==NULL) set_Error(ERR_MEM_FREERTOS,(char*)nameFREERTOS);
+	SemaphoreCreate(xLoadingWebSemaphore);
+	SemaphoreCreate(xWebThreadSemaphore);
+	SemaphoreCreate(xI2CSemaphore);
 #ifdef SECOND_I2C_USED
-	vSemaphoreCreateBinary(xI2CSemaphore2);                     // Создание мютекса
-	if (xI2CSemaphore2 == NULL) set_Error(ERR_MEM_FREERTOS, (char*)nameFREERTOS);
+	SemaphoreCreate(xI2CSemaphore2);
 #endif
-	//vSemaphoreCreateBinary(xSPISemaphore);                     // Создание мютекса
-	//if (xSPISemaphore==NULL) set_Error(ERR_MEM_FREERTOS,(char*)nameFREERTOS);
-	// Дополнительные семафоры (почему то именно здесь) Создается когда есть модбас
 	Modbus.initModbus();
 	//
 	journal.jprintfopt("OK, size %d bytes\n", MC.mRTOS);
@@ -714,22 +685,12 @@ void vWeb0(void *)
 #endif
 		if(xTaskGetTickCount() - thisTime > (uint32_t) WEB0_OTHER_FUNC_PERIOD * 1000) { // Другие функции
 			thisTime = xTaskGetTickCount();                                      // Запомнить тики
-//			// 1. Проверка захваченого семафора сети ожидаем  3 времен W5200_TIME_WAIT если мютекса не получаем то сбрасывае мютекс
-//			if(SemaphoreTake(xWebThreadSemaphore, ((3 + (fWebUploadingFilesTo != 0) * 30) * W5200_TIME_WAIT / portTICK_PERIOD_MS)) == pdFALSE) {
-//				SemaphoreGive(xWebThreadSemaphore);
-//				journal.jprintf_time("UNLOCK mutex xWebThread\n");
-//				active = false;
-//				MC.num_resMutexSPI++;
-//			} // Захват мютекса SPI или ОЖИДАНИНЕ 2 времен W5200_TIME_WAIT и его освобождение
-//			else SemaphoreGive(xWebThreadSemaphore);
-//
-//			// Проверка и сброс митекса шины I2C  если мютекса не получаем то сбрасывае мютекс
-//			if(SemaphoreTake(xI2CSemaphore, (3 * I2C_TIME_WAIT / portTICK_PERIOD_MS)) == pdFALSE) {
-//				SemaphoreGive(xI2CSemaphore);
-//				journal.jprintf_time("UNLOCK mutex xI2CSemaphore\n");
-//				MC.num_resMutexI2C++;
-//			} // Захват мютекса I2C или ОЖИДАНИНЕ 3 времен I2C_TIME_WAIT  и его освобождение
-//			else SemaphoreGive(xI2CSemaphore);
+			// Проверка и сброс митекса шины I2C  если мютекса не получаем то сбрасываем мютекс
+			if(SemaphoreTake(xI2CSemaphore, (5 * I2C_TIME_WAIT / portTICK_PERIOD_MS)) == pdFALSE) { // Захват мютекса I2C
+				SemaphoreGive(xI2CSemaphore);
+				journal.jprintf_time("UNLOCK mutex xI2CSemaphore\n");
+				MC.num_resMutexI2C++;
+			} else SemaphoreGive(xI2CSemaphore);
 
 			// 2. Чистка сокетов
 			if(MC.time_socketRes() > 0) {

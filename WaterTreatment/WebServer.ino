@@ -68,9 +68,14 @@ void web_server(uint8_t thread)
 	int32_t len;
 	int8_t sock;
 
-	if(SemaphoreTake(xWebThreadSemaphore, (W5200_TIME_WAIT / portTICK_PERIOD_MS)) == pdFALSE) {
-		return;
-	}          // Захват семафора потока или ОЖИДАНИЕ W5200_TIME_WAIT, если семафор не получен то выходим
+	if(SemaphoreTake(xWebThreadSemaphore, (W5200_TIME_WAIT / portTICK_PERIOD_MS)) == pdFALSE) { // Захват семафора потока
+		// 1. Проверка захваченого семафора сети ожидаем 3 времен W5200_TIME_WAIT, если мютекса не получаем, то сбрасываем мютекс
+		if(SemaphoreTake(xWebThreadSemaphore, ((3 + (fWebUploadingFilesTo != 0) * 30) * W5200_TIME_WAIT / portTICK_PERIOD_MS)) == pdFALSE) {
+			SemaphoreGive(xWebThreadSemaphore);
+			journal.jprintf_time("UNLOCK mutex xWebThread, %d\n", thread);
+			MC.num_resMutexWEB++;
+		} else SemaphoreGive(xWebThreadSemaphore);
+	}
 
 	Socket[thread].sock = -1;                      // Сокет свободный
 
@@ -1081,7 +1086,7 @@ xSaveStats:		if((i = MC.save_WorkStats()) == OK)
 		{
 			// W5200
 			strcat(strReturn,"W5200_THREAD|Число потоков для сетевого чипа (web сервера) "); strcat(strReturn,nameWiznet);strcat(strReturn,"|");_itoa(W5200_THREAD,strReturn);strcat(strReturn,";");
-			strcat(strReturn,"W5200_TIME_WAIT|Время ожидания захвата мютекса, для управления потоками, мсек|");_itoa( W5200_TIME_WAIT,strReturn);strcat(strReturn,";");
+			strcat(strReturn,"W5200_TIME_WAIT|Время ожидания захвата мютекса, для управления потоками, мсек|");_itoa(W5200_TIME_WAIT,strReturn);strcat(strReturn,";");
 			strcat(strReturn,"STACK_vWebX|Размер стека для задачи одного web потока "); strcat(strReturn,nameWiznet);strcat(strReturn,", х4 байта|");_itoa(STACK_vWebX,strReturn);strcat(strReturn,";");
 			strcat(strReturn,"W5200_NUM_PING|Число попыток пинга до определения потери связи |");_itoa(W5200_NUM_PING,strReturn);strcat(strReturn,";");
 			strcat(strReturn,"W5200_MAX_LEN|Размер аппаратного буфера  сетевого чипа "); strcat(strReturn,nameWiznet);strcat(strReturn,", байт)|");_itoa(W5200_MAX_LEN,strReturn);strcat(strReturn,";");
@@ -1198,8 +1203,9 @@ xSaveStats:		if((i = MC.save_WorkStats()) == OK)
 			} else if(strcmp(str, "Info2") == 0) { // "get_sysInfo2" - Функция вывода системной информации для разработчика
 				strcat(strReturn,"<b> Счетчики ошибок</b>|;");
 				strcat(strReturn,"Счетчик \"Потеря связи с "); strcat(strReturn,nameWiznet);strcat(strReturn,"\", повторная инициализация  <sup>2</sup>|");_itoa(MC.num_resW5200,strReturn);strcat(strReturn,";");
-				strcat(strReturn,"Счетчик числа сбросов мютекса захвата шины SPI|");_itoa(MC.num_resMutexSPI,strReturn);strcat(strReturn,";");
-				strcat(strReturn,"Счетчик числа сбросов мютекса захвата шины I2C|");_itoa(MC.num_resMutexI2C,strReturn);strcat(strReturn,";");
+				strReturn += m_snprintf(strReturn += strlen(strReturn), 256, "Счетчик блокировок и сбросов мютекса WEB|%d (%d);", xWebThreadSemaphore.BusyCnt, MC.num_resMutexWEB);
+				strReturn += m_snprintf(strReturn, 256, "Счетчик блокировок и сбросов мютекса I2C|%d (%d);", xI2CSemaphore.BusyCnt, MC.num_resMutexI2C);
+				strReturn += m_snprintf(strReturn, 256, "Счетчик блокировок мютекса журнала|%d;", journal.Semaphore.BusyCnt);
 	#ifdef MQTT
 				strcat(strReturn,"Счетчик числа повторных соединений MQTT клиента|");_itoa(MC.num_resMQTT,strReturn);strcat(strReturn,";");
 	#endif
@@ -2522,7 +2528,7 @@ xContinueSearchHeader:
 			journal.jprintf_time("Start upload, erase SPI disk ");
 			SerialFlash.eraseAll();
 			while(SerialFlash.ready() == false) {
-				xSemaphoreGive(xWebThreadSemaphore); // отдать семафор вебморды, что бы обработались другие потоки веб морды
+				SemaphoreGive(xWebThreadSemaphore); // отдать семафор вебморды, что бы обработались другие потоки веб морды
 				vTaskDelay(1000 / portTICK_PERIOD_MS);
 				if(SemaphoreTake(xWebThreadSemaphore, (3 * W5200_TIME_WAIT / portTICK_PERIOD_MS)) == pdFALSE) { // получить семафор веб морды
 					journal.jprintf("%s: Socket %d %s\n", (char*) __FUNCTION__, Socket[thread].sock, MutexWebThreadBuzy);

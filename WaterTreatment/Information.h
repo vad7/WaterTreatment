@@ -33,6 +33,11 @@ extern uint16_t sendPacketRTOS(uint8_t thread, const uint8_t * buf, uint16_t len
 const char *errorReadI2C =    {"$ERROR - read I2C memory\n"};
 const char *errorWriteI2C =   {"$ERROR - write I2C memory\n"};
 
+#define I2C_JOURNAL_HEAD   		0x01 					// Признак головы журнала
+#define I2C_JOURNAL_TAIL   		0x02					// Признак хвоста журнала
+#define I2C_JOURNAL_FORMAT 		0xFF					// Символ которым заполняется журнал при форматировании
+#define I2C_JOURNAL_READY  		0x55AA					// Признак создания журнала - если его нет по адресу I2C_JOURNAL_START-2 то надо форматировать журнал (первичная инициализация)
+
 class Journal :public Print
 {
 public:
@@ -53,6 +58,7 @@ public:
   #else
   void Clear(){bufferTail=0;bufferHead=0;full=false;err=OK;} // очистка журнала в памяти
   #endif
+  type_SEMAPHORE Semaphore;                    			// Семафор
 private:
   int8_t err;                                             // ошибка журнала
   int32_t bufferHead, bufferTail;                        // Начало и конец

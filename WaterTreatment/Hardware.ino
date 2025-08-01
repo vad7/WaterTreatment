@@ -856,31 +856,28 @@ int8_t devModbus::initModbus()
         pinMode(PIN_MODBUS_RSE , OUTPUT);                                            // Подготовка управлением полудуплексом
         digitalWriteDirect(PIN_MODBUS_RSE , LOW);
 	#endif
-		vSemaphoreCreateBinary(xModbusSemaphore);                       // Создание мютекса
-		if(xModbusSemaphore==NULL) set_Error(ERR_MEM_FREERTOS,(char*)__FUNCTION__);
-		else {
+		SemaphoreCreate(xModbusSemaphore);                       // Создание мютекса
 #ifdef MODBUS_SERIAL1
-			MODBUS_SERIAL1.begin(MODBUS_SERIAL1_SPEED,MODBUS_PORT_CONFIG);
+		MODBUS_SERIAL1.begin(MODBUS_SERIAL1_SPEED,MODBUS_PORT_CONFIG);
 #endif
 #ifdef MODBUS_SERIAL2
-			MODBUS_SERIAL2.begin(MODBUS_SERIAL2_SPEED,MODBUS_PORT_CONFIG);
+		MODBUS_SERIAL2.begin(MODBUS_SERIAL2_SPEED,MODBUS_PORT_CONFIG);
 #endif
 #ifdef MODBUS_SERIAL3
-			MODBUS_SERIAL3.begin(MODBUS_SERIAL3_SPEED,MODBUS_PORT_CONFIG);
+		MODBUS_SERIAL3.begin(MODBUS_SERIAL3_SPEED,MODBUS_PORT_CONFIG);
 #endif
-	        //MODBUS_SERIAL1.setInterruptPriority(1);
-	        //RS485.begin(0, MODBUS_SERIAL1);	// установка сериала и адреса устройства
-			RS485.ModbusMinTimeBetweenTransaction = MODBUS_MIN_TIME_BETWEEN_TRNS;
-			RS485.ModbusResponseTimeout = MODBUS_TIMEOUT;
+		//MODBUS_SERIAL1.setInterruptPriority(1);
+		//RS485.begin(0, MODBUS_SERIAL1);	// установка сериала и адреса устройства
+		RS485.ModbusMinTimeBetweenTransaction = MODBUS_MIN_TIME_BETWEEN_TRNS;
+		RS485.ModbusResponseTimeout = MODBUS_TIMEOUT;
 	#ifdef MODBUS_TIME_TRANSMISION
-			// Назначение функций обратного вызова
-			RS485.preTransmission(preTransmission);
-			RS485.postTransmission(postTransmission);
+		// Назначение функций обратного вызова
+		RS485.preTransmission(preTransmission);
+		RS485.postTransmission(postTransmission);
 	#endif
-			RS485.idle(idle);
-	        SETBIT1(flags,fModbus);                                                      // модбас присутствует
-			err=OK;                                                                      // Связь есть
-		}
+		RS485.idle(idle);
+        SETBIT1(flags,fModbus);                                                      // модбас присутствует
+		err=OK;                                                                      // Связь есть
 #else
         flags=0x00;
         SETBIT0(flags,fModbus);                                                     // модбас отсутвует

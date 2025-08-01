@@ -20,7 +20,7 @@
 #include "Util.h"
 
 // ОПЦИИ КОМПИЛЯЦИИ ПРОЕКТА -------------------------------------------------------
-#define VERSION			  "1.74"			// Версия прошивки
+#define VERSION			  "1.75"			// Версия прошивки
 #define VER_SAVE		  16				// Версия формата сохраняемых данных в I2C память
 //#define LOG                               // В последовательный порт шлет лог веб сервера (логируются запросы)
 #define FAST_LIB                            // использование допиленной библиотеки езернета
@@ -736,10 +736,6 @@ const char *noteError[] = {
 	#define I2C_JOURNAL_EEPROM_NEXT (I2C_MEMORY_TOTAL * 1024 / 8) // Адрес после журнала = размер EEPROM
 	// Журнал
 	#define JOURNAL_LEN 			((I2C_JOURNAL_EEPROM_NEXT-I2C_JOURNAL_START)/W5200_MAX_LEN*W5200_MAX_LEN)// Размер журнала - округление на целое число страниц W5200_MAX_LEN
-	#define I2C_JOURNAL_HEAD   		(0x01)                                                                  // Признак головы журнала
-	#define I2C_JOURNAL_TAIL   		(0x02)                                                                  // Признак хвоста журнала
-	#define I2C_JOURNAL_FORMAT 		(0xff)                                                                  // Символ которым заполняется журнал при форматировании
-	#define I2C_JOURNAL_READY  		(0x55aa)                                                                // Признак создания журнала - если его нет по адресу I2C_JOURNAL_START-2 то надо форматировать журнал (первичная инициализация)
 #else // 4 кбайта
 // 0х0000 - I2C_COUNT_EEPROM хранение счетчиков, максимальный размер 0x80 (128) байт. Сейчас используется 52 байта
 // 0х0080 - I2C_SETTING_EEPROM хранение настроек максимальный размер 0х77E (1918) байт.
@@ -758,6 +754,8 @@ const char *noteError[] = {
 	#define I2C_JOURNAL_READY  		(0x55aa)                                                                // Признак создания журнала - если его нет по адресу I2C_JOURNAL_START-2 то надо форматировать журнал (первичная инициализация)
 	//#define I2C_JOURNAL_IN_RAM		// Журнал в ОЗУ
 #endif
+#define JOURNAL_TIME_WAIT			200			// Время ожидания захвата мютекса журнала, мсек
+
 // Тип записи сохранения, 16bit
 #define SAVE_TYPE_END			0
 #define SAVE_TYPE_sTemp			-1

@@ -20,6 +20,14 @@
 #define sign(a) (a > 0 ? 1 : a < 0 ? -1 : 0)
 #define signm(a,t) ((a > 0 ? 1 : a < 0 ? -1 : 0) * (abs(a) > t ? 2 : 1))
 
+struct type_SEMAPHORE {
+	volatile bool xSemaphore;
+	uint16_t BusyCnt;
+};
+void SemaphoreCreate(type_SEMAPHORE &_sem);
+bool SemaphoreTake(type_SEMAPHORE &_sem, uint32_t wait_time);// Захватить семафор с проверкой, что шедуллер работает
+inline void SemaphoreGive(type_SEMAPHORE &_sem) { _sem.xSemaphore = false; };
+
 // Структура для хранения переменных для паролей
 struct type_WebSecurity
 {

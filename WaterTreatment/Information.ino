@@ -26,6 +26,7 @@
 void Journal::Init()
 {
 	err = OK;
+	SemaphoreCreate(Semaphore);
 
 #ifdef I2C_JOURNAL_IN_RAM     // журнал в памяти
 	bufferTail = 0;
@@ -140,6 +141,11 @@ void Journal::Format(void)
 //		};
 //		WDT_Restart(WDT);
 //	}
+	if(!SemaphoreTake(Semaphore, JOURNAL_TIME_WAIT)) {
+#ifdef DEBUG
+		if(Is_otg_vbus_high()) SerialDbg.print("JSem locked!\n");
+#endif
+	}
 	uint8_t buf[] = { I2C_JOURNAL_HEAD, I2C_JOURNAL_TAIL };
 	if(writeEEPROM_I2C(I2C_JOURNAL_START, (uint8_t*)buf, sizeof(buf))) {
 		err = ERR_WRITE_I2C_JOURNAL;
@@ -150,10 +156,9 @@ void Journal::Format(void)
 	full = 0;                   // Буфер не полный
 	bufferHead = 0;
 	bufferTail = 1;
-	if(err == OK) {
-		writeREADY();                 // было форматирование
-		jprintf("\nFormat I2C journal (size %d bytes) - Ok\n", JOURNAL_LEN);
-	}
+	if(err == OK) writeREADY();                 // было форматирование
+	SemaphoreGive(Semaphore);
+	if(err == OK) jprintf("\nFormat I2C journal (size %d bytes) - Ok\n", JOURNAL_LEN);
 }
 #endif
     
@@ -173,6 +178,11 @@ void Journal::printf(const char *format, ...)
 // Печать в консоль и журнал
 void Journal::jprintf(const char *format, ...)
 {
+	if(!SemaphoreTake(Semaphore, JOURNAL_TIME_WAIT)) {
+#ifdef DEBUG
+		if(Is_otg_vbus_high()) SerialDbg.print("JSem locked!\n");
+#endif
+	}
 	va_list ap;
 	va_start(ap, format);
 	m_vsnprintf(pbuf, PRINTF_BUF, format, ap);
@@ -182,12 +192,18 @@ void Journal::jprintf(const char *format, ...)
 #endif
 	// добавить строку в журнал
 	_write(pbuf);
+	SemaphoreGive(Semaphore);
 }
 
 // Печать в консоль и журнал
 void Journal::jprintfopt(const char *format, ...)
 {
 	if(!DebugToJournalOn) return;
+	if(!SemaphoreTake(Semaphore, JOURNAL_TIME_WAIT)) {
+#ifdef DEBUG
+		if(Is_otg_vbus_high()) SerialDbg.print("JSem locked!\n");
+#endif
+	}
 	va_list ap;
 	va_start(ap, format);
 	m_vsnprintf(pbuf, PRINTF_BUF, format, ap);
@@ -197,11 +213,17 @@ void Journal::jprintfopt(const char *format, ...)
 #endif
 	// добавить строку в журнал
 	_write(pbuf);
+	SemaphoreGive(Semaphore);
 }
 
 // +Time, далее печать в консоль и журнал
 void Journal::jprintf_time(const char *format, ...)
 {
+	if(!SemaphoreTake(Semaphore, JOURNAL_TIME_WAIT)) {
+#ifdef DEBUG
+		if(Is_otg_vbus_high()) SerialDbg.print("JSem locked!\n");
+#endif
+	}
 	NowTimeToStr(pbuf);
 	pbuf[8] = ' ';
 	va_list ap;
@@ -212,12 +234,18 @@ void Journal::jprintf_time(const char *format, ...)
 	if(Is_otg_vbus_high()) SerialDbg.print(pbuf);
 #endif
 	_write(pbuf);   // добавить строку в журнал
+	SemaphoreGive(Semaphore);
 }   
 
 // +Time, опционально печать в консоль и журнал
 void Journal::jprintfopt_time(const char *format, ...)
 {
 	if(!DebugToJournalOn) return;
+	if(!SemaphoreTake(Semaphore, JOURNAL_TIME_WAIT)) {
+#ifdef DEBUG
+		if(Is_otg_vbus_high()) SerialDbg.print("JSem locked!\n");
+#endif
+	}
 	NowTimeToStr(pbuf);
 	pbuf[8] = ' ';
 	va_list ap;
@@ -228,11 +256,17 @@ void Journal::jprintfopt_time(const char *format, ...)
 	if(Is_otg_vbus_high()) SerialDbg.print(pbuf);
 #endif
 	_write(pbuf);   // добавить строку в журнал
+	SemaphoreGive(Semaphore);
 }
 
 // +DateTime, далее печать в консоль и журнал
 void Journal::jprintf_date(const char *format, ...)
 {
+	if(!SemaphoreTake(Semaphore, JOURNAL_TIME_WAIT)) {
+#ifdef DEBUG
+		if(Is_otg_vbus_high()) SerialDbg.print("JSem locked!\n");
+#endif
+	}
 	NowDateToStr(pbuf);
 	pbuf[10] = ' ';
 	NowTimeToStr(pbuf + 11);
@@ -245,16 +279,23 @@ void Journal::jprintf_date(const char *format, ...)
 	if(Is_otg_vbus_high()) SerialDbg.print(pbuf);
 #endif
 	_write(pbuf);   // добавить строку в журнал
+	SemaphoreGive(Semaphore);
 }
 
 // Печать ТОЛЬКО в журнал возвращает число записанных байт для использования в критических секциях кода
 void Journal::jprintf_only(const char *format, ...)
 {
+	if(!SemaphoreTake(Semaphore, JOURNAL_TIME_WAIT)) {
+#ifdef DEBUG
+		if(Is_otg_vbus_high()) SerialDbg.print("JSem locked!\n");
+#endif
+	}
 	va_list ap;
 	va_start(ap, format);
 	m_vsnprintf(pbuf, PRINTF_BUF, format, ap);
 	va_end(ap);
 	_write(pbuf);
+	SemaphoreGive(Semaphore);
 }
 
 // отдать журнал в сеть клиенту  Возвращает число записанных байт
@@ -333,7 +374,7 @@ void Journal::_write(char *dataPtr)
 	if(numBytes > PRINTF_BUF) numBytes = PRINTF_BUF; // Ограничиваем размер
 #ifdef I2C_EEPROM_64KB // запись в еепром
 	// Запись в I2C память
-	if(SemaphoreTake(xI2CSemaphore, I2C_TIME_WAIT / portTICK_PERIOD_MS) == pdFALSE) {  // Если шедулер запущен то захватываем семафор
+	if(SemaphoreTake(xI2CSemaphore, JOURNAL_TIME_WAIT) == pdFALSE) {  // Если шедулер запущен то захватываем семафор
 		journal.printf((char*) cErrorMutex, __FUNCTION__, MutexI2CBuzy);
 		return;
 	}

@@ -14,31 +14,55 @@
 #include "Util.h"
 // --------------------------------------- функции общего использования -------------------------------------------
 // Быстрый вывод в порт
- __attribute__((always_inline))  inline void digitalWriteDirect(int pin, boolean val)
+__attribute__((always_inline))  inline void digitalWriteDirect(int pin, boolean val)
 {
-  if(val) g_APinDescription[pin].pPort -> PIO_SODR = g_APinDescription[pin].ulPin;
-  else    g_APinDescription[pin].pPort -> PIO_CODR = g_APinDescription[pin].ulPin;
+	if(val) g_APinDescription[pin].pPort -> PIO_SODR = g_APinDescription[pin].ulPin;
+	else	g_APinDescription[pin].pPort -> PIO_CODR = g_APinDescription[pin].ulPin;
 }
 
 // Быстрoe чтение из порта
- __attribute__((always_inline)) inline int digitalReadDirect(int pin){
-  return !!(g_APinDescription[pin].pPort -> PIO_PDSR & g_APinDescription[pin].ulPin);
+__attribute__((always_inline)) inline int digitalReadDirect(int pin){
+	return !!(g_APinDescription[pin].pPort -> PIO_PDSR & g_APinDescription[pin].ulPin);
 }
+
+void SemaphoreCreate(type_SEMAPHORE &_sem)
+{
+	_sem.xSemaphore = false;
+	_sem.BusyCnt = 0;
+}
+
+// Захватить семафор с проверкой, что шедуллер работает, возврат true, если успешно
+bool SemaphoreTake(type_SEMAPHORE &_sem, uint32_t wait_time)
+{
+	if(xTaskGetSchedulerState() == taskSCHEDULER_RUNNING) {
+		uint32_t timer = wait_time;
+		while(_sem.xSemaphore) {
+			vTaskDelay(portTICK_PERIOD_MS);
+			if(!timer--) {
+				_sem.BusyCnt++;
+				return false;
+			}
+		}
+	}
+	_sem.xSemaphore = true;
+	return true;
+}
+
 // Функции работы с сетевыми переменными ----------------------------------
 // Перевод IPAddress в массив байт
 byte * IPAddressToBytes(IPAddress ip)
 {
-  static byte b[4];
-  b[0]=ip[0]; b[1]=ip[1]; b[2]=ip[2]; b[3]=ip[3];
-  return b; 
+	static byte b[4];
+	b[0]=ip[0]; b[1]=ip[1]; b[2]=ip[2]; b[3]=ip[3];
+	return b;
 }
 
 // Перевод  массив байт в IPAddress
 IPAddress BytesToIPAddress(byte *ip)
 {
-  static IPAddress b;
-  b[0]=ip[0]; b[1]=ip[1]; b[2]=ip[2]; b[3]=ip[3];
-  return b; 
+	static IPAddress b;
+	b[0]=ip[0]; b[1]=ip[1]; b[2]=ip[2]; b[3]=ip[3];
+	return b;
 }
 
 uint8_t calc_bits_in_mask(uint32_t mask)
@@ -54,22 +78,23 @@ uint8_t calc_bits_in_mask(uint32_t mask)
 // разбор строки побайтно ОШИБКИ ПЛОХО не ловит!
 //  для IP          const char* ipStr = "50.100.150.200"; byte ip[4]; parseBytes(ipStr, '.', ip, 4, 10);
 //  для mac address const char* macStr = "90-A2-AF-DA-14-11"; byte mac[6]; parseBytes(macStr, '-', mac, 6, 16);
-boolean parseBytes(const char* str, char sep, byte* bytes, int maxBytes, int base) 
-{ int i,x;
-  char y;
-    for (i = 0; i < maxBytes; i++) {
-        y=str[0];
-        x = strtoul(str, NULL, base);          // Convert byte
-        if (x>255) return false;               // Значение байта не верно
-        if ((x==0)&&(y!='0')) return false;    // Значение байта не верно
-        bytes[i]=x;
-        str = strchr(str, sep);               // Find next separator
-        if (str == NULL || *str == '\0') {
-            break;                            // No more separators, exit
-        }
-        str++;                                // Point to next character after separator
-    }
- if (i<maxBytes-1) return false; else return true;   
+boolean parseBytes(const char *str, char sep, byte *bytes, int maxBytes, int base)
+{
+	int i, x;
+	char y;
+	for(i = 0; i < maxBytes; i++) {
+		y = str[0];
+		x = strtoul(str, NULL, base);          // Convert byte
+		if(x > 255) return false;               // Значение байта не верно
+		if((x == 0) && (y != '0')) return false;    // Значение байта не верно
+		bytes[i] = x;
+		str = strchr(str, sep);               // Find next separator
+		if(str == NULL || *str == '\0') {
+			break;                            // No more separators, exit
+		}
+		str++;                                // Point to next character after separator
+	}
+	if(i < maxBytes - 1) return false; else return true;
 }
 // разбор строки с разделителями в int16_t
 boolean parseInt16_t(const char* str, char sep, int16_t* ints, int maxNum, int base) 

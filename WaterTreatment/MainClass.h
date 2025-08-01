@@ -522,7 +522,7 @@ public:
 	uint32_t startRAM;                                     // Свободная память при старте FREE Rtos - пытаемся определить свободную память при работе
 
 	uint16_t num_resW5200;                                 // + текущее число сброса сетевого чипа
-	uint16_t num_resMutexSPI;                              // + текущее число сброса митекса SPI
+	uint16_t num_resMutexWEB;                              // + текущее число сброса митекса WEB
 	uint16_t num_resMutexI2C;                              // + текущее число сброса митекса I2C
 	uint16_t num_resMQTT;                                  // + число повторных инициализация MQTT клиента
 	uint16_t num_resPing;                                  // + число не прошедших пингов
