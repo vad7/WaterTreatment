@@ -71,10 +71,9 @@ void web_server(uint8_t thread)
 	if(SemaphoreTake(xWebThreadSemaphore, (W5200_TIME_WAIT / portTICK_PERIOD_MS)) == pdFALSE) { // Захват семафора потока
 		// 1. Проверка захваченого семафора сети ожидаем 3 времен W5200_TIME_WAIT, если мютекса не получаем, то сбрасываем мютекс
 		if(SemaphoreTake(xWebThreadSemaphore, ((3 + (fWebUploadingFilesTo != 0) * 30) * W5200_TIME_WAIT / portTICK_PERIOD_MS)) == pdFALSE) {
-			SemaphoreGive(xWebThreadSemaphore);
 			journal.jprintf_time("UNLOCK mutex xWebThread, %d\n", thread);
 			MC.num_resMutexWEB++;
-		} else SemaphoreGive(xWebThreadSemaphore);
+		}
 	}
 
 	Socket[thread].sock = -1;                      // Сокет свободный
@@ -237,7 +236,7 @@ xUNAUTHORIZED:
 			taskYIELD();
 		} // end if (client)
 	}  // for (int sock = 0; sock < W5200_SOCK_SYS; sock++)
-	SemaphoreGive (xWebThreadSemaphore);              // Семафор отдать
+	SemaphoreGive(xWebThreadSemaphore);              // Семафор отдать
 }
 
 //  Чтение файла с SD или его генерация

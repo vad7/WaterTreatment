@@ -694,8 +694,11 @@ void vWeb0(void *)
 
 			// 2. Чистка сокетов
 			if(MC.time_socketRes() > 0) {
-				STORE_DEBUG_INFO(3);
-				checkSockStatus();                   // Почистить старые сокеты  если эта позиция включена
+				if(SemaphoreTake(xWebThreadSemaphore, (W5200_TIME_WAIT / portTICK_PERIOD_MS))) {
+					STORE_DEBUG_INFO(3);
+					checkSockStatus();                   // Почистить старые сокеты  если эта позиция включена
+					SemaphoreGive(xWebThreadSemaphore);
+				}
 			}
 
 			// 3. Сброс сетевого чипа по времени
