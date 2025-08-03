@@ -1535,12 +1535,14 @@ void vReadSensor(void *)
 								}
 								if(ut - SepticPumpTimeLast >= MC.Option.PumpStartTime) {
 									if(MC.Option.SepticPumpMaxPower && tmp > MC.Option.SepticPumpMaxPower) {
+										journal.jprintf("Septic: %dW\n", tmp);
 										set_Error(ERR_SEPTIC_PUMP_OVERLOAD, NULL);
 										SepticPumpRelayStatus = MODBUS_RELAY_CMD_OFF;
 									} else if(MC.Option.SepticPumpDryPower && tmp <= MC.Option.SepticPumpDryPower && SepticPower > dpmp && SepticPower <= MC.Option.SepticPumpDryPower) {
 #ifndef MODBUS_SEPTIC_PUMP_ON_PULSE
 										if(!GETBIT(MC.Option.flags2, fSepticPumpRelayNoErr) || MC.Option.SepticPumpConsumedMax == 0)
 #endif
+											journal.jprintf("Septic: %dW\n", tmp < SepticPower ? tmp : SepticPower);
 											set_Error(ERR_SEPTIC_PUMP_DRAIN_RUN, NULL);
 										SepticPumpRelayStatus = MODBUS_RELAY_CMD_OFF;
 									}
@@ -1598,9 +1600,11 @@ void vReadSensor(void *)
 									}
 									if(ut - DrainPumpTimeLast >= MC.Option.PumpStartTime) {
 										if(MC.Option.DrainPumpMaxPower && tmp > MC.Option.DrainPumpMaxPower) {
+											journal.jprintf("Drain: %dW\n", tmp);
 											set_Error(ERR_DRAIN_PUMP_OVERLOAD, NULL);
 											DrainPumpRelayStatus = MODBUS_RELAY_CMD_OFF;
 										} else if(MC.Option.DrainPumpDryPower && tmp <= MC.Option.DrainPumpDryPower && DrainPumpPower > dpmp && DrainPumpPower <= MC.Option.DrainPumpDryPower) {
+											journal.jprintf("Drain: %dW\n", tmp < DrainPumpPower ? tmp : DrainPumpPower);
 											set_Error(ERR_DRAIN_PUMP_DRAIN_RUN, NULL);
 											DrainPumpRelayStatus = MODBUS_RELAY_CMD_OFF;
 										}

@@ -37,13 +37,13 @@ function ResetSalt() {
 function loadParam_after(paramid) {
 	var el_iron = "", st_iron = "", el_soft = "", st_soft = "";
 	if(paramid.indexOf("et_WSF") != -1) {
-		var cwarn = "color:blue";
+		var cwarn = "color:deeppink";
 		var s = (element = document.getElementById("get_pwrdo")).innerHTML;
 		element.innerHTML = s != "" ? "Насос Дренажа: " + s : ""
 		s = (element = document.getElementById("get_pwrso")).innerHTML;
 		element.innerHTML = s != "" ? "Насос Септика: " + s : "";
 		s = document.getElementById("get_wsn").innerHTML;
-		if(s == "0") { el_iron = "ожидается"; st_iron = cwarn; 
+		if(s == "0" || 1) { el_iron = "ожидается"; st_iron = cwarn; 
 		} else if(s != "" && s != "255") { el_iron = "Следующее через " + s + " дн."; st_iron = "color:inherit"; }
 		s = document.getElementById("get_wsns").innerHTML;
 		if(s == "0") { el_soft = "ожидается"; st_soft = cwarn; 
@@ -70,7 +70,7 @@ function loadParam_after(paramid) {
 <body class="plan">
 <div id="menu" class="menu"><script src="menu.js"></script></div>
 <div class="content">
-<h1>Водоподготовка</h1>
+<br>
 <div class="visualization">
 	<div id="get_relay-rwoff1" style="display:none"></div>
 	<div id="get_relay-rwon" style="display:none"></div>
@@ -94,7 +94,6 @@ function loadParam_after(paramid) {
 	<a id="get_wsv" style="position:absolute;margin-top:340px;margin-left:563px"></a>
 	<a id="get_wsv2" style="position:absolute;margin-top:340px;margin-left:675px"></a>
 </div>
-<div class="row1">
 <table>
 	<tr><td width="22%" style="font-weight:bold;" nowrap>Состояние:</td><td width="11%" nowrap><b><span id="get_moded"></span></b></td><td width="22%" style="font-weight: normal;" nowrap>Электричество, кВт:</td><td width="11%" nowrap><span id="get_pwr"></span> / <span id="get_pwrz"></span></td><td width="22%" style="font-weight: normal;">Температура:</td><td width="11%"><span id="get_temp-air">-</span>&deg;</td></tr>
 	<tr><td style="font-weight:normal;" nowrap>Сегодня, л:</td><td id="get_wsud"></td><td style="font-weight: normal;" nowrap>Вчера, л:</td><td id="get_wsuy"></td><td style="font-weight: normal;" nowrap>Среднее за день, л:</td><td id="get_wsa"></td></tr>
@@ -108,14 +107,11 @@ function loadParam_after(paramid) {
 </table>
 <b><span id="get_pwrdo" style="color:blue;font-size:medium"></span><br>
 <span id="get_pwrso" style="color:blue;font-size:medium"></span></b>
-</div>
-<div class="row1">
 <table id="get_tblerr_t" hidden>
 	<thead><tr><th>Время ошибки</th><th>Код</th><th>Описание ошибки <input type="submit" value="Очистить" onclick='loadParam("RESET_ERR")' style="float:right;"></th></tr></thead>
 	<tbody id="get_tblerr">
 	</tbody>
 </table>
-</div>
 <br><a href="help.html"><button>Инструкция по обслуживанию</button></a>
 <span id="get_wsf" style="display:none">0</span>
 <span id="get_wsn" style="display:none"></span>
