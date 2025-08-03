@@ -29,6 +29,13 @@ int8_t set_Error(int8_t _err, char *nam)
 		MC.error = _err;
 		if(nam) strncpy(MC.source_error, nam, sizeof(MC.source_error)-1);
 		m_snprintf(MC.note_error, sizeof(MC.note_error), "%s %s: %s", NowTimeToStr(), nam != NULL ? nam : "", noteError[abs(_err)]);
+		if(_err == ERR_SEPTIC_PUMP_DRAIN_RUN || _err == ERR_SEPTIC_PUMP_OVERLOAD) {
+			size_t _len = strlen(MC.note_error);
+			m_snprintf(MC.note_error + _len, sizeof(MC.note_error) - _len - 1, "- %dW", SepticPower);
+		} else if(_err == ERR_DRAIN_PUMP_DRAIN_RUN || _err == ERR_DRAIN_PUMP_OVERLOAD) {
+			size_t _len = strlen(MC.note_error);
+			m_snprintf(MC.note_error + _len, sizeof(MC.note_error) - _len - 1, "- %dW", DrainPumpPower);
+		}
 	}
 	uint32_t i = Get_Errors_IndexEnd(_err);
 	if(i != ERRORS_ARR_SIZE) {
