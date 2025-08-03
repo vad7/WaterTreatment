@@ -171,8 +171,8 @@ uint8_t  UsedWaterContinuousCntUsed = 0;
 uint8_t  UsedWaterContinuousCntNot = 0;
 uint16_t UsedWaterContinuousTimer = 0;	// /=USED_WATER_CONTINUOUS_MINTIME
 uint16_t UsedWaterContinuousTimerMax = 0;
-uint16_t UsedWaterToSepticLast = 0;
-uint16_t UsedWaterToSeptic = 0;
+uint16_t UsedWaterToSepticLast = 0;	// л
+uint16_t UsedWaterToSeptic = 0;		// л
 uint8_t  SepticMinPowerCnt = 0;
 uint8_t  PIN_LED_SRV_INFO_off = 0;		// off value
 

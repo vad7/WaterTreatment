@@ -1186,11 +1186,12 @@ xSaveStats:		if((i = MC.save_WorkStats()) == OK)
 				strcat(strReturn,"Последнее включение насоса Дренажа|"); DecodeTimeDate(DrainPumpTimeLast, strReturn, 3); strcat(strReturn,";");
 #endif
 #ifdef CHECK_SEPTIC
-				strcat(strReturn,"Последнее включение насоса Септика (");
+				strcat(strReturn,"Последнее включение насоса Септика: ");
 				if(UsedWaterToSepticLast) _itoa(UsedWaterToSepticLast, strReturn); else	strcat(strReturn, "-");
 				strcat(strReturn, "л, ");
 				if(SepticPumpTimeWorkTime) TimeIntervalToStr(SepticPumpTimeWorkTime, strReturn, 1); else strcat(strReturn, "-");
-				strcat(strReturn,")|"); DecodeTimeDate(SepticPumpTimeLast, strReturn, 3); strcat(strReturn,";");
+				strcat(strReturn, " (+"); _itoa(UsedWaterToSeptic, strReturn);
+				strcat(strReturn,"л)|"); DecodeTimeDate(SepticPumpTimeLast, strReturn, 3); strcat(strReturn,";");
 #endif
 				strReturn += m_snprintf(strReturn += strlen(strReturn), 256, "Текущее время [%u]|", GetTickCount()); DecodeTimeDate(rtcSAM3X8.unixtime(),strReturn,3); strcat(strReturn,";");
 				strcat(strReturn,"Время последнего потребления|");DecodeTimeDate(MC.WorkStats.UsedLastTime,strReturn,3);strcat(strReturn,";");
