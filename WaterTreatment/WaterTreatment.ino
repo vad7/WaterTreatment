@@ -1798,7 +1798,7 @@ void vReadSensor_delay1ms(int32_t ms)
 // Задача Управления насосами (MC.xHandlePumps) "Pumps"
 void vPumps( void * )
 {
-	uint32_t CriticalErrors_timeout = 0;
+	uint32_t CriticalErrors_timeout = 0; // ms
 	while(!ADC_has_been_read) vTaskDelay(1000 / ADC_FREQ + TIME_SLICE_PUMPS); // ms
 	for(;;)
 	{
@@ -1894,13 +1894,21 @@ void vPumps( void * )
 				vPumpsNewError = ERR_SEPTIC_ALARM;
 				CriticalErrors |= ERRC_SepticAlarm;
 				MC.dRelay[RWATEROFF1].set_ON();
-				MC.dRelay[RWATERON].set_Relay(fR_StatusAllOff);
+				if(!GETBIT(MC.Option.flags2, fSepticCriticalErrOnly1ValveOff)) MC.dRelay[RWATERON].set_Relay(fR_StatusAllOff);
 #if defined(CHECK_SEPTIC) && !defined(MODBUS_SEPTIC_PUMP_ON_PULSE)
-				if(SepticPumpRelayStatus == MODBUS_RELAY_OFF) SepticPumpRelayStatus = MODBUS_RELAY_CMD_ON;
+				SepticPumpRelayStatus = MODBUS_RELAY_CMD_ON;
 #endif
 				SepticAlarmTime = 0;
 			}
-		} else SepticAlarmTime = 0;
+		} else {
+			if(CriticalErrors == ERRC_SepticAlarm && MC.Option.CriticalErrorsTimeout * 1000 - CriticalErrors_timeout > SEPTIC_CLEAR_ERROR_TIMEOUT) {// септик починился
+				MC.dRelay[RWATEROFF1].set_Relay(fR_StatusAllOff);
+				if(!GETBIT(MC.Option.flags2, fSepticCriticalErrOnly1ValveOff)) MC.dRelay[RWATERON].set_ON();
+				CriticalErrors &= ~ERRC_SepticAlarm;
+				MC.clear_error();
+			}
+			SepticAlarmTime = 0;
+		}
 
 		// Water Booster
 		if(WaterBoosterStatus == 0) {

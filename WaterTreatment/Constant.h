@@ -20,7 +20,7 @@
 #include "Util.h"
 
 // ОПЦИИ КОМПИЛЯЦИИ ПРОЕКТА -------------------------------------------------------
-#define VERSION			  "1.75"			// Версия прошивки
+#define VERSION			  "1.76"			// Версия прошивки
 #define VER_SAVE		  16				// Версия формата сохраняемых данных в I2C память
 //#define LOG                               // В последовательный порт шлет лог веб сервера (логируются запросы)
 #define FAST_LIB                            // использование допиленной библиотеки езернета
@@ -465,6 +465,7 @@ const char *option_SepticMinPower		= {"SMP"};
 const char *option_fCheckSepticPump		= {"CSP"};
 const char *option_fSepticPumpRelay		= {"SPR"};
 const char *option_fSepticPumpRelayNoErr= {"SPE"};
+const char *option_fSepticCriticalErrOnly1ValveOff={"CE1"};
 const char *option_PumpStartTime		= {"PS"};
 const char *option_PumpReadPeriod		= {"PP"};
 const char *option_fChartOnlyNonZeroW	= {"CNZ"};

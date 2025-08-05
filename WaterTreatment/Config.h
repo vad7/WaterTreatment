@@ -235,6 +235,7 @@ struct History_setup {
 		//#define MODBUS_SEPTIC_PUMP_ON_PULSE	// Если активно, то импульс 1 сек для выключения (N замыкается на GND для срабатывания УЗО), иначе выкл/вкл и работа без поплавка насоса
 		#define SEPTIC_MIN_POWER_CNT			250	// Через сколько периодов низкого потребления септика выдавать ошибку
 		#define SEPTIC_PUMP_CONSUMED_MAX_PERCENT 15	// Уменьшение уже потребленной воды в % для защиты по потреблению септика при попытки включить насос повторно
+		#define SEPTIC_CLEAR_ERROR_TIMEOUT		10*1000 // Через сколько времени сбрасывать ошибку если септик починился, мс
 	#endif
 
 	#define MODBUS_TIMER_RELAY_MAX				4							// Число реле времени по Modbus

@@ -1057,10 +1057,11 @@ boolean MainClass::set_option(char *var, float xx)
 		x = 0;
 #endif
 		// при отключении опции включить насос
-		if(x == 0 && GETBIT(Option.flags2, fSepticPumpRelayNoErr)) SepticPumpRelayStatus == MODBUS_RELAY_ON;
+		if(x == 0 && GETBIT(Option.flags2, fSepticPumpRelayNoErr)) SepticPumpRelayStatus = MODBUS_RELAY_ON;
 		Option.flags2 = (Option.flags2 & ~(1<<fSepticPumpRelayNoErr)) | ((x!=0)<<fSepticPumpRelayNoErr);
 		return true;
 	} else
+	if(strcmp(var,option_fSepticCriticalErrOnly1ValveOff)==0){ Option.flags2 = (Option.flags2 & ~(1<<fSepticCriticalErrOnly1ValveOff)) | ((x!=0)<<fSepticCriticalErrOnly1ValveOff); return true; } else
 	if(strcmp(var,option_fSepticHeatRelay)==0){
 		Option.flags2 = (Option.flags2 & ~(1<<fSepticHeatRelay)) | ((x!=0)<<fSepticHeatRelay);
 		if(!x) Modbus.RelaySwitch(MODBUS_SEPTIC_HEAT_RELAY_ADDR, MODBUS_SEPTIC_HEAT_RELAY_ID, MODBUS_SEPTIC_HEAT_RELAY_OFF);
@@ -1185,6 +1186,7 @@ char* MainClass::get_option(char *var, char *ret)
 	if(strcmp(var,option_fCheckSepticPump)==0){ return strcat(ret, (char*)(GETBIT(Option.flags2, fCheckSeptic) ? cOne : cZero)); } else
 	if(strcmp(var,option_fSepticPumpRelay)==0){ return strcat(ret, (char*)(GETBIT(Option.flags2, fSepticPumpRelay) ? cOne : cZero)); } else
 	if(strcmp(var,option_fSepticPumpRelayNoErr)==0){ return strcat(ret, (char*)(GETBIT(Option.flags2, fSepticPumpRelayNoErr) ? cOne : cZero)); } else
+	if(strcmp(var,option_fSepticCriticalErrOnly1ValveOff)==0){ return strcat(ret, (char*)(GETBIT(Option.flags2, fSepticCriticalErrOnly1ValveOff) ? cOne : cZero)); } else
 	if(strcmp(var,option_fSepticHeatRelay)==0){ return strcat(ret, (char*)(GETBIT(Option.flags2, fSepticHeatRelay) ? cOne : cZero)); } else
 	if(strcmp(var,option_fLED_SRV_INFO_PlanReg)==0){ return strcat(ret, (char*)(GETBIT(Option.flags2, fLED_SRV_INFO_PlanReg) ? cOne : cZero)); } else
 	if(strncmp(var, prof_DailySwitch, sizeof(prof_DailySwitch)-1) == 0) {

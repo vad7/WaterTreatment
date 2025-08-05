@@ -241,6 +241,7 @@ type_WebSecurity WebSec_admin;				// хеш паролей
 #define fCheckSeptic		6				// Проверять работу септика
 #define fSepticPumpRelay	7				// Использовать реле отключения насоса
 #define fSepticPumpRelayNoErr 8				// При сухом ходе насоса септика или при долгой его работе не генерить ошибку, а только отключать
+#define fSepticCriticalErrOnly1ValveOff 9	// При критической ошибке септика перекрывать только первый кран (RWATEROFF1)
 
 // Структура для хранения настроек
 struct type_option {
