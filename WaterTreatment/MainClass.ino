@@ -1052,7 +1052,15 @@ boolean MainClass::set_option(char *var, float xx)
 		return true;
 	} else
 	if(strcmp(var,option_fSepticPumpRelay)==0){ Option.flags2 = (Option.flags2 & ~(1<<fSepticPumpRelay)) | ((x!=0)<<fSepticPumpRelay); return true; } else
-	if(strcmp(var,option_fSepticPumpRelayNoErr)==0){ Option.flags2 = (Option.flags2 & ~(1<<fSepticPumpRelayNoErr)) | ((x!=0)<<fSepticPumpRelayNoErr); return true; } else
+	if(strcmp(var,option_fSepticPumpRelayNoErr)==0){
+#ifdef MODBUS_SEPTIC_PUMP_ON_PULSE
+		x = 0;
+#endif
+		// при отключении опции включить насос
+		if(x == 0 && GETBIT(Option.flags2, fSepticPumpRelayNoErr)) SepticPumpRelayStatus == MODBUS_RELAY_ON;
+		Option.flags2 = (Option.flags2 & ~(1<<fSepticPumpRelayNoErr)) | ((x!=0)<<fSepticPumpRelayNoErr);
+		return true;
+	} else
 	if(strcmp(var,option_fSepticHeatRelay)==0){
 		Option.flags2 = (Option.flags2 & ~(1<<fSepticHeatRelay)) | ((x!=0)<<fSepticHeatRelay);
 		if(!x) Modbus.RelaySwitch(MODBUS_SEPTIC_HEAT_RELAY_ADDR, MODBUS_SEPTIC_HEAT_RELAY_ID, MODBUS_SEPTIC_HEAT_RELAY_OFF);

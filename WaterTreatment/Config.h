@@ -59,6 +59,11 @@ enum {
 	STATS_OBJ_WaterRegenSoftening, // Регенерация умягчителя, л
 	STATS_OBJ_RO_WaterUsed	// л (STATS_TYPE_SUM)
 };
+enum {
+	STATS_OBJ_Power_dPWM = 0,
+	STATS_OBJ_Power_DrainPumpPower,
+	STATS_OBJ_Power_SepticPower,
+};
 struct History_setup {
 	uint8_t		object;			// STATS_OBJ_*
 	uint8_t 	number;			// номер датчика
@@ -592,10 +597,11 @@ struct History_setup {
 			{ STATS_OBJ_Temp, TAIR, noteTemp[TAIR] },
 			{ STATS_OBJ_Flow, FLOW, "Датчик протока, м³ч" },
 			{ STATS_OBJ_Level, LTANK, "Уровень в баке, %" },
-			{ STATS_OBJ_Power, 0, "Потребление, кВт" },
+			{ STATS_OBJ_Power, STATS_OBJ_Power_dPWM, "Потребление, кВт" },
 			{ STATS_OBJ_Press, PWATER, "Давление, бар" },
 			{ STATS_OBJ_WaterBoosterLiters, 0, "Гидроаккумулятор, л" },
-			{ STATS_OBJ_Power, 1, "Дренажный насос, кВт" },
+			{ STATS_OBJ_Power, STATS_OBJ_Power_DrainPumpPower, "Дренажный насос, кВт" },
+			{ STATS_OBJ_Power, STATS_OBJ_Power_SepticPower, "Септик, кВт" }
 	};
 
 	#define LEAKAGE_TANK_RESTART_TIME	65534	// Проверка бака на утечку, для ошибки - уменьшения уровня бака на TankLeakagePercent должен произойти раньше, чем это время (65535 - выкл), сек

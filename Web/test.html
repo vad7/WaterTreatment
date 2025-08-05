@@ -8,8 +8,7 @@
 <script type="text/javascript">
 	window.onload = function() {
 	urlupdate = 2000;
-	loadParam("get_tblRelay");
-	loadParam("get_testMode,get_Opt(DBG),get_Opt(DBGS)");
+	loadParam("get_tblRelay,get_testMode,get_Opt(DBG),get_Opt(DBGS)");
 	updateParam("get_remarkTest,get_err"); 
 };
 function loadParam_after(paramid) {
@@ -45,8 +44,8 @@ function I2C2_cmd() {
 		<tr>
 			<th>Имя</th>
 			<th>Описание</th>
-			<th>Pin</th>
 			<th>Управление</th>
+			<th>Pin</th>
 		</tr>
 		</thead>
 		<tbody id="get_tblrelay">

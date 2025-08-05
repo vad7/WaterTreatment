@@ -491,8 +491,10 @@ void Statistics::History()
 			int_to_dec_str(MC.sFrequency[HistorySetup[i].number].get_Value(), 1, &buf, 0); // F (/1)
 			break;
 		case STATS_OBJ_Power:
-#ifdef CHECK_DRAIN_PUMP
-			int_to_dec_str(HistorySetup[i].number == 0 ? MC.dPWM.get_Power() : DrainPumpPower, 1, &buf, 0);  // W (/1000)
+#if defined(CHECK_DRAIN_PUMP) || defined(CHECK_SEPTIC)
+			int_to_dec_str(HistorySetup[i].number == STATS_OBJ_Power_DrainPumpPower ? DrainPumpPower :
+					HistorySetup[i].number == STATS_OBJ_Power_SepticPower ? SepticPower :
+					MC.dPWM.get_Power(), 1, &buf, 0);  // W (/1000)
 #else
 			int_to_dec_str(MC.dPWM.get_Power(), 1, &buf, 0);  // W (/1000)
 #endif
