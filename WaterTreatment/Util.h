@@ -27,6 +27,7 @@ struct type_SEMAPHORE {
 void SemaphoreCreate(type_SEMAPHORE &_sem);
 bool SemaphoreTake(type_SEMAPHORE &_sem, uint32_t wait_time);// Захватить семафор с проверкой, что шедуллер работает
 inline void SemaphoreGive(type_SEMAPHORE &_sem) { _sem.xSemaphore = false; };
+bool TaskYeldAndGiveWebSemaphore(void);
 
 // Структура для хранения переменных для паролей
 struct type_WebSecurity
@@ -53,5 +54,4 @@ uint8_t	GetSerialNum(USARTClass &serial);
 #ifdef SECOND_I2C_USED
 int8_t  Second_I2C_Read(uint8_t addr, uint8_t len, uint8_t *data); // len без CRC8
 #endif
-
 #endif

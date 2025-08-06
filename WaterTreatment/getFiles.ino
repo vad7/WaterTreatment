@@ -26,7 +26,7 @@ void get_Header(uint8_t thread, char *name_file)
 	strcat(Socket[thread].outBuf, name_file);
 	strcat(Socket[thread].outBuf, "\"");
 	strcat(Socket[thread].outBuf, WEB_HEADER_END);
-	sendPacketRTOS(thread, (byte*) Socket[thread].outBuf, strlen(Socket[thread].outBuf), 0);
+	sendPacketRTOS(thread, (byte*) Socket[thread].outBuf, strlen(Socket[thread].outBuf));
 	sendPrintfRTOS(thread, " ------ Контроллер водоподготовки ver. %s  сборка %s %s ------\r\nКонфигурация: %s: %s\r\nСоздание файла: %s %s \r\n\r\n", VERSION, __DATE__, __TIME__, CONFIG_NAME, CONFIG_NOTE, NowTimeToStr(), NowDateToStr());
 }
 
@@ -365,7 +365,7 @@ bool get_binEeprom(uint8_t thread)
     strcat(Socket[thread].outBuf, WEB_HEADER_BIN_ATTACH);
     strcat(Socket[thread].outBuf, "settings_eeprom.bin\"\r\n\r\n");
     uint16_t len = strlen(Socket[thread].outBuf);
-    if(sendPacketRTOS(thread, (byte*)Socket[thread].outBuf, len, 0) != len) return 0;
+    if(sendPacketRTOS(thread, (byte*)Socket[thread].outBuf, len) != len) return 0;
     uint32_t ptr = 0;
     do {
     	len = I2C_MEMORY_TOTAL * 1024 / 8 - ptr >= sizeof(Socket[thread].outBuf) ? sizeof(Socket[thread].outBuf) : I2C_MEMORY_TOTAL * 1024 / 8 - ptr;
@@ -395,7 +395,7 @@ uint16_t get_binSettings(uint8_t thread)
     strcat(Socket[thread].outBuf, VERSION);
     strcat(Socket[thread].outBuf, " ");
     strcat(Socket[thread].outBuf, HEADER_BIN);
-	sendPacketRTOS(thread, (byte*)Socket[thread].outBuf, strlen(Socket[thread].outBuf), 0);
+	sendPacketRTOS(thread, (byte*)Socket[thread].outBuf, strlen(Socket[thread].outBuf));
 	
 	// 2. Запись настроек
 	if((len = MC.save())<= 0) return 0; // записать настройки в еепром, а потом будем их писать и получить размер записываемых данных
@@ -403,7 +403,7 @@ uint16_t get_binSettings(uint8_t thread)
 		readEEPROM_I2C(I2C_SETTING_EEPROM + i, &b, 1);
 		Socket[thread].outBuf[i] = b;
 	}
-	if(sendPacketRTOS(thread, (byte*) Socket[thread].outBuf, len, 0) == 0) return 0; // передать пакет, при ошибке выйти
+	if(sendPacketRTOS(thread, (byte*) Socket[thread].outBuf, len) == 0) return 0; // передать пакет, при ошибке выйти
 
 	return len;
 }
@@ -427,25 +427,25 @@ void get_indexNoSD(uint8_t thread)
 	strcpy(Socket[thread].outBuf, WEB_HEADER_OK_CT);
 	strcat(Socket[thread].outBuf, WEB_HEADER_TXT_KEEP);
 	strcat(Socket[thread].outBuf, WEB_HEADER_END);
-	sendPacketRTOS(thread, (byte*) Socket[thread].outBuf, strlen(Socket[thread].outBuf), 0);
+	sendPacketRTOS(thread, (byte*) Socket[thread].outBuf, strlen(Socket[thread].outBuf));
 	uint32_t n, i = 0;
 	n = sizeof(index_noSD) - 1;          // сколько надо передать байт
 	while(n > 0) {                       // Пока есть не отправленные данные
 		if(n >= W5200_MAX_LEN) {
 			memcpy(Socket[thread].outBuf, index_noSD + i, W5200_MAX_LEN);
-			if(sendPacketRTOS(thread, (byte*) Socket[thread].outBuf, W5200_MAX_LEN, 0) == 0) break;                      // не последний пакет
+			if(sendPacketRTOS(thread, (byte*) Socket[thread].outBuf, W5200_MAX_LEN) == 0) break;                      // не последний пакет
 			i = i + W5200_MAX_LEN;
 			n = n - W5200_MAX_LEN;
 		} else {
 			memcpy(Socket[thread].outBuf, (index_noSD + i), n);
-			sendPacketRTOS(thread, (byte*) Socket[thread].outBuf, n, 0);
+			sendPacketRTOS(thread, (byte*) Socket[thread].outBuf, n);
 			break;  // последний пакет
 		}
 	} // while (n>0)
 #ifdef NO_SD_SHOW_SETTINGS
 	get_txtSettings(thread);
 	memcpy(Socket[thread].outBuf, index_noSD_end, sizeof(index_noSD_end)-1);
-	sendPacketRTOS(thread, (byte*) Socket[thread].outBuf, sizeof(index_noSD_end)-1, 0);
+	sendPacketRTOS(thread, (byte*) Socket[thread].outBuf, sizeof(index_noSD_end)-1);
 #endif
 }   
 

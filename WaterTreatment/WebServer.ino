@@ -2529,7 +2529,7 @@ xContinueSearchHeader:
 			SerialFlash.eraseAll();
 			while(SerialFlash.ready() == false) {
 				SemaphoreGive(xWebThreadSemaphore); // отдать семафор вебморды, что бы обработались другие потоки веб морды
-				vTaskDelay(1000 / portTICK_PERIOD_MS);
+				vTaskDelay(100 / portTICK_PERIOD_MS);
 				if(SemaphoreTake(xWebThreadSemaphore, (3 * W5200_TIME_WAIT / portTICK_PERIOD_MS)) == pdFALSE) { // получить семафор веб морды
 					journal.jprintf("%s: Socket %d %s\n", (char*) __FUNCTION__, Socket[thread].sock, MutexWebThreadBuzy);
 					return pLOAD_ERR;
@@ -2595,7 +2595,7 @@ xContinueSearchHeader:
 								if(buf_len > 0) loadLen = ff.write(ptr, buf_len); // первый пакет упаковали если он не нулевой
 								while(loadLen < lenFile)  // Чтение остальных пакетов из сети
 								{
-									_delay(2);                                                 // время на приход данных
+									if(TaskYeldAndGiveWebSemaphore()) break;
 									buf_len = Socket[thread].client.get_ReceivedSizeRX(); // получить длину входного пакета
 									if(buf_len == 0) {
 										if(Socket[thread].client.connected()) continue;	else break;
@@ -2637,7 +2637,7 @@ xContinueSearchHeader:
 							uint16_t numPoint = 0;
 							while((lenFile -= buf_len) > 0)  // Чтение остальных пакетов из сети
 							{
-								_delay(2);                                                                 // время на приход данных
+								if(TaskYeldAndGiveWebSemaphore()) break;
 								buf_len = Socket[thread].client.get_ReceivedSizeRX();                  // получить длину входного пакета
 								if(buf_len == 0) {
 									if(Socket[thread].client.connected()) continue; else break;

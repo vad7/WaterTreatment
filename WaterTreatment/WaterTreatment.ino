@@ -1553,10 +1553,11 @@ void vReadSensor(void *)
 									UsedWaterToSeptic = 0;
 								}
 								if(MC.Option.SepticPumpConsumedMax && UsedWaterToSeptic > MC.Option.SepticPumpConsumedMax) {
-									if(SepticPumpRelayStatus == MODBUS_RELAY_OFF) {
-										UsedWaterToSeptic -= UsedWaterToSeptic * SEPTIC_PUMP_CONSUMED_MAX_PERCENT / 100;
-										SepticPumpRelayStatus = MODBUS_RELAY_CMD_ON;
-									} else set_Error(ERR_SEPTIC_PUMP_NOT_WORK, NULL);
+#ifndef MODBUS_SEPTIC_PUMP_ON_PULSE
+									if(SepticPumpRelayStatus == MODBUS_RELAY_OFF) SepticPumpRelayStatus = MODBUS_RELAY_CMD_ON;
+									else
+#endif
+										set_Error(ERR_SEPTIC_PUMP_NOT_WORK, NULL);
 								}
 							}
 							if(tmp < MC.Option.SepticMinPower) {
