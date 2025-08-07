@@ -2567,9 +2567,9 @@ xContinueSearchHeader:
 			}
 		} else { // загрузка отдельных файлов веб морды
 			if(SemaphoreTake(xLoadingWebSemaphore, 0) == pdFALSE) { // Cемафор занят - загрузка файла
-				if(lenFile == 0) {
-					journal.jprintf("Upload: %s length = %s!\n", nameFile, pStart);
-					return pLOAD_ERR;
+				if(lenFile == 0) { // пустой файл - пропускаем
+					journal.jprintf("Upload: %s zero length, skip\n", nameFile);
+					return pNULL;
 				}
 				// Файл может лежать во множестве пакетов. Если в SPI Flash, то считается что spi диск отформатирован и ожидает запись файлов с "нуля"
 				// Входные параметры:

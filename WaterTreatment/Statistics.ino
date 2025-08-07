@@ -38,7 +38,7 @@ int8_t Statistics::CreateOpenFile(uint8_t what)
 	strcat(filename, stats_file_ext);
 	journal.jprintf(" File: %s ", filename);
 	SPI_switchSD();
-	if(!StatsFile.opens(filename, O_READ, &open_fname)) {
+	if(!StatsFile.opens(filename, O_RDWR, &open_fname)) {
 		uint16_t days = month == 1 ? 366 : (12 - month + 1) * 31;
 		if(!StatsFile.createContiguous(filename, what ? HISTORY_MAX_FILE_SIZE(days) : STATS_MAX_FILE_SIZE(days))) {
 			Error("create", what);
@@ -294,10 +294,9 @@ void Statistics::Init(uint8_t newyear)
 
 void Statistics::CheckCreateNewFile()
 {
-	uint8_t sem = 0;
 	if(!MC.get_fSD()) return;
 	if(NewYearFlag) {
-		if(!(sem = SemaphoreTake(xWebThreadSemaphore, 0))) return;
+		if(!SemaphoreTake(xWebThreadSemaphore, 0)) return;
 		SaveStats(1);
 		SaveHistory(1);
 		// Truncate stats
@@ -323,14 +322,15 @@ void Statistics::CheckCreateNewFile()
 		}
 		Init(1);
 		NewYearFlag = 0;
+		SemaphoreGive(xWebThreadSemaphore);
 	}
 	if(GETBIT(MC.Option.flags, fHistory) && (HistoryCurrentBlock == 0 || HistoryBlockCreating != 0)) { // Init History
-		if(!sem && !(sem = SemaphoreTake(xWebThreadSemaphore, 0))) return;
+		if(!SemaphoreTake(xWebThreadSemaphore, 0)) return;
 		if(CreateOpenFile(ID_HISTORY) == OK) {
 			StatsFile.close();
 		} else SETBIT0(MC.Option.flags, fHistory); // При ошибке выключаем опцию сохранения истории!
+		SemaphoreGive(xWebThreadSemaphore);
 	}
-	if(sem) SemaphoreGive(xWebThreadSemaphore);
 }
 
 // Сбросить накопленные промежуточные значения
