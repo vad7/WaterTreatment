@@ -70,7 +70,7 @@ void web_server(uint8_t thread)
 
 	if(SemaphoreTake(xWebThreadSemaphore, (W5200_TIME_WAIT / portTICK_PERIOD_MS)) == pdFALSE) { // Захват семафора потока
 		// 1. Проверка захваченого семафора сети ожидаем 3 времен W5200_TIME_WAIT, если мютекса не получаем, то сбрасываем мютекс
-		if(SemaphoreTake(xWebThreadSemaphore, ((3 + (fWebUploadingFilesTo != 0) * 30) * W5200_TIME_WAIT / portTICK_PERIOD_MS)) == pdFALSE) {
+		if(SemaphoreTake(xWebThreadSemaphore, ((3 + (fWebUploadingFilesTo != 0) * 40) * W5200_TIME_WAIT / portTICK_PERIOD_MS)) == pdFALSE) {
 			journal.jprintf_time("UNLOCK mutex xWebThread, %d\n", thread);
 			MC.num_resMutexWEB++;
 		}
@@ -282,7 +282,7 @@ void readFileSD(char *filename, uint8_t thread)
 		if(!n) {
 			Stats.SendFileData(thread, &webFile, filename);
 		} else {
-			sendPacketRTOS(thread, (byte*)Socket[thread].outBuf, strlen(Socket[thread].outBuf), 0);
+			sendPacketRTOS(thread, (byte*)Socket[thread].outBuf, strlen(Socket[thread].outBuf));
 		}
 		return;
 	}
@@ -307,7 +307,7 @@ void readFileSD(char *filename, uint8_t thread)
 			if(!n) {
 				Stats.SendFileData(thread, &webFile, filename);
 			} else {
-				sendPacketRTOS(thread, (byte*)Socket[thread].outBuf, strlen(Socket[thread].outBuf), 0);
+				sendPacketRTOS(thread, (byte*)Socket[thread].outBuf, strlen(Socket[thread].outBuf));
 			}
 	    }
 		return;

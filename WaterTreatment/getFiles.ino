@@ -15,7 +15,7 @@
 #include "MainClass.h"
 #include "NoSDpage.h"
 #define STR_END   strcat(Socket[thread].outBuf,"\r\n")      // Макрос на конец строки
-extern uint16_t sendPacketRTOS(uint8_t thread, const uint8_t * buf, uint16_t len,uint16_t pause);
+extern uint16_t sendPacketRTOS(uint8_t thread, const uint8_t * buf, uint16_t len); //,uint16_t pause);
 
 // Генерация заголовка
 void get_Header(uint8_t thread, char *name_file)
@@ -469,7 +469,7 @@ void get_datTest(uint8_t thread)
    strcat(Socket[thread].outBuf, "application/x-binary\r\nContent-Length:");
    _itoa((SIZE_TEST/sizeof(Socket[thread].outBuf))*sizeof(Socket[thread].outBuf),Socket[thread].outBuf);  //реальный размер передачи
    strcat(Socket[thread].outBuf,"\r\nContent-Disposition: attachment; filename=\"test.dat\"\r\n\r\n");
-   sendPacketRTOS(thread,(byte*)Socket[thread].outBuf,strlen(Socket[thread].outBuf),0);
+   sendPacketRTOS(thread,(byte*)Socket[thread].outBuf,strlen(Socket[thread].outBuf));
    
    // Генерация файла используется выходной буфер
    memset(Socket[thread].outBuf,0x55,sizeof(Socket[thread].outBuf));   // Заполнение буфера
