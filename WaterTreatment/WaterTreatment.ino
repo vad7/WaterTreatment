@@ -1498,6 +1498,7 @@ void vReadSensor(void *)
 					if(Modbus.RelaySwitch(MODBUS_SEPTIC_PUMP_RELAY_ADDR, MODBUS_SEPTIC_PUMP_RELAY_ID,
 										SepticPumpRelayStatus == MODBUS_RELAY_CMD_ON ? MODBUS_SEPTIC_PUMP_ON_CMD : MODBUS_SEPTIC_PUMP_OFF_CMD) == OK) {
 						journal.jprintfopt_time("%s Relay: %s\n", "PUMP", SepticPumpRelayStatus == MODBUS_RELAY_CMD_ON ? "ON" : "OFF");
+						SepticPumpRelayTimer = SEPTIC_PUMP_PWR_SWITCH_TIMER;
 						if(SepticPumpRelayStatus == MODBUS_RELAY_CMD_OFF) {
 	#ifdef MODBUS_SEPTIC_PUMP_ON_PULSE
 							journal.jprintf_time("SEPTIC PUMP -> OFF!\n", err);
@@ -1516,6 +1517,7 @@ void vReadSensor(void *)
 #ifdef CHECK_SEPTIC
 					if(!GETBIT(MC.Option.flags2, fCheckSeptic)) SepticPower = 0;
 					else if(PumpReadCounter == MC.Option.PumpReadPeriod * 1000 / TIME_READ_SENSOR / 2 || MC.Option.PumpReadPeriod == 1) {
+						if(SepticPumpRelayTimer) SepticPumpRelayTimer--;
 						int8_t err = Modbus.readInputRegisters32(MODBUS_SEPTIC_ADDR, PWM_POWER, &tmp);
 						if(err == OK) {
 							tmp /= 10;	// -> W
@@ -1542,16 +1544,28 @@ void vReadSensor(void *)
 #ifndef MODBUS_SEPTIC_PUMP_ON_PULSE
 										if(!GETBIT(MC.Option.flags2, fSepticPumpRelayNoErr) || MC.Option.SepticPumpConsumedMax == 0)
 #endif
+										{
 											journal.jprintf("Septic: %dW\n", tmp < SepticPower ? tmp : SepticPower);
 											set_Error(ERR_SEPTIC_PUMP_DRAIN_RUN, NULL);
+										}
 										SepticPumpRelayStatus = MODBUS_RELAY_CMD_OFF;
 									}
+#ifndef MODBUS_SEPTIC_PUMP_ON_PULSE
+									else if(SepticPumpRelayTimer == 1 && SepticPumpRelayStatus == MODBUS_RELAY_OFF && SepticPower > dpmp) { // Залипло реле насоса
+										set_Error(ERR_SEPTIC_PUMP_RELAY_STUCK, NULL);
+									}
+#endif
 								}
-							} else {
+							} else { // не работает
 								if(SepticPower > dpmp) { // Остановился
 									SepticPumpTimeWorkTime = ut - SepticPumpTimeLast;
 									UsedWaterToSeptic = 0;
 								}
+#ifndef MODBUS_SEPTIC_PUMP_ON_PULSE
+								else if(SepticPumpRelayTimer == 1 && SepticPumpRelayStatus == MODBUS_RELAY_ON) { // Не включается
+									set_Error(ERR_SEPTIC_PUMP_WONT_ON, NULL);
+								}
+#endif
 								if(MC.Option.SepticPumpConsumedMax && UsedWaterToSeptic > MC.Option.SepticPumpConsumedMax) {
 #ifndef MODBUS_SEPTIC_PUMP_ON_PULSE
 									if(SepticPumpRelayStatus == MODBUS_RELAY_OFF) SepticPumpRelayStatus = MODBUS_RELAY_CMD_ON;

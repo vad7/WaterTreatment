@@ -600,10 +600,12 @@ const char *webWS_NextRegenSoftAfterDays		= { "NS" };
 #define ERR_SEPTIC_PUMP_OVERLOAD -91		// Перегрузка насоса септика
 #define ERR_SEPTIC_PUMP_DRAIN_RUN -92		// Сухой ход насоса септика
 #define ERR_SEPTIC_NOT_WORK		-93			// Низкое электро-потребление септика
-#define ERR_TANK_OVERFLOW		-94			// Бак переполнен!
-#define ERR_MODBUS_RELAY		-95			// Ошибка связи с Modbus реле
+#define ERR_SEPTIC_PUMP_RELAY_STUCK -94		// Залипло реле насоса септика
+#define ERR_SEPTIC_PUMP_WONT_ON -95			// Не включается насос септика
+#define ERR_TANK_OVERFLOW		-96			// Бак переполнен!
+#define ERR_MODBUS_RELAY		-97			// Ошибка связи с Modbus реле
 
-#define ERR_ERRMAX				-95			// Последняя ошибка
+#define ERR_ERRMAX				-97			// Последняя ошибка
 
 // Предупреждения
 #define WARNING_VALUE        1         // Попытка установить значение за границами диапазона запрос типа SET
@@ -704,8 +706,10 @@ const char *noteError[] = {
 		"Перегрузка насоса септика",														//-91
 		"Сухой ход насоса септика",															//-92
 		"Низкое электро-потребление септика",												//-93
-		"Бак переполнен!",																	//-94
-		"Ошибка связи с Modbus реле",														//-95
+		"Залипло реле насоса септика",														//-94
+		"Не включается насос септика",														//-95
+		"Бак переполнен!",																	//-96
+		"Ошибка связи с Modbus реле",														//-97
 
 		"NULL"
 		};

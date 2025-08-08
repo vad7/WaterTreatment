@@ -127,6 +127,7 @@ int8_t   DrainPumpRelayStatus = MODBUS_RELAY_ON; // MODBUS_RELAY_*
 #else
 int8_t  SepticPumpRelayStatus	 = MODBUS_RELAY_CMD_ON;
 #endif
+uint8_t SepticPumpRelayTimer	= 0; // *MC.Option.PumpReadPeriod + 1
 uint32_t SepticPumpTimeLast 	= 0; // time
 uint32_t SepticPumpTimeWorkTime	= 0; // сек время работы
 uint8_t  SepticErrCnt 			= 0;
