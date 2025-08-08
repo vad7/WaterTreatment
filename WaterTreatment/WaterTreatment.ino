@@ -1492,11 +1492,11 @@ void vReadSensor(void *)
 				}
 #endif
 #ifdef MODBUS_SEPTIC_PUMP_RELAY_ADDR
-				if(GETBIT(MC.Option.flags2, fSepticPumpRelay) &&
-						(SepticPumpRelayStatus == MODBUS_RELAY_CMD_ON || SepticPumpRelayStatus == MODBUS_RELAY_CMD_OFF)) {
+				if(GETBIT(MC.Option.flags2, fSepticPumpRelay) && (SepticPumpRelayStatus == MODBUS_RELAY_CMD_ON || SepticPumpRelayStatus == MODBUS_RELAY_CMD_OFF)) {
 					skip_this_iteration = true;
 					if(Modbus.RelaySwitch(MODBUS_SEPTIC_PUMP_RELAY_ADDR, MODBUS_SEPTIC_PUMP_RELAY_ID,
-										SepticPumpRelayStatus == MODBUS_RELAY_CMD_ON ? MODBUS_SEPTIC_PUMP_ON_CMD : MODBUS_SEPTIC_PUMP_OFF_CMD) == OK) {
+							SepticPumpRelayStatus == MODBUS_RELAY_CMD_ON ? (GETBIT(MC.Option.flags2, fSepticPumpRelayReverse) ? MODBUS_SEPTIC_PUMP_OFF_CMD : MODBUS_SEPTIC_PUMP_ON_CMD)
+																		: (GETBIT(MC.Option.flags2, fSepticPumpRelayReverse) ? MODBUS_SEPTIC_PUMP_ON_CMD : MODBUS_SEPTIC_PUMP_OFF_CMD)) == OK) {
 						journal.jprintfopt_time("%s Relay: %s\n", "PUMP", SepticPumpRelayStatus == MODBUS_RELAY_CMD_ON ? "ON" : "OFF");
 						SepticPumpRelayTimer = SEPTIC_PUMP_PWR_SWITCH_TIMER;
 						if(SepticPumpRelayStatus == MODBUS_RELAY_CMD_OFF) {

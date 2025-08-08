@@ -1045,6 +1045,13 @@ boolean MainClass::set_option(char *var, float xx)
 		return true;
 	} else
 	if(strcmp(var,option_fSepticPumpRelay)==0){ Option.flags2 = (Option.flags2 & ~(1<<fSepticPumpRelay)) | ((x!=0)<<fSepticPumpRelay); return true; } else
+	if(strcmp(var,option_fSepticPumpRelayReverse)==0){
+		Option.flags2 = (Option.flags2 & ~(1<<fSepticPumpRelayReverse)) | ((x!=0)<<fSepticPumpRelayReverse);
+#if !defined(SEPTIC_DRAIN_PUMP_ON_PULSE)
+		SepticPumpRelayStatus = MODBUS_RELAY_ON ? MODBUS_RELAY_CMD_ON : MODBUS_RELAY_CMD_OFF;
+#endif
+		return true;
+	} else
 	if(strcmp(var,option_fSepticPumpRelayNoErr)==0){
 #ifdef MODBUS_SEPTIC_PUMP_ON_PULSE
 		x = 0;
@@ -1180,6 +1187,7 @@ char* MainClass::get_option(char *var, char *ret)
 	if(strcmp(var,option_fSepticPumpRelay)==0){ return strcat(ret, (char*)(GETBIT(Option.flags2, fSepticPumpRelay) ? cOne : cZero)); } else
 	if(strcmp(var,option_fSepticPumpRelayNoErr)==0){ return strcat(ret, (char*)(GETBIT(Option.flags2, fSepticPumpRelayNoErr) ? cOne : cZero)); } else
 	if(strcmp(var,option_fSepticCriticalErrOnly1ValveOff)==0){ return strcat(ret, (char*)(GETBIT(Option.flags2, fSepticCriticalErrOnly1ValveOff) ? cOne : cZero)); } else
+	if(strcmp(var,option_fSepticPumpRelayReverse)==0){ return strcat(ret, (char*)(GETBIT(Option.flags2, fSepticPumpRelayReverse) ? cOne : cZero)); } else
 	if(strcmp(var,option_fSepticHeatRelay)==0){ return strcat(ret, (char*)(GETBIT(Option.flags2, fSepticHeatRelay) ? cOne : cZero)); } else
 	if(strcmp(var,option_fLED_SRV_INFO_PlanReg)==0){ return strcat(ret, (char*)(GETBIT(Option.flags2, fLED_SRV_INFO_PlanReg) ? cOne : cZero)); } else
 	if(strncmp(var, prof_DailySwitch, sizeof(prof_DailySwitch)-1) == 0) {

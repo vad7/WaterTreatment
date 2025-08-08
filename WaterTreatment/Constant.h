@@ -464,6 +464,7 @@ const char *option_SepticPumpConsumedMax= {"SPC"};
 const char *option_SepticMinPower		= {"SMP"};
 const char *option_fCheckSepticPump		= {"CSP"};
 const char *option_fSepticPumpRelay		= {"SPR"};
+const char *option_fSepticPumpRelayReverse= {"SRR"};
 const char *option_fSepticPumpRelayNoErr= {"SPE"};
 const char *option_fSepticCriticalErrOnly1ValveOff={"CE1"};
 const char *option_PumpStartTime		= {"PS"};

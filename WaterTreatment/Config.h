@@ -230,8 +230,8 @@ struct History_setup {
 		#define MODBUS_SEPTIC_PUMP_RELAY_NAME	"Реле насоса Септика"
 		#define MODBUS_SEPTIC_PUMP_RELAY_ADDR	MODBUS_RELAY_ADDR // Адрес реле насоса септика, реле подключено на контакт NC
 		#define MODBUS_SEPTIC_PUMP_RELAY_ID		2	// Номер реле (нумерация с 0)
-		#define MODBUS_SEPTIC_PUMP_ON_CMD		0	// Команда - насос может работать
-		#define MODBUS_SEPTIC_PUMP_OFF_CMD		1	// Команда отключения питания насоса при аварии
+		#define MODBUS_SEPTIC_PUMP_ON_CMD		1	// Команда - насос может работать
+		#define MODBUS_SEPTIC_PUMP_OFF_CMD		0	// Команда отключения питания насоса при аварии
 		//#define MODBUS_SEPTIC_PUMP_ON_PULSE	// Если активно, то импульс 1 сек для выключения (N замыкается на GND для срабатывания УЗО), иначе выкл/вкл и работа без поплавка насоса
 		#define SEPTIC_MIN_POWER_CNT			250	// Через сколько периодов низкого потребления септика выдавать ошибку
 		#define SEPTIC_CLEAR_ERROR_TIMEOUT		10*1000 // Через сколько времени сбрасывать ошибку если септик починился, мс
