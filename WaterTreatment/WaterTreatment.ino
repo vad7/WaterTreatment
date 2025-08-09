@@ -1561,7 +1561,8 @@ void vReadSensor(void *)
 									UsedWaterToSeptic = 0;
 								}
 #ifndef MODBUS_SEPTIC_PUMP_ON_PULSE
-								else if(SepticPumpRelayTimer == 1 && SepticPumpRelayStatus == MODBUS_RELAY_ON) { // Не включается
+								else if(SepticPumpRelayTimer == 1 && SepticPumpRelayStatus == MODBUS_RELAY_ON && ut - MC.get_startDT > 30) {
+									// Не включается, исключая 30 сек после включения
 									set_Error(ERR_SEPTIC_PUMP_WONT_ON, NULL);
 								}
 #endif
