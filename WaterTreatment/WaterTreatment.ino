@@ -668,22 +668,21 @@ void vWeb0(void *)
 		STORE_DEBUG_INFO(1);
 		web_server(0);
 		STORE_DEBUG_INFO(2);
-		active = true;                                    // Можно работать в этом цикле (дополнительная нагрузка на поток)
 		vTaskDelay(TIME_WEB_SERVER / portTICK_PERIOD_MS); // задержка чтения уменьшаем загрузку процессора
 
 
 #ifdef MQTT
 		if (active) active=MC.clMQTT.dnsUpdate();                          // Обновить адреса через dns если надо MQTT
 #endif
-		if(xTaskGetTickCount() - thisTime > (uint32_t) WEB0_OTHER_FUNC_PERIOD * 1000) { // Другие функции
+		if(xTaskGetTickCount() - thisTime > (uint32_t) WEB0_OTHER_FUNC_PERIOD * 1000UL) { // Другие функции
 			thisTime = xTaskGetTickCount();                                      // Запомнить тики
 			// СЕРВИС: Этот поток работает на любых настройках, по этому сюда ставим работу с сетью
-			MC.message.sendMessage();                                            // Отработать отсылку сообщений (внутри скрыта задержка после включения)
+			active = MC.message.sendMessage();                                            // Отработать отсылку сообщений (внутри скрыта задержка после включения)
 			STORE_DEBUG_INFO(39);
-			active = MC.message.dnsUpdate();                                       // Обновить адреса через dns если надо Уведомления
+			if(active) active = MC.message.dnsUpdate();                                       // Обновить адреса через dns если надо Уведомления
 			STORE_DEBUG_INFO(18);
 			// Проверка и сброс митекса шины I2C  если мютекса не получаем то сбрасываем мютекс
-			if(SemaphoreTake(xI2CSemaphore, (5 * I2C_TIME_WAIT / portTICK_PERIOD_MS)) == pdFALSE) { // Захват мютекса I2C
+			if(SemaphoreTake(xI2CSemaphore, 3 * I2C_TIME_WAIT / portTICK_PERIOD_MS) == pdFALSE) { // Захват мютекса I2C
 				SemaphoreGive(xI2CSemaphore);
 				journal.jprintf_time("UNLOCK mutex xI2CSemaphore\n");
 				MC.num_resMutexI2C++;
@@ -691,7 +690,7 @@ void vWeb0(void *)
 
 			// 2. Чистка сокетов
 			if(MC.time_socketRes() > 0) {
-				if(SemaphoreTake(xWebThreadSemaphore, (W5200_TIME_WAIT / portTICK_PERIOD_MS))) {
+				if(SemaphoreTake(xWebThreadSemaphore, W5200_TIME_WAIT / portTICK_PERIOD_MS)) {
 					STORE_DEBUG_INFO(3);
 					checkSockStatus();                   // Почистить старые сокеты  если эта позиция включена
 					SemaphoreGive(xWebThreadSemaphore);
@@ -714,15 +713,18 @@ void vWeb0(void *)
 			if((MC.get_fInitW5200()) && (thisTime - iniW5200 > W5500_LINK_CHECK * 1000UL)) // проверка связи с чипом сети раз в 30 сек
 			{
 				STORE_DEBUG_INFO(5);
-				iniW5200 = thisTime;
 				if(!MC.NO_Power) {
-					boolean lst = linkStatusWiznet(false);
-					if(!lst || !network_last_link) {
-						if(!lst && network_last_link) journal.jprintf_time("%s no link[%02X] - resetting\n", nameWiznet, W5100.readPHYCFGR());
-						MC.fNetworkReset = 1;           // Послать команду сброса и применения сетевых настроек
-						MC.num_resW5200++;              // Добавить счетчик инициализаций
+					if(SemaphoreTake(xWebThreadSemaphore, W5200_TIME_WAIT / portTICK_PERIOD_MS)) {
+						boolean lst = linkStatusWiznet(false);
+						SemaphoreGive(xWebThreadSemaphore);
+						if(!lst || !network_last_link) {
+							if(!lst && network_last_link) journal.jprintf_time("%s no link[%02X] - resetting\n", nameWiznet, W5100.readPHYCFGR());
+							MC.fNetworkReset = 1;           // Послать команду сброса и применения сетевых настроек
+							MC.num_resW5200++;              // Добавить счетчик инициализаций
+						}
+						network_last_link = lst;
+						iniW5200 = thisTime;
 					}
-					network_last_link = lst;
 				}
 			}
 			// 5.Обновление времени 1 раз в сутки или по запросу (MC.timeNTP==0)
