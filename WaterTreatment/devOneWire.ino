@@ -368,7 +368,7 @@ void Recover_I2C_bus(void)
 	I2C_PORT->PIO_ODR = I2C_SDA;  // SDA=Hi-Z (STOP условие)
 	pinMode(PIN_WIRE_SDA, INPUT);
 	delayMicroseconds(20);
-	if(!digitalReadDirect(PIN_WIRE_SDA) && _reset) repower();
+//	if(!digitalReadDirect(PIN_WIRE_SDA) && _reset) repower();
 	PIO_Configure(
 			g_APinDescription[PIN_WIRE_SCL].pPort,
 			g_APinDescription[PIN_WIRE_SCL].ulPinType,

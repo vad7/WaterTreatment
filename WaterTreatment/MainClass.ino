@@ -129,6 +129,32 @@ void MainClass::clear_all_errors()
 	MC.dRelay[RWATERON].set_ON();
 }
 
+// сбросить счетчик фильтра, после нужно вызвать сохранение настроек!
+bool MainClass::clear_filter_counter(char *str)
+{
+	int32_t l_i32 = 0;
+	if(strcmp(str, "RO1") == 0) {	// RESET_CNT_FCRO1
+		l_i32 = MC.WorkStats.RO_FilterCounter1 * 10;
+		MC.WorkStats.RO_FilterCounter1 = 0;
+		MC.Option.RO_FilterCountersResetTime[0] = rtcSAM3X8.unixtime();
+	} else if(strcmp(str, "RO2") == 0) {	// RESET_CNT_FCRO2
+		l_i32 = MC.WorkStats.RO_FilterCounter2 * 10;
+		MC.WorkStats.RO_FilterCounter2 = 0;
+		MC.Option.RO_FilterCountersResetTime[1] = rtcSAM3X8.unixtime();
+	} else if(strcmp(str, "1") == 0) {	// RESET_CNT_FC1
+		l_i32 = MC.WorkStats.FilterCounter1 * 100;
+		MC.WorkStats.FilterCounter1 = 0;
+		MC.Option.FilterCountersResetTime[0] = rtcSAM3X8.unixtime();
+	} else if(strcmp(str, "2") == 0) {	// RESET_CNT_FC2
+		l_i32 = MC.WorkStats.FilterCounter2 * 100;
+		MC.WorkStats.FilterCounter2 = 0;
+		MC.Option.FilterCountersResetTime[1] = rtcSAM3X8.unixtime();
+	} else return false;
+	journal.jprintf_date("RESET FILTER CNT: %s at %dL\n", str, l_i32);
+	NeedSaveWorkStats = 1;
+	return true;
+}
+
 void Weight_Clear_Averaging(void)
 {
 	memset(Weight_adc_filter, 0, sizeof(Weight_adc_filter));

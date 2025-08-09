@@ -985,27 +985,7 @@ xSaveStats:		if((i = MC.save_WorkStats()) == OK)
 					strcat(strReturn, "OK");
 				} else if(strncmp(str, "FC", 2) == 0) {
 					str += 2;
-					if(strcmp(str, "RO1")) {	// RESET_CNT_FCRO1
-						l_i32 = MC.WorkStats.RO_FilterCounter1 * 10;
-						MC.WorkStats.RO_FilterCounter1 = 0;
-						MC.Option.RO_FilterCountersResetTime[0] = rtcSAM3X8.unixtime();
-					} else if(strcmp(str, "RO2")) {	// RESET_CNT_FCRO2
-						l_i32 = MC.WorkStats.RO_FilterCounter2 * 10;
-						MC.WorkStats.RO_FilterCounter2 = 0;
-						MC.Option.RO_FilterCountersResetTime[1] = rtcSAM3X8.unixtime();
-					} else if(strcmp(str, "1")) {	// RESET_CNT_FC1
-						l_i32 = MC.WorkStats.FilterCounter1 * 100;
-						MC.WorkStats.FilterCounter1 = 0;
-						MC.Option.FilterCountersResetTime[0] = rtcSAM3X8.unixtime();
-					} else if(strcmp(str, "2") == 0) {	// RESET_CNT_FC2
-						l_i32 = MC.WorkStats.FilterCounter2 * 100;
-						MC.WorkStats.FilterCounter2 = 0;
-						MC.Option.FilterCountersResetTime[1] = rtcSAM3X8.unixtime();
-					} else {
-						ADD_WEBDELIM(strReturn); continue;
-					}
-					NeedSaveWorkStats = 1;
-					journal.jprintf_date("RESET FILTER CNT: %s at %dL\n", str);
+					if(MC.clear_filter_counter(str)) MC.save(); // Если сброс счетчика, то сохраняем настройки!
 				}
 			} else if (strcmp(str,"SETTINGS")==0) // RESET_SETTINGS, Команда сброса настроек
 			{
@@ -1017,6 +997,14 @@ xSaveStats:		if((i = MC.save_WorkStats()) == OK)
 			{
 				MC.clear_all_errors();
 				LastErrorsClearManual = rtcSAM3X8.unixtime();
+				i = 0;
+#ifdef REVERSE_OSMOS_FC
+				if(MC.WorkStats.RO_FilterCounter1 > MC.Option.RO_FilterCounter1_Max) { MC.clear_filter_counter((char*)"RO1"); i = 1; }
+				if(MC.WorkStats.RO_FilterCounter2 > MC.Option.RO_FilterCounter2_Max) { MC.clear_filter_counter((char*)"RO2"); i = 1; }
+#endif
+				if(MC.WorkStats.FilterCounter1 > MC.Option.FilterCounter1_Max) { MC.clear_filter_counter((char*)"1"); i = 1; }
+				if(MC.WorkStats.FilterCounter2 > MC.Option.FilterCounter2_Max) { MC.clear_filter_counter((char*)"2"); i = 1; }
+				if(i) MC.save(); // Если сброс счетчика, то сохраняем настройки!
 			}
 			ADD_WEBDELIM(strReturn); continue;
 		}
@@ -1355,7 +1343,7 @@ xSaveStats:		if((i = MC.save_WorkStats()) == OK)
 				}
 #endif
 				if(MC.WorkStats.FilterCounter1 > MC.Option.FilterCounter1_Max) strReturn += m_snprintf(strReturn += m_strlen(strReturn), 128, "-|%dл|Выработан ресурс фильтра %c\n", MC.WorkStats.FilterCounter1 * 100, '1');
-				if(MC.WorkStats.FilterCounter2 > MC.Option.FilterCounter2_Max) strReturn += m_snprintf(strReturn += m_strlen(strReturn), 128, "-|%dл|Выработан ресурс фильтра %c\n", MC.WorkStats.FilterCounter1 * 100, '2');
+				if(MC.WorkStats.FilterCounter2 > MC.Option.FilterCounter2_Max) strReturn += m_snprintf(strReturn += m_strlen(strReturn), 128, "-|%dл|Выработан ресурс фильтра %c\n", MC.WorkStats.FilterCounter2 * 100, '2');
 			} else goto x_FunctionNotFound;
 			ADD_WEBDELIM(strReturn);
 			continue;

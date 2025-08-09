@@ -389,11 +389,12 @@ struct type_Security
 class MainClass
 {
 public:
-	void init();                                     // Конструктор
+	void init();                                    // Конструктор
 	// Информационные функции определяющие состояние
-	void calculatePower();                           // Вычисление мощностей контуров
-	void clear_error();                              // стереть последнюю ошибку
+	void calculatePower();                          // Вычисление мощностей контуров
+	void clear_error();                             // стереть последнюю ошибку
 	void clear_all_errors(void);					// стереть все ошибки
+	bool clear_filter_counter(char *f);				// сбросить счетчик фильтра, после нужно вызвать сохранение настроек!
 	__attribute__((always_inline)) inline int8_t get_errcode(){return error;} // Получить код последней ошибки
 	char  *get_lastErr(){return note_error;} // Получить описание последней ошибки, которая вызвала останов, при удачном запуске обнуляется
 	void   scan_OneWire(char *result_str); // Сканирование шины OneWire на предмет датчиков
