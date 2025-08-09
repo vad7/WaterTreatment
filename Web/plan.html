@@ -108,7 +108,7 @@ function loadParam_after(paramid) {
 <b><span id="get_pwrdo" style="color:blue;font-size:medium"></span><br>
 <span id="get_pwrso" style="color:blue;font-size:medium"></span></b>
 <table id="get_tblerr_t" hidden>
-	<thead><tr><th>Время ошибки</th><th>Код</th><th>Описание ошибки <input type="submit" value="Очистить" onclick='loadParam("RESET_ERR")' style="float:right;"></th></tr></thead>
+	<thead><tr><th>Время ошибки</th><th>Код</th><th>Описание ошибки <input type="submit" value="Очистить" onclick='if(confirm("СБРОСИТЬ ОШИБКИ И ПРЕДУПРЕЖДЕНИЯ?")) loadParam("RESET_ERR");' style="float:right;"></th></tr></thead>
 	<tbody id="get_tblerr">
 	</tbody>
 </table>
