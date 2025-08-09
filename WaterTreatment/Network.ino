@@ -438,7 +438,12 @@ uint16_t sendPacketRTOS(uint8_t thread, const uint8_t * buf, uint16_t len) //, u
 		//   Serial.println("ask");
 		do// Ожидание освобождения буфера
 		{
-			if(TaskYeldAndGiveWebSemaphore()) return 0;
+			if(TaskYeldAndGiveWebSemaphore()) {
+#ifdef TEST_BOARD
+				journal.jprintf_time("Error lock Web [%X]\n", __builtin_return_address(0));
+#endif
+				return 0;
+			}
 			//taskENTER_CRITICAL();
 			freesize = W5100.getTXFreeSize(Socket[thread].sock);
 			if(freesize >= ret) {
@@ -480,7 +485,12 @@ uint16_t sendPacketRTOS(uint8_t thread, const uint8_t * buf, uint16_t len) //, u
 			close(Socket[thread].sock);
 			return 0;
 		}
-		if(TaskYeldAndGiveWebSemaphore()) return 0;
+		if(TaskYeldAndGiveWebSemaphore()) {
+#ifdef TEST_BOARD
+			journal.jprintf_time("Error lock Web [%X]\n", __builtin_return_address(0));
+#endif
+			return 0;
+		}
 	}
 	W5100.writeSnIR(Socket[thread].sock, SnIR::SEND_OK);
 	return ret;

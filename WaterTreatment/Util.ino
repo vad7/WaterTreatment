@@ -37,6 +37,7 @@ bool SemaphoreTake(type_SEMAPHORE &_sem, uint32_t wait_time)
 {
 	if(xTaskGetSchedulerState() == taskSCHEDULER_RUNNING) {
 		if(wait_time == 0) {
+			if(_sem.xSemaphore) return false;
 			vPortEnterCritical();
 			if(_sem.xSemaphore) {
 				vPortExitCritical();
@@ -66,8 +67,7 @@ bool TaskYeldAndGiveWebSemaphore(void)
 	if(xTaskGetSchedulerState() == taskSCHEDULER_RUNNING) {
 		SemaphoreGive(xWebThreadSemaphore);  // Мютекс веба отдать
 		taskYIELD();
-		if(SemaphoreTake(xWebThreadSemaphore, (W5200_TIME_WAIT / portTICK_PERIOD_MS)) == pdFALSE) {  // Захват мютекса веба
-			journal.jprintf("Error lock Web [%X]\n", __builtin_return_address(0));
+		if(SemaphoreTake(xWebThreadSemaphore, W5200_TIME_WAIT_MAX / portTICK_PERIOD_MS) == pdFALSE) {  // Захват мютекса веба
 			return true;
 		}
 	}

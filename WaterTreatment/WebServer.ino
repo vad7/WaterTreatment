@@ -68,17 +68,10 @@ void web_server(uint8_t thread)
 	int32_t len;
 	int8_t sock;
 
-	if(SemaphoreTake(xWebThreadSemaphore, (W5200_TIME_WAIT / portTICK_PERIOD_MS)) == pdFALSE) { // Захват семафора потока
-		// 1. Проверка захваченого семафора сети ожидаем 3 времен W5200_TIME_WAIT, если мютекса не получаем, то сбрасываем мютекс
-		if(SemaphoreTake(xWebThreadSemaphore, ((3 + (fWebUploadingFilesTo != 0) * 40) * W5200_TIME_WAIT / portTICK_PERIOD_MS)) == pdFALSE) {
-			journal.jprintf_time("UNLOCK mutex xWebThread, %d\n", thread);
-			MC.num_resMutexWEB++;
-		}
-	}
+	if(SemaphoreTake(xWebThreadSemaphore, (W5200_TIME_WAIT / portTICK_PERIOD_MS)) == pdFALSE) return; // Захват семафора потока
 
 	Socket[thread].sock = -1;                      // Сокет свободный
 
-	SPI_switchW5200();                    // Это лишнее но для надежности пусть будет
 	for(sock = 0; sock < W5200_SOCK_SYS; sock++)  // Цикл по сокетам веб сервера!!!! служебный не трогаем!!
 	{
 
@@ -91,7 +84,7 @@ void web_server(uint8_t thread)
 #else
 		if((Socket[0].sock==sock)||(Socket[1].sock==sock)||(Socket[2].sock==sock)||(Socket[3].sock==sock)) continue; // исключение повторного захвата сокетов
 #endif
-
+		SPI_switchW5200();                    // Это лишнее но для надежности пусть будет
 		// Настройка  переменных потока для работы
 		Socket[thread].http_req_type = HTTP_invalid;        // нет полезной инфы
 		SETBIT0(Socket[thread].flags, fABORT_SOCK);          // Сокет сброса нет
@@ -2595,7 +2588,12 @@ xContinueSearchHeader:
 								if(buf_len > 0) loadLen = ff.write(ptr, buf_len); // первый пакет упаковали если он не нулевой
 								while(loadLen < lenFile)  // Чтение остальных пакетов из сети
 								{
-									if(TaskYeldAndGiveWebSemaphore()) break;
+									if(TaskYeldAndGiveWebSemaphore()) {
+#ifdef TEST_BOARD
+										journal.jprintf_time("Error lock Web in %s\n", (char*) __FUNCTION__);
+#endif
+										break;
+									}
 									buf_len = Socket[thread].client.get_ReceivedSizeRX(); // получить длину входного пакета
 									if(buf_len == 0) {
 										if(Socket[thread].client.connected()) continue;	else break;
@@ -2637,7 +2635,12 @@ xContinueSearchHeader:
 							uint16_t numPoint = 0;
 							while((lenFile -= buf_len) > 0)  // Чтение остальных пакетов из сети
 							{
-								if(TaskYeldAndGiveWebSemaphore()) break;
+								if(TaskYeldAndGiveWebSemaphore()) {
+#ifdef TEST_BOARD
+									journal.jprintf_time("Error lock Web in %s\n", (char*) __FUNCTION__);
+#endif
+									break;
+								}
 								buf_len = Socket[thread].client.get_ReceivedSizeRX();                  // получить длину входного пакета
 								if(buf_len == 0) {
 									if(Socket[thread].client.connected()) continue; else break;

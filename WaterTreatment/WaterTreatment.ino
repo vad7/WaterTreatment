@@ -668,23 +668,20 @@ void vWeb0(void *)
 		STORE_DEBUG_INFO(1);
 		web_server(0);
 		STORE_DEBUG_INFO(2);
-		active = true;                                                         // Можно работать в этом цикле (дополнительная нагрузка на поток)
+		active = true;                                    // Можно работать в этом цикле (дополнительная нагрузка на поток)
 		vTaskDelay(TIME_WEB_SERVER / portTICK_PERIOD_MS); // задержка чтения уменьшаем загрузку процессора
 
-		// СЕРВИС: Этот поток работает на любых настройках, по этому сюда ставим работу с сетью
-		MC.message.sendMessage();                                            // Отработать отсылку сообщений (внутри скрыта задержка после включения)
-
-		STORE_DEBUG_INFO(39);
-
-		active = MC.message.dnsUpdate();                                       // Обновить адреса через dns если надо Уведомления
-
-		STORE_DEBUG_INFO(18);
 
 #ifdef MQTT
 		if (active) active=MC.clMQTT.dnsUpdate();                          // Обновить адреса через dns если надо MQTT
 #endif
 		if(xTaskGetTickCount() - thisTime > (uint32_t) WEB0_OTHER_FUNC_PERIOD * 1000) { // Другие функции
 			thisTime = xTaskGetTickCount();                                      // Запомнить тики
+			// СЕРВИС: Этот поток работает на любых настройках, по этому сюда ставим работу с сетью
+			MC.message.sendMessage();                                            // Отработать отсылку сообщений (внутри скрыта задержка после включения)
+			STORE_DEBUG_INFO(39);
+			active = MC.message.dnsUpdate();                                       // Обновить адреса через dns если надо Уведомления
+			STORE_DEBUG_INFO(18);
 			// Проверка и сброс митекса шины I2C  если мютекса не получаем то сбрасываем мютекс
 			if(SemaphoreTake(xI2CSemaphore, (5 * I2C_TIME_WAIT / portTICK_PERIOD_MS)) == pdFALSE) { // Захват мютекса I2C
 				SemaphoreGive(xI2CSemaphore);
@@ -1566,7 +1563,7 @@ void vReadSensor(void *)
 									set_Error(ERR_SEPTIC_PUMP_WONT_ON, NULL);
 								}
 #endif
-								if(MC.Option.SepticPumpConsumedMax && UsedWaterToSeptic > MC.Option.SepticPumpConsumedMax) {
+								if(SepticPumpRelayTimer == 0 && MC.Option.SepticPumpConsumedMax && UsedWaterToSeptic > MC.Option.SepticPumpConsumedMax) {
 #ifndef MODBUS_SEPTIC_PUMP_ON_PULSE
 									if(SepticPumpRelayStatus == MODBUS_RELAY_OFF) SepticPumpRelayStatus = MODBUS_RELAY_CMD_ON;
 									else
