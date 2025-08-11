@@ -88,8 +88,8 @@ boolean set_time_NTP(void)
 				flag = 0;
 				while(wait--) { // ожидание ответа
 					SemaphoreGive(xWebThreadSemaphore);
-					_delay(100);
-					if(SemaphoreTake(xWebThreadSemaphore,(W5200_TIME_WAIT/portTICK_PERIOD_MS))==pdFALSE) break; // Захват семафора потока или ОЖИДАНИЕ W5200_TIME_WAIT, если семафор не получен то выходим
+					_delay(10);
+					if(SemaphoreTake(xWebThreadSemaphore, W5200_TIME_WAIT_MAX/portTICK_PERIOD_MS)==pdFALSE) break; // Захват семафора потока или ОЖИДАНИЕ W5200_TIME_WAIT, если семафор не получен то выходим
 					if(tTCP.available()) {
 						flag = 1;
 						break;
@@ -202,7 +202,13 @@ boolean set_time_NTP(void)
 			journal.jprintfopt("Socket error\n");
 			return false;
 		}
+		SemaphoreGive(xWebThreadSemaphore);
 		_delay(NTP_REPEAT_TIME);                                             // Ждем, чтобы увидеть, доступен ли ответ:
+		if(SemaphoreTake(xWebThreadSemaphore, W5200_TIME_WAIT_MAX / portTICK_PERIOD_MS) == pdFALSE) {
+			journal.jprintf("Error lock Web in %s: %d\n", (char*) __FUNCTION__, __LINE__);
+			Udp.stop();
+			return false;
+		}
 		if(flag) {
 			flag = false;
 			if(Udp.parsePacket()) {
