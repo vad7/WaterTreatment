@@ -48,7 +48,7 @@ enum {
 	STATS_OBJ_Press,		// bar
 	STATS_OBJ_Flow,			// м³ч
 	STATS_OBJ_Voltage,		// V
-	STATS_OBJ_Power,		// кВт*ч
+	STATS_OBJ_PowerMax,		// кВт*ч, макс за 1 минуту
 	STATS_OBJ_WaterUsed,	// л
 	STATS_OBJ_WaterRegen,	// Регенерация обезжелезивателя, л
 	STATS_OBJ_BrineWeight,	// кг
@@ -579,8 +579,8 @@ struct History_setup {
 		{ 0, STATS_OBJ_FeedPump, STATS_TYPE_SUM },
 		{ 0, STATS_OBJ_BrineWeight, STATS_TYPE_MIN },
 		{ 0, STATS_OBJ_Temp, STATS_TYPE_MIN },
-		{ 0, STATS_OBJ_Power, STATS_TYPE_SUM },
-		{ 0, STATS_OBJ_Power, STATS_TYPE_MAX },
+		{ 0, STATS_OBJ_PowerMax, STATS_TYPE_SUM },
+		{ 0, STATS_OBJ_PowerMax, STATS_TYPE_MAX },
 		{ 0, STATS_OBJ_Voltage, STATS_TYPE_MIN },
 		{ 0, STATS_OBJ_Voltage, STATS_TYPE_MAX },
 		{ 0, STATS_OBJ_WaterRegenSoftening, STATS_TYPE_SUM },
@@ -598,11 +598,11 @@ struct History_setup {
 			{ STATS_OBJ_Temp, TAIR, noteTemp[TAIR] },
 			{ STATS_OBJ_Flow, FLOW, "Датчик протока, м³ч" },
 			{ STATS_OBJ_Level, LTANK, "Уровень в баке, %" },
-			{ STATS_OBJ_Power, STATS_OBJ_Power_dPWM, "Потребление, кВт" },
+			{ STATS_OBJ_PowerMax, STATS_OBJ_Power_dPWM, "Потребление, кВт" },
 			{ STATS_OBJ_Press, PWATER, "Давление, бар" },
 			{ STATS_OBJ_WaterBoosterLiters, 0, "Гидроаккумулятор, л" },
-			{ STATS_OBJ_Power, STATS_OBJ_Power_DrainPumpPower, "Дренажный насос, кВт" },
-			{ STATS_OBJ_Power, STATS_OBJ_Power_SepticPower, "Септик, кВт" }
+			{ STATS_OBJ_PowerMax, STATS_OBJ_Power_DrainPumpPower, "Дренажный насос, кВт" },
+			{ STATS_OBJ_PowerMax, STATS_OBJ_Power_SepticPower, "Септик, кВт" }
 	};
 
 	#define LEAKAGE_TANK_RESTART_TIME	65534	// Проверка бака на утечку, для ошибки - уменьшения уровня бака на TankLeakagePercent должен произойти раньше, чем это время (65535 - выкл), сек

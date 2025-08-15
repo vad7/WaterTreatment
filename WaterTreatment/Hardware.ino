@@ -649,6 +649,7 @@ int8_t devPWM::initPWM()
 	numErr = 0;                                      // счетчик 0
 	Voltage = 0;                                     // Напряжение
 	Power = 0;
+	PowerMax = 0;
 	flags = 0x00;
 	// Настройки
 	name = (char*) namePWM;
@@ -687,6 +688,7 @@ int8_t devPWM::get_readState(uint8_t group)
 			if(err == OK) {
 				tmp = tmp / 10 + (tmp % 10 >= 5 ? 1 : 0); // round to W
 				Power = tmp;
+				if(PowerMax < tmp) PowerMax = tmp;
 				/* group = 1 */
 			} else goto xErr;
 		}

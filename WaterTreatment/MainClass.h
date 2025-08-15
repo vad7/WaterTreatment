@@ -121,6 +121,7 @@ uint16_t DrainPumpRelayErrors 	= 0;
 uint8_t  DrainPumpDryCnt		= 0;
 #endif
 uint16_t DrainPumpPower 		= 0; // W
+uint16_t DrainPumpPowerMax 		= 0; // W
 #ifdef CHECK_SEPTIC
 #ifdef MODBUS_SEPTIC_PUMP_ON_PULSE
 int8_t   DrainPumpRelayStatus = MODBUS_RELAY_ON; // MODBUS_RELAY_*
@@ -136,6 +137,7 @@ uint16_t SepticPumpRelayErrors = 0;
 uint8_t  SepticPumpDryCnt		= 0;
 #endif
 uint16_t SepticPower 			= 0; // W
+uint16_t SepticPowerMax 		= 0; // W
 uint8_t  PumpReadCounter 		= 0;
 
 #ifdef MODBUS_SEPTIC_HEAT_RELAY_ADDR

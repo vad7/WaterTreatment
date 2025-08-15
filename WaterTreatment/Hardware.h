@@ -311,8 +311,7 @@ const char *notePWM = {PWM_NAME};       // Описание счетчика
 class devPWM
 {
    public:  
-       int8_t initPWM();                               // Инициализация счетчика и проверка и если надо программирование
-
+      int8_t initPWM();                               // Инициализация счетчика и проверка и если надо программирование
       int8_t  get_readState(uint8_t group);            // Прочитать инфо с счетчика
       int8_t  get_lastErr(){ return err; }               // Получить последнюю ошибку счетчика
       uint16_t get_numErr(){ return numErr; }            // Получить число ошибок чтения счетчика
@@ -320,23 +319,20 @@ class devPWM
       char*   get_name(){ return name; }                 // Получить имя датчика
       int32_t get_Power(){ return Power; }
       uint16_t get_Voltage(){ return Voltage; }
-
       char* get_param(char *var, char *ret);           // Получить параметр PWM в виде строки
       boolean set_param(char *var, int32_t f);
       void get_param_now(uint8_t modbus_addr, char var, char *strReturn); // Запросить регистр счетчика сейчас, для веб
-      
-       // Графики из счетчика
+      // Графики из счетчика
       //statChart ChartVoltage;                          // Статистика по напряжению
       statChart ChartPower;                            // Статистика по Полная мощность
+      uint16_t PowerMax;                               // Моментальная мощность, 1W
   private:
       int8_t  err;                                     // ошибка стесчика (работа)
-      uint16_t numErr;                                 // число ошибок чтение по модбасу
       byte flags;                                      // флаги  0 - наличие счетчика,
-      
+      uint16_t numErr;                                 // число ошибок чтение по модбасу
       uint16_t Voltage;                                // 0.1V
-      uint32_t Power;                                  // Моментальная мощность, 1W
-      uint32_t TestPower;
-
+      uint16_t Power;                                  // Моментальная мощность, 1W
+      uint16_t TestPower;
       char *note;                                      // Описание
       char *name;                                      // Имя
 };

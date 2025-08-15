@@ -251,7 +251,7 @@ void Statistics::Init(uint8_t newyear)
 									case STATS_OBJ_Flow:
 										Stats_data[i].value = val * 1000.0f + 0.0005f;
 										break;
-									case STATS_OBJ_Power:
+									case STATS_OBJ_PowerMax:
 										switch(Stats_data[i].type) {
 										case STATS_TYPE_SUM:
 										case STATS_TYPE_AVG:
@@ -412,7 +412,7 @@ void Statistics::Update()
 		case STATS_OBJ_Voltage:
 			newval = MC.dPWM.get_Voltage();
 			break;
-		case STATS_OBJ_Power: {
+		case STATS_OBJ_PowerMax: {
 				newval = MC.dPWM.get_Power(); // Вт
 				switch(Stats_data[i].type) {
 				case STATS_TYPE_SUM:
@@ -490,11 +490,18 @@ void Statistics::History()
 		case STATS_OBJ_Flow:		// m3h
 			int_to_dec_str(MC.sFrequency[HistorySetup[i].number].get_Value(), 1, &buf, 0); // F (/1)
 			break;
-		case STATS_OBJ_Power:
+		case STATS_OBJ_PowerMax:
 #if defined(CHECK_DRAIN_PUMP) || defined(CHECK_SEPTIC)
-			int_to_dec_str(HistorySetup[i].number == STATS_OBJ_Power_DrainPumpPower ? DrainPumpPower :
-					HistorySetup[i].number == STATS_OBJ_Power_SepticPower ? SepticPower :
-					MC.dPWM.get_Power(), 1, &buf, 0);  // W (/1000)
+			if(HistorySetup[i].number == STATS_OBJ_Power_DrainPumpPower) {
+				int_to_dec_str(DrainPumpPowerMax, 1, &buf, 0);  // W (/1000)
+				DrainPumpPowerMax = 0;
+			} else if(HistorySetup[i].number == STATS_OBJ_Power_SepticPower) {
+				int_to_dec_str(SepticPowerMax, 1, &buf, 0);  // W (/1000)
+				SepticPowerMax = 0;
+			} else {
+				int_to_dec_str(MC.dPWM.PowerMax, 1, &buf, 0);  // W (/1000)
+				MC.dPWM.PowerMax = 0;
+			}
 #else
 			int_to_dec_str(MC.dPWM.get_Power(), 1, &buf, 0);  // W (/1000)
 #endif
@@ -577,7 +584,7 @@ void Statistics::HistoryFileHeader(char *ret, uint8_t flag)
 			case STATS_OBJ_Voltage:
 				strcat(ret, "V");	// ось напряжение
 				break;
-			case STATS_OBJ_Power:
+			case STATS_OBJ_PowerMax:
 				strcat(ret, "W");	// ось мощность
 				break;
 			case STATS_OBJ_Flow:
@@ -636,7 +643,7 @@ void Statistics::StatsFieldHeader(char *ret, uint8_t i, uint8_t flag)
 		if(flag) strcat(ret, "V"); // ось напряжение
 		strcat(ret, "Напряжение, V");
 		break;
-	case STATS_OBJ_Power:
+	case STATS_OBJ_PowerMax:
 		if(flag) strcat(ret, "W"); // ось мощность
 		strcat(ret, "Потребление, кВт"); // хранится в Вт
 		if(Stats_data[i].type == STATS_TYPE_SUM) strcat(ret, "ч");
@@ -733,7 +740,7 @@ xSkipEmpty:
 	case STATS_OBJ_FeedPump:				// s
 		int_to_dec_str(val, 1000, ret, 0);
 		break;
-	case STATS_OBJ_Power:					// кВт*ч
+	case STATS_OBJ_PowerMax:					// кВт*ч
 		switch(Stats_data[i].type) {
 		case STATS_TYPE_SUM:
 		case STATS_TYPE_AVG:

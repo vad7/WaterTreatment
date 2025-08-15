@@ -1581,6 +1581,7 @@ void vReadSensor(void *)
 								}
 							} else SepticMinPowerCnt = 0;
 							SepticPower = tmp;
+							if(SepticPowerMax < tmp) SepticPowerMax = tmp;
 							SepticErrCnt = 0;
 						} else {
 #ifndef CHECK_DRAIN_PUMP
@@ -1626,6 +1627,7 @@ void vReadSensor(void *)
 									}
 								}
 								DrainPumpPower = tmp;
+								if(DrainPumpPowerMax < tmp) DrainPumpPowerMax = tmp;
 								DrainPumpErrCnt = 0;
 							} else {
 #ifndef CHECK_SEPTIC
