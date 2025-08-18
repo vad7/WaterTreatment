@@ -55,6 +55,7 @@ struct type_WorkStats {
 	uint16_t RO_FilterCounter2;		// 10L
 } __attribute__((packed));
 
+// type_WorkStats.Flags:
 #define WS_F_StartRegen				0x01	// Запланирована регенерация обезжелезивателя вручную
 #define WS_F_StartRegenSoft			0x02	// Запланирована регенерация умягчителя вручную
 #define WS_F_RegenPreparing			0x04	// Идет подготовка к регенерации
@@ -178,8 +179,10 @@ uint16_t UsedWaterToSepticLast = 0;	// л
 uint16_t UsedWaterToSeptic = 0;		// л
 uint8_t  SepticMinPowerCnt = 0;
 uint8_t  PIN_LED_SRV_INFO_off = 0;		// off value
-
 int16_t  RWATERON_Switching = 0; // >0 - в процессе переключения, <0 - задержка включения, сек
+
+#define WF_bWasLowConsumeToday 0	// сегодня было низкое потребление
+uint8_t  work_flags = 0;
 
 // Weight
 //bool Weight_NeedRead = false; // allways
@@ -246,6 +249,7 @@ type_WebSecurity WebSec_admin;				// хеш паролей
 #define fSepticPumpRelayNoErr 8				// При сухом ходе насоса септика или при долгой его работе не генерить ошибку, а только отключать
 #define fSepticCriticalErrOnly1ValveOff 9	// При критической ошибке септика перекрывать только первый кран (RWATEROFF1)
 #define fSepticPumpRelayReverse 10			// Обратная логика включения реле септика
+#define fCheck_REVERSE_OSMOS_FC 11			// Проверять был ли расход счетчика питьевого фильтра
 
 // Структура для хранения настроек
 struct type_option {

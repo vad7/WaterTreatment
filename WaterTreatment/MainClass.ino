@@ -1035,6 +1035,7 @@ boolean MainClass::set_option(char *var, float xx)
 	if(strcmp(var,option_DrainSiltAfterNotUsed)==0){ Option.DrainSiltAfterNotUsed = x; return true; } else
 	if(strcmp(var,option_fDrainSiltTank)==0){ Option.flags2 = (Option.flags2 & ~(1<<fDrainSiltTank)) | ((x!=0)<<fDrainSiltTank); return true; } else
 	if(strcmp(var,option_fDrainSiltTankBeforeRegen)==0){ Option.flags2 = (Option.flags2 & ~(1<<fDrainSiltTankBeforeRegen)) | ((x!=0)<<fDrainSiltTankBeforeRegen); return true; } else
+	if(strcmp(var,option_fCheck_REVERSE_OSMOS_FC)==0){ Option.flags2 = (Option.flags2 & ~(1<<fCheck_REVERSE_OSMOS_FC)) | ((x!=0)<<fCheck_REVERSE_OSMOS_FC); return true; } else
 	if(strcmp(var,option_UsedWaterContinuous)==0){ Option.UsedWaterContinuous = x; UsedWaterContinuousTimerMax = 0; return true; } else
 	if(strcmp(var,option_FilterCounter1_Max)==0){ Option.FilterCounter1_Max = x / 100; return true; } else
 	if(strcmp(var,option_FilterCounter2_Max)==0){ Option.FilterCounter2_Max = x / 100; return true; } else
@@ -1183,6 +1184,7 @@ char* MainClass::get_option(char *var, char *ret)
 	if(strcmp(var,option_DrainSiltAfterNotUsed)==0){ return _itoa(Option.DrainSiltAfterNotUsed, ret); } else
 	if(strcmp(var,option_fDrainSiltTank)==0){ return strcat(ret, (char*)(GETBIT(Option.flags2, fDrainSiltTank) ? cOne : cZero)); } else
 	if(strcmp(var,option_fDrainSiltTankBeforeRegen)==0){ return strcat(ret, (char*)(GETBIT(Option.flags2, fDrainSiltTankBeforeRegen) ? cOne : cZero)); } else
+	if(strcmp(var,option_fCheck_REVERSE_OSMOS_FC)==0){ return strcat(ret, (char*)(GETBIT(Option.flags2, fCheck_REVERSE_OSMOS_FC) ? cOne : cZero)); } else
 	if(strcmp(var,option_UsedWaterContinuous)==0){ return _itoa(Option.UsedWaterContinuous, ret); } else
 	if(strcmp(var,option_FilterCounter1_Max)==0){ return _itoa(Option.FilterCounter1_Max * 100, ret); } else
 	if(strcmp(var,option_FilterCounter2_Max)==0){ return _itoa(Option.FilterCounter2_Max * 100, ret); } else

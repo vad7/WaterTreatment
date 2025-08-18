@@ -20,7 +20,7 @@
 #include "Util.h"
 
 // ОПЦИИ КОМПИЛЯЦИИ ПРОЕКТА -------------------------------------------------------
-#define VERSION			  "1.76"			// Версия прошивки
+#define VERSION			  "1.77"			// Версия прошивки
 #define VER_SAVE		  16				// Версия формата сохраняемых данных в I2C память
 //#define LOG                               // В последовательный порт шлет лог веб сервера (логируются запросы)
 #define FAST_LIB                            // использование допиленной библиотеки езернета
@@ -472,6 +472,7 @@ const char *option_PumpReadPeriod		= {"PP"};
 const char *option_fChartOnlyNonZeroW	= {"CNZ"};
 const char *option_fSepticHeatRelay		= {"SHR"};
 const char *option_fLED_SRV_INFO_PlanReg= {"LPR"};
+const char *option_fCheck_REVERSE_OSMOS_FC={"FRO"};
 const char option_GetCurrentSaltLevel[] = "LvL";	// get_Opt(LvL)
 const char prof_DailySwitch[] 	= "DS";
 const char prof_DailySwitchDevice = 'D';		// DSD
@@ -605,8 +606,9 @@ const char *webWS_NextRegenSoftAfterDays		= { "NS" };
 #define ERR_SEPTIC_PUMP_WONT_ON -95			// Не включается насос септика
 #define ERR_TANK_OVERFLOW		-96			// Бак переполнен!
 #define ERR_MODBUS_RELAY		-97			// Ошибка связи с Modbus реле
+#define ERR_REVERSE_OSMOS_FC	-98			// Не было расхода воды на датчике питьевого фильтра
 
-#define ERR_ERRMAX				-97			// Последняя ошибка
+#define ERR_ERRMAX				-98			// Последняя ошибка
 
 // Предупреждения
 #define WARNING_VALUE        1         // Попытка установить значение за границами диапазона запрос типа SET
@@ -711,6 +713,7 @@ const char *noteError[] = {
 		"Не включается насос септика",														//-95
 		"Бак переполнен!",																	//-96
 		"Ошибка связи с Modbus реле",														//-97
+		"Не было расхода воды на датчике питьевого фильтра",								//-98
 
 		"NULL"
 		};

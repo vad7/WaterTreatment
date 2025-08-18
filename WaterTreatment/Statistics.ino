@@ -340,6 +340,12 @@ void Statistics::Reset(bool newday)
 	if(MC.get_testMode() > STAT_TEST) return;
 #endif
 	for(uint8_t i = 0; i < sizeof(Stats_data) / sizeof(Stats_data[0]); i++) {
+#ifdef REVERSE_OSMOS_FC
+		if(Stats_data[i].object == STATS_OBJ_RO_WaterUsed && Stats_data[i].value == 0 && GETBIT(work_flags, WF_bWasLowConsumeToday) && GETBIT(MC.Option.flags2, fCheck_REVERSE_OSMOS_FC) ) {
+			// похоже не работает счетчик питевой воды
+			set_Error(ERR_REVERSE_OSMOS_FC, (char*)__FUNCTION__);
+		}
+#endif
 		switch(Stats_data[i].type){
 		case STATS_TYPE_MIN:
 			Stats_data[i].value = MAX_INT32_VALUE;

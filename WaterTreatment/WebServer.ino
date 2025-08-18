@@ -1157,12 +1157,13 @@ xSaveStats:		if((i = MC.save_WorkStats()) == OK)
 				strReturn += m_snprintf(strReturn += strlen(strReturn), 256, "Площадь фильтрации обезжелезивателя, м2|%.4d;", MC.FilterTankSquare);
 				strReturn += m_snprintf(strReturn += strlen(strReturn), 256, "Площадь фильтрации умягчителя, м2|%.4d;", MC.FilterTankSoftenerSquare);
 
-				strReturn += m_snprintf(strReturn += strlen(strReturn), 256, "Потреблено с последнего слива осадка, л|%d;", MC.WorkStats.UsedDrainSiltL100 * 100);
 				if(RegMaxFlow) strReturn += m_snprintf(strReturn += strlen(strReturn), 256, "Макс проток за регенерацию, м3ч|%.3d;", RegMaxFlow);
 				if(RegMinPress != 0xFFFF) strReturn += m_snprintf(strReturn += strlen(strReturn), 256, "Мин давление при регенерации, атм|%.2d;", RegMinPress);
+				strReturn += m_snprintf(strReturn += strlen(strReturn), 256, "Потреблено с последнего слива осадка, л|%d;", MC.WorkStats.UsedDrainSiltL100 * 100);
+				strcat(strReturn,"Максимальное потребление воды за раз|"); TimeIntervalToStr(UsedWaterContinuousTimerMax * USED_WATER_CONTINUOUS_MINTIME, strReturn, 1); strcat(strReturn,";");
 				STORE_DEBUG_INFO(47);
 
-				strcat(strReturn,"<b> Времена</b>|;");
+				strcat(strReturn,"<b>Времена</b>|;");
 #ifdef CHECK_DRAIN_PUMP
 				strcat(strReturn,"Последнее включение насоса Дренажа|"); DecodeTimeDate(DrainPumpTimeLast, strReturn, 3); strcat(strReturn,";");
 #endif
@@ -1178,11 +1179,10 @@ xSaveStats:		if((i = MC.save_WorkStats()) == OK)
 				strcat(strReturn,"Время последнего потребления|");DecodeTimeDate(MC.WorkStats.UsedLastTime,strReturn,3);strcat(strReturn,";");
 				strcat(strReturn,"Время заполнения бака|");if(MC.RFILL_last_time_ON) DecodeTimeDate(MC.RFILL_last_time_ON,strReturn,3); strcat(strReturn,";");
 				strcat(strReturn,"Время сохранения текущих настроек |");DecodeTimeDate(MC.get_saveTime(),strReturn,3);strcat(strReturn,";");
-				strcat(strReturn,"Максимальное потребление воды за раз|"); TimeIntervalToStr(UsedWaterContinuousTimerMax * USED_WATER_CONTINUOUS_MINTIME, strReturn, 1); strcat(strReturn,";");
 				strReturn[strlen(strReturn) - 1] = '\0';	// удалить последнюю ';'
 
 			} else if(strcmp(str, "Info2") == 0) { // "get_sysInfo2" - Функция вывода системной информации для разработчика
-				strcat(strReturn,"<b> Счетчики ошибок</b>|;");
+				strcat(strReturn,"<b>Счетчики ошибок</b>|;");
 				strcat(strReturn,"Счетчик \"Потеря связи с "); strcat(strReturn,nameWiznet);strcat(strReturn,"\", повторная инициализация  <sup>2</sup>|");_itoa(MC.num_resW5200,strReturn);strcat(strReturn,";");
 				strReturn += m_snprintf(strReturn += strlen(strReturn), 256, "Счетчик блокировок и сбросов мютекса WEB|%d (%d);", xWebThreadSemaphore.BusyCnt, MC.num_resMutexWEB);
 				strReturn += m_snprintf(strReturn, 256, "Счетчик блокировок и сбросов мютекса I2C|%d (%d);", xI2CSemaphore.BusyCnt, MC.num_resMutexI2C);
@@ -1194,7 +1194,7 @@ xSaveStats:		if((i = MC.save_WorkStats()) == OK)
 				strcat(strReturn,"Счетчик числа ошибок чтения датчиков температуры|");_itoa(MC.get_errorReadTemp(),strReturn);strcat(strReturn,";");
 				strcat(strReturn,"Счетчик ошибок Modbus реле|"); _itoa(ModbusRelayErrors, strReturn); strcat(strReturn, ";");
 
-				strcat(strReturn,"<b> Глобальные счетчики</b>|;");
+				strcat(strReturn,"<b>Глобальные счетчики</b>|;");
 				strcat(strReturn,"Время сброса|"); DecodeTimeDate(MC.WorkStats.ResetTime, strReturn, 3); strcat(strReturn,";");
 				strcat(strReturn,"Счетчик фильтра 1 с "); DecodeTimeDate(MC.Option.FilterCountersResetTime[0], strReturn, 3); strcat(strReturn, ", л|"); _itoa(MC.WorkStats.FilterCounter1 * 100, strReturn);
 				if(MC.WorkStats.FilterCounter1 > MC.Option.FilterCounter1_Max) strcat(strReturn," - превышен!");
@@ -1211,7 +1211,8 @@ xSaveStats:		if((i = MC.save_WorkStats()) == OK)
 				strcat(strReturn,";");
 #endif
 				STORE_DEBUG_INFO(48);
-				strcat(strReturn,"<b> Статистика за день</b>|;");
+				strcat(strReturn,"<b>Статистика за день</b>|;");
+				if(GETBIT(work_flags, WF_bWasLowConsumeToday)) strcat(strReturn,"Было низкое потребление|+;");
 				strReturn += strlen(strReturn);
 				Stats.StatsWebTable(strReturn);
 				strReturn[strlen(strReturn) - 1] = '\0';	// удалить последнюю ';'

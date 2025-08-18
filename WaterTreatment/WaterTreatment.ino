@@ -1267,7 +1267,7 @@ void vReadSensor(void *)
 		if(MC.sFrequency[FLOW].get_ValueReal() <= MC.Option.FlowIncByPress_MinFlow) {
 #ifdef REVERSE_OSMOS_FC
 			if(RO_was_flow) {
-				int32_t v = MC.sFrequency[FLOW_RO].get_ValueReal() - MC.sFrequency[FLOW].get_ValueReal();
+				int32_t v = MC.sFrequency[REVERSE_OSMOS_FC].get_ValueReal() - MC.sFrequency[FLOW].get_ValueReal();
 				if(v > 0) {
 					MC.sFrequency[FLOW].add_pulses100 += v * MC.sFrequency[FLOW].get_kfValue() / 3600; // Добавка, чтобы сравнять расход
 				}
@@ -1303,6 +1303,7 @@ void vReadSensor(void *)
 							}
 							MC.sFrequency[FLOW].WebCorrectCnt = (TIMER_TO_SHOW_STATUS + 1000) / TIME_READ_SENSOR + 1;
 							//TimeFeedPump +=	d * MC.Osmos_PWATER_BoosterMax * 1000 / ((MC.sADC[PWATER].get_maxValue() - MC.sADC[PWATER].get_minValue()) * 100) * TIME_READ_SENSOR / MC.Option.FeedPumpMaxFlow;
+							SETBIT1(work_flags, WF_bWasLowConsumeToday);
 							MC.Osmos_PWATER_Added = 2;
 							MC.Osmos_PWATER_LastPress = pw;
 							MC.Osmos_PWATER_LastPress_Timer = 0;
