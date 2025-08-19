@@ -238,7 +238,7 @@ private:
       uint8_t  number;									 // номер
       uint16_t testValue;                               // !save! Состояние датчика в режиме теста
       uint32_t kfValue; 							 	 // коэффициент пересчета частоты в значение, изменений уровня на литр, сотые
-      uint8_t  FlowCalcPeriod;                          // через сколько FREQ_BASE_TIME_READ расчитывать проток
+      uint8_t  FlowCalcPeriod;                          // через сколько секунд расчитывать проток
       int16_t  kNonLinearity;							// Коэффициент нелинейности (0 - нет), сотые
 #ifdef SENSORS_FREQ_I2C
       uint8_t  I2C_addr;						     	// адрес на I2C шине, если используется для получения данных датчика, формат данных (3 байта): импульсы(0..65535),CRC8(1-Wire)

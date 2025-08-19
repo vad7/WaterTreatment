@@ -416,7 +416,7 @@ void Statistics::Update()
 			newval = MC.sADC[STATS_ID_Press].get_Value();
 			break;
 		case STATS_OBJ_Flow:
-			newval = MC.sFrequency[STATS_ID_Flow].get_Value();
+			newval = MC.sFrequency[STATS_ID_Flow].get_ValueReal();
 			break;
 		case STATS_OBJ_Voltage:
 			newval = MC.dPWM.get_Voltage();

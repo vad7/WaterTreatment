@@ -1393,16 +1393,25 @@ void MainClass::get_Chart(char *var, char* str)
 //		}
 //	}
 	for(i = 0; i < ANUMBER; i++) {
-		if((strcmp(var, sADC[i].get_name()) == 0)) {
+		if(strcmp(var, sADC[i].get_name()) == 0) {
 			sADC[i].Chart.get_PointsStrDiv100(str);
 			return;
 		}
 	}
-	for(i = 0; i < FNUMBER; i++) {
-		if((strncmp(var, sFrequency[i].get_name(), strlen(sFrequency[i].get_name())) == 0)) {
 #ifdef F_CHART_ChartLiters
-			if(var[strlen(sFrequency[i].get_name()) - 1] == 'L') sFrequency[i].ChartLiters.get_PointsStrUintDiv1000(str); else
+	i = strlen(sFrequency[i].get_name());
+	if(var[i - 1] == 'L' && var[i - 2] == '_'){
+		var[i - 2] = '\0';
+		for(i = 0; i < FNUMBER; i++) {
+			if(strcmp(var, sFrequency[i].get_name()) == 0)) {
+				sFrequency[i].ChartLiters.get_PointsStrUintDiv1000(str);
+				return;
+			}
+		}
+	} else
 #endif
+	for(i = 0; i < FNUMBER; i++) {
+		if(strcmp(var, sFrequency[i].get_name()) == 0) {
 			sFrequency[i].ChartFlow.get_PointsStrUintDiv1000(str);
 			return;
 		}

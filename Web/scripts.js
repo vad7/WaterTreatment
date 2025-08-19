@@ -11,8 +11,6 @@ var urlupdate = 4000; // время обновления параметров в
 function setParam(paramid, resultid) {
 	// Замена set_Par(Var1) на set_par-var1 для получения значения 
 	var elid = paramid.replace("(", "-").replace(")", "").toLowerCase();
-	var rec = new RegExp('et_listChart.?');
-	var res = new RegExp('et_testMode|et_mode');
 	var elval, clear = true, equate = true;
 	var element;
 	if((clear = equate = elid.indexOf("=")==-1)) { // Не (x=n)
@@ -22,10 +20,10 @@ function setParam(paramid, resultid) {
 		} else elval = element.value;
 		//if(typeof elval == 'string') elval = elval.replace(/[,=&]+/g, "");
 	}
-	if(res.test(paramid)) {
+	if(/et_testMode|et_mode/.test(paramid)) {
 		var elsend = paramid.replace("get_", "set_").replace(")", "") + "(" + elval + ")";
-	} else if(rec.test(paramid)) {
-		var elsend = paramid.replace("get_listChart", "get_Chart(" + elval + ")");
+	} else if(/et_listChart.?/.test(paramid)) {
+		var elsend = paramid.replace("get_listChart.?", "get_Chart(" + elval + ")");
 		clear = false;
 	} else {
 		var elsend = paramid.replace("get_", "set_");

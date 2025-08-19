@@ -46,7 +46,7 @@ struct Stats_Data {
 enum {
 	STATS_OBJ_Temp = 0,		// °C, TAIR
 	STATS_OBJ_Press,		// bar
-	STATS_OBJ_Flow,			// м³ч
+	STATS_OBJ_Flow,			// м³ч, ValueReal
 	STATS_OBJ_Voltage,		// V
 	STATS_OBJ_PowerMax,		// кВт*ч, макс за 1 минуту
 	STATS_OBJ_WaterUsed,	// л
@@ -541,16 +541,16 @@ struct History_setup {
 	const uint8_t pinsAnalog[ANUMBER] = {	10, // A8(D62), INA1 - желтый, красный "+5V", черный "-".
 											 1	// A6(D60), INA4-20_1.2 - (+12V)-красный, INA4-20_1.1 - (-12V)-черный.
 										};
-	// Коэффициент преобразования отсчеты АЦП-давление, тысячные
-	const uint16_t TRANsADC[ANUMBER]  = { 446, 4212 };
 	// напряжение (отсчеты АЦП) соответсвующее cZero
-	const uint16_t ZEROPRESS[ANUMBER] = { 410, 4128 };
+	const uint16_t ZEROPRESS[ANUMBER] = { 40, 4005 };
+	// Коэффициент преобразования отсчеты АЦП-давление, тысячные
+	const uint16_t TRANsADC[ANUMBER]  = { 175, 4500 };
 	// Усиление на шине (0,1 = x1, 2 = x2, 3 = x4)
 	const uint8_t  ADC_GAIN[ANUMBER]  = {   1,    4 };
 
 	const boolean SENSORPRESS[ANUMBER]= { true,  true };	// Присутствие датчика в конфигурации
-	const int16_t MINPRESS[ANUMBER]   = {  250,  7500 };	// минимальные значения давления, в сотых
-	const uint16_t MAXPRESS[ANUMBER]  = {  370, 10000 };	// Максимальные значения давления, в сотых
+	const int16_t MINPRESS[ANUMBER]   = {  285,  7500 };	// минимальные значения давления, в сотых
+	const uint16_t MAXPRESS[ANUMBER]  = {  380, 10000 };	// Максимальные значения давления, в сотых
 	const uint16_t TESTPRESS[ANUMBER] = {  300,  8000 };	// Значения датчиков при тестировании  опция TEST, в сотых
 	const uint8_t ADC_FILTER[ANUMBER] = {    4,    32 };	// Длина фильтра усреднения
 

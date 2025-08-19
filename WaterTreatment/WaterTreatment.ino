@@ -1310,6 +1310,7 @@ void vReadSensor(void *)
 						} else if(MC.Osmos_PWATER_Added == 2) {
 							if(++MC.Osmos_PWATER_LastPress_Timer > PWATER_OSMOS_LASTPRESS_RENEW || d <= -1) {
 								MC.Osmos_PWATER_Added = 1;
+								MC.Osmos_PWATER_LastPress = pw;
 								MC.Osmos_PWATER_LastPress_Timer = 0;
 							}
 						}
