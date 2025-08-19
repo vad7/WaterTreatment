@@ -23,7 +23,7 @@ function setParam(paramid, resultid) {
 	if(/et_testMode|et_mode/.test(paramid)) {
 		var elsend = paramid.replace("get_", "set_").replace(")", "") + "(" + elval + ")";
 	} else if(/et_listChart.?/.test(paramid)) {
-		var elsend = paramid.replace("get_listChart.?", "get_Chart(" + elval + ")");
+		var elsend = paramid.replace(/get_listChart.?/, "get_Chart(" + elval + ")");
 		clear = false;
 	} else {
 		var elsend = paramid.replace("get_", "set_");
