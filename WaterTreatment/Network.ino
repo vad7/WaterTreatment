@@ -394,7 +394,6 @@ char* socketInfo(char *buf)
 void checkSockStatus()
 {
   unsigned long thisTime = GetTickCount();
-  if(SemaphoreTake(xWebThreadSemaphore,(W5200_TIME_WAIT/portTICK_PERIOD_MS))==pdFALSE) {journal.jprintfopt((char*)cErrorMutex,__FUNCTION__,MutexWebThreadBuzy);return;} // Захват мютекса потока или ОЖИДАНИНЕ W5200_TIME_WAIT
   for (uint8_t i = 0; i < MAX_SOCK_NUM; i++) {        // По всем сокетам!!
         // Не сбрасывать сокеты которые используется в потоке ОБЯЗАТЕЛЬНО!!
         #if    W5200_THREAD < 2
@@ -418,7 +417,6 @@ void checkSockStatus()
     } // if((s == 0x17) || (s == 0x1C))
     else connectTime[i] = thisTime;                                         // Обновить время если статус не кандидат
   } // for
-  SemaphoreGive(xWebThreadSemaphore);                                      // Отдать мютекс
 }
 // Послать один пакет!!! ----------------------------------------------------------------------------------
 // Послать данные TCP (максимальный размер данных W5200_MAX_LEN. больше обрезается), при ожидании освобождения буфера отдает управление Free RTOS

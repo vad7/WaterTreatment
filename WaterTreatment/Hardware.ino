@@ -514,6 +514,11 @@ bool sensorFrequency::Read(void)
 				Frequency = cnt / 2;
 				if(kNonLinearity) ValueReal = Value = cnt * 360 / (kNonLinearity * cnt / 10 + kfValue); // ЛИТРЫ В ЧАС (ИЛИ ТЫСЯЧНЫЕ КУБА) частота в тысячных
 				else ValueReal = Value = cnt * 360 / kfValue;
+#ifdef DEBUG_RO_FLOW
+				if(number == REVERSE_OSMOS_FC && Value > DEBUG_RO_FLOW) {
+					journal.jprintfopt_time("RO: %.3d (%u,%u;%u,%u)\n", Value, ticks, cnt, Passed, PassedRest);
+				}
+#endif
 			} else {
 				uint32_t cnt_real = count_real_last100;
 				if(ticks == FREQ_BASE_TIME_READ) {
@@ -534,6 +539,11 @@ bool sensorFrequency::Read(void)
 					Value = cnt * 360 / kfValue;						 // ЛИТРЫ В ЧАС (ИЛИ ТЫСЯЧНЫЕ КУБА) частота в тысячных
 					ValueReal = cnt == cnt_real ? Value : cnt_real * 360 / kfValue;
 				}
+#ifdef DEBUG_RO_FLOW
+				if(number == REVERSE_OSMOS_FC && Value > DEBUG_RO_FLOW) {
+					journal.jprintfopt_time("RO: %.3d[%.3d] (%u,%u;%u,%u)\n", Value, ValueReal, ticks, cnt, Passed, PassedRest);
+				}
+#endif
 			}
 		} else { // период должен быть 1000 мс и вызов так же
 #if FREQ_BASE_TIME_READ != 1000
