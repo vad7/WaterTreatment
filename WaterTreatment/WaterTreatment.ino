@@ -1272,6 +1272,9 @@ void vReadSensor(void *)
 					MC.sFrequency[FLOW].add_pulses100 += v * MC.sFrequency[FLOW].get_kfValue() / 3600; // Добавка, чтобы сравнять расход
 				}
 				MC.Osmos_PWATER_DelayCnt = 0;
+				MC.Osmos_PWATER_LastPress = pw;
+				MC.Osmos_PWATER_LastPress_Timer = 0;
+
 			} else
 #endif
 			{
