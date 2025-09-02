@@ -677,7 +677,10 @@ int Send_HTTP_Request(char *request)
 				while(timeout-- > 0) { // ожидание ответа
 					SemaphoreGive(xWebThreadSemaphore);
 					_delay(20);
-					if(SemaphoreTake(xWebThreadSemaphore,(W5200_TIME_WAIT/portTICK_PERIOD_MS))==pdFALSE) break; // Захват семафора потока или ОЖИДАНИЕ W5200_TIME_WAIT, если семафор не получен то выходим
+					if(SemaphoreTake(xWebThreadSemaphore,(W5200_TIME_WAIT/portTICK_PERIOD_MS))==pdFALSE) {
+						ret = -2000000013;
+						break; // Захват семафора потока или ОЖИДАНИЕ W5200_TIME_WAIT, если семафор не получен то выходим
+					}
 					if(tTCP.available()) {
 						ret = 0;
 						break;
@@ -715,7 +718,7 @@ int Send_HTTP_Request(char *request)
 			tTCP.stop();
 		}
 	}
-	SemaphoreGive(xWebThreadSemaphore);
+	if(ret != -2000000013) SemaphoreGive(xWebThreadSemaphore);
 	journal.jprintfopt(" Ret = %d\n", ret);
 	return ret;
 }

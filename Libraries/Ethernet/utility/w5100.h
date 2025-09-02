@@ -29,6 +29,8 @@ extern uint8_t SPI_RATE; // делитель для SPI шины, 2=42MHz, 3=28M
 //#define W5200_ETHERNET_SHIELD     // WIZ820io, W5200 Ethernet Shield
 #define W5500_ETHERNET_SHIELD   // WIZ550io, ioShield series of WIZnet
 
+extern void RTOS_delay(void); // external delay function
+
 // --------------------------------------------
 typedef uint8_t SOCKET;
 

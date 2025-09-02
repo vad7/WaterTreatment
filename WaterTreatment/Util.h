@@ -28,6 +28,7 @@ void SemaphoreCreate(type_SEMAPHORE &_sem);
 bool SemaphoreTake(type_SEMAPHORE &_sem, uint32_t wait_time);// Захватить семафор с проверкой, что шедуллер работает
 inline void SemaphoreGive(type_SEMAPHORE &_sem) { _sem.xSemaphore = false; };
 bool TaskYeldAndGiveWebSemaphore(void);
+void RTOS_delay(void);	// 1ms
 
 // Структура для хранения переменных для паролей
 struct type_WebSecurity

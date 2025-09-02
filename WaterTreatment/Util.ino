@@ -65,13 +65,27 @@ xLoop:		if(!wait_time--) {
 bool TaskYeldAndGiveWebSemaphore(void)
 {
 	if(xTaskGetSchedulerState() == taskSCHEDULER_RUNNING) {
-		SemaphoreGive(xWebThreadSemaphore);  // Мютекс веба отдать
-		taskYIELD();
-		if(SemaphoreTake(xWebThreadSemaphore, W5200_TIME_WAIT_MAX / portTICK_PERIOD_MS) == pdFALSE) {  // Захват мютекса веба
-			return true;
-		}
+		if(xWebThreadSemaphore.xSemaphore) {
+			SemaphoreGive(xWebThreadSemaphore);  // Мютекс веба отдать
+			taskYIELD();
+			if(SemaphoreTake(xWebThreadSemaphore, W5200_TIME_WAIT_MAX / portTICK_PERIOD_MS) == pdFALSE) {  // Захват мютекса веба
+				return true;
+			}
+		} else taskYIELD();
 	}
 	return false;
+}
+
+// Delay 1ms
+void RTOS_delay(void)
+{
+	if(xTaskGetSchedulerState() == taskSCHEDULER_RUNNING) {
+		if(xWebThreadSemaphore.xSemaphore) {
+			SemaphoreGive(xWebThreadSemaphore);  // Мютекс веба отдать
+			vTaskDelay(portTICK_PERIOD_MS);
+			SemaphoreTake(xWebThreadSemaphore, W5200_TIME_WAIT_MAX / portTICK_PERIOD_MS);  // Захват мютекса веба
+		} else vTaskDelay(portTICK_PERIOD_MS);
+	}
 }
 
 // Функции работы с сетевыми переменными ----------------------------------
