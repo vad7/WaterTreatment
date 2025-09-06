@@ -67,8 +67,8 @@ class DownloadMonitor:
 def main():
     parser = argparse.ArgumentParser(description='Мониторинг скорости загрузки файла с веб-сервера')
     parser.add_argument('filename', help='Имя файла для мониторинга (например: testfile.dat)')
-    parser.add_argument('--base-url', default='http://192.168.0.7', 
-                       help='Базовый URL сервера (по умолчанию: http://192.168.0.7)')
+    parser.add_argument('--base-url', default='http://192.168.0.8', 
+                       help='Базовый URL сервера (по умолчанию: http://192.168.0.8)')
     parser.add_argument('--interval', type=int, default=0, 
                        help='Интервал между запросами в секундах (по умолчанию: 0)')
     parser.add_argument('--history', type=int, default=10, 
