@@ -1946,7 +1946,7 @@ void vPumps( void * )
 					}
 					l = WaterBoosterCountP100 * 100 / MC.sFrequency[FLOW].get_kfValue();
 					l += MC.sFrequency[FLOW].get_RawPassed();
-					if((LCD_setup & 0xFF00) != LCD_SetupMenu_FlowCheck && l <= MC.Option.MinWaterBoosterCountL) {
+					if((LCD_setup & 0xFF00) != LCD_SetupMenu_FlowCheck && l < MC.Option.MinWaterBoosterCountL) {
 						CriticalErrors |= ERRC_WaterCounter;
 						if(!vPumpsNewError) vPumpsNewError = ERR_WATER_CNT_FAIL;
 						MC.dRelay[RWATERON].set_Relay(fR_StatusAllOff);

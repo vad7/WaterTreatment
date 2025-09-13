@@ -118,6 +118,8 @@ void MainClass::clear_all_errors()
 #if !defined(MODBUS_SEPTIC_PUMP_ON_PULSE)
 			SepticPumpRelayStatus = MODBUS_RELAY_CMD_ON;
 #endif
+		} else if(error == ERR_WATER_CNT_FAIL) {
+			WaterBoosterFlag = 0;
 		}
 	}
 	memset(Errors, 0, sizeof(Errors));
