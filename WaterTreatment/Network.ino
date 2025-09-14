@@ -408,7 +408,7 @@ void checkSockStatus()
     uint8_t s = W5100.readSnSR(i);                                          // Прочитать статус сокета
     if((s == SnSR::ESTABLISHED) || (s == SnSR::CLOSE_WAIT) /*|| (s == 0x22)*/ ) { // если он "кандидат"
         if(thisTime - connectTime[i] > MC.time_socketRes()*1000UL) {        // Время пришло
-          journal.jprintfopt("%s : Socket frozen: %d\n",NowTimeToStr(),i);
+          if(MC.get_NetworkFlags() & ((1<<fWebFullLog)|(1<<fWebLogError))) journal.jprintfopt("%s : Socket frozen: %d\n",NowTimeToStr(),i);
     //      close(i);
           W5100.execCmdSn(i, Sock_CLOSE);
           W5100.writeSnIR(i, 0xFF);
