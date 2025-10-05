@@ -11,7 +11,7 @@ html, body {font-size:12px;padding:0;margin:0; font-family: Arial,'Helvetica Neu
 .dateinfo span:nth-child(2n){text-align: left}
 .dateinfo #get_status > div{width:100%;float:left;text-align:left;clear:both;}
 .dateinfo #get_status > div:before{width:50%;float:left;text-align:right;clear:both;padding-right:5px;font-size:0.9em}
-.dateinfo #get_status > div:nth-child(1){width:100%;margin:0;padding:0;text-align: center;font-size: 2em;}
+.dateinfo #get_status > div:nth-child(1){width:100%;margin:0;padding:0;text-align: center;font-size: 5.5em;}
 .dateinfo #get_status > div:nth-child(2){width:100%;margin:0;padding: 0 0 5px 0;text-align: center;font-size: 1.5em;}
 .dateinfo #SV:before{content:"Version"}
 .dateinfo #ST:before{content:"Uptime"}
