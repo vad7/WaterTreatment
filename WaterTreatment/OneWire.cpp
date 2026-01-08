@@ -183,18 +183,20 @@ uint8_t OneWire::reset(void)
 		if(--retries == 0) return 0;
 		delayMicroseconds(2);
 	} while(!DIRECT_READ(reg, mask));
-
+	yield();
 	//DISABLE_INTERRUPTS;
 	DIRECT_WRITE_LOW(reg, mask);
 	DIRECT_MODE_OUTPUT(reg, mask);	// drive output low
 	//ENABLE_INTERRUPTS;
 	delay_micros(480);
+	yield();
 	DISABLE_INTERRUPTS;
 	DIRECT_MODE_INPUT(reg, mask);	// allow it to float
 	delay_micros(70);
 	r = !DIRECT_READ(reg, mask);
 	ENABLE_INTERRUPTS;
 	delay_micros(410);
+	yield();
 	return r;
 }
 
@@ -268,6 +270,7 @@ void OneWire::write(uint8_t v, uint8_t power /* = 0 */)
 		DIRECT_WRITE_LOW(baseReg, bitmask);
 		//ENABLE_INTERRUPTS;
 	}
+	yield();
 }
 
 void OneWire::write_bytes(const uint8_t *buf, uint16_t count, bool power /* = 0 */)
@@ -293,6 +296,7 @@ uint8_t OneWire::read()
 	for(bitMask = 0x01; bitMask; bitMask <<= 1) {
 		if(OneWire::read_bit()) r |= bitMask;
 	}
+	yield();
 	return r;
 }
 
