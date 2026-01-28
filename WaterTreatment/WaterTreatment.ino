@@ -1912,7 +1912,8 @@ void vPumps( void * )
 #if defined(CHECK_SEPTIC) && !defined(MODBUS_SEPTIC_PUMP_ON_PULSE)
 			if(SepticAlarmTime == 0 && SepticPumpRelayStatus == MODBUS_RELAY_OFF) SepticPumpRelayStatus = MODBUS_RELAY_CMD_ON;
 #endif
-			if(++SepticAlarmTime > MC.Option.SepticAlarmDebounce * 1000 / TIME_SLICE_PUMPS) {
+			SepticAlarmTime++;
+			if((SepticPower <= MC.Option.SepticPumpMinPower * 10 || SepticPumpRelayStatus != MODBUS_RELAY_CMD_ON) && SepticAlarmTime > MC.Option.SepticAlarmDebounce * (1000 / TIME_SLICE_PUMPS)) {
 				vPumpsNewError = ERR_SEPTIC_ALARM;
 				CriticalErrors |= ERRC_SepticAlarm;
 				MC.dRelay[RWATEROFF1].set_ON();
