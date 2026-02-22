@@ -127,8 +127,10 @@ void MainClass::clear_all_errors()
 	CriticalErrors = 0;
 	MC.clear_error();
 	// Water ON
-	MC.dRelay[RWATEROFF1].set_OFF();
-	MC.dRelay[RWATERON].set_ON();
+	if(!(MC.RTC_store.Work & (RTC_Work_Regen_F1 | RTC_Work_Regen_F2))) {
+		MC.dRelay[RWATEROFF1].set_OFF();
+		MC.dRelay[RWATERON].set_ON();
+	}
 }
 
 // сбросить счетчик фильтра, после нужно вызвать сохранение настроек!

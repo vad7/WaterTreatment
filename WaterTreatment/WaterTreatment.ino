@@ -1553,6 +1553,13 @@ void vReadSensor(void *)
 											set_Error(ERR_SEPTIC_PUMP_DRAIN_RUN, NULL);
 										}
 										SepticPumpRelayStatus = MODBUS_RELAY_CMD_OFF;
+										if(MC.sInput[SEPTIC_ALARM].get_Input()) {
+											set_Error(ERR_SEPTIC_ALARM, (char*)__FUNCTION__);
+											CriticalErrors |= ERRC_SepticAlarm;
+											MC.dRelay[RWATEROFF1].set_ON();
+											if(!GETBIT(MC.Option.flags2, fSepticCriticalErrOnly1ValveOff)) MC.dRelay[RWATERON].set_Relay(fR_StatusAllOff);
+											SepticAlarmTime = 0;
+										}
 									}
 #ifndef MODBUS_SEPTIC_PUMP_ON_PULSE
 									else if(SepticPumpRelayTimer == 1 && SepticPumpRelayStatus == MODBUS_RELAY_OFF && SepticPower > dpmp) { // Залипло реле насоса
