@@ -658,8 +658,8 @@ int8_t devPWM::initPWM()
 	err = OK;                                        // Ошибок нет
 	numErr = 0;                                      // счетчик 0
 	Voltage = 0;                                     // Напряжение
-	Power = 0;
-	PowerMax = 0;
+	Current = 0;
+	CurrentMax = 0;
 	flags = 0x00;
 	// Настройки
 	name = (char*) namePWM;
@@ -677,14 +677,14 @@ int8_t devPWM::get_readState(uint8_t group)
 {
 #ifdef USE_UPS
 	if(MC.NO_Power) {
-		Power = 0;
+		Current = 0;
 		Voltage = 0;
 		return ERR_MODBUS_UNKNOWN;
 	}
 #endif
 	err=OK;
 	if(MC.get_testMode() != NORMAL) {
-		Power = TestPower;
+		Current = TestPower;
 		Voltage = 2200;
 		return err;
 	}
@@ -694,11 +694,11 @@ int8_t devPWM::get_readState(uint8_t group)
 	{
 		if(group == 0) {
 			uint32_t tmp;
-			err = Modbus.readInputRegisters32(PWM_MODBUS_ADR, PWM_POWER, &tmp);
+			err = Modbus.readInputRegisters32(PWM_MODBUS_ADR, PWM_CURRENT, &tmp);
 			if(err == OK) {
-				tmp = tmp / 10 + (tmp % 10 >= 5 ? 1 : 0); // round to W
-				Power = tmp;
-				if(PowerMax < tmp) PowerMax = tmp;
+				//tmp = tmp / 10 + (tmp % 10 >= 5 ? 1 : 0); // round to W
+				Current = tmp;
+				if(CurrentMax < tmp) CurrentMax = tmp;
 				/* group = 1 */
 			} else goto xErr;
 		}
@@ -753,7 +753,7 @@ char* devPWM::get_param(char *var, char *ret)
 		_dtoa(ret, Voltage, 1);
 		return ret;
 	} else if(strcmp(var, pwm_POWER) == 0) {      // мощность
-		_dtoa(ret, Power, 0);
+		_dtoa(ret, Current, 0);
 		return ret;
 	} else if(strcmp(var, pwm_TestPower) == 0) {
 		_dtoa(ret, TestPower, 0);
@@ -817,6 +817,9 @@ void devPWM::get_param_now(uint8_t modbus_addr, char var, char *strReturn)
 	} else if(var == 'P') {
 		_err = Modbus.readInputRegisters32(modbus_addr, PWM_POWER, (uint32_t*)&v);
 		if(_err == OK) _dtoa(strReturn, v, 1);
+	} else if(var == 'F') {
+		_err = Modbus.readInputRegisters16(modbus_addr, PWM_PFACTOR, (uint16_t*)&v);
+		if(_err == OK) _dtoa(strReturn, v, 2);
 	} else if(var == 'W') {
 		_err = Modbus.readInputRegisters32(modbus_addr, PWM_ENERGY, (uint32_t*)&v);
 		if(_err == OK) _dtoa(strReturn, v, 3);

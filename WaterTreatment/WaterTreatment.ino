@@ -1180,7 +1180,7 @@ xErrorsProcessing:
 						}
 						strcat(buf, ", m*h: "); buf += 7;
 						buf = dptoa(buf, MC.CalcFilteringSpeed((_regactive & 2) ? MC.FilterTankSoftenerSquare : MC.FilterTankSquare), 3);
-					} else if((tmp = MC.dPWM.get_Power()) != 0) {
+					} else if((tmp = MC.dPWM.get_Current()) != 0) {
 						strcpy(buf, "Power,W: "); buf += 9;
 						buf = dptoa(buf, tmp, 0);
 					} else {
@@ -1441,10 +1441,10 @@ void vReadSensor(void *)
 			// Основная группа регистров, включая мощность
 			if(MC.dPWM.get_readState(0) == OK) {
 				if(WaterBoosterStatus > 0 && WaterBoosterTimeout > MC.Option.PWM_StartingTime) {
-					if(MC.Option.PWM_DryRun && MC.dPWM.get_Power() < MC.Option.PWM_DryRun) { // Сухой ход
+					if(MC.Option.PWM_DryRun && MC.dPWM.get_Current() < MC.Option.PWM_DryRun) { // Сухой ход
 						CriticalErrors |= ERRC_WaterBooster;
 						set_Error(ERR_PWM_DRY_RUN, (char*)__FUNCTION__);
-					} else if(MC.Option.PWM_Max && MC.dPWM.get_Power() > MC.Option.PWM_Max) { // Перегрузка
+					} else if(MC.Option.PWM_Max && MC.dPWM.get_Current() > MC.Option.PWM_Max) { // Перегрузка
 						CriticalErrors |= ERRC_WaterBooster;
 						set_Error(ERR_PWM_MAX, (char*)__FUNCTION__);
 					}
@@ -1614,7 +1614,7 @@ void vReadSensor(void *)
 #ifdef CHECK_DRAIN_PUMP
 						if(!GETBIT(MC.Option.flags2, fCheckDrainPump)) DrainPumpPower = 0;
 						else {
-							int8_t err = Modbus.readInputRegisters32(MODBUS_DRAIN_PUMP_ADDR, PWM_POWER, &tmp);
+							int8_t err = Modbus.readInputRegisters32(MODBUS_DRAIN_PUMP_ADDR, PWM_CURRENT, &tmp);
 							if(err == OK) {
 								tmp /= 10;	// -> W
 								uint32_t ut = rtcSAM3X8.unixtime();

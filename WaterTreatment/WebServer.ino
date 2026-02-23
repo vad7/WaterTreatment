@@ -747,7 +747,7 @@ xSaveStats:		if((i = MC.save_WorkStats()) == OK)
 			if(*str == 'D') {
 				str++;
 				if(*str == 'E') _itoa(DrainPumpErrors, strReturn);
-				else if(*str == 'P') _itoa(DrainPumpPower, strReturn);
+				else if(*str == 'I') _itoa(DrainPumpPower, strReturn);
 				else if(*str == 'O') {
 					if(DrainPumpPower > MC.Option.DrainPumpMinPower * 10) {
 						_itoa(DrainPumpPower, strReturn);
@@ -763,7 +763,7 @@ xSaveStats:		if((i = MC.save_WorkStats()) == OK)
 			if(*str == 'S') {
 				str++;
 				if(*str == 'E') _itoa(SepticErrors, strReturn);
-				else if(*str == 'P') _itoa(SepticPower, strReturn);
+				else if(*str == 'I') _itoa(SepticPower, strReturn);
 				else if(*str == 'O') {
 					if(SepticPower > MC.Option.SepticPumpMinPower * 10) {
 						_itoa(SepticPower, strReturn);
@@ -783,7 +783,7 @@ xSaveStats:		if((i = MC.save_WorkStats()) == OK)
 			} else
 #endif
 			if(*str == 'Z') _dtoa(strReturn, DrainPumpPower + SepticPower, 3); // get_PWRZ
-			else if(*str == '\0') _dtoa(strReturn, MC.dPWM.get_Power(), 3);
+			else if(*str == '\0') _dtoa(strReturn, MC.dPWM.get_Current(), 3);
 			ADD_WEBDELIM(strReturn); continue;
 		}
 		if(strcmp(str, "get_WDIS") == 0) { // Выход воды отключен

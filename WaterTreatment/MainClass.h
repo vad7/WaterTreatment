@@ -121,8 +121,8 @@ uint16_t DrainPumpErrors 		= 0;
 uint16_t DrainPumpRelayErrors 	= 0;
 uint8_t  DrainPumpDryCnt		= 0;
 #endif
-uint16_t DrainPumpPower 		= 0; // W
-uint16_t DrainPumpPowerMax 		= 0; // W
+uint16_t DrainPumpPower 		= 0; // mA
+uint16_t DrainPumpPowerMax 		= 0; // mA
 #ifdef CHECK_SEPTIC
 #ifdef MODBUS_SEPTIC_PUMP_ON_PULSE
 int8_t   DrainPumpRelayStatus = MODBUS_RELAY_ON; // MODBUS_RELAY_*
@@ -137,8 +137,8 @@ uint16_t SepticErrors 			= 0;
 uint16_t SepticPumpRelayErrors = 0;
 uint8_t  SepticPumpDryCnt		= 0;
 #endif
-uint16_t SepticPower 			= 0; // W
-uint16_t SepticPowerMax 		= 0; // W
+uint16_t SepticPower 			= 0; // mA
+uint16_t SepticPowerMax 		= 0; // mA
 uint8_t  PumpReadCounter 		= 0;
 
 #ifdef MODBUS_SEPTIC_HEAT_RELAY_ADDR
@@ -317,26 +317,26 @@ struct type_option {
 	uint16_t FilterCounter1_Max;	// Предел для счетчика 1, *100л
 	uint16_t FilterCounter2_Max;	// Предел для счетчика 2, *100л
 	uint8_t  DrainPumpMaxTime;		// Максимальное время работы дренажного насоса, 0 - нет, сек * 20
-	uint8_t  DrainPumpMinPower;		// Минимальная мощность дренажного насоса для определения его работы, Вт * 10
+	uint8_t  DrainPumpMinPower;		// Минимальный ток дренажного насоса для определения его работы, мА * 10
 	uint8_t  PWATER_Osmos_TankMul;	// Множитель объема расчетного бака, сотые
 	uint8_t  PWATER_Osmos_FullDelay;// Задержка начала контроля малого потребления после наполнения бака НС, сек
 	uint8_t  PWATER_Osmos_FullMinus;// Дельта от макс. давления бака НС, контроль малого потребления после снижения давления ниже, сотые бара
 	uint8_t  WaterBoosterMinTank;	// Контроль среднего минимального объема бака насосной станции, 0 - нет, литры
-	uint16_t DrainPumpMaxPower;		// Максимальная мощность дренажного насоса после времени старта, Вт
+	uint16_t DrainPumpMaxPower;		// Максимальный ток дренажного насоса после времени старта, мА
 	uint8_t  PumpStartTime;			// Время старта дренажного насоса, с
 	uint8_t  PWATER_Osmos_Delay;	// Задержка после прекращения потребления (ниже минимума) до начала работы алгоритма добавки, сек
 	uint16_t RO_FilterCounter1_Max;	// Предел для фильтров обратного осмоса #1, *10л
 	uint16_t RO_FilterCounter2_Max;	// Предел для фильтров обратного осмоса #2, *10л
 	uint32_t RO_FilterCountersResetTime[2];	// UT сброса счетчиков, RO_FilterCounter1,2
 	uint32_t FilterCountersResetTime[2];	// UT сброса счетчиков, FilterCounter1,2
-	uint16_t DrainPumpDryPower;		// Мощность сухого хода насоса (меньше или равно) после времени старта, Вт
+	uint16_t DrainPumpDryPower;		// Ток сухого хода дренажного насоса (меньше или равно) после времени старта, мА
 	uint8_t  PumpReadPeriod;		// Периодичность чтения потребляемой мощности насосов, сек
-	uint8_t  SepticPumpMinPower;	// Минимальная мощность насоса для определения его работы, Вт * 10
-	uint16_t SepticPumpDryPower;	// Мощность сухого хода насоса (меньше или равно) после времени старта, Вт
-	uint16_t SepticPumpMaxPower;	// Максимальная мощность насоса после времени старта, Вт
+	uint8_t  SepticPumpMinPower;	// Минимальный ток насоса для определения его работы, мА * 10
+	uint16_t SepticPumpDryPower;	// Ток сухого хода насоса (меньше или равно) после времени старта, мА
+	uint16_t SepticPumpMaxPower;	// Максимальная мощность насоса после времени старта, мА
 	uint16_t SepticPumpConsumedMax;	// Максимальное потребление литров до включения насоса, 0 - нет, л
 	uint8_t  SepticPumpMaxTime;		// Максимальное время работы насоса, 0 - нет, сек * 20
-	uint8_t  SepticMinPower;		// Минимальное потребление септика, если меньше, то ошибка, Вт * 10
+	uint8_t  SepticMinPower;		// Минимальное потребление септика, если меньше, то ошибка, мА * 10
 	uint8_t  LTank_CriticalMax;		// Максимальный уровень бака, выше - ошибка, %
 };
 

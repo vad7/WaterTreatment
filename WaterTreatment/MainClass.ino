@@ -31,10 +31,10 @@ int8_t set_Error(int8_t _err, char *nam)
 		m_snprintf(MC.note_error, sizeof(MC.note_error), "%s %s: %s", NowTimeToStr(), nam != NULL ? nam : "", noteError[abs(_err)]);
 		if(_err == ERR_SEPTIC_PUMP_DRAIN_RUN || _err == ERR_SEPTIC_PUMP_OVERLOAD) {
 			size_t _len = strlen(MC.note_error);
-			m_snprintf(MC.note_error + _len, sizeof(MC.note_error) - _len - 1, "- %dW", SepticPower);
+			m_snprintf(MC.note_error + _len, sizeof(MC.note_error) - _len - 1, "- %.3dA", SepticPower);
 		} else if(_err == ERR_DRAIN_PUMP_DRAIN_RUN || _err == ERR_DRAIN_PUMP_OVERLOAD) {
 			size_t _len = strlen(MC.note_error);
-			m_snprintf(MC.note_error + _len, sizeof(MC.note_error) - _len - 1, "- %dW", DrainPumpPower);
+			m_snprintf(MC.note_error + _len, sizeof(MC.note_error) - _len - 1, "- %.3dA", DrainPumpPower);
 		}
 	}
 	uint32_t i = Get_Errors_IndexEnd(_err);
@@ -47,12 +47,12 @@ int8_t set_Error(int8_t _err, char *nam)
 				journal.jprintf(" State:");
 				for(i = 0; i < RNUMBER; i++) journal.jprintf(" %s:%d", MC.dRelay[i].get_name(), MC.dRelay[i].get_Relay());
 				for(i = 0; i < INUMBER; i++) if(MC.sInput[i].get_present()) journal.jprintf(" %s:%d", MC.sInput[i].get_name(), MC.sInput[i].get_Input());
-				journal.jprintf("\n Power:%d", MC.dPWM.get_Power());
+				journal.jprintf("\n I:%.3d", MC.dPWM.get_Current());
 #ifdef CHECK_DRAIN_PUMP
-				journal.jprintf(",%d", DrainPumpPower);
+				journal.jprintf(",%.3d", DrainPumpPower);
 #endif
 #ifdef CHECK_SEPTIC
-				journal.jprintf(",%d", SepticPower);
+				journal.jprintf(",%.3d", SepticPower);
 #endif
 				for(i = 0; i < ANUMBER; i++) if(MC.sADC[i].get_present()) journal.jprintf(" %s:%.2d", MC.sADC[i].get_name(), MC.sADC[i].get_Value());
 				for(i = 0; i < TNUMBER; i++) if(MC.sTemp[i].get_present()) journal.jprintf(" %s:%.2d", MC.sTemp[i].get_name(), MC.sTemp[i].get_Temp());
@@ -1334,7 +1334,7 @@ void  MainClass::updateChart()
 	ChartFillTank.addPoint(tmp3 / 10);
 	ChartBrineWeight.addPoint(Weight_Percent);
 	//dPWM.ChartVoltage.addPoint(dPWM.get_Voltage() / 10);
-	tmp1 = dPWM.get_Power();
+	tmp1 = dPWM.get_Current();
 	if(GETBIT(Option.flags, fChartOnlyNonZeroW)) {
 		if(tmp1 >= MIN_POWER_FOR_CHARTS || dPWM.ChartPower.get_PrevPoint() >= MIN_POWER_FOR_CHARTS) dPWM.ChartPower.addPoint(tmp1);
 	} else dPWM.ChartPower.addPoint(tmp1);

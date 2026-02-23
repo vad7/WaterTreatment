@@ -251,7 +251,7 @@ void Statistics::Init(uint8_t newyear)
 									case STATS_OBJ_Flow:
 										Stats_data[i].value = val * 1000.0f + 0.0005f;
 										break;
-									case STATS_OBJ_PowerMax:
+									case STATS_OBJ_CurrentMax:
 										switch(Stats_data[i].type) {
 										case STATS_TYPE_SUM:
 										case STATS_TYPE_AVG:
@@ -421,7 +421,7 @@ void Statistics::Update()
 		case STATS_OBJ_Voltage:
 			newval = MC.dPWM.get_Voltage();
 			break;
-		case STATS_OBJ_PowerMax: {
+		case STATS_OBJ_CurrentMax: {
 				newval = MC.dPWM.get_Power(); // Вт
 				switch(Stats_data[i].type) {
 				case STATS_TYPE_SUM:
@@ -489,7 +489,7 @@ void Statistics::History()
 	//journal.jprintfopt("History:(%s)\n", mbuf);
 	for(uint8_t i = 0; i < sizeof(HistorySetup) / sizeof(HistorySetup[0]); i++) {
 		*buf++ = ';';
-		switch(HistorySetup[i].object) { // web will divide by 1/10/1000, except 'L'
+		switch(HistorySetup[i].object) { // при построении графиков эти значения будут поделены на 1/10/1000, кроме 'L'
 		case STATS_OBJ_Temp:		// C
 			int_to_dec_str(MC.sTemp[HistorySetup[i].number].get_Temp(), 10, &buf, 0); // T (/10), дробная часть выделяется в html
 			break;
@@ -499,20 +499,20 @@ void Statistics::History()
 		case STATS_OBJ_Flow:		// m3h
 			int_to_dec_str(MC.sFrequency[HistorySetup[i].number].get_Value(), 1, &buf, 0); // F (/1)
 			break;
-		case STATS_OBJ_PowerMax:
+		case STATS_OBJ_CurrentMax:
 #if defined(CHECK_DRAIN_PUMP) || defined(CHECK_SEPTIC)
-			if(HistorySetup[i].number == STATS_OBJ_Power_DrainPumpPower) {
-				int_to_dec_str(DrainPumpPowerMax, 1, &buf, 0);  // W (/1000)
+			if(HistorySetup[i].number == STATS_OBJ_DrainPumpPower) {
+				int_to_dec_str(DrainPumpPowerMax, 1, &buf, 0);  // A (/1000)
 				DrainPumpPowerMax = 0;
-			} else if(HistorySetup[i].number == STATS_OBJ_Power_SepticPower) {
-				int_to_dec_str(SepticPowerMax, 1, &buf, 0);  // W (/1000)
+			} else if(HistorySetup[i].number == STATS_OBJ_SepticPower) {
+				int_to_dec_str(SepticPowerMax, 1, &buf, 0);  // A (/1000)
 				SepticPowerMax = 0;
 			} else {
-				int_to_dec_str(MC.dPWM.PowerMax, 1, &buf, 0);  // W (/1000)
-				MC.dPWM.PowerMax = 0;
+				int_to_dec_str(MC.dPWM.CurrentMax, 1, &buf, 0);  // A (/1000)
+				MC.dPWM.CurrentMax = 0;
 			}
 #else
-			int_to_dec_str(MC.dPWM.get_Power(), 1, &buf, 0);  // W (/1000)
+			int_to_dec_str(MC.dPWM.get_Current(), 1, &buf, 0);  // A (/1000)
 #endif
 			break;
 		case STATS_OBJ_WaterUsed: {
@@ -593,7 +593,7 @@ void Statistics::HistoryFileHeader(char *ret, uint8_t flag)
 			case STATS_OBJ_Voltage:
 				strcat(ret, "V");	// ось напряжение
 				break;
-			case STATS_OBJ_PowerMax:
+			case STATS_OBJ_CurrentMax:
 				strcat(ret, "W");	// ось мощность
 				break;
 			case STATS_OBJ_Flow:
@@ -652,7 +652,7 @@ void Statistics::StatsFieldHeader(char *ret, uint8_t i, uint8_t flag)
 		if(flag) strcat(ret, "V"); // ось напряжение
 		strcat(ret, "Напряжение, V");
 		break;
-	case STATS_OBJ_PowerMax:
+	case STATS_OBJ_CurrentMax:
 		if(flag) strcat(ret, "W"); // ось мощность
 		strcat(ret, "Потребление, кВт"); // хранится в Вт
 		if(Stats_data[i].type == STATS_TYPE_SUM) strcat(ret, "ч");
@@ -749,7 +749,7 @@ xSkipEmpty:
 	case STATS_OBJ_FeedPump:				// s
 		int_to_dec_str(val, 1000, ret, 0);
 		break;
-	case STATS_OBJ_PowerMax:					// кВт*ч
+	case STATS_OBJ_CurrentMax:					// кВт*ч
 		switch(Stats_data[i].type) {
 		case STATS_TYPE_SUM:
 		case STATS_TYPE_AVG:

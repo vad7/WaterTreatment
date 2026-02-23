@@ -317,7 +317,7 @@ class devPWM
       uint16_t get_numErr(){ return numErr; }            // Получить число ошибок чтения счетчика
       char*   get_note(){ return note; }                 // Получить описание датчика
       char*   get_name(){ return name; }                 // Получить имя датчика
-      int32_t get_Power(){ return Power; }
+      int32_t get_Current(){ return Current; }
       uint16_t get_Voltage(){ return Voltage; }
       char* get_param(char *var, char *ret);           // Получить параметр PWM в виде строки
       boolean set_param(char *var, int32_t f);
@@ -325,13 +325,13 @@ class devPWM
       // Графики из счетчика
       //statChart ChartVoltage;                          // Статистика по напряжению
       statChart ChartPower;                            // Статистика по Полная мощность
-      uint16_t PowerMax;                               // Моментальная мощность, 1W
+      uint16_t CurrentMax;                             // Моментальный ток, мА
   private:
       int8_t  err;                                     // ошибка стесчика (работа)
       byte flags;                                      // флаги  0 - наличие счетчика,
       uint16_t numErr;                                 // число ошибок чтение по модбасу
       uint16_t Voltage;                                // 0.1V
-      uint16_t Power;                                  // Моментальная мощность, 1W
+      uint16_t Current;                                  // Моментальный ток, мА
       uint16_t TestPower;
       char *note;                                      // Описание
       char *name;                                      // Имя
