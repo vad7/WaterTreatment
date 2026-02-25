@@ -13,8 +13,8 @@ function createChart(values, resultdiv) {
 	var title = values[0].replace("get_Chart(", "").replace(/\)[0-9]?/g, "");
 	var yizm = '';
 	if(/^(T)/g.test(title)) { yizm = "Температура, °C"; }
-	else if(/^Pow/g.test(title)) { yizm = "Мощность, кВт"; }
-	else if(/Pump$/g.test(title)) { yizm = "Мощность, Вт"; }
+	else if(/^Pow/g.test(title)) { yizm = "Ток, A"; }
+	else if(/Pump$/g.test(title)) { yizm = "Ток, A"; }
 	else if(/^FL/g.test(title)) { yizm = "м³ч"; }
 	else if(/^P/g.test(title)) { yizm = "Давление, атм"; }
 	else if(/^L|We/g.test(title)) { yizm = "%"; }

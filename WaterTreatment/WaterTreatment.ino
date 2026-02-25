@@ -1522,9 +1522,9 @@ void vReadSensor(void *)
 					if(!GETBIT(MC.Option.flags2, fCheckSeptic)) SepticPower = 0;
 					else if(PumpReadCounter == MC.Option.PumpReadPeriod * 1000 / TIME_READ_SENSOR / 2 || MC.Option.PumpReadPeriod == 1) {
 						if(SepticPumpRelayTimer) SepticPumpRelayTimer--;
-						int8_t err = Modbus.readInputRegisters32(MODBUS_SEPTIC_ADDR, PWM_POWER, &tmp);
+						int8_t err = Modbus.readInputRegisters32(MODBUS_SEPTIC_ADDR, PWM_CURRENT, &tmp);
 						if(err == OK) {
-							tmp /= 10;	// -> W
+							//tmp /= 10;	// -> W
 							uint32_t ut = rtcSAM3X8.unixtime();
 							uint32_t dpmp = MC.Option.SepticPumpMinPower * 10;
 							if(tmp > dpmp) { // работает
@@ -1541,7 +1541,7 @@ void vReadSensor(void *)
 								}
 								if(ut - SepticPumpTimeLast >= MC.Option.PumpStartTime) {
 									if(MC.Option.SepticPumpMaxPower && tmp > MC.Option.SepticPumpMaxPower) {
-										journal.jprintf("Septic: %dW\n", tmp);
+										journal.jprintf("Septic: %.3dA\n", tmp);
 										set_Error(ERR_SEPTIC_PUMP_OVERLOAD, NULL);
 										SepticPumpRelayStatus = MODBUS_RELAY_CMD_OFF;
 									} else if(MC.Option.SepticPumpDryPower && tmp <= MC.Option.SepticPumpDryPower && SepticPower > dpmp && SepticPower <= MC.Option.SepticPumpDryPower) {
@@ -1549,7 +1549,7 @@ void vReadSensor(void *)
 										if(!GETBIT(MC.Option.flags2, fSepticPumpRelayNoErr) || MC.Option.SepticPumpConsumedMax == 0)
 #endif
 										{
-											journal.jprintf("Septic: %dW\n", tmp < SepticPower ? tmp : SepticPower);
+											journal.jprintf("Septic: %.3dA\n", tmp < SepticPower ? tmp : SepticPower);
 											set_Error(ERR_SEPTIC_PUMP_DRAIN_RUN, NULL);
 										}
 										SepticPumpRelayStatus = MODBUS_RELAY_CMD_OFF;
@@ -1616,7 +1616,7 @@ void vReadSensor(void *)
 						else {
 							int8_t err = Modbus.readInputRegisters32(MODBUS_DRAIN_PUMP_ADDR, PWM_CURRENT, &tmp);
 							if(err == OK) {
-								tmp /= 10;	// -> W
+								//tmp /= 10;	// -> W
 								uint32_t ut = rtcSAM3X8.unixtime();
 								uint32_t dpmp = MC.Option.DrainPumpMinPower * 10;
 								if(tmp > dpmp) { // работает
@@ -1628,11 +1628,11 @@ void vReadSensor(void *)
 									}
 									if(ut - DrainPumpTimeLast >= MC.Option.PumpStartTime) {
 										if(MC.Option.DrainPumpMaxPower && tmp > MC.Option.DrainPumpMaxPower) {
-											journal.jprintf("Drain: %dW\n", tmp);
+											journal.jprintf("Drain: %.3dA\n", tmp);
 											set_Error(ERR_DRAIN_PUMP_OVERLOAD, NULL);
 											DrainPumpRelayStatus = MODBUS_RELAY_CMD_OFF;
 										} else if(MC.Option.DrainPumpDryPower && tmp <= MC.Option.DrainPumpDryPower && DrainPumpPower > dpmp && DrainPumpPower <= MC.Option.DrainPumpDryPower) {
-											journal.jprintf("Drain: %dW\n", tmp < DrainPumpPower ? tmp : DrainPumpPower);
+											journal.jprintf("Drain: %.3dA\n", tmp < DrainPumpPower ? tmp : DrainPumpPower);
 											set_Error(ERR_DRAIN_PUMP_DRAIN_RUN, NULL);
 											DrainPumpRelayStatus = MODBUS_RELAY_CMD_OFF;
 										}
@@ -1961,7 +1961,6 @@ void vPumps( void * )
 						MC.dRelay[RDRAIN].set_Relay(fR_StatusAllOff);
 						MC.dRelay[RDRAIN2].set_Relay(fR_StatusAllOff);
 					} else {
-						if(History_BoosterCountL == -1) History_BoosterCountL = l; else History_BoosterCountL += l;
 						if(!reg_active) {
 							if(!MC.Osmos_PWATER_Added && MC.Osmos_PWATER_Cnt <= MC.Option.PWATER_Osmos_Step) {
 								if(l > MC.Osmos_PWATER_BoosterMax_Calc) MC.Osmos_PWATER_BoosterMax_Calc = l;
@@ -1975,6 +1974,7 @@ void vPumps( void * )
 									MC.Osmos_PWATER_BoosterMax_Calc = 0;
 								}
 								MC.ChartWaterBoosterCount.addPoint(l);
+								History_BoosterCountL = l;
 							} else MC.ChartWaterBoosterCount.addPoint(-l);
 						}
 						MC.sFrequency[FLOW].WebCorrectCnt = 0;

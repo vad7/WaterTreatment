@@ -753,16 +753,18 @@ char* devPWM::get_param(char *var, char *ret)
 		_dtoa(ret, Voltage, 1);
 		return ret;
 	} else if(strcmp(var, pwm_POWER) == 0) {      // мощность
+		if(Modbus.readInputRegisters32(PWM_MODBUS_ADR, PWM_POWER, &tmp) == OK) {
+			//tmp = tmp / 10 + (tmp % 10 >= 5 ? 1 : 0); // round to W
+			_dtoa(ret, tmp, 1);
+			return ret;
+		}
 		_dtoa(ret, Current, 0);
 		return ret;
 	} else if(strcmp(var, pwm_TestPower) == 0) {
-		_dtoa(ret, TestPower, 0);
+		_dtoa(ret, TestPower, 3);
 		return ret;
 	} else if(strcmp(var, pwm_CURRENT) == 0) {       // Ток
-		if(Modbus.readInputRegisters32(PWM_MODBUS_ADR, PWM_CURRENT, &tmp) == OK) {
-			_dtoa(ret, tmp, 3);
-			return ret;
-		}
+		_dtoa(ret, Current, 3);
 	} else if(strcmp(var, pwm_PFACTOR) == 0) {       // Коэффициент мощности
 		if(Modbus.readInputRegisters32(PWM_MODBUS_ADR, PWM_PFACTOR, &tmp) == OK) {
 			_dtoa(ret, tmp, 2);
@@ -784,6 +786,8 @@ char* devPWM::get_param(char *var, char *ret)
 		return strcat(ret, (char*) note);
 	} else if(strcmp(var, pwm_ERRORS) == 0) {
 		return _itoa(numErr, ret);
+	} else if(strcmp(var, pwm_reset_time) == 0) {
+		return MC.WorkStats.ResetTimePowerMeters ? TimeIntervalToStr(MC.WorkStats.ResetTimePowerMeters, ret) : strcat(ret, "-");
 	} else if(strcmp(var, pwm_ModbusAddr) == 0) {
 		return _itoa(PWM_MODBUS_ADR, ret);
 	}
@@ -791,14 +795,30 @@ char* devPWM::get_param(char *var, char *ret)
 }
 
 // Установить параметр счетчика в виде строки
-boolean devPWM::set_param(char *var, int32_t f)
+boolean devPWM::set_param(char *var, float f)
 {
    if(strcmp(var, pwm_RESET) == 0) {
+	   journal.jprintf("Reset energy: ");
 	   uint8_t st = Modbus.CustomRequest(PWM_MODBUS_ADR, PWM_RESET_ENERGY);
-	   if(st) journal.jprintf("PWM energy reset error %d!\n", st); else journal.jprintf("PWM energy reseted!\n");
+	   if(st) journal.jprintf("%s - Error %d!\n", "Water", st);
+	   else {
+		   journal.jprintf("%s - Ok\n", "Water");
+#ifdef CHECK_DRAIN_PUMP
+		   st = Modbus.CustomRequest(MODBUS_DRAIN_PUMP_ADDR, PWM_RESET_ENERGY);
+		   if(st) journal.jprintf("%s - Error %d!\n", "Drain", st);
+		   else journal.jprintf("%s - Ok\n", "Drain");
+#endif
+#ifdef CHECK_SEPTIC
+		   st = Modbus.CustomRequest(MODBUS_SEPTIC_ADDR, PWM_RESET_ENERGY);
+		   if(st) journal.jprintf("%s - Error %d!\n", "Septic", st);
+		   else journal.jprintf("%s - Ok\n", "Septic");
+#endif
+		   MC.WorkStats.ResetTimePowerMeters = rtcSAM3X8.unixtime();
+		   NeedSaveWorkStats = 1;
+	   }
 	   return st;
    } else if(strcmp(var, pwm_TestPower) == 0) {
-	   TestPower = f;
+	   TestPower = rd(f, 1000);
 	   return true;
    }
    return false;
@@ -812,6 +832,18 @@ void devPWM::get_param_now(uint8_t modbus_addr, char var, char *strReturn)
 		_err = Modbus.readInputRegisters16(modbus_addr, PWM_VOLTAGE, (uint16_t*)&v);
 		if(_err == OK) _dtoa(strReturn, v, 1);
 	} else if(var == 'I') {
+#ifdef MODBUS_DRAIN_PUMP_ADDR
+		if(modbus_addr == MODBUS_DRAIN_PUMP_ADDR) {
+			_dtoa(strReturn, DrainPumpPower, 3);
+			return;
+		}
+#endif
+#ifdef MODBUS_SEPTIC_ADDR
+		if(modbus_addr == MODBUS_SEPTIC_ADDR) {
+			_dtoa(strReturn, SepticPower, 3);
+			return;
+		}
+#endif
 		_err = Modbus.readInputRegisters32(modbus_addr, PWM_CURRENT, (uint32_t*)&v);
 		if(_err == OK) _dtoa(strReturn, v, 3);
 	} else if(var == 'P') {

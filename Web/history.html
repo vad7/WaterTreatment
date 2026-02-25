@@ -189,6 +189,13 @@ function createChart() {
 			id: 'W'
 		}, {
 			title: {
+				text: 'A', align: 'high', offset: 15
+			},
+			opposite: true,
+			showEmpty: false,
+			id: 'A'
+		}, {
+			title: {
 				text: 'м³ч', align: 'high', offset: 15
 			},
 			opposite: true,
@@ -249,7 +256,7 @@ function createChart() {
 			data: fieldList[fieldIndex].data,
 			index: fieldList[fieldIndex].series,
 			yAxis: ax,
-			tooltip: {valueDecimals: (ax == 'T' || ax == 'L') ? 1 : (ax == 'F' || ax == 'M' || ax == 'W') ? 3 : (ax == 'R' || ax == 'P') ? 2 : 0},
+			tooltip: {valueDecimals: (ax == 'T' || ax == 'L') ? 1 : (ax == 'F' || ax == 'M' || ax == 'A' || ax == 'W') ? 3 : (ax == 'R' || ax == 'P') ? 2 : 0},
 			//visible:false,
 			name: fieldList[fieldIndex].name
 		});
@@ -292,9 +299,9 @@ function get_period() {
 
 function init_chart() {
 	var dt = new Date();
-	document.getElementById("EndDate").value = dt.toISOString().substring(0, 10);
+	document.getElementById("EndDate").value = dt.getFullYear() + '-' + ('0' + (dt.getMonth() + 1)).slice(-2) + '-' + ('0' + dt.getDate()).slice(-2);
 	dt = new Date(dt.getTime()-preload_days*24*60*60*1000);
-	document.getElementById("StartDate").value = dt.toISOString().substring(0, 10);
+	document.getElementById("StartDate").value = dt.getFullYear() + '-' + ('0' + (dt.getMonth() + 1)).slice(-2) + '-' + ('0' + dt.getDate()).slice(-2);
 	var dh = $.get(urlhead + file_head + '_head.csv', function(data) { // format: <axis char><field1 name>;<axis char><field2 name>;... 
 		var arr = data.split(csv_delim);
 		for(var i = 0; i < arr.length; i++) {

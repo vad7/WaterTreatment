@@ -53,6 +53,7 @@ struct type_WorkStats {
 	uint32_t RO_UsedTotal;			// L
 	uint16_t RO_FilterCounter1;		// 10L
 	uint16_t RO_FilterCounter2;		// 10L
+	uint32_t ResetTimePowerMeters;	// time
 } __attribute__((packed));
 
 // type_WorkStats.Flags:
@@ -275,8 +276,8 @@ struct type_option {
 	uint16_t MinPumpOnTime;			// мсек, Минимальное время работы дозатора
 	uint16_t MinRegenLiters;		// Тревога, если за регенерацию израсходовано меньше литров
 	uint16_t MinDrainLiters;		// Тревога, если слито (Drain) при сбросе меньше литров*10
-	uint16_t PWM_DryRun;			// Вт, Мощность сухого хода, если ниже во время работы - то стоп
-	uint16_t PWM_Max;				// Вт, Максимальная мощность, если больше во время работы - то стоп
+	uint16_t PWM_DryRun;			// mA, Ток сухого хода, если ниже во время работы - то стоп
+	uint16_t PWM_Max;				// mA, Ток максимальный ток, если больше во время работы - то стоп
 	uint16_t PWM_StartingTime;		// мсек, Время пуска
 	uint16_t FloodingDebounceTime;	// сек, Время исключения помех срабатывания датчика протечки
 	uint16_t FloodingTimeout;		// сек, Время ожидания перед началом работы после срабатывания датчика протечки

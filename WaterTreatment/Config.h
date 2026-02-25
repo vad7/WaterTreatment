@@ -48,22 +48,23 @@ enum {
 	STATS_OBJ_Press,		// bar
 	STATS_OBJ_Flow,			// м³ч, ValueReal
 	STATS_OBJ_Voltage,		// V
-	STATS_OBJ_PowerMax,		// кВт или кВт*ч, макс за 1 минуту
-	STATS_OBJ_CurrentMax,	// мА, макс за 1 минуту
+	STATS_OBJ_Current,		// мА
 	STATS_OBJ_WaterUsed,	// л
 	STATS_OBJ_WaterRegen,	// Регенерация обезжелезивателя, л
 	STATS_OBJ_BrineWeight,	// кг
 	STATS_OBJ_WaterBooster,	// сек
+	STATS_OBJ_WaterBoosterLiters, // л
 	STATS_OBJ_FeedPump,		// сек
 	STATS_OBJ_Level,		// %
-	STATS_OBJ_WaterBoosterLiters, // л
 	STATS_OBJ_WaterRegenSoftening, // Регенерация умягчителя, л
-	STATS_OBJ_RO_WaterUsed	// л (STATS_TYPE_SUM)
+	STATS_OBJ_RO_WaterUsed,	// л (STATS_TYPE_SUM)
+	STATS_OBJ_DrainPump,	// сек
+	STATS_OBJ_SepticPump	// сек
 };
 enum {
-	STATS_OBJ_Power_dPWM = 0,
-	STATS_OBJ_DrainPumpPower,
-	STATS_OBJ_SepticPower,
+	STATS_NUM_Power_dPWM = 0,
+	STATS_NUM_DrainPumpPower,
+	STATS_NUM_SepticPower
 };
 struct History_setup {
 	uint8_t		object;			// STATS_OBJ_*
@@ -581,13 +582,14 @@ struct History_setup {
 		{ 0, STATS_OBJ_FeedPump, STATS_TYPE_SUM },
 		{ 0, STATS_OBJ_BrineWeight, STATS_TYPE_MIN },
 		{ 0, STATS_OBJ_Temp, STATS_TYPE_MIN },
-		{ 0, STATS_OBJ_CurrentMax, STATS_TYPE_SUM },
-		{ 0, STATS_OBJ_CurrentMax, STATS_TYPE_MAX },
+		{ 0, STATS_OBJ_SepticPump, STATS_TYPE_SUM },
+		{ 0, STATS_OBJ_DrainPump, STATS_TYPE_SUM },
 		{ 0, STATS_OBJ_Voltage, STATS_TYPE_MIN },
 		{ 0, STATS_OBJ_Voltage, STATS_TYPE_MAX },
 		{ 0, STATS_OBJ_WaterRegenSoftening, STATS_TYPE_SUM },
 		{ 0, STATS_OBJ_BrineWeight, STATS_TYPE_DELTA },
-		{ 0, STATS_OBJ_RO_WaterUsed, STATS_TYPE_SUM }
+		{ 0, STATS_OBJ_RO_WaterUsed, STATS_TYPE_SUM },
+		{ 0, STATS_OBJ_WaterBoosterLiters, STATS_TYPE_AVG }
 	};
 
 	// История (графики)
@@ -600,11 +602,11 @@ struct History_setup {
 			{ STATS_OBJ_Temp, TAIR, noteTemp[TAIR] },
 			{ STATS_OBJ_Flow, FLOW, "Датчик протока, м³ч" },
 			{ STATS_OBJ_Level, LTANK, "Уровень в баке, %" },
-			{ STATS_OBJ_CurrentMax, STATS_OBJ_Power_dPWM, "Потребление, кВт" },
+			{ STATS_OBJ_Current, STATS_NUM_Power_dPWM, "Ток НС, A" },
 			{ STATS_OBJ_Press, PWATER, "Давление, бар" },
 			{ STATS_OBJ_WaterBoosterLiters, 0, "Гидроаккумулятор, л" },
-			{ STATS_OBJ_CurrentMax, STATS_OBJ_DrainPumpPower, "Дренажный насос, кВт" },
-			{ STATS_OBJ_CurrentMax, STATS_OBJ_SepticPower, "Септик, кВт" }
+			{ STATS_OBJ_Current, STATS_NUM_DrainPumpPower, "Дренажный насос, A" },
+			{ STATS_OBJ_Current, STATS_NUM_SepticPower, "Септик, A" }
 	};
 
 	#define LEAKAGE_TANK_RESTART_TIME	65534	// Проверка бака на утечку, для ошибки - уменьшения уровня бака на TankLeakagePercent должен произойти раньше, чем это время (65535 - выкл), сек

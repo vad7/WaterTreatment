@@ -251,7 +251,7 @@ void Statistics::Init(uint8_t newyear)
 									case STATS_OBJ_Flow:
 										Stats_data[i].value = val * 1000.0f + 0.0005f;
 										break;
-									case STATS_OBJ_CurrentMax:
+									case STATS_OBJ_Current:
 										switch(Stats_data[i].type) {
 										case STATS_TYPE_SUM:
 										case STATS_TYPE_AVG:
@@ -275,7 +275,10 @@ void Statistics::Init(uint8_t newyear)
 											break;
 										}
 									} else {
-										if(Stats_data[i].type == STATS_TYPE_AVG) counts = 1;
+										if(Stats_data[i].type == STATS_TYPE_AVG) {
+											counts = 1;
+											History_BoosterCountL_num = 1;
+										}
 									}
 									if((p = (char*)memchr(p, '\0', STATS_MAX_RECORD_LEN)) == NULL) break;
 								}
@@ -366,6 +369,7 @@ void Statistics::Reset(bool newday)
 		}
 	}
 	counts = 0;
+	History_BoosterCountL_num = 0;
 	day = rtcSAM3X8.get_days();
 	month = rtcSAM3X8.get_months();
 	previous = GetTickCount();
@@ -412,28 +416,28 @@ void Statistics::Update()
 		case STATS_OBJ_Temp:
 			newval = MC.sTemp[STATS_ID_Temp].get_Temp();
 			break;
-		case STATS_OBJ_Press:
-			newval = MC.sADC[STATS_ID_Press].get_Value();
-			break;
+//		case STATS_OBJ_Press:
+//			newval = MC.sADC[STATS_ID_Press].get_Value();
+//			break;
 		case STATS_OBJ_Flow:
 			newval = MC.sFrequency[STATS_ID_Flow].get_ValueReal();
 			break;
 		case STATS_OBJ_Voltage:
 			newval = MC.dPWM.get_Voltage();
+			if(newval < 160) continue;
 			break;
-		case STATS_OBJ_CurrentMax: {
-				newval = MC.dPWM.get_Power(); // Вт
-				switch(Stats_data[i].type) {
-				case STATS_TYPE_SUM:
-				//case STATS_TYPE_AVG:
-					newval = newval * tm / 3600; // в мВт
-					Stats_Power_work += newval;
-				}
-				break;
-			}
+//		case STATS_OBJ_Current:
+//			newval = MC.dPWM.get_Current();
+//			break;
 		case STATS_OBJ_WaterBooster:
 			newval = Stats_WaterBooster_work;
 			Stats_WaterBooster_work = 0;
+			break;
+		case STATS_OBJ_WaterBoosterLiters:
+			if(History_BoosterCountL < 0) continue;
+			newval = History_BoosterCountL;
+			History_BoosterCountL = -1;
+			History_BoosterCountL_num++;
 			break;
 		case STATS_OBJ_FeedPump:
 			newval = Stats_FeedPump_work;
@@ -499,15 +503,15 @@ void Statistics::History()
 		case STATS_OBJ_Flow:		// m3h
 			int_to_dec_str(MC.sFrequency[HistorySetup[i].number].get_Value(), 1, &buf, 0); // F (/1)
 			break;
-		case STATS_OBJ_CurrentMax:
+		case STATS_OBJ_Current:
 #if defined(CHECK_DRAIN_PUMP) || defined(CHECK_SEPTIC)
-			if(HistorySetup[i].number == STATS_OBJ_DrainPumpPower) {
+			if(HistorySetup[i].number == STATS_NUM_DrainPumpPower) {
 				int_to_dec_str(DrainPumpPowerMax, 1, &buf, 0);  // A (/1000)
 				DrainPumpPowerMax = 0;
-			} else if(HistorySetup[i].number == STATS_OBJ_SepticPower) {
+			} else if(HistorySetup[i].number == STATS_NUM_SepticPower) {
 				int_to_dec_str(SepticPowerMax, 1, &buf, 0);  // A (/1000)
 				SepticPowerMax = 0;
-			} else {
+			} else { // STATS_NUM_Power_dPWM
 				int_to_dec_str(MC.dPWM.CurrentMax, 1, &buf, 0);  // A (/1000)
 				MC.dPWM.CurrentMax = 0;
 			}
@@ -527,14 +531,14 @@ void Statistics::History()
 				int_to_dec_str(tmp, 1, &buf, 0);  // L
 				break;
 			}
-		case STATS_OBJ_WaterBoosterLiters: {
-				int32_t tmp = History_BoosterCountL;
-				if(tmp >= 0) {
-					History_BoosterCountL = -1;
-					int_to_dec_str(tmp, 100, &buf, 2);  // L
-				} //else *buf++ = '-';
-				break;
-			}
+//		case STATS_OBJ_WaterBoosterLiters: {
+//				int32_t tmp = History_BoosterCountL;
+//				if(tmp >= 0) {
+//					History_BoosterCountL = -1;
+//					int_to_dec_str(tmp, 100, &buf, 2);  // L
+//				} //else *buf++ = '-';
+//				break;
+//			}
 		case STATS_OBJ_WaterBooster: {
 				int32_t tmp = History_WaterBooster_work;
 				History_WaterBooster_work = 0;
@@ -593,7 +597,7 @@ void Statistics::HistoryFileHeader(char *ret, uint8_t flag)
 			case STATS_OBJ_Voltage:
 				strcat(ret, "V");	// ось напряжение
 				break;
-			case STATS_OBJ_CurrentMax:
+			case STATS_OBJ_Current:
 				strcat(ret, "W");	// ось мощность
 				break;
 			case STATS_OBJ_Flow:
@@ -644,6 +648,10 @@ void Statistics::StatsFieldHeader(char *ret, uint8_t i, uint8_t flag)
 		if(flag) strcat(ret, "S"); // ось время
 		strcat(ret, "Насосная станция, сек");
 		break;
+	case STATS_OBJ_WaterBoosterLiters:
+		if(flag) strcat(ret, "L"); // ось литры
+		strcat(ret, "Насосная станция, л");
+		break;
 	case STATS_OBJ_FeedPump:
 		if(flag) strcat(ret, "S"); // ось время
 		strcat(ret, "Дозирующий насос, сек");
@@ -652,9 +660,9 @@ void Statistics::StatsFieldHeader(char *ret, uint8_t i, uint8_t flag)
 		if(flag) strcat(ret, "V"); // ось напряжение
 		strcat(ret, "Напряжение, V");
 		break;
-	case STATS_OBJ_CurrentMax:
-		if(flag) strcat(ret, "W"); // ось мощность
-		strcat(ret, "Потребление, кВт"); // хранится в Вт
+	case STATS_OBJ_Current:
+		if(flag) strcat(ret, "A"); // ось мощность
+		strcat(ret, "Ток, А");
 		if(Stats_data[i].type == STATS_TYPE_SUM) strcat(ret, "ч");
 		break;
 	case STATS_OBJ_WaterUsed:
@@ -676,6 +684,14 @@ void Statistics::StatsFieldHeader(char *ret, uint8_t i, uint8_t flag)
 	case STATS_OBJ_BrineWeight:
 		if(flag) strcat(ret, "M");	// ось вес
 		strcat(ret, "Раствор, кг");
+		break;
+	case STATS_OBJ_SepticPump:
+		if(flag) strcat(ret, "S"); // ось время
+		strcat(ret, "Насос септика, сек");
+		break;
+	case STATS_OBJ_DrainPump:
+		if(flag) strcat(ret, "S"); // ось время
+		strcat(ret, "Дренажный насос, сек");
 		break;
 	default: strcat(ret, "?");
 	}
@@ -710,7 +726,7 @@ void Statistics::StatsFieldString(char **ret, uint8_t i)
 {
 	int32_t val;
 	if(Stats_data[i].type == STATS_TYPE_AVG) {
-		val = counts;
+		val = Stats_data[i].object == STATS_OBJ_WaterBoosterLiters ? History_BoosterCountL_num : counts;
 		if(val == 0) {
 xSkipEmpty:
 			**ret = '\0';
@@ -738,10 +754,16 @@ xSkipEmpty:
 		if(val == 0) goto xSkipEmpty;
 		int_to_dec_str(val, 1, ret, 0);
 		break;
+	case STATS_OBJ_WaterBoosterLiters:		// L*100
+		if(val == 0) goto xSkipEmpty;
+		int_to_dec_str(val, 100, ret, 2);
+		break;
 	case STATS_OBJ_BrineWeight:				// kg
 		if(Stats_data[i].type == STATS_TYPE_DELTA) {
 			val = Weight_value / 10 - val;
 		}
+		int_to_dec_str(val, 1000, ret, 3);
+		break;
 	case STATS_OBJ_Flow:					// m3h
 		int_to_dec_str(val, 1000, ret, 3);
 		break;
@@ -749,9 +771,8 @@ xSkipEmpty:
 	case STATS_OBJ_FeedPump:				// s
 		int_to_dec_str(val, 1000, ret, 0);
 		break;
-	case STATS_OBJ_CurrentMax:					// кВт*ч
+	case STATS_OBJ_Current:					// A
 		switch(Stats_data[i].type) {
-		case STATS_TYPE_SUM:
 		case STATS_TYPE_AVG:
 			int_to_dec_str(val / 1000, 1000, ret, 3);
 			break;

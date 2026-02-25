@@ -320,7 +320,7 @@ class devPWM
       int32_t get_Current(){ return Current; }
       uint16_t get_Voltage(){ return Voltage; }
       char* get_param(char *var, char *ret);           // Получить параметр PWM в виде строки
-      boolean set_param(char *var, int32_t f);
+      boolean set_param(char *var, float f);
       void get_param_now(uint8_t modbus_addr, char var, char *strReturn); // Запросить регистр счетчика сейчас, для веб
       // Графики из счетчика
       //statChart ChartVoltage;                          // Статистика по напряжению

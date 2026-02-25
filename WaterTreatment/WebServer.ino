@@ -750,8 +750,8 @@ xSaveStats:		if((i = MC.save_WorkStats()) == OK)
 				else if(*str == 'I') _itoa(DrainPumpPower, strReturn);
 				else if(*str == 'O') {
 					if(DrainPumpPower > MC.Option.DrainPumpMinPower * 10) {
-						_itoa(DrainPumpPower, strReturn);
-						strcat(strReturn, " Вт (");
+						_dtoa(strReturn, DrainPumpPower, 3);
+						strcat(strReturn, " A (");
 						TimeIntervalToStr(rtcSAM3X8.unixtime() - DrainPumpTimeLast, strReturn, 1);
 						strcat(strReturn, ")");
 					}
@@ -766,8 +766,8 @@ xSaveStats:		if((i = MC.save_WorkStats()) == OK)
 				else if(*str == 'I') _itoa(SepticPower, strReturn);
 				else if(*str == 'O') {
 					if(SepticPower > MC.Option.SepticPumpMinPower * 10) {
-						_itoa(SepticPower, strReturn);
-						strcat(strReturn, " Вт (");
+						_dtoa(strReturn, SepticPower, 3);
+						strcat(strReturn, " A (");
 						TimeIntervalToStr(rtcSAM3X8.unixtime() - SepticPumpTimeLast, strReturn, 1);
 						strcat(strReturn, ")");
 					}
@@ -1460,7 +1460,7 @@ xSaveStats:		if((i = MC.save_WorkStats()) == OK)
 				MC.dPWM.get_param(x, strReturn);
 				ADD_WEBDELIM(strReturn); continue;
 			} else if(strcmp(str, "set_PWM") == 0) {          // Функция записать настройки счетчика
-				if(MC.dPWM.set_param(x, (int32_t)pm)) MC.dPWM.get_param(x, strReturn); // преобразование удачно
+				if(MC.dPWM.set_param(x, pm)) MC.dPWM.get_param(x, strReturn); // преобразование удачно
 				else strcat(strReturn, "E31");            // ошибка преобразования строки
 				ADD_WEBDELIM(strReturn); continue;
 			}

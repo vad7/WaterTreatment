@@ -43,7 +43,6 @@ const char format_datetime[] = "%04d%02d%02d%02d%02d";	// yyyymmddHHMM
 
 //static char *stats_format = { "%.1f", "" }; // printf format string
 
-volatile int32_t Stats_Power_work = 0;  // рабочий для счетчиков - энергия потребленная, мВт
 volatile int32_t Stats_WaterUsed_work = 0; 		// L
 volatile int32_t Stats_RO_WaterUsed_work = 0; 	// L
 volatile int32_t Stats_WaterRegen_work = 0; 	// L
@@ -53,7 +52,8 @@ volatile int32_t History_WaterUsed_work = 0;	// L
 volatile int32_t History_WaterRegen_work = 0;	// L
 volatile int32_t History_FeedPump_work = 0;		// ms
 volatile int32_t History_WaterBooster_work = 0;	// ms
-int32_t History_BoosterCountL = -1;				// L*100
+int32_t  History_BoosterCountL = -1;			// L*100
+uint16_t History_BoosterCountL_num = 0;
 volatile int32_t Charts_WaterBooster_work = 0;
 volatile int32_t Charts_FeedPump_work = 0;
 volatile int32_t Charts_FillTank_work = 0; 		// %

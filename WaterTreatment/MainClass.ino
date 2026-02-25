@@ -372,7 +372,6 @@ void MainClass::set_testMode(TEST_MODE b)
 			memset(&MC.RTC_store, 0, sizeof(MC.RTC_store));
 			journal.jprintf(" Error read RTC store!\n");
 		}
-		Stats_Power_work = 0;
 		Stats_WaterUsed_work = 0;
 		Stats_WaterRegen_work = 0;
 		Stats_FeedPump_work = 0;
@@ -624,7 +623,6 @@ void MainClass::resetCount()
 	memset(&WorkStats, 0, sizeof(WorkStats));
 	WorkStats.ResetTime = rtcSAM3X8.unixtime();           // Дата сброса счетчиков
 	save_WorkStats();  // записать счетчики
-	Stats_Power_work = 0;
 	Stats_FeedPump_work = 0;
 	Stats_WaterBooster_work = 0;
 	Stats_WaterUsed_work = 0;
@@ -634,19 +632,17 @@ void MainClass::resetCount()
 // Обновление счетчиков моточасов, вызывается раз в минуту
 void MainClass::updateCount()
 {
-	int32_t p;
+	//int32_t p;
 	//taskENTER_CRITICAL();
-	p = Stats_Power_work;
-	Stats_Power_work = 0;
 	//taskEXIT_CRITICAL();
-	p /= 1000;
+	//p /= 1000;
 	//WorkStats.E1 += p;
 	//WorkStats.E2 += p;
 	//taskENTER_CRITICAL();
 	//p = motohour_OUT_work;
 	//motohour_OUT_work = 0;
 	//taskEXIT_CRITICAL();
-	p /= 1000;
+	//p /= 1000;
 	//WorkStats.P1 += p;
 	//WorkStats.P2 += p;
 }
@@ -740,8 +736,8 @@ void MainClass::resetSetting()
 	Option.MinWaterBoostOffTime = 5000;
 	Option.PWATER_RegMin = 300;
 	Option.PWM_StartingTime = 2000;
-	Option.PWM_DryRun = 900;
-	Option.PWM_Max = 2000;
+	Option.PWM_DryRun = 5000;
+	Option.PWM_Max = 10000;
 	Option.RegenHour = 3;
 	Option.DaysBeforeRegen = 16;
 	Option.UsedBeforeRegen = 3000;
@@ -1001,8 +997,8 @@ boolean MainClass::set_option(char *var, float xx)
 	if(strcmp(var,option_MinWaterBoosterCountL)==0){ Option.MinWaterBoosterCountL = rd(xx, 100); return true; } else
 	if(strcmp(var,option_WaterBoosterMinTank)==0){ Option.WaterBoosterMinTank = rd(xx, 100); return true; } else
 	if(strcmp(var,option_PWM_LOG_ERR)==0)     { Option.flags = (Option.flags & ~(1<<fPWMLogErrors)) | ((x!=0)<<fPWMLogErrors); return true; } else
-	if(strcmp(var,option_PWM_DryRun)==0)      { Option.PWM_DryRun = x; return true; } else
-	if(strcmp(var,option_PWM_Max)==0)         { Option.PWM_Max = x; return true; } else
+	if(strcmp(var,option_PWM_DryRun)==0)      { Option.PWM_DryRun = rd(xx, 1000); return true; } else
+	if(strcmp(var,option_PWM_Max)==0)         { Option.PWM_Max = rd(xx, 1000); return true; } else
 	if(strcmp(var,option_PWM_StartingTime)==0){ Option.PWM_StartingTime = x; return true; } else
 	if(strcmp(var,option_PWATER_RegMin)==0)   { Option.PWATER_RegMin = rd(xx, 100); return true; } else
 	if(strcmp(var,option_PWATER_Osmos_Min)==0){ Option.PWATER_Osmos_Min = rd(xx, 100); return true; } else
@@ -1050,16 +1046,16 @@ boolean MainClass::set_option(char *var, float xx)
 	if(strcmp(var,option_PumpStartTime)==0){ Option.PumpStartTime = x; return true; } else
 	if(strcmp(var,option_PumpReadPeriod)==0){ Option.PumpReadPeriod = x == 0 ? 1 : x; return true; } else
 	if(strcmp(var,option_DrainPumpMaxTime)==0){ Option.DrainPumpMaxTime = x / 20; return true; } else
-	if(strcmp(var,option_DrainPumpMinPower)==0){ Option.DrainPumpMinPower = x / 10; return true; } else
-	if(strcmp(var,option_DrainPumpMaxPower)==0){ Option.DrainPumpMaxPower = x; return true; } else
-	if(strcmp(var,option_DrainPumpDryPower)==0){ Option.DrainPumpDryPower = x; return true; } else
+	if(strcmp(var,option_DrainPumpMinPower)==0){ Option.DrainPumpMinPower = rd(xx, 1000) / 10; return true; } else
+	if(strcmp(var,option_DrainPumpMaxPower)==0){ Option.DrainPumpMaxPower = rd(xx, 1000); return true; } else
+	if(strcmp(var,option_DrainPumpDryPower)==0){ Option.DrainPumpDryPower = rd(xx, 1000); return true; } else
 	if(strcmp(var,option_fDrainPumpRelay)==0){ Option.flags2 = (Option.flags2 & ~(1<<fDrainPumpRelay)) | ((x!=0)<<fDrainPumpRelay); return true; } else
 	if(strcmp(var,option_SepticPumpMaxTime)==0){ Option.SepticPumpMaxTime = x / 20; return true; } else
-	if(strcmp(var,option_SepticPumpMinPower)==0){ Option.SepticPumpMinPower = x / 10; return true; } else
-	if(strcmp(var,option_SepticPumpMaxPower)==0){ Option.SepticPumpMaxPower = x; return true; } else
-	if(strcmp(var,option_SepticPumpDryPower)==0){ Option.SepticPumpDryPower = x; return true; } else
+	if(strcmp(var,option_SepticPumpMinPower)==0){ Option.SepticPumpMinPower = rd(xx, 1000) / 10; return true; } else
+	if(strcmp(var,option_SepticPumpMaxPower)==0){ Option.SepticPumpMaxPower = rd(xx, 1000); return true; } else
+	if(strcmp(var,option_SepticPumpDryPower)==0){ Option.SepticPumpDryPower = rd(xx, 1000); return true; } else
 	if(strcmp(var,option_SepticPumpConsumedMax)==0){ Option.SepticPumpConsumedMax = x; return true; } else
-	if(strcmp(var,option_SepticMinPower)==0){ Option.SepticMinPower = x / 10; return true; } else
+	if(strcmp(var,option_SepticMinPower)==0){ Option.SepticMinPower = rd(xx, 1000) / 10; return true; } else
 	if(strcmp(var,option_fLED_SRV_INFO_PlanReg)==0){ Option.flags2 = (Option.flags2 & ~(1<<fLED_SRV_INFO_PlanReg)) | ((x!=0)<<fLED_SRV_INFO_PlanReg); return true; } else
 	if(strcmp(var,option_fCheckDrainPump)==0){
 		Option.flags2 = (Option.flags2 & ~(1<<fCheckDrainPump)) | ((x!=0)<<fCheckDrainPump);
@@ -1150,8 +1146,8 @@ char* MainClass::get_option(char *var, char *ret)
 	if(strcmp(var,option_DrainAfterNoConsume)==0){ return _itoa(Option.DrainAfterNoConsume / (60 * 60), ret); } else
 	if(strcmp(var,option_DrainTime)==0){ return _itoa(Option.DrainTime, ret); } else
 	if(strcmp(var,option_PWM_LOG_ERR)==0){ return strcat(ret, (char*)(GETBIT(Option.flags, fPWMLogErrors) ? cOne : cZero)); } else
-	if(strcmp(var,option_PWM_DryRun)==0){ return _itoa(Option.PWM_DryRun, ret); } else
-	if(strcmp(var,option_PWM_Max)==0){ return _itoa(Option.PWM_Max, ret); } else
+	if(strcmp(var,option_PWM_DryRun)==0){ _dtoa(ret, Option.PWM_DryRun, 3); return ret; } else
+	if(strcmp(var,option_PWM_Max)==0){ _dtoa(ret, Option.PWM_Max, 3); return ret; } else
 	if(strcmp(var,option_PWM_StartingTime)==0){ return _itoa(Option.PWM_StartingTime, ret); } else
 	if(strcmp(var,option_PWATER_RegMin)==0){ _dtoa(ret, Option.PWATER_RegMin, 2); return ret; } else
 	if(strcmp(var,option_PWATER_Osmos_Min)==0){ _dtoa(ret, Option.PWATER_Osmos_Min, 2); return ret; } else
@@ -1204,17 +1200,17 @@ char* MainClass::get_option(char *var, char *ret)
 	if(strcmp(var,option_PumpStartTime)==0){ return _itoa(Option.PumpStartTime, ret); } else
 	if(strcmp(var,option_PumpReadPeriod)==0){ return _itoa(Option.PumpReadPeriod, ret); } else
 	if(strcmp(var,option_DrainPumpMaxTime)==0){ return _itoa(Option.DrainPumpMaxTime * 20, ret); } else
-	if(strcmp(var,option_DrainPumpMinPower)==0){ return _itoa(Option.DrainPumpMinPower * 10, ret); } else
-	if(strcmp(var,option_DrainPumpMaxPower)==0){ return _itoa(Option.DrainPumpMaxPower, ret); } else
-	if(strcmp(var,option_DrainPumpDryPower)==0){ return _itoa(Option.DrainPumpDryPower, ret); } else
+	if(strcmp(var,option_DrainPumpMinPower)==0){ _dtoa(ret, Option.DrainPumpMinPower * 10, 3); return ret; } else
+	if(strcmp(var,option_DrainPumpMaxPower)==0){ _dtoa(ret, Option.DrainPumpMaxPower, 3); return ret; } else
+	if(strcmp(var,option_DrainPumpDryPower)==0){ _dtoa(ret, Option.DrainPumpDryPower, 3); return ret; } else
 	if(strcmp(var,option_fCheckDrainPump)==0){ return strcat(ret, (char*)(GETBIT(Option.flags2, fCheckDrainPump) ? cOne : cZero)); } else
 	if(strcmp(var,option_fDrainPumpRelay)==0){ return strcat(ret, (char*)(GETBIT(Option.flags2, fDrainPumpRelay) ? cOne : cZero)); } else
 	if(strcmp(var,option_SepticPumpMaxTime)==0){ return _itoa(Option.SepticPumpMaxTime * 20, ret); } else
-	if(strcmp(var,option_SepticPumpMinPower)==0){ return _itoa(Option.SepticPumpMinPower * 10, ret); } else
-	if(strcmp(var,option_SepticPumpMaxPower)==0){ return _itoa(Option.SepticPumpMaxPower, ret); } else
-	if(strcmp(var,option_SepticPumpDryPower)==0){ return _itoa(Option.SepticPumpDryPower, ret); } else
-	if(strcmp(var,option_SepticPumpConsumedMax)==0){ return _itoa(Option.SepticPumpConsumedMax, ret); } else
-	if(strcmp(var,option_SepticMinPower)==0){ return _itoa(Option.SepticMinPower * 10, ret); } else
+	if(strcmp(var,option_SepticPumpMinPower)==0){ _dtoa(ret, Option.SepticPumpMinPower * 10, 3); return ret; } else
+	if(strcmp(var,option_SepticPumpMaxPower)==0){ _dtoa(ret, Option.SepticPumpMaxPower, 3); return ret; } else
+	if(strcmp(var,option_SepticPumpDryPower)==0){ _dtoa(ret, Option.SepticPumpDryPower, 3); return ret; } else
+	if(strcmp(var,option_SepticPumpConsumedMax)==0){ _itoa(Option.SepticPumpConsumedMax, ret); } else
+	if(strcmp(var,option_SepticMinPower)==0){ _dtoa(ret, Option.SepticMinPower * 10, 3); return ret; } else
 	if(strcmp(var,option_fCheckSepticPump)==0){ return strcat(ret, (char*)(GETBIT(Option.flags2, fCheckSeptic) ? cOne : cZero)); } else
 	if(strcmp(var,option_fSepticPumpRelay)==0){ return strcat(ret, (char*)(GETBIT(Option.flags2, fSepticPumpRelay) ? cOne : cZero)); } else
 	if(strcmp(var,option_fSepticPumpRelayNoErr)==0){ return strcat(ret, (char*)(GETBIT(Option.flags2, fSepticPumpRelayNoErr) ? cOne : cZero)); } else
