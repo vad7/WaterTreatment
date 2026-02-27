@@ -433,6 +433,12 @@ void Statistics::Update()
 			newval = Stats_WaterBooster_work;
 			Stats_WaterBooster_work = 0;
 			break;
+		case STATS_OBJ_DrainPump:
+			if(DrainPumpPower > MC.Option.DrainPumpMinPower * 10) newval = TIME_READ_SENSOR;
+			break;
+		case STATS_OBJ_SepticPump:
+			if(SepticPower > MC.Option.SepticPumpMinPower * 10) newval = TIME_READ_SENSOR;
+			break;
 		case STATS_OBJ_WaterBoosterLiters:
 			if(History_BoosterCountL < 0) continue;
 			newval = History_BoosterCountL;
@@ -542,7 +548,7 @@ void Statistics::History()
 		case STATS_OBJ_WaterBooster: {
 				int32_t tmp = History_WaterBooster_work;
 				History_WaterBooster_work = 0;
-				int_to_dec_str(tmp, 1000, &buf, 0);  // sec, S
+				int_to_dec_str(tmp, 1000, &buf, 0);  // msec/1000 = sec, S
 				break;
 			}
 		case STATS_OBJ_FeedPump: {
@@ -767,8 +773,10 @@ xSkipEmpty:
 	case STATS_OBJ_Flow:					// m3h
 		int_to_dec_str(val, 1000, ret, 3);
 		break;
-	case STATS_OBJ_WaterBooster:			// s
-	case STATS_OBJ_FeedPump:				// s
+	case STATS_OBJ_DrainPump:				// /1000 = s
+	case STATS_OBJ_SepticPump:				// /1000 = s
+	case STATS_OBJ_WaterBooster:			// /1000 = s
+	case STATS_OBJ_FeedPump:				// /1000 = s
 		int_to_dec_str(val, 1000, ret, 0);
 		break;
 	case STATS_OBJ_Current:					// A

@@ -747,7 +747,7 @@ xSaveStats:		if((i = MC.save_WorkStats()) == OK)
 			if(*str == 'D') {
 				str++;
 				if(*str == 'E') _itoa(DrainPumpErrors, strReturn);
-				else if(*str == 'I') _itoa(DrainPumpPower, strReturn);
+				else if(*str == 'I') _dtoa(strReturn, DrainPumpPower, 3);
 				else if(*str == 'O') {
 					if(DrainPumpPower > MC.Option.DrainPumpMinPower * 10) {
 						_dtoa(strReturn, DrainPumpPower, 3);
@@ -763,7 +763,7 @@ xSaveStats:		if((i = MC.save_WorkStats()) == OK)
 			if(*str == 'S') {
 				str++;
 				if(*str == 'E') _itoa(SepticErrors, strReturn);
-				else if(*str == 'I') _itoa(SepticPower, strReturn);
+				else if(*str == 'I') _dtoa(strReturn, SepticPower, 3);
 				else if(*str == 'O') {
 					if(SepticPower > MC.Option.SepticPumpMinPower * 10) {
 						_dtoa(strReturn, SepticPower, 3);

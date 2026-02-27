@@ -765,6 +765,7 @@ char* devPWM::get_param(char *var, char *ret)
 		return ret;
 	} else if(strcmp(var, pwm_CURRENT) == 0) {       // Ток
 		_dtoa(ret, Current, 3);
+		return ret;
 	} else if(strcmp(var, pwm_PFACTOR) == 0) {       // Коэффициент мощности
 		if(Modbus.readInputRegisters32(PWM_MODBUS_ADR, PWM_PFACTOR, &tmp) == OK) {
 			_dtoa(ret, tmp, 2);

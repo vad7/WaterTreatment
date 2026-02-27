@@ -52,14 +52,14 @@ enum {
 	STATS_OBJ_WaterUsed,	// л
 	STATS_OBJ_WaterRegen,	// Регенерация обезжелезивателя, л
 	STATS_OBJ_BrineWeight,	// кг
-	STATS_OBJ_WaterBooster,	// сек
+	STATS_OBJ_WaterBooster,	// мсек, вывод в сек
 	STATS_OBJ_WaterBoosterLiters, // л
-	STATS_OBJ_FeedPump,		// сек
+	STATS_OBJ_FeedPump,		// мсек, вывод в сек
 	STATS_OBJ_Level,		// %
 	STATS_OBJ_WaterRegenSoftening, // Регенерация умягчителя, л
 	STATS_OBJ_RO_WaterUsed,	// л (STATS_TYPE_SUM)
-	STATS_OBJ_DrainPump,	// сек
-	STATS_OBJ_SepticPump	// сек
+	STATS_OBJ_DrainPump,	// мсек, вывод в сек
+	STATS_OBJ_SepticPump	// мсек, вывод в сек
 };
 enum {
 	STATS_NUM_Power_dPWM = 0,
