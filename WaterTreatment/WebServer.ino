@@ -767,7 +767,7 @@ xSaveStats:		if((i = MC.save_WorkStats()) == OK)
 				str++;
 				if(*str == 'E') _itoa(SepticErrors, strReturn);
 				else if(*str == 'I') {
-					if(GETBIT(MC.Option.flags2, fCheckSeptic)) _dtoa(strReturn, DrainPumpPower, 3);
+					if(GETBIT(MC.Option.flags2, fCheckSeptic)) _dtoa(strReturn, SepticPower, 3);
 					else strcat(strReturn, "*SKIP*");
 				} else if(*str == 'O') {
 					if(SepticPower > MC.Option.SepticPumpMinPower * 10) {
