@@ -132,6 +132,7 @@ function loadParam(paramid, noretry, resultdiv) {
 										}
 										continue;
 									} 
+									if(values[1] === "*SKIP*") continue;
 									type = /\([a-z0-9_]+\)/i.test(values[0]) ? "values" : "str";
 								}
 								if(type == 'chart') {

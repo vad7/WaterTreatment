@@ -832,21 +832,6 @@ void devPWM::get_param_now(uint8_t modbus_addr, char var, char *strReturn)
 	if(var == 'V')	{
 		_err = Modbus.readInputRegisters16(modbus_addr, PWM_VOLTAGE, (uint16_t*)&v);
 		if(_err == OK) _dtoa(strReturn, v, 1);
-	} else if(var == 'I') {
-#ifdef MODBUS_DRAIN_PUMP_ADDR
-		if(modbus_addr == MODBUS_DRAIN_PUMP_ADDR) {
-			_dtoa(strReturn, DrainPumpPower, 3);
-			return;
-		}
-#endif
-#ifdef MODBUS_SEPTIC_ADDR
-		if(modbus_addr == MODBUS_SEPTIC_ADDR) {
-			_dtoa(strReturn, SepticPower, 3);
-			return;
-		}
-#endif
-		_err = Modbus.readInputRegisters32(modbus_addr, PWM_CURRENT, (uint32_t*)&v);
-		if(_err == OK) _dtoa(strReturn, v, 3);
 	} else if(var == 'P') {
 		_err = Modbus.readInputRegisters32(modbus_addr, PWM_POWER, (uint32_t*)&v);
 		if(_err == OK) _dtoa(strReturn, v, 1);
@@ -855,6 +840,21 @@ void devPWM::get_param_now(uint8_t modbus_addr, char var, char *strReturn)
 		if(_err == OK) _dtoa(strReturn, v, 2);
 	} else if(var == 'W') {
 		_err = Modbus.readInputRegisters32(modbus_addr, PWM_ENERGY, (uint32_t*)&v);
+		if(_err == OK) _dtoa(strReturn, v, 3);
+	} else if(var == 'A') {
+#ifdef MODBUS_DRAIN_PUMP_ADDR
+		if(modbus_addr == MODBUS_DRAIN_PUMP_ADDR && GETBIT(MC.Option.flags2, fCheckDrainPump)) {
+			_dtoa(strReturn, DrainPumpPower, 3);
+			return;
+		}
+#endif
+#ifdef MODBUS_SEPTIC_ADDR
+		if(modbus_addr == MODBUS_SEPTIC_ADDR && GETBIT(MC.Option.flags2, fCheckSeptic)) {
+			_dtoa(strReturn, SepticPower, 3);
+			return;
+		}
+#endif
+		_err = Modbus.readInputRegisters32(modbus_addr, PWM_CURRENT, (uint32_t*)&v);
 		if(_err == OK) _dtoa(strReturn, v, 3);
 	} else _err = 1;
 	if(_err) {
