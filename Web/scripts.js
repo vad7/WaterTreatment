@@ -483,6 +483,11 @@ function loadParam(paramid, noretry, resultdiv) {
 									if((element = document.getElementById(valueid + "-div1000"))) {
 										if(isNaN(Number(values[1]))) element.placeholder = values[1]; else element.value = (Number(values[1])/1000).toFixed(3);
 									}
+									if(resultdiv) element = document.getElementById(resultdiv);
+									if(element && element != document.activeElement) {
+										element.innerHTML = values[1];
+										element.value = element.type == "number" ? values[1].replace(/[^\-\d.,]|^\-+$/g, "") : values[1];
+									}
 								} else if(type == 'is') {
 									if(values[1] == 0 || values[1].substring(0,1) == 'E') {
 										if((element = document.getElementById(valueid))) element.className = "inactive";
@@ -552,6 +557,11 @@ function loadParam(paramid, noretry, resultdiv) {
 										    if(values[0] == "get_MODE") element.style = values[1] == "В работе" ? "color:green" : "color:red";
 										    if(values[0] == "get_MODED") element.style = values[1] == "Ok" ? "color:black" : "color:red";
 										}
+									}
+									if(resultdiv) element = document.getElementById(resultdiv);
+									if(element) {
+										element.value = values[1];
+										element.innerHTML = values[1];
 									}
 									if((element = document.getElementById(valueid + "2"))) {
 										element.value = values[1];
