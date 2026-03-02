@@ -251,6 +251,8 @@ type_WebSecurity WebSec_admin;				// хеш паролей
 #define fSepticCriticalErrOnly1ValveOff 9	// При критической ошибке септика перекрывать только первый кран (RWATEROFF1)
 #define fSepticPumpRelayReverse 10			// Обратная логика включения реле септика
 #define fCheck_REVERSE_OSMOS_FC 11			// Проверять был ли расход счетчика питьевого фильтра
+#define fSepticPumpRelayDelayedStop	12		// Определение сухого хода со второго чтения подряд
+#define fDrainPumpRelayDelayedStop	13		// Определение сухого хода со второго чтения подряд
 
 // Структура для хранения настроек
 struct type_option {

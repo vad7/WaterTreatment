@@ -1050,6 +1050,7 @@ boolean MainClass::set_option(char *var, float xx)
 	if(strcmp(var,option_DrainPumpMaxPower)==0){ Option.DrainPumpMaxPower = rd(xx, 1000); return true; } else
 	if(strcmp(var,option_DrainPumpDryPower)==0){ Option.DrainPumpDryPower = rd(xx, 1000); return true; } else
 	if(strcmp(var,option_fDrainPumpRelay)==0){ Option.flags2 = (Option.flags2 & ~(1<<fDrainPumpRelay)) | ((x!=0)<<fDrainPumpRelay); return true; } else
+	if(strcmp(var,option_fDrainPumpRelayDelayedStop)==0){ Option.flags2 = (Option.flags2 & ~(1<<fDrainPumpRelayDelayedStop)) | ((x!=0)<<fDrainPumpRelayDelayedStop); return true; } else
 	if(strcmp(var,option_SepticPumpMaxTime)==0){ Option.SepticPumpMaxTime = x / 20; return true; } else
 	if(strcmp(var,option_SepticPumpMinPower)==0){ Option.SepticPumpMinPower = rd(xx, 1000) / 10; return true; } else
 	if(strcmp(var,option_SepticPumpMaxPower)==0){ Option.SepticPumpMaxPower = rd(xx, 1000); return true; } else
@@ -1072,6 +1073,7 @@ boolean MainClass::set_option(char *var, float xx)
 		return true;
 	} else
 	if(strcmp(var,option_fSepticPumpRelay)==0){ Option.flags2 = (Option.flags2 & ~(1<<fSepticPumpRelay)) | ((x!=0)<<fSepticPumpRelay); return true; } else
+	if(strcmp(var,option_fSepticPumpRelayDelayedStop)==0){ Option.flags2 = (Option.flags2 & ~(1<<fSepticPumpRelayDelayedStop)) | ((x!=0)<<fSepticPumpRelayDelayedStop); return true; } else
 	if(strcmp(var,option_fSepticPumpRelayReverse)==0){
 		Option.flags2 = (Option.flags2 & ~(1<<fSepticPumpRelayReverse)) | ((x!=0)<<fSepticPumpRelayReverse);
 #if !defined(SEPTIC_DRAIN_PUMP_ON_PULSE)

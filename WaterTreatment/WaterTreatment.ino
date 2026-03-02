@@ -1544,7 +1544,7 @@ void vReadSensor(void *)
 										journal.jprintf("Septic: %.3dA\n", tmp);
 										set_Error(ERR_SEPTIC_PUMP_OVERLOAD, NULL);
 										SepticPumpRelayStatus = MODBUS_RELAY_CMD_OFF;
-									} else if(MC.Option.SepticPumpDryPower && tmp <= MC.Option.SepticPumpDryPower && SepticPower > dpmp && SepticPower <= MC.Option.SepticPumpDryPower) {
+									} else if(MC.Option.SepticPumpDryPower && tmp <= MC.Option.SepticPumpDryPower && SepticPower > dpmp && (!GETBIT(MC.Option.flags2, fSepticPumpRelayDelayedStop) || SepticPower <= MC.Option.SepticPumpDryPower)) {
 #ifndef MODBUS_SEPTIC_PUMP_ON_PULSE
 										if(!GETBIT(MC.Option.flags2, fSepticPumpRelayNoErr) || MC.Option.SepticPumpConsumedMax == 0)
 #endif
@@ -1631,7 +1631,7 @@ void vReadSensor(void *)
 											journal.jprintf("Drain: %.3dA\n", tmp);
 											set_Error(ERR_DRAIN_PUMP_OVERLOAD, NULL);
 											DrainPumpRelayStatus = MODBUS_RELAY_CMD_OFF;
-										} else if(MC.Option.DrainPumpDryPower && tmp <= MC.Option.DrainPumpDryPower && DrainPumpPower > dpmp && DrainPumpPower <= MC.Option.DrainPumpDryPower) {
+										} else if(MC.Option.DrainPumpDryPower && tmp <= MC.Option.DrainPumpDryPower && DrainPumpPower > dpmp && (!GETBIT(MC.Option.flags2, fDrainPumpRelayDelayedStop) || DrainPumpPower <= MC.Option.DrainPumpDryPower)) {
 											journal.jprintf("Drain: %.3dA\n", tmp < DrainPumpPower ? tmp : DrainPumpPower);
 											set_Error(ERR_DRAIN_PUMP_DRAIN_RUN, NULL);
 											DrainPumpRelayStatus = MODBUS_RELAY_CMD_OFF;

@@ -20,7 +20,7 @@
 #include "Util.h"
 
 // ОПЦИИ КОМПИЛЯЦИИ ПРОЕКТА -------------------------------------------------------
-#define VERSION			  "1.79"			// Версия прошивки
+#define VERSION			  "1.80"			// Версия прошивки
 #define VER_SAVE		  16				// Версия формата сохраняемых данных в I2C память
 //#define LOG                               // В последовательный порт шлет лог веб сервера (логируются запросы)
 #define FAST_LIB                            // использование допиленной библиотеки езернета
@@ -457,6 +457,7 @@ const char *option_DrainPumpMaxPower	= {"DPH"};
 const char *option_DrainPumpDryPower	= {"DPD"};
 const char *option_fCheckDrainPump		= {"CDP"};
 const char *option_fDrainPumpRelay		= {"DPR"};
+const char *option_fDrainPumpRelayDelayedStop= {"DP2"};
 const char *option_SepticPumpMaxTime	= {"SPT"};
 const char *option_SepticPumpMinPower	= {"SPM"};
 const char *option_SepticPumpMaxPower	= {"SPH"};
@@ -468,6 +469,7 @@ const char *option_fSepticPumpRelay		= {"SPR"};
 const char *option_fSepticPumpRelayReverse= {"SRR"};
 const char *option_fSepticPumpRelayNoErr= {"SPE"};
 const char *option_fSepticCriticalErrOnly1ValveOff={"CE1"};
+const char *option_fSepticPumpRelayDelayedStop= {"SP2"};
 const char *option_PumpStartTime		= {"PS"};
 const char *option_PumpReadPeriod		= {"PP"};
 const char *option_fChartOnlyNonZeroW	= {"CNZ"};
