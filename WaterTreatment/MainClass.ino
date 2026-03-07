@@ -1210,6 +1210,7 @@ char* MainClass::get_option(char *var, char *ret)
 	if(strcmp(var,option_DrainPumpDryPower)==0){ _dtoa(ret, Option.DrainPumpDryPower, 3); return ret; } else
 	if(strcmp(var,option_fCheckDrainPump)==0){ return strcat(ret, (char*)(GETBIT(Option.flags2, fCheckDrainPump) ? cOne : cZero)); } else
 	if(strcmp(var,option_fDrainPumpRelay)==0){ return strcat(ret, (char*)(GETBIT(Option.flags2, fDrainPumpRelay) ? cOne : cZero)); } else
+	if(strcmp(var,option_fDrainPumpRelayDelayedStop)==0){ return strcat(ret, (char*)(GETBIT(Option.flags2, fDrainPumpRelayDelayedStop) ? cOne : cZero)); } else
 	if(strcmp(var,option_SepticPumpMaxTime)==0){ return _itoa(Option.SepticPumpMaxTime * 20, ret); } else
 	if(strcmp(var,option_SepticPumpMinPower)==0){ _dtoa(ret, Option.SepticPumpMinPower * 10, 3); return ret; } else
 	if(strcmp(var,option_SepticPumpMaxPower)==0){ _dtoa(ret, Option.SepticPumpMaxPower, 3); return ret; } else
@@ -1221,6 +1222,7 @@ char* MainClass::get_option(char *var, char *ret)
 	if(strcmp(var,option_fCheckSepticPump)==0){ return strcat(ret, (char*)(GETBIT(Option.flags2, fCheckSeptic) ? cOne : cZero)); } else
 	if(strcmp(var,option_fSepticPumpRelay)==0){ return strcat(ret, (char*)(GETBIT(Option.flags2, fSepticPumpRelay) ? cOne : cZero)); } else
 	if(strcmp(var,option_fSepticPumpRelayNoErr)==0){ return strcat(ret, (char*)(GETBIT(Option.flags2, fSepticPumpRelayNoErr) ? cOne : cZero)); } else
+	if(strcmp(var,option_fSepticPumpRelayDelayedStop)==0){ return strcat(ret, (char*)(GETBIT(Option.flags2, fSepticPumpRelayDelayedStop) ? cOne : cZero)); } else
 	if(strcmp(var,option_fSepticCriticalErrOnly1ValveOff)==0){ return strcat(ret, (char*)(GETBIT(Option.flags2, fSepticCriticalErrOnly1ValveOff) ? cOne : cZero)); } else
 	if(strcmp(var,option_fSepticPumpRelayReverse)==0){ return strcat(ret, (char*)(GETBIT(Option.flags2, fSepticPumpRelayReverse) ? cOne : cZero)); } else
 	if(strcmp(var,option_fSepticHeatRelay)==0){ return strcat(ret, (char*)(GETBIT(Option.flags2, fSepticHeatRelay) ? cOne : cZero)); } else
