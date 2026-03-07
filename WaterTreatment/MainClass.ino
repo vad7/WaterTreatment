@@ -1057,6 +1057,9 @@ boolean MainClass::set_option(char *var, float xx)
 	if(strcmp(var,option_SepticPumpDryPower)==0){ Option.SepticPumpDryPower = rd(xx, 1000); return true; } else
 	if(strcmp(var,option_SepticPumpConsumedMax)==0){ Option.SepticPumpConsumedMax = x; return true; } else
 	if(strcmp(var,option_SepticMinPower)==0){ Option.SepticMinPower = rd(xx, 1000) / 10; return true; } else
+	if(strcmp(var,option_SepticMaxPower)==0){ Option.SepticMaxPower = rd(xx, 1000) / 10; return true; } else
+	if(strcmp(var,option_SepticMinMaxPowerTime)==0){ Option.SepticMinMaxPowerTime = x / 10; return true; } else
+	if(strcmp(var,option_SepticPumpConsumedMax)==0){ Option.SepticPumpConsumedMax = x; return true; } else
 	if(strcmp(var,option_fLED_SRV_INFO_PlanReg)==0){ Option.flags2 = (Option.flags2 & ~(1<<fLED_SRV_INFO_PlanReg)) | ((x!=0)<<fLED_SRV_INFO_PlanReg); return true; } else
 	if(strcmp(var,option_fCheckDrainPump)==0){
 		Option.flags2 = (Option.flags2 & ~(1<<fCheckDrainPump)) | ((x!=0)<<fCheckDrainPump);
@@ -1213,6 +1216,8 @@ char* MainClass::get_option(char *var, char *ret)
 	if(strcmp(var,option_SepticPumpDryPower)==0){ _dtoa(ret, Option.SepticPumpDryPower, 3); return ret; } else
 	if(strcmp(var,option_SepticPumpConsumedMax)==0){ _itoa(Option.SepticPumpConsumedMax, ret); } else
 	if(strcmp(var,option_SepticMinPower)==0){ _dtoa(ret, Option.SepticMinPower * 10, 3); return ret; } else
+	if(strcmp(var,option_SepticMaxPower)==0){ _dtoa(ret, Option.SepticMaxPower * 10, 3); return ret; } else
+	if(strcmp(var,option_SepticMinMaxPowerTime)==0){ _itoa(Option.SepticMinMaxPowerTime * 10, ret); } else
 	if(strcmp(var,option_fCheckSepticPump)==0){ return strcat(ret, (char*)(GETBIT(Option.flags2, fCheckSeptic) ? cOne : cZero)); } else
 	if(strcmp(var,option_fSepticPumpRelay)==0){ return strcat(ret, (char*)(GETBIT(Option.flags2, fSepticPumpRelay) ? cOne : cZero)); } else
 	if(strcmp(var,option_fSepticPumpRelayNoErr)==0){ return strcat(ret, (char*)(GETBIT(Option.flags2, fSepticPumpRelayNoErr) ? cOne : cZero)); } else

@@ -20,7 +20,7 @@
 #include "Util.h"
 
 // ОПЦИИ КОМПИЛЯЦИИ ПРОЕКТА -------------------------------------------------------
-#define VERSION			  "1.80"			// Версия прошивки
+#define VERSION			  "1.81"			// Версия прошивки
 #define VER_SAVE		  16				// Версия формата сохраняемых данных в I2C память
 //#define LOG                               // В последовательный порт шлет лог веб сервера (логируются запросы)
 #define FAST_LIB                            // использование допиленной библиотеки езернета
@@ -464,6 +464,8 @@ const char *option_SepticPumpMaxPower	= {"SPH"};
 const char *option_SepticPumpDryPower	= {"SPD"};
 const char *option_SepticPumpConsumedMax= {"SPC"};
 const char *option_SepticMinPower		= {"SMP"};
+const char *option_SepticMaxPower		= {"SHP"};
+const char *option_SepticMinMaxPowerTime= {"ST"};
 const char *option_fCheckSepticPump		= {"CSP"};
 const char *option_fSepticPumpRelay		= {"SPR"};
 const char *option_fSepticPumpRelayReverse= {"SRR"};
@@ -604,7 +606,7 @@ const char *webWS_NextRegenSoftAfterDays		= { "NS" };
 #define ERR_SEPTIC_PUMP_NOT_WORK -90		// Не работает насос септика
 #define ERR_SEPTIC_PUMP_OVERLOAD -91		// Перегрузка насоса септика
 #define ERR_SEPTIC_PUMP_DRAIN_RUN -92		// Сухой ход насоса септика
-#define ERR_SEPTIC_NOT_WORK		-93			// Низкое электро-потребление септика
+#define ERR_SEPTIC_WRONG_POWER	-93			// Неверное электро-потребление септика
 #define ERR_SEPTIC_PUMP_RELAY_STUCK -94		// Залипло реле насоса септика
 #define ERR_SEPTIC_PUMP_WONT_ON -95			// Не включается насос септика
 #define ERR_TANK_OVERFLOW		-96			// Бак переполнен!
@@ -711,7 +713,7 @@ const char *noteError[] = {
 		"Насос септика не срабатывает",														//-90
 		"Перегрузка насоса септика",														//-91
 		"Сухой ход насоса септика",															//-92
-		"Низкое электро-потребление септика",												//-93
+		"Неверное электро-потребление септика",												//-93
 		"Залипло реле насоса септика",														//-94
 		"Не включается насос септика",														//-95
 		"Бак переполнен!",																	//-96

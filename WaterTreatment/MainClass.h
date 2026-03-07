@@ -178,7 +178,7 @@ uint16_t UsedWaterContinuousTimer = 0;	// /=USED_WATER_CONTINUOUS_MINTIME
 uint16_t UsedWaterContinuousTimerMax = 0;
 uint16_t UsedWaterToSepticLast = 0;	// л
 uint16_t UsedWaterToSeptic = 0;		// л
-uint8_t  SepticMinPowerCnt = 0;
+uint16_t SepticMinMaxPowerCnt = 0;
 uint8_t  PIN_LED_SRV_INFO_off = 0;		// off value
 int16_t  RWATERON_Switching = 0; // >0 - в процессе переключения, <0 - задержка включения, сек
 
@@ -339,8 +339,10 @@ struct type_option {
 	uint16_t SepticPumpMaxPower;	// Максимальная мощность насоса после времени старта, мА
 	uint16_t SepticPumpConsumedMax;	// Максимальное потребление литров до включения насоса, 0 - нет, л
 	uint8_t  SepticPumpMaxTime;		// Максимальное время работы насоса, 0 - нет, сек * 20
-	uint8_t  SepticMinPower;		// Минимальное потребление септика, если меньше, то ошибка, мА * 10
+	uint8_t  SepticMinPower;		// Минимальный длительный ток септика, если меньше, то ошибка, мА * 10
 	uint8_t  LTank_CriticalMax;		// Максимальный уровень бака, выше - ошибка, %
+	uint8_t  SepticMaxPower;		// Максимальный длительный ток септика, если больше и меньше мин. тока насоса, то ошибка, мА * 10
+	uint8_t  SepticMinMaxPowerTime;	// Максимальное время длительного тока септика до ошибки, сек * 10
 };
 
 //  Работа с отдельными флагами type_DateTime

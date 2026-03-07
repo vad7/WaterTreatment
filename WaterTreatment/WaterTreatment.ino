@@ -1526,9 +1526,12 @@ void vReadSensor(void *)
 						if(err == OK) {
 							//tmp /= 10;	// -> W
 							uint32_t ut = rtcSAM3X8.unixtime();
-							uint32_t dpmp = MC.Option.SepticPumpMinPower * 10;
-							if(tmp > dpmp) { // работает
-								if(SepticPower <= dpmp) { // включился
+							uint16_t pwr_prev = SepticPower;
+							SepticPower = tmp;
+							if(SepticPowerMax < tmp) SepticPowerMax = tmp;
+							uint32_t minp = MC.Option.SepticPumpMinPower * 10;
+							if(tmp >= minp) { // работает
+								if(pwr_prev < minp) { // включился
 									if(SepticPumpTimeLast) UsedWaterToSepticLast = UsedWaterToSeptic;
 									SepticPumpTimeLast = ut; // время включения
 								} else if(MC.Option.SepticPumpMaxTime && MC.get_errcode() != ERR_SEPTIC_PUMP_TOOLONG
@@ -1544,12 +1547,12 @@ void vReadSensor(void *)
 										journal.jprintf("Septic: %.3dA\n", tmp);
 										set_Error(ERR_SEPTIC_PUMP_OVERLOAD, NULL);
 										SepticPumpRelayStatus = MODBUS_RELAY_CMD_OFF;
-									} else if(MC.Option.SepticPumpDryPower && tmp <= MC.Option.SepticPumpDryPower && SepticPower > dpmp && (!GETBIT(MC.Option.flags2, fSepticPumpRelayDelayedStop) || SepticPower <= MC.Option.SepticPumpDryPower)) {
+									} else if(MC.Option.SepticPumpDryPower && tmp <= MC.Option.SepticPumpDryPower && pwr_prev >= minp && (!GETBIT(MC.Option.flags2, fSepticPumpRelayDelayedStop) || pwr_prev <= MC.Option.SepticPumpDryPower)) {
 #ifndef MODBUS_SEPTIC_PUMP_ON_PULSE
 										if(!GETBIT(MC.Option.flags2, fSepticPumpRelayNoErr) || MC.Option.SepticPumpConsumedMax == 0)
 #endif
 										{
-											journal.jprintf("Septic: %.3dA\n", tmp < SepticPower ? tmp : SepticPower);
+											journal.jprintf("Septic: %.3dA\n", tmp < pwr_prev ? tmp : pwr_prev);
 											set_Error(ERR_SEPTIC_PUMP_DRAIN_RUN, NULL);
 										}
 										SepticPumpRelayStatus = MODBUS_RELAY_CMD_OFF;
@@ -1562,13 +1565,13 @@ void vReadSensor(void *)
 										}
 									}
 #ifndef MODBUS_SEPTIC_PUMP_ON_PULSE
-									else if(SepticPumpRelayTimer == 1 && SepticPumpRelayStatus == MODBUS_RELAY_OFF && SepticPower > dpmp) { // Залипло реле насоса
+									else if(SepticPumpRelayTimer == 1 && SepticPumpRelayStatus == MODBUS_RELAY_OFF && pwr_prev >= minp) { // Залипло реле насоса
 										set_Error(ERR_SEPTIC_PUMP_RELAY_STUCK, NULL);
 									}
 #endif
 								}
 							} else { // не работает
-								if(SepticPower > dpmp) { // Остановился
+								if(pwr_prev >= minp) { // Остановился
 									SepticPumpTimeWorkTime = ut - SepticPumpTimeLast;
 									UsedWaterToSeptic = 0;
 								}
@@ -1585,15 +1588,14 @@ void vReadSensor(void *)
 #endif
 										set_Error(ERR_SEPTIC_PUMP_NOT_WORK, NULL);
 								}
+								tmp = (tmp + 5) / 10;
+								if(tmp < MC.Option.SepticMinPower || tmp > MC.Option.SepticMaxPower) {
+									if(++SepticMinMaxPowerCnt > MC.Option.SepticMinMaxPowerTime * 10 / MC.Option.PumpReadPeriod) {
+										set_Error(ERR_SEPTIC_WRONG_POWER, NULL);
+										SepticMinMaxPowerCnt = 0;
+									}
+								} else SepticMinMaxPowerCnt = 0;
 							}
-							if(tmp < MC.Option.SepticMinPower) {
-								if(++SepticMinPowerCnt > SEPTIC_MIN_POWER_CNT) {
-									set_Error(ERR_SEPTIC_NOT_WORK, NULL);
-									SepticMinPowerCnt = 0;
-								}
-							} else SepticMinPowerCnt = 0;
-							SepticPower = tmp;
-							if(SepticPowerMax < tmp) SepticPowerMax = tmp;
 							SepticErrCnt = 0;
 						} else {
 #ifndef CHECK_DRAIN_PUMP
@@ -1619,20 +1621,23 @@ void vReadSensor(void *)
 								//tmp /= 10;	// -> W
 								uint32_t ut = rtcSAM3X8.unixtime();
 								uint32_t dpmp = MC.Option.DrainPumpMinPower * 10;
-								if(tmp > dpmp) { // работает
-									if(DrainPumpPower <= dpmp) DrainPumpTimeLast = ut; // время включения
+								if(tmp >= dpmp) { // работает
+									if(DrainPumpPower < dpmp) DrainPumpTimeLast = ut; // время включения
 									else if(MC.Option.DrainPumpMaxTime && MC.get_errcode() != ERR_DRAIN_PUMP_TOOLONG
 											&& ut - DrainPumpTimeLast > MC.Option.DrainPumpMaxTime * 20) {
+										DrainPumpPower = tmp;
 										set_Error(ERR_DRAIN_PUMP_TOOLONG, NULL);
 										DrainPumpRelayStatus = MODBUS_RELAY_CMD_OFF;
 									}
 									if(ut - DrainPumpTimeLast >= MC.Option.PumpStartTime) {
 										if(MC.Option.DrainPumpMaxPower && tmp > MC.Option.DrainPumpMaxPower) {
-											journal.jprintf("Drain: %.3dA\n", tmp);
+											journal.jprintf("Drain pump: %.3dA\n", tmp);
+											DrainPumpPower = tmp;
 											set_Error(ERR_DRAIN_PUMP_OVERLOAD, NULL);
 											DrainPumpRelayStatus = MODBUS_RELAY_CMD_OFF;
-										} else if(MC.Option.DrainPumpDryPower && tmp <= MC.Option.DrainPumpDryPower && DrainPumpPower > dpmp && (!GETBIT(MC.Option.flags2, fDrainPumpRelayDelayedStop) || DrainPumpPower <= MC.Option.DrainPumpDryPower)) {
-											journal.jprintf("Drain: %.3dA\n", tmp < DrainPumpPower ? tmp : DrainPumpPower);
+										} else if(MC.Option.DrainPumpDryPower && tmp <= MC.Option.DrainPumpDryPower && DrainPumpPower >= dpmp && (!GETBIT(MC.Option.flags2, fDrainPumpRelayDelayedStop) || DrainPumpPower <= MC.Option.DrainPumpDryPower)) {
+											journal.jprintf("Drain pump: %.3dA\n", tmp < DrainPumpPower ? tmp : DrainPumpPower);
+											DrainPumpPower = tmp;
 											set_Error(ERR_DRAIN_PUMP_DRAIN_RUN, NULL);
 											DrainPumpRelayStatus = MODBUS_RELAY_CMD_OFF;
 										}

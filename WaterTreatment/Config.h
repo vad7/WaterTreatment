@@ -236,7 +236,7 @@ struct History_setup {
 		#define MODBUS_SEPTIC_PUMP_ON_CMD		1	// Команда - насос может работать
 		#define MODBUS_SEPTIC_PUMP_OFF_CMD		0	// Команда отключения питания насоса при аварии
 		//#define MODBUS_SEPTIC_PUMP_ON_PULSE	// Если активно, то импульс 1 сек для выключения (N замыкается на GND для срабатывания УЗО), иначе выкл/вкл и работа без поплавка насоса
-		#define SEPTIC_MIN_POWER_CNT			250	// Через сколько периодов низкого потребления септика выдавать ошибку
+		#define SEPTIC_MIN_POWER_CNT			30	// Через сколько периодов низкого потребления септика выдавать ошибку (Option.PumpReadPeriod)
 		#define SEPTIC_CLEAR_ERROR_TIMEOUT		10*1000 // Через сколько времени сбрасывать ошибку если септик починился, мс
 		#define SEPTIC_PUMP_PWR_SWITCH_TIMER	5	// Таймер проверки включился/выключился ли насос, *MC.Option.PumpReadPeriod + 1
 	#endif
