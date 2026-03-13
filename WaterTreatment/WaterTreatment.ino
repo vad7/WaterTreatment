@@ -1591,6 +1591,7 @@ void vReadSensor(void *)
 								tmp = (tmp + 5) / 10;
 								if(tmp < MC.Option.SepticMinPower || tmp > MC.Option.SepticMaxPower) {
 									if(++SepticMinMaxPowerCnt > MC.Option.SepticMinMaxPowerTime * 10 / MC.Option.PumpReadPeriod) {
+										journal.jprintf("Septic: %.3dA\n", tmp);
 										set_Error(ERR_SEPTIC_WRONG_POWER, NULL);
 										SepticMinMaxPowerCnt = 0;
 									}

@@ -800,23 +800,18 @@ boolean devPWM::set_param(char *var, float f)
 {
    if(strcmp(var, pwm_RESET) == 0) {
 	   journal.jprintf("Reset energy: ");
-	   uint8_t st = Modbus.CustomRequest(PWM_MODBUS_ADR, PWM_RESET_ENERGY);
-	   if(st) journal.jprintf("%s - Error %d!\n", "Water", st);
-	   else {
-		   journal.jprintf("%s - Ok\n", "Water");
+	   int8_t st = Modbus.CustomRequest(PWM_MODBUS_ADR, PWM_RESET_ENERGY);
+	   if(st) journal.jprintf("%s - Error %d!\n", "Water", st); else journal.jprintf("%s - Ok\n", "Water");
 #ifdef CHECK_DRAIN_PUMP
-		   st = Modbus.CustomRequest(MODBUS_DRAIN_PUMP_ADDR, PWM_RESET_ENERGY);
-		   if(st) journal.jprintf("%s - Error %d!\n", "Drain", st);
-		   else journal.jprintf("%s - Ok\n", "Drain");
+	   st = Modbus.CustomRequest(MODBUS_DRAIN_PUMP_ADDR, PWM_RESET_ENERGY);
+	   if(st) journal.jprintf("%s - Error %d!\n", "Drain", st); else journal.jprintf("%s - Ok\n", "Drain");
 #endif
 #ifdef CHECK_SEPTIC
-		   st = Modbus.CustomRequest(MODBUS_SEPTIC_ADDR, PWM_RESET_ENERGY);
-		   if(st) journal.jprintf("%s - Error %d!\n", "Septic", st);
-		   else journal.jprintf("%s - Ok\n", "Septic");
+	   st = Modbus.CustomRequest(MODBUS_SEPTIC_ADDR, PWM_RESET_ENERGY);
+	   if(st) journal.jprintf("%s - Error %d!\n", "Septic", st); else journal.jprintf("%s - Ok\n", "Septic");
 #endif
-		   MC.WorkStats.ResetTimePowerMeters = rtcSAM3X8.unixtime();
-		   NeedSaveWorkStats = 1;
-	   }
+	   MC.WorkStats.ResetTimePowerMeters = rtcSAM3X8.unixtime();
+	   NeedSaveWorkStats = 1;
 	   return st;
    } else if(strcmp(var, pwm_TestPower) == 0) {
 	   TestPower = rd(f, 1000);
