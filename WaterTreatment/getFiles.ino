@@ -680,14 +680,16 @@ void get_mailState(EthernetClient client, char *tempBuf)
 	strcpy(tempBuf, " Напряжение, В: ");
 	MC.dPWM.get_param((char*) pwm_VOLTAGE, tempBuf);
 	strcat(tempBuf, cStrEnd);
-	strcat(tempBuf, " Мощность, Вт: ");
+	strcat(tempBuf, ". Ток, A: ");
+	_dtoa(tempBuf, MC.dPWM.get_Current(), 3);
+	strcat(tempBuf, ". Мощность, Вт: ");
 	MC.dPWM.get_param((char*) pwm_POWER, tempBuf);
 	strcat(tempBuf, cStrEnd);
 	client.write(tempBuf, strlen(tempBuf));
 #ifdef CHECK_DRAIN_PUMP
 	if(GETBIT(MC.Option.flags2, fCheckDrainPump)) {
 		strcpy(tempBuf, MODBUS_DRAIN_PUMP_RELAY_NAME);
-		strcat(tempBuf, ". Мощность, Вт: ");
+		strcat(tempBuf, ". Ток, A: ");
 		_dtoa(tempBuf, DrainPumpPower, 3);
 		strcat(tempBuf, cStrEnd);
 		client.write(tempBuf, strlen(tempBuf));
@@ -696,7 +698,7 @@ void get_mailState(EthernetClient client, char *tempBuf)
 #ifdef CHECK_SEPTIC
 	if(GETBIT(MC.Option.flags2, fCheckSeptic)) {
 		strcpy(tempBuf, MODBUS_SEPTIC_NAME);
-		strcat(tempBuf, ". Мощность, Вт: ");
+		strcat(tempBuf, ". Ток, A: ");
 		_dtoa(tempBuf, SepticPower, 3);
 		strcat(tempBuf, cStrEnd);
 		client.write(tempBuf, strlen(tempBuf));

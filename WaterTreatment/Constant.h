@@ -462,6 +462,7 @@ const char *option_SepticPumpMaxTime	= {"SPT"};
 const char *option_SepticPumpMinPower	= {"SPM"};
 const char *option_SepticPumpMaxPower	= {"SPH"};
 const char *option_SepticPumpDryPower	= {"SPD"};
+const char *option_SepticPumpDryDelta	= {"SDD"};
 const char *option_SepticPumpConsumedMax= {"SPC"};
 const char *option_SepticMinPower		= {"SMP"};
 const char *option_SepticMaxPower		= {"SHP"};

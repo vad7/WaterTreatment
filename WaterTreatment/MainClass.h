@@ -140,6 +140,7 @@ uint8_t  SepticPumpDryCnt		= 0;
 #endif
 uint16_t SepticPower 			= 0; // mA
 uint16_t SepticPowerMax 		= 0; // mA
+uint16_t SepticPowerPrev		= 0;
 uint8_t  PumpReadCounter 		= 0;
 
 #ifdef MODBUS_SEPTIC_HEAT_RELAY_ADDR
@@ -326,7 +327,7 @@ struct type_option {
 	uint8_t  PWATER_Osmos_FullMinus;// Дельта от макс. давления бака НС, контроль малого потребления после снижения давления ниже, сотые бара
 	uint8_t  WaterBoosterMinTank;	// Контроль среднего минимального объема бака насосной станции, 0 - нет, литры
 	uint16_t DrainPumpMaxPower;		// Максимальный ток дренажного насоса после времени старта, мА
-	uint8_t  PumpStartTime;			// Время старта дренажного насоса, с
+	uint8_t  PumpStartTime;			// Время старта насосов, с
 	uint8_t  PWATER_Osmos_Delay;	// Задержка после прекращения потребления (ниже минимума) до начала работы алгоритма добавки, сек
 	uint16_t RO_FilterCounter1_Max;	// Предел для фильтров обратного осмоса #1, *10л
 	uint16_t RO_FilterCounter2_Max;	// Предел для фильтров обратного осмоса #2, *10л
@@ -343,6 +344,7 @@ struct type_option {
 	uint8_t  LTank_CriticalMax;		// Максимальный уровень бака, выше - ошибка, %
 	uint8_t  SepticMaxPower;		// Максимальный длительный ток септика, если больше и меньше мин. тока насоса, то ошибка, мА * 10
 	uint8_t  SepticMinMaxPowerTime;	// Максимальное время длительного тока септика до ошибки, сек * 10
+	uint8_t  SepticPumpDryDelta;	// Дельта тока (относительно предыдущего и пред-предыдущего чтение) для определения сухого хода, мА * 2
 };
 
 //  Работа с отдельными флагами type_DateTime

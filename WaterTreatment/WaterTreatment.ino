@@ -1534,6 +1534,7 @@ void vReadSensor(void *)
 								if(pwr_prev < minp) { // включился
 									if(SepticPumpTimeLast) UsedWaterToSepticLast = UsedWaterToSeptic;
 									SepticPumpTimeLast = ut; // время включения
+									SepticPowerPrev = tmp;
 								} else if(MC.Option.SepticPumpMaxTime && MC.get_errcode() != ERR_SEPTIC_PUMP_TOOLONG
 										&& ut - SepticPumpTimeLast > MC.Option.SepticPumpMaxTime * 20) {
 #ifndef MODBUS_SEPTIC_PUMP_ON_PULSE
@@ -1547,25 +1548,36 @@ void vReadSensor(void *)
 										journal.jprintf("Septic: %.3dA\n", tmp);
 										set_Error(ERR_SEPTIC_PUMP_OVERLOAD, NULL);
 										SepticPumpRelayStatus = MODBUS_RELAY_CMD_OFF;
-									} else if(MC.Option.SepticPumpDryPower && tmp <= MC.Option.SepticPumpDryPower && pwr_prev >= minp && (!GETBIT(MC.Option.flags2, fSepticPumpRelayDelayedStop) || pwr_prev <= MC.Option.SepticPumpDryPower)) {
-#ifndef MODBUS_SEPTIC_PUMP_ON_PULSE
-										if(!GETBIT(MC.Option.flags2, fSepticPumpRelayNoErr) || MC.Option.SepticPumpConsumedMax == 0)
-#endif
-										{
-											journal.jprintf("Septic: %.3dA\n", tmp < pwr_prev ? tmp : pwr_prev);
-											set_Error(ERR_SEPTIC_PUMP_DRAIN_RUN, NULL);
+									} else if(MC.Option.SepticPumpDryPower && pwr_prev >= minp) {
+										bool _dry = false;
+										if(GETBIT(MC.Option.flags2, fSepticPumpRelayDelayedStop)) {
+											if(tmp <= MC.Option.SepticPumpDryPower && pwr_prev <= MC.Option.SepticPumpDryPower) _dry = true;
+											else if(MC.Option.SepticPumpDryDelta && MC.Option.SepticPumpDryDelta * 2 <= (int32_t)SepticPowerPrev - (int32_t)tmp) _dry = true;
+										} else {
+											if(tmp <= MC.Option.SepticPumpDryPower) _dry = true;
+											else if(MC.Option.SepticPumpDryDelta && (MC.Option.SepticPumpDryDelta * 2 <= (int32_t)SepticPowerPrev - (int32_t)tmp
+													|| MC.Option.SepticPumpDryDelta * 2 <= (int32_t)pwr_prev - (int32_t)tmp)) _dry = true;
 										}
-										SepticPumpRelayStatus = MODBUS_RELAY_CMD_OFF;
-										if(MC.sInput[SEPTIC_ALARM].get_Input()) {
-											set_Error(ERR_SEPTIC_ALARM, (char*)__FUNCTION__);
-											CriticalErrors |= ERRC_SepticAlarm;
-											MC.dRelay[RWATEROFF1].set_ON();
-											if(!GETBIT(MC.Option.flags2, fSepticCriticalErrOnly1ValveOff)) MC.dRelay[RWATERON].set_Relay(fR_StatusAllOff);
-											SepticAlarmTime = 0;
+										if(_dry) {
+#ifndef MODBUS_SEPTIC_PUMP_ON_PULSE
+											if(!GETBIT(MC.Option.flags2, fSepticPumpRelayNoErr) || MC.Option.SepticPumpConsumedMax == 0)
+#endif
+											{
+												journal.jprintf("Septic: %.3dA\n", tmp < pwr_prev ? tmp : pwr_prev);
+												set_Error(ERR_SEPTIC_PUMP_DRAIN_RUN, NULL);
+											}
+											SepticPumpRelayStatus = MODBUS_RELAY_CMD_OFF;
+											if(MC.sInput[SEPTIC_ALARM].get_Input()) {
+												set_Error(ERR_SEPTIC_ALARM, (char*)__FUNCTION__);
+												CriticalErrors |= ERRC_SepticAlarm;
+												MC.dRelay[RWATEROFF1].set_ON();
+												if(!GETBIT(MC.Option.flags2, fSepticCriticalErrOnly1ValveOff)) MC.dRelay[RWATERON].set_Relay(fR_StatusAllOff);
+												SepticAlarmTime = 0;
+											}
 										}
 									}
 #ifndef MODBUS_SEPTIC_PUMP_ON_PULSE
-									else if(SepticPumpRelayTimer == 1 && SepticPumpRelayStatus == MODBUS_RELAY_OFF && pwr_prev >= minp) { // Залипло реле насоса
+									if(SepticPumpRelayTimer == 1 && SepticPumpRelayStatus == MODBUS_RELAY_OFF && pwr_prev >= minp) { // Залипло реле насоса
 										set_Error(ERR_SEPTIC_PUMP_RELAY_STUCK, NULL);
 									}
 #endif
@@ -1597,6 +1609,7 @@ void vReadSensor(void *)
 									}
 								} else SepticMinMaxPowerCnt = 0;
 							}
+							SepticPowerPrev = pwr_prev;
 							SepticErrCnt = 0;
 						} else {
 #ifndef CHECK_DRAIN_PUMP
