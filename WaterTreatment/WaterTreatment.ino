@@ -1534,7 +1534,7 @@ void vReadSensor(void *)
 								if(pwr_prev < minp) { // включился
 									if(SepticPumpTimeLast) UsedWaterToSepticLast = UsedWaterToSeptic;
 									SepticPumpTimeLast = ut; // время включения
-									SepticPowerPrev = tmp;
+									SepticPowerPrev = 0;
 								} else if(MC.Option.SepticPumpMaxTime && MC.get_errcode() != ERR_SEPTIC_PUMP_TOOLONG
 										&& ut - SepticPumpTimeLast > MC.Option.SepticPumpMaxTime * 20) {
 #ifndef MODBUS_SEPTIC_PUMP_ON_PULSE
@@ -1548,14 +1548,14 @@ void vReadSensor(void *)
 										journal.jprintf("Septic: %.3dA\n", tmp);
 										set_Error(ERR_SEPTIC_PUMP_OVERLOAD, NULL);
 										SepticPumpRelayStatus = MODBUS_RELAY_CMD_OFF;
-									} else if(MC.Option.SepticPumpDryPower && pwr_prev >= minp) {
+									} else if(pwr_prev >= minp) {
 										bool _dry = false;
 										if(GETBIT(MC.Option.flags2, fSepticPumpRelayDelayedStop)) {
-											if(tmp <= MC.Option.SepticPumpDryPower && pwr_prev <= MC.Option.SepticPumpDryPower) _dry = true;
-											else if(MC.Option.SepticPumpDryDelta && MC.Option.SepticPumpDryDelta * 2 <= (int32_t)SepticPowerPrev - (int32_t)tmp) _dry = true;
+											if(MC.Option.SepticPumpDryPower && tmp <= MC.Option.SepticPumpDryPower && pwr_prev <= MC.Option.SepticPumpDryPower) _dry = true;
+											else if(MC.Option.SepticPumpDryDelta && SepticPowerPrev && MC.Option.SepticPumpDryDelta * 2 <= (int32_t)SepticPowerPrev - (int32_t)tmp) _dry = true;
 										} else {
-											if(tmp <= MC.Option.SepticPumpDryPower) _dry = true;
-											else if(MC.Option.SepticPumpDryDelta && (MC.Option.SepticPumpDryDelta * 2 <= (int32_t)SepticPowerPrev - (int32_t)tmp
+											if(MC.Option.SepticPumpDryPower && tmp <= MC.Option.SepticPumpDryPower) _dry = true;
+											else if(MC.Option.SepticPumpDryDelta && SepticPowerPrev && (MC.Option.SepticPumpDryDelta * 2 <= (int32_t)SepticPowerPrev - (int32_t)tmp
 													|| MC.Option.SepticPumpDryDelta * 2 <= (int32_t)pwr_prev - (int32_t)tmp)) _dry = true;
 										}
 										if(_dry) {
@@ -1581,7 +1581,7 @@ void vReadSensor(void *)
 										set_Error(ERR_SEPTIC_PUMP_RELAY_STUCK, NULL);
 									}
 #endif
-								}
+								} else SepticPowerPrev = 0;
 							} else { // не работает
 								if(pwr_prev >= minp) { // Остановился
 									SepticPumpTimeWorkTime = ut - SepticPumpTimeLast;
