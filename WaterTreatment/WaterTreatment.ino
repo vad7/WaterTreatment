@@ -854,7 +854,7 @@ void vKeysLCD( void * )
 	lcd.print((char*)"WaterTreatment v");
 	lcd.print((char*)VERSION);
 	lcd.setCursor(0, 2);
-	lcd.print((char*)"Vadim Kulakov(c)2025");
+	lcd.print((char*)"Vadim Kulakov(c)2026");
 	lcd.setCursor(0, 3);
 	lcd.print((char*)"vad7@yahoo.com");
 	vTaskDelay(3000);
@@ -1552,10 +1552,12 @@ void vReadSensor(void *)
 										bool _dry = false;
 										if(GETBIT(MC.Option.flags2, fSepticPumpRelayDelayedStop)) {
 											if(MC.Option.SepticPumpDryPower && tmp <= MC.Option.SepticPumpDryPower && pwr_prev <= MC.Option.SepticPumpDryPower) _dry = true;
-											else if(MC.Option.SepticPumpDryDelta && SepticPowerPrev && MC.Option.SepticPumpDryDelta * 2 <= (int32_t)SepticPowerPrev - (int32_t)tmp) _dry = true;
+											else if(MC.Option.SepticPumpDryDelta && SepticPowerPrev && ut - SepticPumpTimeLast > SEPTIC_PUMP_CHECK_DRY_BY_DELTA_DELAY
+													&& ((int32_t)MC.Option.SepticPumpDryDelta * 2) <= (int32_t)SepticPowerPrev - (int32_t)tmp) _dry = true;
 										} else {
 											if(MC.Option.SepticPumpDryPower && tmp <= MC.Option.SepticPumpDryPower) _dry = true;
-											else if(MC.Option.SepticPumpDryDelta && SepticPowerPrev && (MC.Option.SepticPumpDryDelta * 2 <= (int32_t)SepticPowerPrev - (int32_t)tmp
+											else if(MC.Option.SepticPumpDryDelta && SepticPowerPrev && ut - SepticPumpTimeLast > SEPTIC_PUMP_CHECK_DRY_BY_DELTA_DELAY
+													&& ((int32_t)MC.Option.SepticPumpDryDelta * 2 <= (int32_t)SepticPowerPrev - (int32_t)tmp
 													|| MC.Option.SepticPumpDryDelta * 2 <= (int32_t)pwr_prev - (int32_t)tmp)) _dry = true;
 										}
 										if(_dry) {
