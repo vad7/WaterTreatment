@@ -239,7 +239,7 @@ struct History_setup {
 		#define SEPTIC_MIN_POWER_CNT			30	// Через сколько периодов низкого потребления септика выдавать ошибку (Option.PumpReadPeriod)
 		#define SEPTIC_CLEAR_ERROR_TIMEOUT		10*1000 // Через сколько времени сбрасывать ошибку если септик починился, мс
 		#define SEPTIC_PUMP_PWR_SWITCH_TIMER	5	// Таймер проверки включился/выключился ли насос, *MC.Option.PumpReadPeriod + 1
-		#define SEPTIC_PUMP_CHECK_DRY_BY_DELTA_DELAY 7	// Задержка проверки на сухой ход по разнице между текущим потреблением и 2-мя предыдущими
+		#define SEPTIC_PUMP_CHECK_DRY_BY_DELTA_DELAY 8	// Задержка проверки на сухой ход по разнице между текущим потреблением и 2-мя предыдущими, сек
 	#endif
 
 	#define MODBUS_TIMER_RELAY_MAX				4							// Число реле времени по Modbus
