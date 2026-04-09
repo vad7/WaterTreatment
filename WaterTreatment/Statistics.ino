@@ -346,9 +346,12 @@ void Statistics::Reset(bool newday)
 #ifdef REVERSE_OSMOS_FC
 		if(Stats_data[i].object == STATS_OBJ_RO_WaterUsed) {
 			if(Stats_data[i].value == 0 && GETBIT(work_flags, WF_bWasLowConsumeToday) && GETBIT(MC.Option.flags2, fCheck_REVERSE_OSMOS_FC) ) {
-				// похоже не работает счетчик питевой воды
-				set_Error(ERR_REVERSE_OSMOS_FC, (char*)__FUNCTION__);
-			}
+				if(++ERR_reverse_osmos_counter > REVERSE_OSMOS_NOWORK_MAX_DAY_CHECK) {
+					ERR_reverse_osmos_counter = 0;
+					// похоже не работает счетчик питевой воды
+					set_Error(ERR_REVERSE_OSMOS_FC, (char*)__FUNCTION__);
+				}
+			} else ERR_reverse_osmos_counter = 0;
 			SETBIT0(work_flags, WF_bWasLowConsumeToday);
 		}
 #endif

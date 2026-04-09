@@ -637,7 +637,7 @@ struct History_setup {
 	#define	REVERSE_OSMOS_F1_END_STR	"предварительные (K3,K2)"	// Название фильтров #1 для сообщения, когда их ресурс закончится
 	#define	REVERSE_OSMOS_F2_END_STR	"пост (K7)"					// Название фильтров #2 для сообщения, когда их ресурс закончится
 	#define	REVERSE_OSMOS_STR_END		" фильтр(а)"
-
+	#define	REVERSE_OSMOS_NOWORK_MAX_DAY_CHECK 7	// Через сколько дней не работы счетчика питьевого фильтра и низким расходом выдавать ошибку
 
 
 #endif  // CONFIG_1

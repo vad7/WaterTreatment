@@ -182,6 +182,7 @@ uint16_t UsedWaterToSeptic = 0;		// л
 uint16_t SepticMinMaxPowerCnt = 0;
 uint8_t  PIN_LED_SRV_INFO_off = 0;		// off value
 int16_t  RWATERON_Switching = 0; // >0 - в процессе переключения, <0 - задержка включения, сек
+uint8_t  ERR_reverse_osmos_counter = 0;
 
 #define WF_bWasLowConsumeToday 0	// сегодня было низкое потребление
 uint8_t  work_flags = 0;
