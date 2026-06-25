@@ -369,6 +369,7 @@ const char *chart_DrainPump  = {"DrainPump"};
 const char *chart_SepticPump  = {"SepticPump"};
 
 // Описание имен параметров опций   для функций get_option ("get_Opt") set_option ("set_Opt")
+// DS* - ЗАНЯТО!
 const char *option_ATTEMPT            	= {"ATTEMPT"};            // число попыток пуска
 const char *option_TIME_CHART         	= {"TIME_CHART"};         // период сбора статистики
 const char *option_BEEP               	= {"BEEP"};               // включение звука
@@ -439,11 +440,11 @@ const char *option_LowConsumeRequestPeriod={"LCP"};
 const char *option_fLowConsumeReq_OnByErr={"LEO"};
 const char *option_SepticAlarmDebounce  ={"SD"};
 const char *option_RegenSofteningCntAlarm={"RSA"};
-const char *option_DrainSiltTime		= {"DST"};
-const char *option_DrainSiltAfterL100	= {"DSL"};
-const char *option_DrainSiltAfterNotUsed= {"DSH"};
-const char *option_fDrainSiltTank		= {"DSF"};
-const char *option_fDrainSiltTankBeforeRegen= {"DSR"};
+const char *option_DrainSiltTime		= {"ST"};
+const char *option_DrainSiltAfterL100	= {"SL"};
+const char *option_DrainSiltAfterNotUsed= {"SH"};
+const char *option_fDrainSiltTank		= {"SF"};
+const char *option_fDrainSiltTankBeforeRegen= {"SR"};
 const char *option_UsedWaterContinuous	= {"UWC"};
 const char *option_FilterCounter1_Max	= {"FC1"};
 const char *option_FilterCounter2_Max	= {"FC2"};
