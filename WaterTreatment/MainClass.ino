@@ -35,6 +35,9 @@ int8_t set_Error(int8_t _err, char *nam)
 		} else if(_err == ERR_DRAIN_PUMP_DRAIN_RUN || _err == ERR_DRAIN_PUMP_OVERLOAD) {
 			size_t _len = strlen(MC.note_error);
 			m_snprintf(MC.note_error + _len, sizeof(MC.note_error) - _len - 1, "- %.3dA", DrainPumpPower);
+		} else if(_err == ERR_TANK_NO_FILLING) {
+			size_t _len = strlen(MC.note_error);
+			m_snprintf(MC.note_error + _len, sizeof(MC.note_error) - _len - 1, "- %.2d%% за %d сек", MC.sADC[LTANK].get_Value() - FillingTankLastLevel, MC.Option.FillingTankTimeout);
 		}
 	}
 	uint32_t i = Get_Errors_IndexEnd(_err);
