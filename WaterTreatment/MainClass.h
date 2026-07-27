@@ -149,7 +149,7 @@ uint16_t SepticHeatRelayErrors = 0;
 #endif
 uint16_t ModbusRelayErrors = 0;
 
-uint16_t FillingTankTimer = 0;
+int16_t FillingTankTimer = 0;
 int16_t  FillingTankLastLevel = 0;	// in 0.01%
 uint8_t  TankCheckFlag = 0;			// 0 - проверка на герметичность, 1 - проверка на скорость заполнения, 2 - сброс
 uint32_t TimeFeedPump = 0;			// ms
@@ -255,6 +255,7 @@ type_WebSecurity WebSec_admin;				// хеш паролей
 #define fCheck_REVERSE_OSMOS_FC 11			// Проверять был ли расход счетчика питьевого фильтра
 #define fSepticPumpRelayDelayedStop	12		// Определение сухого хода со второго чтения подряд
 #define fDrainPumpRelayDelayedStop	13		// Определение сухого хода со второго чтения подряд
+#define fRegenOnlyOnePerDay	14				// Только одна регенерация за день
 
 // Структура для хранения настроек
 struct type_option {

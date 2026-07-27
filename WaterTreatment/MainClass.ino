@@ -976,6 +976,7 @@ boolean MainClass::set_option(char *var, float xx)
 	if(strcmp(var,option_fDebugToSerial)==0) { Option.flags = (Option.flags & ~(1<<fDebugToSerial)) | ((x!=0)<<fDebugToSerial); return true; } else
 	if(strcmp(var,option_fRegenAllowed)==0) { Option.flags = (Option.flags & ~(1<<fRegenAllowed)) | ((x!=0)<<fRegenAllowed); return true; } else
 	if(strcmp(var,option_fRegenAllowedSoftener)==0) { Option.flags = (Option.flags & ~(1<<fRegenAllowedSoftener)) | ((x!=0)<<fRegenAllowedSoftener); return true; } else
+	if(strcmp(var,option_fRegenOnlyOnePerDay)==0) { Option.flags = (Option.flags & ~(1<<fRegenOnlyOnePerDay)) | ((x!=0)<<fRegenOnlyOnePerDay); return true; } else
 	if(strcmp(var,option_fChartOnlyNonZeroW)==0) { Option.flags = (Option.flags & ~(1<<fChartOnlyNonZeroW)) | ((x!=0)<<fChartOnlyNonZeroW); return true; } else
 	if(strcmp(var,option_FeedPumpRate)==0) { Option.FeedPumpRate = rd(xx * 1000, 1000) / 3600; return true; } else
 	if(strcmp(var,option_FeedPumpMaxFlow)==0) { Option.FeedPumpMaxFlow = Option.FeedPumpRate * 1000 / rd(xx, 1000); return true; } else
@@ -1131,6 +1132,7 @@ char* MainClass::get_option(char *var, char *ret)
 	if(strcmp(var,option_fDebugToSerial)==0){ return strcat(ret, (char*)(GETBIT(Option.flags, fDebugToSerial) ? cOne : cZero)); } else
 	if(strcmp(var,option_fRegenAllowed)==0){ return strcat(ret, (char*)(GETBIT(Option.flags, fRegenAllowed) ? cOne : cZero)); } else
 	if(strcmp(var,option_fRegenAllowedSoftener)==0){ return strcat(ret, (char*)(GETBIT(Option.flags, fRegenAllowedSoftener) ? cOne : cZero)); } else
+	if(strcmp(var,option_fRegenOnlyOnePerDay)==0){ return strcat(ret, (char*)(GETBIT(Option.flags, fRegenOnlyOnePerDay) ? cOne : cZero)); } else
 	if(strcmp(var,option_fChartOnlyNonZeroW)==0){ return strcat(ret, (char*)(GETBIT(Option.flags, fChartOnlyNonZeroW) ? cOne : cZero)); } else
 	if(strcmp(var,option_FeedPumpRate)==0){ _dtoa(ret, Option.FeedPumpRate * 3600 / 1000, 3); return ret; } else // лч
 	if(strcmp(var,option_FeedPumpMaxFlow)==0){ _dtoa(ret, Option.FeedPumpRate * 1000 / Option.FeedPumpMaxFlow, 3); return ret; } else // мл на 1л расхода

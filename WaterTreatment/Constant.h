@@ -20,7 +20,7 @@
 #include "Util.h"
 
 // ОПЦИИ КОМПИЛЯЦИИ ПРОЕКТА -------------------------------------------------------
-#define VERSION			  "1.82"			// Версия прошивки
+#define VERSION			  "1.83"			// Версия прошивки
 #define VER_SAVE		  16				// Версия формата сохраняемых данных в I2C память
 //#define LOG                               // В последовательный порт шлет лог веб сервера (логируются запросы)
 #define FAST_LIB                            // использование допиленной библиотеки езернета
@@ -422,6 +422,7 @@ const char *option_fDebugToJournal		= {"DBG"};
 const char *option_fDebugToSerial		= {"DBGS"};
 const char *option_fRegenAllowed		= {"RA1"};
 const char *option_fRegenAllowedSoftener= {"RA2"};
+const char *option_fRegenOnlyOnePerDay	= {"ROO"};
 const char *option_FillingTankTimeout	= {"FTT"};
 const char *option_TankCheckPercent		= {"TCP"};
 const char *option_TankFillingTimeMax	= {"TFM"};
@@ -698,7 +699,7 @@ const char *noteError[] = {
 		"Регенерация умягчителя долго не запускалась!",										//-73
 		"Слишком долго работает дозатор!",													//-74
 		"Утечка накопительного бака!",														//-75
-		"Слишком долгое заполнение бака!",													//-76
+		"Бак ни как не наполнится!",														//-76
 		"Долгое непрерывное потребление воды!",												//-77
 		"Ошибка связи со счетчиком насоса дренажа",											//-78
 		"Ошибка связи с реле насоса дренажа",												//-79

@@ -2233,7 +2233,7 @@ void vService(void *)
 					}
 				}
 				if(GETBIT(MC.Option.flags2, fDrainSiltTank) && DrainingSiltFlag == 0 && MC.WorkStats.UsedDrainSiltL100 >= MC.Option.DrainSiltAfterL100
-						&& MC.sADC[LTANK].get_Value() > MC.Option.LTank_LowConsumeMin) {
+						&& MC.sADC[LTANK].get_Value() > MC.Option.LTank_LowConsumeMin && !MC.dRelay[RFILL].get_Relay()) {
 					if(ut - MC.WorkStats.UsedLastTime > MC.Option.DrainSiltAfterNotUsed * 3600 || MC.WorkStats.UsedDrainSiltL100 >= MC.Option.DrainSiltAfterL100 + MC.Option.DrainSiltAfterL100 / 2 + 1) {
 						DrainingSiltFlag = 1;
 #ifdef RSILT
@@ -2314,9 +2314,9 @@ void vService(void *)
 					if(!(MC.RTC_store.Work & RTC_Work_Regen_MASK) && !LowConsumeMode && hours_ok) {
 						uint32_t need_regen = 0;
 						if(MC.get_NeedRegen() || (MC.WorkStats.Flags & WS_F_StartRegen)) {
-							need_regen |= RTC_Work_Regen_F1;
+							if(MC.WorkStats.DaysFromLastRegenSoftening > 0 || !GETBIT(MC.Option.flags2, fRegenOnlyOnePerDay)) need_regen |= RTC_Work_Regen_F1;
 						} else if(MC.get_NeedRegenSoftening() || (MC.WorkStats.Flags & WS_F_StartRegenSoft)) {
-							need_regen |= RTC_Work_Regen_F2;
+							if(MC.WorkStats.DaysFromLastRegen > 0 || !GETBIT(MC.Option.flags2, fRegenOnlyOnePerDay)) need_regen |= RTC_Work_Regen_F2;
 						} else if(MC.get_RegenExpired()) {
 							set_Error(ERR_REGEN_EXPIRED, (char*)__FUNCTION__);
 						} else if(MC.get_RegenExpiredSoftening()) {
@@ -2509,7 +2509,7 @@ void vService(void *)
 						} else {
 							TankCheckFlag = 1;
 							FillingTankLastLevel = MC.sADC[LTANK].get_Value();
-							FillingTankTimer = 0;
+							FillingTankTimer = -FILL_TANK_CHECK_DELAY;
 						}
 					}
 				} else if(TankCheckFlag || DrainingSiltFlag) {
