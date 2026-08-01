@@ -614,7 +614,7 @@ struct History_setup {
 	#define FILLING_TANK_STEP			200		// По умолчанию или если TankCheckPercent=0, сотые %, На сколько должен заполняться бак за время Option.FillingTankTimeout (2% - 40s, 3% - 60s)
 	#define FILLING_TANK_LOW_CONSUME_TIME 300   // время заполнения бака в режиме работы от резерва, сек
 	#define FILL_TANK_REGEN_DELTA		300		// сотые %, дельта минимального уровня бака от максимума для заполнения его во время обратной промывки
-	#define FILL_TANK_CHECK_DELAY		15		// сек, задержка контроля заполнения бака после включения заполнения
+	#define FILL_TANK_CHECK_DELAY		20		// сек, задержка контроля заполнения бака после включения заполнения
 	#define DRAIN_SILT_AFTER_REGEN		1		// *100L, слив осадка после регенерации через литров (сброс счетчика на)
 	#define WEB_DONT_SHOW_DRAIN_AFTER	31		// Не показывать в веб последний слив воды с фильтра 1 по прошествию дней
 
