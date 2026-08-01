@@ -437,6 +437,7 @@ const char *option_LTank_AfterFilledTimer={"TAF"};
 const char *option_LTank_Hour_Low		= {"LHL"};
 const char *option_LTank_Hour			= {"LH"};
 const char *option_RFILL_HoursRepeatPulse= {"RFIL"};
+const char *option_RFILL_HoursRepeatPulseTime= {"RFT"};
 const char *option_LowConsumeRequestPeriod={"LCP"};
 const char *option_fLowConsumeReq_OnByErr={"LEO"};
 const char *option_SepticAlarmDebounce  ={"SD"};

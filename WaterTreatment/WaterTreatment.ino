@@ -2215,8 +2215,8 @@ void vService(void *)
 
 				uint32_t ut = rtcSAM3X8.unixtime();
 				if(MC.Option.RFILL_HoursRepeatPulse && ut - MC.RFILL_last_time_ON > (uint32_t) MC.Option.RFILL_HoursRepeatPulse * 60 * 60) {
+					SETBIT1(work_flags, WF_RFILL_HoursRepeatPulse_ON);
 					MC.dRelay[RFILL].set_ON();
-					MC.RFILL_last_time_ON = 0;
 				} else if(MC.Option.TankFillingTimeMax && MC.dRelay[RFILL].get_Relay() && ut - MC.RFILL_last_time_ON > MC.Option.TankFillingTimeMax * 60) {
 					//CriticalErrors |= ERRC_TankFillingLong;
 					set_Error(ERR_TANK_FILLING_LONG, (char*)"vService");
@@ -2380,9 +2380,9 @@ void vService(void *)
 				}
 				// Не помещать тут код
 			} else { // Every 1 sec except updstat sec
-				if(MC.RFILL_last_time_ON == 0) {
+				if(GETBIT(work_flags, WF_RFILL_HoursRepeatPulse_ON) && rtcSAM3X8.unixtime() - MC.RFILL_last_time_ON >= MC.Option.RFILL_HoursRepeatPulseTime) {
+					SETBIT0(work_flags, WF_RFILL_HoursRepeatPulse_ON);
 					MC.dRelay[RFILL].set_OFF();
-					MC.RFILL_last_time_ON = rtcSAM3X8.unixtime();
 				}
 				if(NeedSaveWorkStats) {
 					if(MC.save_WorkStats() == OK) NeedSaveWorkStats = 0;

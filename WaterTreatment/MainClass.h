@@ -184,7 +184,8 @@ uint8_t  PIN_LED_SRV_INFO_off = 0;		// off value
 int16_t  RWATERON_Switching = 0; // >0 - в процессе переключения, <0 - задержка включения, сек
 uint8_t  ERR_reverse_osmos_counter = 0;
 
-#define WF_bWasLowConsumeToday 0	// сегодня было низкое потребление
+#define WF_bWasLowConsumeToday 			0	// сегодня было низкое потребление
+#define WF_RFILL_HoursRepeatPulse_ON	1
 uint8_t  work_flags = 0;
 
 // Weight
@@ -347,6 +348,7 @@ struct type_option {
 	uint8_t  SepticMaxPower;		// Максимальный длительный ток септика, если больше и меньше мин. тока насоса, то ошибка, мА * 10
 	uint8_t  SepticMinMaxPowerTime;	// Максимальное время длительного тока септика до ошибки, сек * 10
 	uint8_t  SepticPumpDryDelta;	// Дельта тока (относительно предыдущего и пред-предыдущего чтение) для определения сухого хода, мА * 2
+	uint8_t  RFILL_HoursRepeatPulseTime;// Длительность периодического импульса заполнения бака, сек
 };
 
 //  Работа с отдельными флагами type_DateTime

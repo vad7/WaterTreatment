@@ -1029,7 +1029,8 @@ boolean MainClass::set_option(char *var, float xx)
 	if(strcmp(var,option_DrainingWaterAfterRegen)==0){ Option.DrainingWaterAfterRegen = x; return true; } else
 	if(strcmp(var,option_DrainingWaterAfterRegenSoftening)==0){ Option.DrainingWaterAfterRegenSoftening = x; return true; } else
 	if(strcmp(var,option_RegenStart)==0){ Option.DrainingWaterAfterRegen = x; return true; } else // Start regenerate
-	if(strcmp(var,option_RFILL_HoursRepeatPulse)==0){ Option.RFILL_HoursRepeatPulse = x; return true; } else // Start regenerate
+	if(strcmp(var,option_RFILL_HoursRepeatPulse)==0){ Option.RFILL_HoursRepeatPulse = x; return true; } else
+	if(strcmp(var,option_RFILL_HoursRepeatPulseTime)==0){ Option.RFILL_HoursRepeatPulseTime = x; return true; } else
 	if(strcmp(var,option_LowConsumeRequestPeriod)==0){ Option.LowConsumeRequestPeriod = x; Request_LowConsume = xTaskGetTickCount(); return true; } else
 	if(strcmp(var,option_fLowConsumeReq_OnByErr)==0) { Option.flags = (Option.flags & ~(1<<fLowConsumeReq_OnByErr)) | ((x!=0)<<fLowConsumeReq_OnByErr); return true; } else
 	if(strcmp(var,option_SepticAlarmDebounce)==0){ Option.SepticAlarmDebounce = x; return true; } else
@@ -1189,6 +1190,7 @@ char* MainClass::get_option(char *var, char *ret)
 	if(strcmp(var,option_SepticAlarmDebounce)==0){ return _itoa(Option.SepticAlarmDebounce, ret); } else
 	if(strcmp(var,option_RegenSofteningCntAlarm)==0){ return _itoa(Option.RegenSofteningCntAlarm, ret); } else
 	if(strcmp(var,option_RFILL_HoursRepeatPulse)==0){ return _itoa(Option.RFILL_HoursRepeatPulse, ret); } else
+	if(strcmp(var,option_RFILL_HoursRepeatPulseTime)==0){ return _itoa(Option.RFILL_HoursRepeatPulseTime, ret); } else
 	if(strcmp(var,option_GetCurrentSaltLevel)==0){ return _itoa(MC.WorkStats.RegenSofteningCntAlarm * 100L / Option.RegenSofteningCntAlarm, ret); } else
 	if(strcmp(var,option_DrainSiltTime)==0){ return _itoa(Option.DrainSiltTime * 10, ret); } else
 	if(strcmp(var,option_DrainSiltAfterL100)==0){ return _itoa(Option.DrainSiltAfterL100 * 100, ret); } else

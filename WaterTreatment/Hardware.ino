@@ -636,9 +636,6 @@ int8_t devRelay::set_Relay(int8_t r)
 #ifndef RELAY_INVERT            // Нет инвертирования реле -  Влючение реле (Relay=true) соответсвует НИЗКИЙ уровень на выходе МК
 		r = !r;
 #endif
-#ifdef R4WAY_INVERT              // Признак инвертирования 4х ходового
-		if(number == R4WAY) r = !r;
-#endif
 		digitalWriteDirect(pin, r);
 	}
     Relay = r;                  // Все удачно, сохранить
