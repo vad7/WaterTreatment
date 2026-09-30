@@ -38,9 +38,11 @@
 #define fMessageTemp     7                  // флаг уведомления Достижение граничной температуры
 #define fMessageSD       8                  // флаг уведомления "Проблемы с sd картой"
 #define fMessageWarning  9                  // флаг уведомления "Прочие уведомления"
-// Рабочие флаги
+
+// Рабочие флаги - WorkFlags
 #define fWF_MessageSendError 	0			// ошибка отправки email
 #define fWF_SMSSendError 		1			// ошибка отправки SMS
+#define fWF_SMSSendOk			2			// SMS отправлено
 
 // Настройки уведомлений
 struct type_messageHP
@@ -130,7 +132,7 @@ class Message
     char *retMail;                       // ответ сервера при отправке почты
     char *retSMS;                        // ответ сервера при отправке sms
     char retTest[LEN_RETTEST];           // ПОСЛЕДНИЙ ответ от посылки тестового УВЕДОМЛЕНИЯ для экономии места он единый для писем и смс. К сожалению ответ возвращается в запросе от любого потока и поэтому должен храниться отдельно.
-    uint16_t WorkFlags;
+    uint8_t WorkFlags;
   };
 
 #endif  

@@ -37,7 +37,7 @@ void Message::initMessage(uint8_t web_task)
 
   SETBIT0(messageSetting.flags, fMail );                                           // флаг уведомления скидывать на почту
   SETBIT1(messageSetting.flags, fMailAUTH);                                        // флаг необходимости авторизации на почтовом сервере
-  SETBIT1(messageSetting.flags, fMailInfo);                                        // флаг необходимости добавления в письмо информации о состянии ТН
+  SETBIT1(messageSetting.flags, fMailInfo);                                        // флаг необходимости добавления в письмо информации о состоянии
   SETBIT0(messageSetting.flags, fSMS);                                             // флаг уведомления скидывать на СМС
   SETBIT1(messageSetting.flags, fMessageReset);                                    // флаг уведомления Сброс
   SETBIT1(messageSetting.flags, fMessageError);                                    // флаг уведомления Ошибка
@@ -474,6 +474,7 @@ boolean Message::setMessage(MESSAGE ms, char *c, int p1) // может запу�
   }
   messageData.p1 = p1;
   waitSend = true;                // выставить флаг необходимости отправки Уведомления
+  WorkFlags = 0;
   return true;
 }
 
@@ -498,10 +499,8 @@ boolean Message::sendMessage()  // запуск из 0 потока
 
   if (!waitSend) return true;                            // Отправлять нечего выходим
   strcpy(retTest, "Ничего не отправлено. Проверьте флаг разрешения отправки сообщений.");
-  if (MC.get_uptime() < cDELAY_START_MESSAGE) {
-    // ждать не будем, ибо зачем? _delay(200);  // Прошло мало времени после старта возможно инет еще не поднят
-    return true;
-  }
+  if(MC.get_uptime() < cDELAY_START_MESSAGE) return false; // Прошло мало времени после старта возможно инет еще не поднят
+  if(GETBIT(WorkFlags, fWF_MessageSendError) && rtcSAM3X8.unixtime() - sendTime < cDELAY_REPEAT_MESSAGE) return false;
   clearBuf(); // очистка рабочих буферов
   // Отправка Уведомления. Все таки отправлять придется -))
   if ((GETBIT(messageSetting.flags, fMail)) && (messageData.ms != pMESSAGE_TESTSMS)) // Разрешены уведомления по почте и не тест SMS
@@ -512,9 +511,7 @@ boolean Message::sendMessage()  // запуск из 0 потока
       for (i = 0; i < strlen(retMail); i++) if (retMail[i] == '=') retMail[i] = ':'; // замена знака = на : т.к. это запрещенный знак в запросах
       strcpy(retTest, "Тестовое письмо отправлено на "); get_messageSetting((char*)mess_SMTP_RCPTTO, retTest); //strcat(retTest,HP.message.get_messageSetting(pSMTP_RCPTTO));
       strcat(retTest, "\nОтвет: "); strcat(retTest, retMail);
-    }
-    else
-    {
+    } else {
       // Отправка не удачна
       for (i = 0; i < strlen(retMail); i++) if (retMail[i] == '=') retMail[i] = ':'; // замена знака = на : т.к. это запрещенный знак в запросах
       strcpy(retTest, "Тестовое письмо НЕ отправлено на "); get_messageSetting((char*)mess_SMTP_RCPTTO, retTest); //strcat(retTest,HP.message.get_messageSetting(pSMTP_RCPTTO));
@@ -522,77 +519,54 @@ boolean Message::sendMessage()  // запуск из 0 потока
     }
   }
 
-  if ((!(GETBIT(messageSetting.flags, fMail))) && (messageData.ms == pMESSAGE_TESTMAIL)) // Почта не разрешена а отправляется тестовое письмо
-  {
-    strcpy(retTest, "Письмо не отправлено. Проверьте флаг разрешения отправки почты.");
-  }
-
-  if ((GETBIT(messageSetting.flags, fSMS)) && (messageData.ms != pMESSAGE_TESTMAIL)) // Разрешены уведомления по SMS и не тест mail
+  if(GETBIT(messageSetting.flags, fSMS) && messageData.ms != pMESSAGE_TESTMAIL && !GETBIT(messageSetting.flags, fMail) && !GETBIT(WorkFlags, fWF_SMSSendOk)) // Разрешены уведомления по SMS и не тест mail
   {
     switch (messageSetting.sms_service)
     {
       case pSMS_RU:
-        if (sendSMS())
+        if((WorkFlags = (WorkFlags & ~fWF_SMSSendOk) | (sendSMS() << fWF_SMSSendOk)))
         { // Удачно
-          strcpy(retTest, "Тестовое SMS отправлено на номер "); get_messageSetting((char*)mess_SMS_PHONE, retTest); //strcat(retTest,HP.message.get_messageSetting(pSMS_PHONE));
+          strcpy(retTest, "SMS отправлено на номер "); get_messageSetting((char*)mess_SMS_PHONE, retTest); //strcat(retTest,HP.message.get_messageSetting(pSMS_PHONE));
           strcat(retTest, "\nОтвет: "); strcat(retTest, retSMS);
-        }
-        else
-        { // Не удачно
-          strcpy(retTest, "Тестовое SMS НЕ отправлено на номер "); get_messageSetting((char*)mess_SMS_PHONE, retTest); //strcat(retTest,HP.message.get_messageSetting(pSMS_PHONE));
+        } else { // Не удачно
+          strcpy(retTest, "SMS НЕ отправлено на номер "); get_messageSetting((char*)mess_SMS_PHONE, retTest); //strcat(retTest,HP.message.get_messageSetting(pSMS_PHONE));
           strcat(retTest, "\nОтвет: "); strcat(retTest, retSMS);
         }
         break;
-
       case pSMSC_RU:
-        if (sendSMSC())
+        if((WorkFlags = (WorkFlags & ~fWF_SMSSendOk) | (sendSMSC() << fWF_SMSSendOk)))
         { // Удачно
-          strcpy(retTest, "Тестовое SMS отправлено на номер "); get_messageSetting((char*)mess_SMS_PHONE, retTest); //strcat(retTest,HP.message.get_messageSetting(pSMS_PHONE));
+          strcpy(retTest, "SMS отправлено на номер "); get_messageSetting((char*)mess_SMS_PHONE, retTest); //strcat(retTest,HP.message.get_messageSetting(pSMS_PHONE));
           strcat(retTest, "\nОтвет: "); strcat(retTest, retSMS);
-        }
-        else
-        { // Не удачно
-          strcpy(retTest, "Тестовое SMS НЕ отправлено на номер "); get_messageSetting((char*)mess_SMS_PHONE, retTest); //strcat(retTest,HP.message.get_messageSetting(pSMS_PHONE));
+        } else { // Не удачно
+          strcpy(retTest, "SMS НЕ отправлено на номер "); get_messageSetting((char*)mess_SMS_PHONE, retTest); //strcat(retTest,HP.message.get_messageSetting(pSMS_PHONE));
           strcat(retTest, "\nОтвет: "); strcat(retTest, retSMS);
         }
         break;
-
       case pSMSC_UA:
-        if (sendSMSC())
+        if((WorkFlags = (WorkFlags & ~fWF_SMSSendOk) | (sendSMSC() << fWF_SMSSendOk)))
         { // Удачно
-          strcpy(retTest, "Тестовое SMS отправлено на номер "); get_messageSetting((char*)mess_SMS_PHONE, retTest); //strcat(retTest,HP.message.get_messageSetting(pSMS_PHONE));
+          strcpy(retTest, "SMS отправлено на номер "); get_messageSetting((char*)mess_SMS_PHONE, retTest); //strcat(retTest,HP.message.get_messageSetting(pSMS_PHONE));
           strcat(retTest, "\nОтвет: "); strcat(retTest, retSMS);
-        }
-        else
-        { // Не удачно
-          strcpy(retTest, "Тестовое SMS НЕ отправлено на номер "); get_messageSetting((char*)mess_SMS_PHONE, retTest); //strcat(retTest,HP.message.get_messageSetting(pSMS_PHONE));
+        } else { // Не удачно
+          strcpy(retTest, "SMS НЕ отправлено на номер "); get_messageSetting((char*)mess_SMS_PHONE, retTest); //strcat(retTest,HP.message.get_messageSetting(pSMS_PHONE));
           strcat(retTest, "\nОтвет: "); strcat(retTest, retSMS);
         }
         break;
-
       case pSMSCLUB:
-        if (sendSMSCLUB())
+        if((WorkFlags = (WorkFlags & ~fWF_SMSSendOk) | (sendSMSCLUB() << fWF_SMSSendOk)))
         { // Удачно
-          strcpy(retTest, "Тестовое SMS отправлено на номер "); get_messageSetting((char*)mess_SMS_PHONE, retTest); //strcat(retTest,HP.message.get_messageSetting(pSMS_PHONE));
+          strcpy(retTest, "SMS отправлено на номер "); get_messageSetting((char*)mess_SMS_PHONE, retTest); //strcat(retTest,HP.message.get_messageSetting(pSMS_PHONE));
           strcat(retTest, "\nОтвет: "); strcat(retTest, retSMS);
-        }
-        else
-        { // Не удачно
-          strcpy(retTest, "Тестовое SMS НЕ отправлено на номер "); get_messageSetting((char*)mess_SMS_PHONE, retTest); //strcat(retTest,HP.message.get_messageSetting(pSMS_PHONE));
+        } else { // Не удачно
+          strcpy(retTest, "SMS НЕ отправлено на номер "); get_messageSetting((char*)mess_SMS_PHONE, retTest); //strcat(retTest,HP.message.get_messageSetting(pSMS_PHONE));
           strcat(retTest, "\nОтвет: "); strcat(retTest, retSMS);
         }
         break;
-
-      default:  return false;
-    } // ничего не делаем но это ошибка
+    }
   }
-
-
-  if ((!(GETBIT(messageSetting.flags, fSMS))) && (messageData.ms == pMESSAGE_TESTSMS)) // SMS не разрешена а отправляется тестовое SMS
-    strcpy(retTest, "SMS не отправлено. Проверьте флаг разрешения отправки SMS.");
-
-  waitSend = false;        // Сбросить флаг необходимости отпвки уведомления
-  return true;             // Послано
+  if(!GETBIT(messageSetting.flags, fMail)) waitSend = false;        // Сбросить флаг необходимости отправки уведомления
+  return true;             // Была попытка послать
 }
 
 // Отправить почту --------------------------------------------------------------------
