@@ -473,7 +473,6 @@ char*  StatDate(uint32_t idt,boolean forma,char *ret)
 }
 
 // Перевод формата времени Time в формат Unix (секунды с 1970 года)
-#define SEC_1970_TO_2000      946684800
 static  const uint8_t dim[] = { 31,28,31,30,31,30,31,31,30,31,30,31 };
 unsigned long TimeToUnixTime(tmElements_t *t) //[V]*
 {

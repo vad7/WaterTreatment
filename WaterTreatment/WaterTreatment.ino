@@ -1765,24 +1765,6 @@ void vReadSensor(void *)
 
 		vReadSensor_delay1ms((TIME_READ_SENSOR - (int32_t)(GetTickCount() - ttime)) / 2);     // 1. Ожидать время нужное для цикла чтения
 
-		//  Синхронизация часов с I2C часами если стоит соответствующий флаг
-		if(MC.get_updateI2C())  // если надо обновить часы из I2c
-		{
-			if(GetTickCount() - oldTime > (uint32_t)TIME_I2C_UPDATE) // время пришло обновляться надо Период синхронизации внутренних часов с I2C часами (сек)
-			{
-				oldTime = rtcSAM3X8.unixtime();
-				uint32_t t = TimeToUnixTime(getTime_RtcI2C());       // Прочитать время из часов i2c
-				if(t) {
-					rtcSAM3X8.set_clock(t);                		 // Установить внутренние часы по i2c
-					int32_t dt = t > oldTime ? t - oldTime : -(oldTime - t);
-					MC.updateDateTime(dt);  // Обновить переменные времени с новым значением часов
-					journal.jprintfopt("Sync from I2C RTC: %s %s (%d)\n", NowDateToStr(), NowTimeToStr(), dt);
-				} else {
-					journal.jprintfopt("Error read I2C RTC\n");
-				}
-				oldTime = GetTickCount();
-			}
-		}
 		// Проверки граничных температур для уведомлений, если разрешено!
 		static uint8_t last_life_h = 255;
 		if(MC.message.get_fMessageLife()) // Подача сигнала жизни если разрешено!
@@ -2143,6 +2125,7 @@ xWaterBooster_OFF:
 // Графики в ОЗУ, счетчики моточасов, сохранение статистики, дисплей
 void vService(void *)
 {
+	static uint32_t _old_time = rtcSAM3X8.unixtime();
 	static uint8_t  task_updstat_countm = rtcSAM3X8.get_minutes();
 	static uint8_t  task_every_min = task_updstat_countm;
 	static TickType_t timer_sec = GetTickCount(), timer_idle = 0, timer_total = 0;
@@ -2543,7 +2526,21 @@ xOtherTask_1min:
 					for(uint8_t i = 0; i < W5200_THREAD; i++) SETBIT1(Socket[i].flags,fABORT_SOCK);  // Признак инициализации сокета, надо прерывать передачу в сервере
 					MC.num_resW5200++;                                // Добавить счетчик инициализаций
 				}
+			} else if(MC.get_updateI2C()) { //  Синхронизация часов с I2C часами если стоит соответствующий флаг
+				if(rtcSAM3X8.unixtime() - _old_time > (uint32_t)TIME_I2C_UPDATE) // Период синхронизации внутренних часов с I2C часами (сек)
+				{
+					_old_time = rtcSAM3X8.unixtime();
+					uint32_t t = TimeToUnixTime(getTime_RtcI2C());       // Прочитать время из часов i2c
+					if(t > SEC_1970_TO_2000 + 366*24*60*60 && (t > _old_time ? t - _old_time : _old_time - t) < 30 * 60) {
+						int32_t dt = t > _old_time ? t - _old_time : -(_old_time - t);
+						MC.updateDateTime(dt);  // Обновить переменные времени с новым значением часов
+						journal.jprintfopt("Sync from I2C RTC: %s %s (%d)\n", NowDateToStr(), NowTimeToStr(), dt);
+					} else {
+						journal.jprintf_time("Error read I2C RTC: %u\n", t);
+					}
+				}
 			}
+
 		} // 1 sec
 		vTaskDelay(1); // задержка чтения уменьшаем загрузку процессора
 	}

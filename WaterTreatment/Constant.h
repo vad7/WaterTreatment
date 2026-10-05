@@ -100,7 +100,7 @@ const uint16_t  defaultPort=80;
 #define TIME_READ_SENSOR      4000		     // мсек. Период опроса датчиков
 #endif
 #define TIME_WEB_SERVER       2              // мсек. Период опроса web_server()
-#define TIME_I2C_UPDATE       (60*60)*1000   // мсек. Время обновления внутренних часов по I2С часам (если конечно нужно)
+#define TIME_I2C_UPDATE   	 (6*60*60)       // сек. Время обновления внутренних часов по I2С часам
 #define TIME_MESSAGE_TEMP     300			 // 1/10 секунды, Проверка граничных температур для уведомлений
 #define TIME_LED_OK           1500UL         // Период мигания светодиода при ОК (мсек)
 #define TIME_LED_ERR          200            // Период мигания светодиода при ошибке (мсек).
@@ -110,6 +110,7 @@ const uint16_t  defaultPort=80;
 #define NO_POWER_ON_DELAY     15		     // Задержка включения после появления питания, сек
 #define WB_LOW_CONSUME_MAX_TIME 25000		 // Максимальное время бесперерывной работы насосной станции. После него будет переыв на включение дозатора, ms
 #define WEB0_OTHER_FUNC_PERIOD 10            // Период выполнения других функция в задаче Web0, сек
+#define SEC_1970_TO_2000      946684800
 
 #define DISPLAY_UPDATE		  2500           // Время обновления информации на дисплее (мсек)
 #define KEY_CHECK_PERIOD	  10             // ms
