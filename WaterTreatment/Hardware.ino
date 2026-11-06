@@ -1253,7 +1253,7 @@ int8_t devModbus::RelaySwitch(uint8_t id, uint16_t cmd, uint8_t r)
 	int8_t _errs = 0;
 	while(1) {
 		int8_t err = MODBUS_RELAY_FUNC(id, cmd, r);
-		if(err == OK) return err;
+		if(err == OK || MC.NO_Power) return err;
 		ModbusRelayErrors++;
 		if(++_errs == MODBUS_OTHER_MAX_ERRORS) {
 			_errs = id == MODBUS_DRAIN_PUMP_RELAY_ADDR ? ERR_DRAIN_PUMP_RELAY_LINK :

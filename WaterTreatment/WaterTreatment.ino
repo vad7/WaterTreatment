@@ -1667,7 +1667,7 @@ void vReadSensor(void *)
 								PumpReadCounter = MC.Option.PumpReadPeriod * 1000 / TIME_READ_SENSOR - 1;
 #endif
 								DrainPumpErrors++;
-								if(++DrainPumpErrCnt == MODBUS_OTHER_MAX_ERRORS) {
+								if(!MC.NO_Power && ++DrainPumpErrCnt == MODBUS_OTHER_MAX_ERRORS) {
 									if(Get_Errors_IndexEnd(ERR_DRAIN_PUMP_LINK) != ERRORS_ARR_SIZE) journal.jprintf("%s Link Error %d!\n", "PUMP", err);
 									set_Error(ERR_DRAIN_PUMP_LINK, NULL);
 									DrainPumpPower = 0;
